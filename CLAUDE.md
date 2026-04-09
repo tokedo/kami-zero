@@ -35,13 +35,35 @@ Every session follows this loop:
 
 Focus: **main quest line + Mina's quest line**. Nothing else matters right now.
 
-- Read `systems/quests.md` for mechanics
-- Identify which quests are currently accepted/available for bpeon
-- For each quest, read its requirements and current progress
-- Pick the most feasible quest and work toward it
-- **Cumulative metrics**: "Harvest 700 min" counts ACROSS ALL KAMIS. With 10 kamis harvesting, it only takes 70 minutes of real time.
-- **Retire early**: When a quest is complete, retire the kamis involved — even if HP is high. The goal is to move to the next quest, not to milk extra Musu.
-- **Do NOT prioritize**: movement quests ("move 100 times", "move 500 times"). These complete naturally as a side effect of real play. Never burn tx on fake traversals.
+### Quest-first workflow (HARD RULE)
+
+**Never start a harvest, move a kami, or buy/craft anything without first knowing which quest it serves.** Quests drive every other decision:
+
+- *Where* to harvest → the node a quest targets (e.g., "harvest 600 min on node XYZ")
+- *What* items to farm → the node where a required drop spawns (e.g., "collect 1 pinecone" → find a pinecone node, harvest enough cycles for high drop probability)
+- *When* to retire kamis → the instant a quest goal is hit, even if HP is still high
+
+**Every session, the first real decision is: "what quest am I working toward right now?" — not "my kamis are idle, let me start harvests."** Idle kamis sitting in place for 30 minutes while you plan the quest is fine. Kamis harvesting on the wrong node for 6 hours because you skipped the quest step is gas and time burned.
+
+Session 1 made exactly this mistake: walked in, saw idle kamis, tried to start Kamibots harvests on whatever node they were parked on, without first checking what quests bpeon even has. Do not repeat it.
+
+### Quest workflow steps
+
+1. Read `systems/quests.md` for mechanics (first session only, or if you need a refresher)
+2. Enumerate bpeon's accepted + available quests (main quest line + Mina's)
+3. For each quest, identify: target item, target node, time required, kami requirements
+4. Pick the most feasible quest and commit the session to it
+5. Only THEN decide: node, movement, harvest strategy
+
+**If the quest tools don't exist yet in the executor, building them is your first action this session. No harvest is more valuable than quest tools right now.**
+
+### Cumulative metrics
+
+"Harvest 700 min" counts ACROSS ALL KAMIS. With 10 kamis harvesting, it only takes 70 minutes of real time. Retire early when the quest is complete — even if HP is still high. The goal is the next quest, not extra Musu.
+
+### Do NOT prioritize
+
+Movement quests ("move 100 times", "move 500 times"). These complete naturally as a side effect of real play. Never burn tx on fake traversals.
 
 ## Default harvest strategy: Auto_v2
 
