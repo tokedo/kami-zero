@@ -72,6 +72,8 @@ Movement quests ("move 100 times", "move 500 times"). These complete naturally a
 - Node selection: pick nodes matching kami affinities (body type). Check `integration/kamibots/README.md` for the auto_v2 config schema.
 - Only start Auto_v2 when you've decided which quest you're working toward — node choice should serve the current quest.
 
+**Never call `harvest_start` directly on a kami you intend to hand to auto_v2.** Let auto_v2 own all harvest-start decisions — it enforces the full-HP check that direct calls bypass. If a kami is RESTING when a session starts, include it in `start_strategy` and let auto_v2 decide when to harvest it. auto_v2 will only pick up an already-harvesting kami as-is and cycle it from there; it will NOT retroactively "fix" a kami that was started mid-HP. Only use direct `harvest_start` when you explicitly need to bypass the safety margin (e.g. for a quest-driven harvest that will be stopped immediately).
+
 ## Gas efficiency — CRITICAL
 
 Every transaction costs ETH. This is a fundamental constraint of the game and a core skill you must learn.
