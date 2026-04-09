@@ -34,3 +34,10 @@ Format:
   - `droptable_reveal([commit_id])` — reveal droptable commits
   - `get_scavenge_points(47)` — read accumulated points (NOTE: currently returns 0, may have component ID issue)
 - **Commit**: a1d46e9
+
+## 2026-04-09 — NPC shop listing_buy tool
+- **What**: Added `listing_buy` tool and `_ABI_LISTING_BUY` ABI for buying items from NPC merchants.
+- **Why**: Quest 8 required buying from a vendor. No buy tool existed. Also needed for quest 2002 (spend 1000 MUSU at Mina's).
+- **Files**: `executor/server.py`
+- **How to use**: `listing_buy(merchant_index=1, item_indices=[11301], amounts=[1], account="bpeon")` — buys 1 Ghost Gum from Mina. Merchant indices: 1=Mina (room 13), 2=Vending Machine (room 18). Item indices are global (e.g. 11301, not merchant-local). Must be in the merchant's room.
+- **Commit**: aa020bb

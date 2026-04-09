@@ -1,44 +1,52 @@
-# Plan for session 4
+# Plan for session 5
 
-## Priority 1: Complete quest 7 (Making $MUSU — collect 500 MUSU)
+## Priority 1: Quest 9 — Give 3 Scrap Metal
 
-~299/500 MUSU collected cumulative. With 20 kamis under auto_v2 on node 47, remaining ~201 should accumulate in ~2h.
+Need Scrap Metal from scavenging node 47. Droptable for node 47: Scrap Metal (1002, weight 9), Pinecone (1005, weight 7), Cheeseburger (11302, weight 6). ~41% chance of Scrap Metal per reveal.
 
 Steps:
-1. harvest_collect in 2 batches of 10 (lane gas limit is 31.5M, 20 kamis exceeds it)
-2. check_quest_completable(7)
-3. complete_quest(7) → accept quest 8
+1. Collect from kamis (accumulates scavenge points)
+2. scavenge_claim(47) — claim tiers
+3. Fix droptable commit ID extraction (session 4 failed — used wrong ID from tx logs)
+4. droptable_reveal — hope for Scrap Metal
+5. Repeat until 3 Scrap Metal collected
+6. complete_quest(9)
 
-## Priority 2: Progress quest chain — quest 8+
+## Priority 2: Quest 2002 — Spend 1000 MUSU at Mina's Shop
 
-Quest 8: "Buy something from any vendor" — need NPC shop buy tool. Check get_npc_prices first, then build buy tool if needed.
+Need to buy 1000 MUSU worth of items from Mina (NPC 1, room 13). Cheapest option: Ghost Gum at ~18 MUSU each = ~56 purchases. Could buy in bulk with listing_buy tool.
 
-Quest 9: "Give 3 Scrap Metal" — need scrap metal from scavenging on node 47.
+Approach: Move to room 13, buy in bulk, move back. Accept that this costs movement stamina (10 moves round trip = 50 stamina).
 
-## Priority 3: Side quest 3003 (level up kami)
+## Priority 3: Accept quest 10+
 
-Need a kami in RESTING state to level up. Auto_v2 cycles kamis through REST — check if any are RESTING at session start. Kami 43 has 115,405 XP at level 37, likely enough for level 38.
+After quest 9, accept next main quest. Check requirements.
 
-## Priority 4: Quest 6 (Liquidate another Kamigotchi)
+## Priority 4: SQ 3003 — Level up kami
 
-Branch quest, not blocking main chain. Investigate feasibility only after main quests progress.
+Need kami in RESTING state. Auto_v2 cycles kamis through REST. Check at session start if any are RESTING. Kami 43 had enough XP at level 37.
 
-## Priority 5: Mina's quest line
+## Priority 5: Fix harness issues
 
-Unlocks at MSQ 7 completion (quest 2001: enter Mina's Shop, room 13). Accept after completing quest 7.
+- Droptable reveal commit ID extraction: session 4 extracted wrong ID from logs. Need to parse Store_SetRecord events correctly to find droptable entity IDs.
+- Scavenge points reading returns 0 (component ID issue from session 2). Points do accumulate (claim succeeded), just can't read them.
+- listing_buy tool added but needs MCP server restart to be available. Consider restarting executor.
 
 ## Active quests
-- Quest 7 — ~299/500 MUSU — collecting from harvests
+- Quest 9 — give 3 Scrap Metal — need to scavenge
+- Quest 2002 — spend 1000 MUSU at Mina's — need to buy items
 - Quest 6 — liquidate 1 kami — deferred
 - SQ 3003 — level up 1 kami — waiting for RESTING state
 
 ## Active strategies
-- Kamibots auto_v2: 20 kamis on node 47 (Scrap Paths), REST regen, 5% safety margin
-- Strategy ID: 5cd66fb8-1fc0-4cf2-9d20-1ea798f0fd85
-- Container: c65a66017eb0... healthy, 0 restarts
+- Kamibots auto_v2: 20 kamis on node 47 (Scrap Paths), REST regen, 5% safety
+- Strategy ID: 981e3748-cf85-4b07-baca-d6d74c0781f9
+- Container: ac1cbd23db... healthy, 0 restarts
+- Config key: kamiIndices (NOT kamis) + harvestPreferences per kami
 
-## Improvement backlog
-- Batch collect must be split into 2x10 (lane gas limit 31.5M) — consider reducing batch size in default workflow
-- Add NPC shop buy tool (needed for quest 8)
-- Add liquidation tool (needed for quest 6)
-- Add staticCall pre-check to scavenge_claim (wasted gas in session 2)
+## Key learnings
+- auto_v2 config uses `kamiIndices` not `kamis`, and needs `harvestPreferences` array
+- Room movement is adjacency-based (same z, diff 1 in x or y) + special exits for z transitions
+- NPC merchants have specific room locations: Mina=room 13, Vending Machine=room 18
+- listing_buy uses global item indices (e.g. 11301), not merchant-local indices
+- Path from room 47 to room 13: 47→4→30→3→2→13 (5 moves, 25 stamina)

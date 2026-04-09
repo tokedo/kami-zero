@@ -73,3 +73,28 @@ Append one entry per session. Newest at the bottom.
 **Result**: Auto_v2 relaunched successfully. MUSU accumulating toward quest 7. Estimate ~299/500 collected so far — need ~200 more. 20 kamis harvesting under Kamibots management.
 **Gas notes**: 2 collect tx (had to split 20 kamis into 2x10 — 20-kami batch exceeded lane gas limit of 31.5M). 1 nonce retry on batch 2 (no extra gas). All tx successful.
 **Next session**: Collect + complete quest 7 (should reach 500). Accept quest 8. Try SQ 3003 if any kami enters RESTING. (scheduled: +3h)
+
+---
+
+## 2026-04-09 21:00 UTC — session 4
+
+**Perceived**: 20 kamis HARVESTING on node 47. 0 strategies (auto_v2 down again). 102,720 MUSU. Quest 7 not yet completable.
+**Decided**:
+  - Collect MUSU → complete quest 7 → accept quest 8 + Mina's 2001
+  - Move to room 13 (Mina's Shop) to complete quest 2001 + buy from Mina for quest 8
+  - Build listing_buy tool in executor (needed for NPC purchases)
+  - Scavenge claim on node 47 for Scrap Metal (quest 9)
+  - Restart auto_v2 with correct config format
+**Acted**:
+  - harvest_collect (2x10 batches): +1,366 MUSU → 104,086
+  - complete_quest(7): success. accept_quest(8): success. accept_quest(2001): success.
+  - move_to_room: 47→4→30→3→2→13 (5 moves, 25 stamina). Quest 2001 completable.
+  - complete_quest(2001): success (Mina's quest line started)
+  - listing_buy (Mina, Ghost Gum 11301, 18 MUSU): success via direct script (new MCP tool not live yet)
+  - complete_quest(8): success. accept_quest(9): success. accept_quest(2002): success.
+  - move_to_room: 13→2→3→30→4→47 (5 moves back)
+  - scavenge_claim(47): success. droptable_reveal: FAILED (wrong commit ID extraction)
+  - start_strategy(auto_v2): 1st attempt crashed ("No kamis provided" — used wrong config key `kamis`). 2nd attempt with `kamiIndices` + `harvestPreferences`: RUNNING, healthy.
+**Result**: Quests 7, 8, 2001 completed. Quests 9, 2002 accepted. Quest 9 needs 3 Scrap Metal. Quest 2002 needs 1000 MUSU spent at Mina's. Auto_v2 running with correct config. listing_buy tool added to executor. MUSU: 105,497.
+**Gas notes**: 3 reverted tx wasted gas (~730k total): move to room 13/2 from non-adjacent room 47, buy from vending machine in wrong room. Lesson: check adjacency + NPC room before moving/buying. 1 failed droptable reveal (~186k). All other tx successful.
+**Next session**: Scavenge + reveal for Scrap Metal (quest 9). Investigate droptable commit ID extraction. Start spending MUSU at Mina's for quest 2002. (scheduled: +6h)
