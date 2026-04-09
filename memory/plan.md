@@ -1,42 +1,45 @@
-# Plan for session 2
+# Plan for session 3
 
-## Priority 1: Build quest tooling (blocks everything else)
+## Priority 1: Complete quest 7 (Making $MUSU — collect 500 MUSU)
 
-Session 1 tried to start harvests before checking quests — that was backwards. Quests tell us WHERE to harvest and WHICH drops to farm. Fix by building quest tooling first, then use it to drive all other decisions this session.
+~159 MUSU earned since acceptance as of end of session 2. With 20 kamis under Kamibots auto_v2 on node 47, the remaining ~341 MUSU should accumulate in ~1-2 hours.
 
-No quest read/accept/complete tools exist in the executor. Build them:
-- `get_account_quests(account)` — list accepted + available quests for the account
-- `get_quest_details(quest_index_or_entity_id)` — requirements, progress, rewards
-- `accept_quest(quest_index, account)` — accept a quest from NPC
-- `complete_quest(quest_entity_id, account)` — submit completion
-- `drop_quest(quest_entity_id, account)` — abandon (rarely needed)
+Steps:
+1. Collect from all harvests (batch harvest_collect)
+2. Check quest 7 completability
+3. Complete quest 7 → accept quest 8 (Supporting Local Businesses: buy from vendor)
 
-References:
-- `systems/quests.md` — game mechanics
-- `integration/api/quests.md` — API patterns (if present)
-- `state-reading.md` — how to enumerate on-chain entities by component
+## Priority 2: Progress quest chain — quest 8 and beyond
 
-Commit new tools with `harness:` prefix. Document in `memory/improvements.md`.
+Quest 8: "Buy something from any vendor" — need to find a vendor/NPC shop and buy an item. Check if there's a buy tool in the executor. If not, build one.
 
-## Priority 2: Quest-driven plan for bpeon
+Quest 9: "Give 3 Scrap Metal" — need scrap metal drops from scavenging. Continue scavenge claims on node 47.
 
-Once quest tools exist:
-- Enumerate bpeon's accepted + available quests (main quest line + Mina's)
-- For each quest, extract: target item, target node, time required, kami requirements
-- Pick ONE quest to work toward this session
-- Determine which node(s) satisfy it — this drives harvest location
+## Priority 3: Quest 6 (Liquidate another Kamigotchi)
 
-## Priority 3: Execute harvest for the chosen quest
+This is a branch quest, not blocking the main chain. Requires:
+- Finding another player's kami on the same node with low HP
+- Having a high-Violence kami
+- Both must be HARVESTING on the same node
 
-- Move kamis to the quest-required node (only if different from node 86)
-- Retry Kamibots `auto_v2` — if still broken (see `memory/alerts.md` for session-1 outage), implement direct on-chain `start_harvest_batch` / `stop_harvest_batch` using the `system.harvest.start` / `system.harvest.stop` ABIs as fallback. This bypasses Kamibots entirely but loses HP-based auto-rest — you'd need to stop manually before HP runs out.
-- Kamis may sit idle for part of this session while quest tools are built — that's fine and correct. Idle-in-right-place beats harvesting-in-wrong-place.
+Investigate feasibility but don't prioritize over main chain progress.
 
-## Active state (end of session 1)
-- 20 kamis, all RESTING on node 86 (Guardian Skull, EERIE/INSECT) — this may or may not be the right node; decide after quest analysis
-- 0 strategies running, 21 strategy slots available
-- Kami affinities (sample, kami #43): body=NORMAL, hand=EERIE
-- 102,398 Musu, 100 Red Ribbon Gummies
+## Priority 4: Side quests
 
-## Kamibots outage reminder
-See `memory/alerts.md`. As of 2026-04-09 14:17 UTC, all Kamibots strategy containers crashed with `Error: supabaseKey is required` (server-side Supabase init failure in the strategy container image). Human operator has been notified and is filing a bug report with the Kami team. Retry Kamibots at the start of Priority 3 — if still broken, use the direct on-chain fallback described above.
+- SQ 3003 (level up kami): needs XP. Kamis earn XP from harvesting — check if any can level up.
+- Mina's line: unlocks at MSQ 7 completion (quest 2001: enter Mina's Shop, room 13). Accept after MSQ 7.
+
+## Active quests
+- Quest 7 — ~159/500 MUSU — collecting from harvests
+- Quest 6 — liquidate 1 kami — deferred
+- SQ 3003 — level up 1 kami — waiting for XP
+
+## Active strategies
+- Kamibots auto_v2: 20 kamis on node 47 (Scrap Paths), REST regen, 5% safety margin
+- Strategy ID: b4e3430a-391f-4175-b9bd-854d97db1770
+- Container healthy as of session 2 end
+
+## Improvement backlog
+- Add staticCall pre-check to scavenge_claim (wasted gas on reverted claim)
+- Add NPC shop buy tool (needed for quest 8)
+- Add liquidation tool (needed for quest 6)
