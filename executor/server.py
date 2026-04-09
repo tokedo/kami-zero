@@ -655,6 +655,13 @@ _ABI_HARVEST_STOP = json.loads(
     '"outputs":[{"type":"bytes[]"}],"stateMutability":"nonpayable"}]'
 )
 _ABI_HARVEST_COLLECT = _ABI_HARVEST_STOP  # same signature
+_ABI_LISTING_BUY = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"merchantIndex","type":"uint32"},'
+    '{"name":"itemIndices","type":"uint32[]"},'
+    '{"name":"amts","type":"uint32[]"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
 
 
 @mcp.tool()
@@ -793,6 +800,32 @@ def move_to_room(room_index: int, account: str = "main") -> dict:
     """
     return _send_tx(
         account, "system.account.move", _ABI_MOVE, [room_index], gas_limit=1_200_000
+    )
+
+
+@mcp.tool()
+def listing_buy(
+    merchant_index: int,
+    item_indices: list[int],
+    amounts: list[int],
+    account: str = "bpeon",
+) -> dict:
+    """Buy items from an NPC merchant. Must be in the merchant's room.
+
+    Args:
+        merchant_index: NPC merchant index (1=Mina, 2=Vending Machine).
+        item_indices: List of item indices to buy (global item index, e.g. 11301).
+        amounts: List of amounts for each item (parallel to item_indices).
+        account: Account label.
+    """
+    if len(item_indices) != len(amounts):
+        raise ValueError("item_indices and amounts must have the same length")
+    return _send_tx(
+        account,
+        "system.listing.buy",
+        _ABI_LISTING_BUY,
+        [merchant_index, item_indices, amounts],
+        gas_limit=1_500_000,
     )
 
 
