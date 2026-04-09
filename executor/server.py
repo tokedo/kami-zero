@@ -236,7 +236,14 @@ async def _api_post(path: str, body: dict | None = None) -> dict:
         r = await c.post(
             f"{KAMIBOTS_BASE}{path}", headers=_headers(), json=body or {}
         )
-        r.raise_for_status()
+        if r.status_code >= 400:
+            try:
+                detail = r.json()
+            except Exception:
+                detail = r.text
+            raise RuntimeError(
+                f"API {r.status_code} on POST {path}: {detail}"
+            )
         return r.json()
 
 
@@ -481,20 +488,22 @@ async def get_account_kamis(
 @mcp.tool()
 async def start_strategy(
     strategy_type: str,
-    kami_id: int,
-    node_id: int,
     config: dict,
+    kami_id: int = 0,
+    node_id: int = 0,
     account: str = "main",
 ) -> dict:
-    """Start a Kamibots strategy for a kami.
+    """Start a Kamibots strategy.
 
     Args:
         strategy_type: One of harvestAndRest, harvestAndFeed, rest_v3,
             auto_v2, bodyguard, craft.
-        kami_id: Kami token index (e.g. 45). For craft strategies, pass 0.
-        node_id: Harvest node index. Must match kami's current room.
         config: Strategy-specific config dict.
             See integration/kamibots/README.md for schemas.
+        kami_id: Kami token index. Required for all strategies. For
+            multi-kami strategies (auto_v2, rest_v3), pass any kami
+            from the group.
+        node_id: Harvest node index. Must match kami's current room.
         account: Account label.
     """
     if not _privy_id:
