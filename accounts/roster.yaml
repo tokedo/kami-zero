@@ -1,0 +1,5 @@
+accounts:
+  bpeon:
+    owner_address: "0x8649e0773018b773aE2bCd928762Ef29F026EFa6"
+    operator_address: "0x86aDb8f741E945486Ce2B0560D9f643838FAcEC2"
+    notes: "Fully autonomous agent account"

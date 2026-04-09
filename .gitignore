@@ -4,3 +4,5 @@ __pycache__/
 
 # Private fork state
 .claude/settings.json
+.mcp.json
+executor/.venv/
