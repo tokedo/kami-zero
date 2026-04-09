@@ -1,54 +1,28 @@
-# Plan for session 1 (initial seed)
+# Plan for session 2
 
-> *This is the initial plan written by the human operator. After this session, you will overwrite it with your own plan for the next session.*
+## Priority 1: Get kamis harvesting
 
-## This is your first session
+Kamibots strategies are broken (supabaseKey error in all containers as of 2026-04-09 14:17 UTC). Two approaches:
 
-Before you do anything game-related:
+1. **Retry Kamibots** — check if the platform issue is fixed by starting a single test harvestAndRest. If it works, start all 20 kamis.
+2. **Direct on-chain harvesting** (fallback) — if Kamibots is still broken, implement `start_harvest_batch` and `stop_harvest_batch` tools in `executor/server.py` using `system.harvest.start` / `system.harvest.stop` directly. This bypasses Kamibots entirely but loses HP-based auto-rest. We'd need to monitor HP and stop manually.
 
-1. **Read `CLAUDE.md` fully.** Understand the session protocol, gas rules, quest focus, and improvement mandate.
-2. **Read `session-prompt.md`** so you understand what cron will send you each time.
-3. **Skim these systems docs** for context:
-   - `systems/quests.md` — your primary objective is quest completion
-   - `systems/harvesting.md` — Auto_v2 will use nodes; understand node selection
-   - `systems/gas-efficiency.md` — if this doesn't exist, that's a harness improvement opportunity (don't create it during this session though, focus on game progress)
-   - `integration/kamibots/README.md` — auto_v2 strategy config schema
+## Priority 2: Quest tooling
 
-## Priority 1: Clean up stale state
+No quest read/accept/complete tools exist. High-value harness improvement:
+- Read `systems/quests.md` and `integration/api/quests.md` (already reviewed)
+- Implement `accept_quest(index)`, `complete_quest(entity_id)`, `drop_quest(entity_id)` in executor
+- Quest state reading requires on-chain queries — investigate `state-reading.md` for how to enumerate active quests
 
-During the setup session, we noticed 1 strategy slot was reported "in use" but all harvests were INACTIVE. Call `get_all_strategies(account="bpeon")` and investigate. Clean up any zombie strategy records.
+## Priority 3: Quest assessment
 
-## Priority 2: Quest assessment
+Once quest tools exist:
+- Enumerate available/active quests for bpeon (main quest line + Mina's)
+- Pick most feasible quest to work toward
+- Align harvest node selection with quest objectives
 
-This is your primary objective going forward.
-
-- Use whatever MCP tools exist to enumerate accepted/available quests for bpeon
-- Focus on: **main quest line** and **Mina's quest line**
-- For each quest, read its requirements and current progress
-- Pick the most feasible quest to work on first
-
-If there is no tool to list quests, this is a high-value harness improvement — read `systems/quests.md` and `integration/api/quests.md`, then add a `get_account_quests(account)` tool to `executor/server.py`. Document it in `memory/improvements.md`.
-
-## Priority 3: Start Auto_v2 harvests (aimed at quest)
-
-Once you know which quest you're working toward:
-
-- Select nodes appropriate for kami affinities AND that advance the chosen quest
-- Start `auto_v2` strategies with 5% safety margins
-- Batch the kamis you deploy to minimize gas
-
-## Priority 4: Initial state snapshot
-
-Kamis currently on bpeon (as of 2026-04-08):
-- 43, 1064, 2553, 6096, 7803, 8745, 10011, 12459, 13235, 13390, 13702, 13857
-- All were RESTING with cooldowns expired
-- Balances: 108,958 Musu, 365,000 Sanguineous Powder, 100 Red Ribbon Gummies (revives), etc.
-
-Verify this is still accurate at the start of your session.
-
-## At end of session
-
-- Append entry to `memory/decisions.md`
-- Overwrite this file (`memory/plan.md`) with the plan for session 2
-- Write unix timestamp to `memory/next-run-at` (default: 6h = current + 21600)
-- Commit and push
+## Active state
+- 20 kamis, all RESTING on node 86 (Guardian Skull, EERIE/INSECT)
+- 0 strategies running
+- Kami affinities (from full state of #43): body=NORMAL, hand=EERIE
+- 102,398 Musu, 100 Red Ribbon Gummies
