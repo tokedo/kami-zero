@@ -1,5 +1,10 @@
 memory/*
 !memory/.gitkeep
+!memory/plan.md
+!memory/decisions.md
+!memory/improvements.md
+!memory/next-run-at
+!memory/alerts.md
 __pycache__/
 
 # Private fork state
