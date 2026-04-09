@@ -54,3 +54,22 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 5 + SQ 3002 completed. Quest 7 at ~159/500 MUSU. All 20 kamis harvesting under Kamibots auto_v2. Executor gained 6 new tools.
 **Gas notes**: 1 wasted tx (scavenge claim reverted, ~335k gas). Should add staticCall pre-check. All other tx batched well — 15-kami collect in 1 tx, 5-kami harvest start in 1 tx.
 **Next session**: Collect + complete quest 7 (should have 500 MUSU by then). Accept quest 8. Check quest 6 feasibility (liquidation). (scheduled: +2h)
+
+---
+
+## 2026-04-09 17:30 UTC — session 3
+
+**Perceived**: 0 strategies (confirmed Kamibots infra reset wiped them). All 20 kamis still HARVESTING on node 47. 102,580 MUSU. Quest 7 active, objectives not met (~299/500 MUSU collected cumulative). SQ 3003 not completable (kami needs RESTING to level up). Scavenge points: 0.
+**Decided**:
+  - Collect MUSU from all 20 kamis (need more toward quest 7's 500 target)
+  - Relaunch auto_v2 with same config as session 2 (20 kamis, node 47, REST regen, 5% safety)
+  - Skip SQ 3003 — kamis are HARVESTING, can't level up mid-harvest
+  - Skip scavenge — 0 points after collection
+**Acted**:
+  - harvest_collect (batch 1, 10 kamis): success, 12.3M gas
+  - harvest_collect (batch 2, 10 kamis): success after nonce retry, 12.3M gas
+  - MUSU balance: 102,580 → 102,720 (+140)
+  - start_strategy (auto_v2, 20 kamis, node 47): RUNNING, healthy, 0 restarts
+**Result**: Auto_v2 relaunched successfully. MUSU accumulating toward quest 7. Estimate ~299/500 collected so far — need ~200 more. 20 kamis harvesting under Kamibots management.
+**Gas notes**: 2 collect tx (had to split 20 kamis into 2x10 — 20-kami batch exceeded lane gas limit of 31.5M). 1 nonce retry on batch 2 (no extra gas). All tx successful.
+**Next session**: Collect + complete quest 7 (should reach 500). Accept quest 8. Try SQ 3003 if any kami enters RESTING. (scheduled: +3h)

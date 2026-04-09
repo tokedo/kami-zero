@@ -1,65 +1,44 @@
-# Plan for session 3
-
-> **URGENT — ad-hoc session triggered by human operator (2026-04-09 ~17:24 UTC).**
-> **Kamibots did a platform-wide infra reset after session 2 ended.** All strategies that
-> were running (including ours: auto_v2 on node 47, 20 kamis, strategy ID
-> `b4e3430a-391f-4175-b9bd-854d97db1770`) have been removed server-side. The kamis
-> themselves should still be HARVESTING on-chain on node 47 — only the off-chain Kamibots
-> management container is gone.
->
-> **Priority 0 (before anything else):**
-> 1. `get_account_strategies` to confirm the strategy is gone (expect 0 active).
-> 2. `get_player_kamis` to confirm the 20 kamis are still harvesting on node 47.
-> 3. Relaunch `auto_v2` for all 20 kamis on node 47 with 5% safety margin, same config
->    as session 2. Record the new strategy ID in plan.md for next session.
-> 4. Only after the strategy is healthy, proceed to quest 7 (collect MUSU etc.) below.
->
-> If the kamis are no longer harvesting (e.g. Kamibots reset somehow stopped them), use
-> `harvest_start` to put them back on node 47 before starting the strategy.
->
-> After this session, resume normal scheduling via `memory/next-run-at` — the human
-> operator will not intervene again for the regular cadence.
+# Plan for session 4
 
 ## Priority 1: Complete quest 7 (Making $MUSU — collect 500 MUSU)
 
-~159 MUSU earned since acceptance as of end of session 2. With 20 kamis under Kamibots auto_v2 on node 47, the remaining ~341 MUSU should accumulate in ~1-2 hours.
+~299/500 MUSU collected cumulative. With 20 kamis under auto_v2 on node 47, remaining ~201 should accumulate in ~2h.
 
 Steps:
-1. Collect from all harvests (batch harvest_collect)
-2. Check quest 7 completability
-3. Complete quest 7 → accept quest 8 (Supporting Local Businesses: buy from vendor)
+1. harvest_collect in 2 batches of 10 (lane gas limit is 31.5M, 20 kamis exceeds it)
+2. check_quest_completable(7)
+3. complete_quest(7) → accept quest 8
 
-## Priority 2: Progress quest chain — quest 8 and beyond
+## Priority 2: Progress quest chain — quest 8+
 
-Quest 8: "Buy something from any vendor" — need to find a vendor/NPC shop and buy an item. Check if there's a buy tool in the executor. If not, build one.
+Quest 8: "Buy something from any vendor" — need NPC shop buy tool. Check get_npc_prices first, then build buy tool if needed.
 
-Quest 9: "Give 3 Scrap Metal" — need scrap metal drops from scavenging. Continue scavenge claims on node 47.
+Quest 9: "Give 3 Scrap Metal" — need scrap metal from scavenging on node 47.
 
-## Priority 3: Quest 6 (Liquidate another Kamigotchi)
+## Priority 3: Side quest 3003 (level up kami)
 
-This is a branch quest, not blocking the main chain. Requires:
-- Finding another player's kami on the same node with low HP
-- Having a high-Violence kami
-- Both must be HARVESTING on the same node
+Need a kami in RESTING state to level up. Auto_v2 cycles kamis through REST — check if any are RESTING at session start. Kami 43 has 115,405 XP at level 37, likely enough for level 38.
 
-Investigate feasibility but don't prioritize over main chain progress.
+## Priority 4: Quest 6 (Liquidate another Kamigotchi)
 
-## Priority 4: Side quests
+Branch quest, not blocking main chain. Investigate feasibility only after main quests progress.
 
-- SQ 3003 (level up kami): needs XP. Kamis earn XP from harvesting — check if any can level up.
-- Mina's line: unlocks at MSQ 7 completion (quest 2001: enter Mina's Shop, room 13). Accept after MSQ 7.
+## Priority 5: Mina's quest line
+
+Unlocks at MSQ 7 completion (quest 2001: enter Mina's Shop, room 13). Accept after completing quest 7.
 
 ## Active quests
-- Quest 7 — ~159/500 MUSU — collecting from harvests
+- Quest 7 — ~299/500 MUSU — collecting from harvests
 - Quest 6 — liquidate 1 kami — deferred
-- SQ 3003 — level up 1 kami — waiting for XP
+- SQ 3003 — level up 1 kami — waiting for RESTING state
 
 ## Active strategies
 - Kamibots auto_v2: 20 kamis on node 47 (Scrap Paths), REST regen, 5% safety margin
-- Strategy ID: b4e3430a-391f-4175-b9bd-854d97db1770 — **LIKELY WIPED by Kamibots infra reset; relaunch and update this ID**
-- Container was healthy as of session 2 end; status now unknown
+- Strategy ID: 5cd66fb8-1fc0-4cf2-9d20-1ea798f0fd85
+- Container: c65a66017eb0... healthy, 0 restarts
 
 ## Improvement backlog
-- Add staticCall pre-check to scavenge_claim (wasted gas on reverted claim)
+- Batch collect must be split into 2x10 (lane gas limit 31.5M) — consider reducing batch size in default workflow
 - Add NPC shop buy tool (needed for quest 8)
 - Add liquidation tool (needed for quest 6)
+- Add staticCall pre-check to scavenge_claim (wasted gas in session 2)
