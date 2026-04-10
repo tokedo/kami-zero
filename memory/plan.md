@@ -19,15 +19,19 @@ A new low-level helper `use_account_item(item_id, account="bpeon")` is also avai
 
 ## Priority 1: Quest 9 — Give 3 Scrap Metal
 
-Need Scrap Metal from scavenging node 47. Droptable for node 47: Scrap Metal (1002, weight 9), Pinecone (1005, weight 7), Cheeseburger (11302, weight 6). ~41% chance of Scrap Metal per reveal.
+**Check inventory first.** auto_v2 has been harvesting node 47 since session 4 — Scrap Metal (item 1002) may already be in bpeon's inventory from passive scavenge cycles or earlier sessions. Don't get stuck on the session-4 droptable extraction bug if you don't actually need to scavenge.
 
-Steps:
-1. Collect from kamis (accumulates scavenge points)
-2. scavenge_claim(47) — claim tiers
-3. Fix droptable commit ID extraction (session 4 failed — used wrong ID from tx logs)
-4. droptable_reveal — hope for Scrap Metal
-5. Repeat until 3 Scrap Metal collected
-6. complete_quest(9)
+1. `get_inventory()` — read bpeon's inventory. Look at item index **1002** (Scrap Metal).
+2. **If balance ≥ 3** → `complete_quest(9)` immediately. Done. Move to Priority 2.
+3. **If balance < 3** → run the scavenge cycle below until you have 3:
+   - `harvest_collect([...])` to bank MUSU and accumulate scavenge points on node 47
+   - `scavenge_claim(47)` — this is the **commit** half of a commit-reveal. It returns commit IDs.
+   - In a later block: `droptable_reveal(commit_ids)` — this is what actually drops items into inventory.
+   - `get_inventory()` again, repeat until item 1002 ≥ 3.
+   - Drop weights for node 47: Scrap Metal (1002, w=9), Pinecone (1005, w=7), Cheeseburger (11302, w=6) — ~41% Scrap Metal per reveal.
+4. Then `complete_quest(9)`.
+
+**Note on the droptable extraction bug:** session 4 pulled the wrong commit IDs out of the scavenge-claim tx logs and the reveal failed. **Only fix this if step 3 above turns out to be required.** If inventory already has enough, the bug fix is wasted work — defer it. The fix lives in Priority 5; pull it forward only if you're forced to.
 
 ## Priority 2: Quest 2002 — Spend 1000 MUSU at Mina's Shop
 
@@ -45,7 +49,7 @@ Need kami in RESTING state. Auto_v2 cycles kamis through REST. Check at session 
 
 ## Priority 5: Fix harness issues
 
-- Droptable reveal commit ID extraction: session 4 extracted wrong ID from logs. Need to parse Store_SetRecord events correctly to find droptable entity IDs.
+- Droptable reveal commit ID extraction: session 4 extracted wrong ID from logs. Need to parse Store_SetRecord events correctly to find droptable entity IDs. **Do NOT pull this forward unless Priority 1 inventory check shows < 3 Scrap Metal AND scavenging is the bottleneck.** Otherwise this is a "nice to have" — defer.
 - Scavenge points reading returns 0 (component ID issue from session 2). Points do accumulate (claim succeeded), just can't read them.
 - listing_buy tool added but needs MCP server restart to be available. Consider restarting executor.
 
