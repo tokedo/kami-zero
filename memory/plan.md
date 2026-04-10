@@ -39,12 +39,13 @@ Deferred — destructive action.
 - SQ 3003 — level up kami — waiting for XP + RESTING state
 
 ## Active strategies
-- NO auto_v2 running (20/21 zombie slots, platform bug)
+- NO auto_v2 running — all 21 slots FREE (zombie-slots bug fixed by Kamibots team 2026-04-10)
+- Strategy deletion now works correctly: slots are freed on DELETE. Resume using auto_v2 normally.
 - 20 kamis RESTING on node 26 at low HP
 
 ## Key learnings
 - HARVEST_TIME quest counter updates on STOP, not COLLECT
 - Per-kami harvest time is cumulative for quest tracking
-- Zombie strategy slots: unfixable platform bug, manage harvests manually
+- Zombie strategy slots bug FIXED (2026-04-10) — strategy deletion now properly frees slots. Use auto_v2 normally.
 - Collect sets ~3 min cooldown that blocks stop
 - HP regen rate: (Harmony + 20) * 0.6 / 3600 HP/sec. Kami 43 (H=19): ~23 HP/hr
