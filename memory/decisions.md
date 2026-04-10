@@ -205,3 +205,25 @@ Append one entry per session. Newest at the bottom.
 **Result**: Auto_v2 running on node 26. Kami 43 HP boosted to ~99. Quest 2005 timer will accumulate via auto_v2 stop cycles. SQ 3003 deferred.
 **Gas notes**: 1 tx (feed_kami, 1.57M gas). Level up reverted (no gas). Strategy start is off-chain API call. Very gas-efficient session.
 **Next session**: Check quest 2005 completability (should be met after auto_v2 cycles). Complete quest, accept 2006. Review quest 10 + 2008 planning. (scheduled: +8h)
+
+---
+
+## 2026-04-10 22:06 UTC — session 9
+
+**Perceived**: Auto_v2 ACTIVE on node 26 (8h uptime, healthy, 0 restarts). 20 kamis HARVESTING. Quest 2005 NOT completable (harvest time counter not flushed — updates on STOP, not while harvesting). 122,878 MUSU. 21 slots: 20 used, 1 free.
+**Decided**:
+  - Stop auto_v2 + stop all 20 kamis to flush HARVEST_TIME counter
+  - Complete quest 2005, accept quest 2006 (harvest 720 min at Lost Skeleton, Moonside)
+  - Move from room 26 to room 25 (Lost Skeleton) for quest 2006
+  - Start auto_v2 on node 25 immediately — MOONSIDE phase starts in ~2h
+**Acted**:
+  - stop_strategy(43, permanent=True): DELETED. Slots freed to 0/21.
+  - harvest_stop (2x10 batches): success. Gas: 29.6M total.
+  - check_quest_completable(2005): TRUE (after stop).
+  - complete_quest(2005): success. Gas: 984k.
+  - accept_quest(2006): success. Gas: 837k.
+  - travel_to_room(25): 5 hops (26→31→33→9→36→25), 25 stamina. Gas: 4.5M.
+  - start_strategy(auto_v2, 20 kamis, node 25): RUNNING, healthy, 0 restarts.
+**Result**: Quest 2005 completed. Quest 2006 accepted and auto_v2 running on node 25. Current phase: EVENFALL, MOONSIDE in ~2h. If "(Moonside)" means harvest only counts during MOONSIDE phase, 12h window with 20 kamis = plenty (need 36 real min). 20/21 slots used.
+**Gas notes**: 29.6M (harvest stop) + 984k (quest) + 837k (quest) + 4.5M (travel) = ~36M total. No wasted tx. Efficient session.
+**Next session**: Stop kamis, check quest 2006 completability. If not met, may need to ensure harvesting during MOONSIDE. Plan quest 10 (Normal-room scavenging) and 2008 (specific scavenge items). (scheduled: +8h)
