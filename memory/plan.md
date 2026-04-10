@@ -1,3 +1,20 @@
+# Priority 0 (read first): travel_to_room is now available
+
+A new MCP tool ships in this session: `travel_to_room(target_room, account="bpeon", dry_run=True)`. It replaces manual pathfinding entirely. **DO NOT plan paths from `rooms.csv` adjacency in your head.** Session 4 burned ~730k gas on reverted moves doing exactly that — this tool exists so it never happens again.
+
+- Always `dry_run=True` first to inspect the path, then execute without `dry_run` to act.
+- Auto-uses SP+ items (21201–21206 ice creams / paste) from inventory when stamina would otherwise run out. Returns a clean partial result if it can't reach the target.
+- See `CLAUDE.md` → "Movement: use travel_to_room" for full semantics, including the lower-bound `stamina_remaining` caveat and the 15s Kamibots cache gotcha.
+- Backed by deterministic BFS in `executor/rooms_graph.py`. Static graph, zero tokens, always correct.
+
+**Data fix shipped alongside:** rooms 19 (Temple of the Wheel, z=3) and 59 (Black Pool, z=1) were marked "To Update" in `catalogs/rooms.csv` and excluded from the graph. They're actually live on-chain and form a bidirectional z=1↔z=3 portal. This unlocks shorter cross-plane paths — e.g. room 79 → 12 dropped from 16 hops to 12 hops.
+
+**Apply to Priority 2 below (1000 MUSU at Mina's, room 13):** start with `travel_to_room(13, account="bpeon", dry_run=True)` to see the path and stamina cost. Then execute. Then `travel_to_room(<return_room>, account="bpeon")` for the return leg. If `reached_target: False` comes back on either leg, append "accumulate SP+ items (21201–21206)" to next session's plan.md and stop the trip cleanly.
+
+A new low-level helper `use_account_item(item_id, account="bpeon")` is also available — use it directly only when you want to top off stamina outside of a travel call.
+
+---
+
 # Plan for session 5
 
 ## Priority 1: Quest 9 — Give 3 Scrap Metal
