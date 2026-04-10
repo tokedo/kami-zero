@@ -853,17 +853,26 @@ async def start_strategy(
 
 
 @mcp.tool()
-async def stop_strategy(kami_id: int, account: str = "main") -> dict:
+async def stop_strategy(
+    kami_id: int, permanent: bool = True, account: str = "main"
+) -> dict:
     """Stop the running strategy for a kami.
 
+    For multi-kami strategies (auto_v2, rest_v3, bodyguard), you MUST pass
+    kami_indices[0] (or guard_kami_indices[0]) from GET /api/agent/strategies.
+    Secondary kami indices will return 404.
+
     Args:
-        kami_id: Kami token index.
+        kami_id: Primary kami token index (kami_indices[0] for multi-kami).
+        permanent: If True (default), permanently deletes the strategy and
+            frees slots. If False, marks as unlaunched (paused, can relaunch).
         account: Account label.
     """
     if not _privy_id:
         raise ValueError("privy_id not set. Call register_kamibots() first.")
+    qs = "?permanent=true" if permanent else ""
     return await _api_delete(
-        f"/api/strategies/kami/{kami_id}",
+        f"/api/strategies/kami/{kami_id}{qs}",
         {"keyData": {"privy_id": _privy_id}},
     )
 

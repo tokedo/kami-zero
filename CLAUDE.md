@@ -74,6 +74,13 @@ Movement quests ("move 100 times", "move 500 times"). These complete naturally a
 
 **Never call `harvest_start` directly on a kami you intend to hand to auto_v2.** Let auto_v2 own all harvest-start decisions — it enforces the full-HP check that direct calls bypass. If a kami is RESTING when a session starts, include it in `start_strategy` and let auto_v2 decide when to harvest it. auto_v2 will only pick up an already-harvesting kami as-is and cycle it from there; it will NOT retroactively "fix" a kami that was started mid-HP. Only use direct `harvest_start` when you explicitly need to bypass the safety margin (e.g. for a quest-driven harvest that will be stopped immediately).
 
+### Stopping strategies — critical rules
+
+1. **Multi-kami strategies (auto_v2, rest_v3, bodyguard)**: you MUST call `stop_strategy` with `kami_indices[0]` from `get_all_strategies()` — NOT an arbitrary kami ID. Only the primary (first) index has a DB row; secondary indices return 404.
+2. **Always use `permanent=True`** (the default) when you want to free the slots. `permanent=False` marks the strategy as "paused/unlaunched" — slots stay occupied.
+3. **Verify after stopping**: call `get_all_strategies()` to confirm the strategy is gone AND `get_tier()` to confirm `usedSlots` decreased. If slots are still occupied after a successful DELETE, this is a known platform bug — note it in plan.md and move on to manual harvest management.
+4. **`nodeId` on start must match kami's current room.** Use `get_kami_state_slim(kami_indices[0])` to verify before calling `start_strategy`.
+
 ## Gas efficiency — CRITICAL
 
 Every transaction costs ETH. This is a fundamental constraint of the game and a core skill you must learn.
