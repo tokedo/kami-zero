@@ -78,7 +78,7 @@ Movement quests ("move 100 times", "move 500 times"). These complete naturally a
 
 1. **Multi-kami strategies (auto_v2, rest_v3, bodyguard)**: you MUST call `stop_strategy` with `kami_indices[0]` from `get_all_strategies()` — NOT an arbitrary kami ID. Only the primary (first) index has a DB row; secondary indices return 404.
 2. **Always use `permanent=True`** (the default) when you want to free the slots. `permanent=False` marks the strategy as "paused/unlaunched" — slots stay occupied.
-3. **Verify after stopping**: call `get_all_strategies()` to confirm the strategy is gone AND `get_tier()` to confirm `usedSlots` decreased. If slots are still occupied after a successful DELETE, this is a known platform bug — note it in plan.md and move on to manual harvest management.
+3. **Verify after stopping**: call `get_all_strategies()` to confirm the strategy is gone AND `get_tier()` to confirm `usedSlots` decreased.
 4. **`nodeId` on start must match kami's current room.** Use `get_kami_state_slim(kami_indices[0])` to verify before calling `start_strategy`.
 
 ## Gas efficiency — CRITICAL
