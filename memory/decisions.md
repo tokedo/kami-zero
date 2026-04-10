@@ -98,3 +98,35 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quests 7, 8, 2001 completed. Quests 9, 2002 accepted. Quest 9 needs 3 Scrap Metal. Quest 2002 needs 1000 MUSU spent at Mina's. Auto_v2 running with correct config. listing_buy tool added to executor. MUSU: 105,497.
 **Gas notes**: 3 reverted tx wasted gas (~730k total): move to room 13/2 from non-adjacent room 47, buy from vending machine in wrong room. Lesson: check adjacency + NPC room before moving/buying. 1 failed droptable reveal (~186k). All other tx successful.
 **Next session**: Scavenge + reveal for Scrap Metal (quest 9). Investigate droptable commit ID extraction. Start spending MUSU at Mina's for quest 2002. (scheduled: +6h)
+
+---
+
+## 2026-04-10 03:15 UTC — session 5
+
+**Perceived**: 20 kamis HARVESTING on node 47. 0 strategies (auto_v2 down again). 105,497 MUSU. 8 Scrap Metal in inventory (quest 9 needs 3). Quest 2002 active (spend at Mina's).
+**Decided**:
+  - Quest 9: burn 3 Scrap Metal → complete quest 9 → accept quest 10
+  - Quest 2002: travel to Mina's (room 13), buy Ghost Gums in bulk, complete quest 2002 → accept quest 2003
+  - Collect MUSU from all kamis, restart auto_v2, scavenge on node 47
+  - Add burn_items tool to executor
+**Acted**:
+  - burn_items([1005], [3]): burned 3 Scrap Metal. Gas: 404k.
+  - complete_quest(9): success. Gas: 1.1M.
+  - accept_quest(10): success. Gas: 835k.
+  - move 47→13 (5 moves): success. Used 25 stamina.
+  - listing_buy(Mina, 56 Ghost Gums): success. Cost ~1008 MUSU. Gas: 950k.
+  - move 13→47 (5 moves): success.
+  - check_quest_completable(2002): NOT MET. Target is higher than 1000 MUSU.
+  - use_account_item(Ice Cream x1): success at 1.5M gas (failed at 500k — gas limit too low).
+  - move 47→13 (5 moves): success.
+  - listing_buy(Mina, 200 Ghost Gums): success. Total spend ~4600 MUSU. Gas: 949k.
+  - complete_quest(2002): success. Gas: 984k.
+  - move 13→47 (5 moves): success.
+  - accept_quest(2003): success. Gas: 840k.
+  - harvest_collect (2x10 batches): +9,651 MUSU → 110,553.
+  - start_strategy(auto_v2, 20 kamis, node 47): RUNNING, healthy.
+  - scavenge_claim(47): success. Found commit ID via ITEM_DROPTABLE_COMMIT log pattern.
+  - droptable_reveal: success. Items received. Gas: 1.0M.
+**Result**: Quests 9, 2002 completed. Quests 10, 2003 accepted. MUSU: 110,553. Auto_v2 restarted. Scavenge + reveal working. Inventory: 89 Stone, 19 Scrap Metal, 15 Cheeseburgers, 257 Ghost Gums, 99 Ice Creams.
+**Gas notes**: ~6 wasted tx: 3 ice cream uses at 500k gas limit (needed 1.5M), 3 nonce mismatches from failed txs. Fixed use_account_item gas to 1.5M. All movement and buying batched well. Key learning: quest 2002 needs ~4000-5000 MUSU spent, not 1000.
+**Next session**: Quest 10 + 2003 progress (unknown objectives). Try SQ 3003 (level up) when kami enters REST. Scavenge again. (scheduled: +6h)

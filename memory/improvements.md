@@ -41,3 +41,10 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: `listing_buy(merchant_index=1, item_indices=[11301], amounts=[1], account="bpeon")` — buys 1 Ghost Gum from Mina. Merchant indices: 1=Mina (room 13), 2=Vending Machine (room 18). Item indices are global (e.g. 11301, not merchant-local). Must be in the merchant's room.
 - **Commit**: aa020bb
+
+## 2026-04-10 — burn_items tool + use_account_item gas fix
+- **What**: Added `burn_items` tool for burning/destroying items from inventory. Fixed `use_account_item` and `travel_to_room` item-use gas limit from default (~500k) to 1.5M — the account stamina sync in `system.account.use.item` is gas-intensive and was running out of gas at lower limits.
+- **Why**: Quest 9 required burning 3 Scrap Metal (ITEM_BURN objective). Ice cream usage reverted with insufficient gas, blocking stamina restoration.
+- **Files**: `executor/server.py`
+- **How to use**: `burn_items(item_indices=[1005], amounts=[3], account="bpeon")` — burns 3 Scrap Metal. `use_account_item(item_id=21201, account="bpeon")` — now works reliably with 1.5M gas.
+- **Commit**: d56897b
