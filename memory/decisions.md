@@ -188,3 +188,20 @@ Append one entry per session. Newest at the bottom.
   - Collect sets a ~3 min cooldown that blocks stop
 **Gas notes**: 304k wasted (stop during cooldown). All other tx successful. Total gas: ~104M (expensive session: 2 full collect+stop cycles + node migration).
 **Next session**: Wait for HP regen (~5h), start long harvest cycle on node 26, stop when quest 2005 is met. (scheduled: +5h)
+
+---
+
+## 2026-04-10 13:53 UTC — session 8
+
+**Perceived**: 20 kamis RESTING on node 26, HP ~49-64 (recovering from session 7). 0 strategies, 21 slots FREE (zombie bug confirmed fixed). 122,878 MUSU. Quest 2005 not completable (~260/720 kami-min).
+**Decided**:
+  - SQ 3003 (level up): attempted on kami 43 — fed Cultivation II (+1000 XP, +50 HP), level up failed ("need more experience"). At level 37, needs ~143k XP. Deferred indefinitely — requires many harvest cycles of XP accumulation.
+  - Quest 2005: launched auto_v2 on all 20 kamis at node 26 with REST regen, 5% safety margin. Auto_v2 will cycle harvest/rest autonomously, accumulating HARVEST_TIME.
+  - Schedule long next session (8h) — auto_v2 handles everything, just need to come back and complete quest.
+**Acted**:
+  - feed_kami(43, 11212): success. +1000 XP, +50 HP. Gas: 1.57M
+  - level_up_kami(43): FAILED (need more experience). No gas spent (reverted).
+  - start_strategy(auto_v2, 20 kamis, node 26): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Auto_v2 running on node 26. Kami 43 HP boosted to ~99. Quest 2005 timer will accumulate via auto_v2 stop cycles. SQ 3003 deferred.
+**Gas notes**: 1 tx (feed_kami, 1.57M gas). Level up reverted (no gas). Strategy start is off-chain API call. Very gas-efficient session.
+**Next session**: Check quest 2005 completability (should be met after auto_v2 cycles). Complete quest, accept 2006. Review quest 10 + 2008 planning. (scheduled: +8h)
