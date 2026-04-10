@@ -88,6 +88,28 @@ Every transaction costs ETH. This is a fundamental constraint of the game and a 
 
 If you violate these rules, you are burning ETH that belongs to the account. Document every tx in `decisions.md` with a 1-line justification so the user can catch gas waste in review.
 
+## Movement: use travel_to_room (NEVER plan paths by hand)
+
+For any account movement that's more than one hop, **call `travel_to_room` instead of building a path from `catalogs/rooms.csv` adjacency in your head**. Session 4 burned ~730k gas on reverted moves from a manually-reasoned wrong path; that is the failure this tool exists to prevent.
+
+```python
+travel_to_room(target_room=12, account="bpeon", dry_run=True)   # plan
+travel_to_room(target_room=12, account="bpeon")                 # execute
+```
+
+The tool runs deterministic BFS over the static room graph (`executor/rooms_graph.py`), including all special-exit portals (e.g. the 19↔59 Black Pool portal between z=1 and z=3). It is always correct.
+
+- **Always `dry_run=True` first.** The dry-run is free (no tx, no gas), returns the full path, total stamina cost, and any item inserts. Read the plan, then execute.
+- **`travel_to_room` auto-uses SP+ items** (21201–21206 ice creams / paste) from inventory to extend range when stamina would otherwise run out. Set `use_items=False` to disable.
+- **Partial result** (`reached_target: False`): the tool got as far as it could on stamina + items. Inspect `remainder`, `eta_to_recover_min`, `suggestion`. If you see this signal, **append "accumulate SP+ items (21201–21206)" to `memory/plan.md`** so a future session farms restoratives.
+- **`stamina_remaining` in the response is a lower-bound estimate, not truth** — it does not account for regen between perception and tx confirmation. Refetch via `_api_get_account` or `get_account_kamis` if you need an exact post-move value.
+- **Kamibots API has a 15s cache.** Immediate post-tx refetch can return stale room/stamina; wait or trust the tool's local tracking.
+- `move_to_room` is the **single-hop escape hatch only** — use it only when you need one specific named hop. Not for any path of length > 1.
+
+`use_account_item(item_id, account="bpeon")` is the new low-level tool for using SP+ items outside of travel context (e.g. you're at target room and want to top off stamina before a harvest cycle). `travel_to_room` handles the in-path case automatically.
+
+Note: kami-zero must always pass `account="bpeon"` — the default of `"main"` will fail because there's no main account in the roster.
+
 ## Harness improvement mandate
 
 **Treat the harness as raw clay.** The MCP executor (`executor/server.py`), integration docs, and systems docs are a first draft. You are expected to improve them.
