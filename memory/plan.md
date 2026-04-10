@@ -1,43 +1,54 @@
-# Plan for session 6
+# Plan for session 7
 
-## Priority 1: Quest 10 — unknown objectives
+## Priority 0: Check quest 2004 + restart auto_v2
 
-Accepted this session. Objectives unknown — can't read quest config on-chain yet. Check completability each session. If it's a harvest time quest, auto_v2 on node 47 is accumulating time. If it's a movement quest, it will complete naturally.
+- check_quest_completable(2004) — should be done (720 min / 20 kamis = 36 min)
+- If completable: complete, accept quest 2005 (harvest >720 min on Trash-Strewn Graves, node 26)
+- Retry auto_v2 on current node — zombie strategy slots should have cleared by now
+- If slots still stuck: alert in alerts.md, harvest manually
 
-## Priority 2: Quest 2003 — next Mina quest
+## Priority 1: Quest 10 — Scavenge in 3 Normal-type rooms
 
-Accepted this session. Objectives unknown. Check completability.
+Objective: `SCAV_CLAIM_NODE` in 3 rooms with Normal affinity.
+Normal nodes (closest to node 10): 35 (Elder Path), 33 (Forest Entrance), 37 (Hollow Path), 55 (Shady Path), 57 (River Crossing)
+Plan: move to a Normal node, harvest enough to accumulate scavenge points (cost 100-200), claim, repeat for 3 nodes. This takes multiple sessions — each node needs harvest time for scav points.
 
-## Priority 3: SQ 3003 — Level up kami
+## Priority 2: Quest 2008 — Scavenge specific items
 
-Need kami in RESTING state. Auto_v2 cycles kamis through REST. Check if any kami is RESTING at session start. Kami 43 had enough XP at level 37 to level up.
+Need: 1 Pine Cone, 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles
+- Pine Cone: node 10 drops "Stick Cone Rename" — scavenge here while harvesting for quest 2004
+- Daffodil: nodes 19, 55, 60, 63
+- Sanguine Shroom: nodes 18, 50, 72, 76
+- Plastic Bottle: nodes 1, 26, 51, 52, 65
+Multi-node effort. Plan around quest 10 Normal-room movement.
 
-## Priority 4: Quest 6 — Liquidate 1 kami
+## Priority 3: SQ 3003 — Level up a kami
 
-Requires actually liquidating (killing) a kami. Deferred — destructive action, want to be sure before doing it.
+Need kami in RESTING state. Auto_v2 cycles kamis through REST. When auto_v2 is running, check for RESTING kami and level it up. Kami 43 has enough XP (level 37, skill points invested).
 
-## Priority 5: Scavenge + reveal each session
+## Priority 4: Quest 6 — Liquidate a kami
 
-Scavenge node 47 each session to accumulate items. The commit ID extraction now works: look for log with "ITEM_DROPTABLE_COMMIT" in data, commit ID is in topic[3].
-
-## Priority 6: Build quest objective reader
-
-No way to read quest objectives on-chain yet. This would be extremely useful. The quest registry entity (keccak256("registry.quest", questIndex)) should have objective data stored in components, but the component names are unknown. Consider building a tool that enumerates all components for a given entity.
+Deferred — destructive action.
 
 ## Active quests
-- Quest 10 — unknown objectives — just accepted
-- Quest 2003 — unknown objectives — just accepted
-- Quest 6 — liquidate 1 kami — deferred
+- Quest 6 — liquidate kami — deferred
+- Quest 10 — scavenge in 3 Normal rooms — not started
+- Quest 2004 — harvest 720 min at node 10 — IN PROGRESS (20 kamis harvesting)
+- Quest 2008 — scavenge specific items — not started
 - SQ 3003 — level up kami — waiting for RESTING state
 
 ## Active strategies
-- Kamibots auto_v2: 20 kamis on node 47 (Scrap Paths), REST regen, 5% safety
-- Strategy ID: b3c04ea6-e60c-4873-9f3e-3603582ed465
+- NO auto_v2 running (Kamibots slot bug — 20/21 slots occupied by zombie strategy)
+- 20 kamis harvesting directly on node 10 (Forest: Insect Node)
+
+## Key data from game-data.md
+- Quest objectives now known — game-data.md has full quest table
+- Quest 2005 (next Mina): harvest 720 min at Trash-Strewn Graves (node 26, Eerie)
+- Quest 11 (next main): scavenge in 3 Eerie rooms
+- Quest 2008 branches from 2003 (parallel to 2004)
 
 ## Key learnings
-- Quest 2002 (Mina) needed ~4000-5000 MUSU spent, not 1000 as assumed
-- use_account_item (ice cream etc) needs 1.5M gas limit, not the default
-- Droptable commit ID: look for ITEM_DROPTABLE_COMMIT in scavenge claim log data, ID in topic[3]
-- burn_items tool: system.item.burn, ABI: (uint32[] indices, uint256[] amounts)
-- GDA prices change with volume — bulk buys may cost more per unit
-- MCP server: if killed, Claude Code can reconnect to a new process but ice cream/item tools may need manual restart
+- After harvest_stop, there's a ~3 min cooldown before harvest_start works
+- Kamibots stop_strategy returns DELETED but may not free slots (platform bug)
+- Quest 2003 auto-completed from session 5's scrap metal activity
+- game-data.md has full quest catalog — always check before planning

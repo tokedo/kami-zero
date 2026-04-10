@@ -130,3 +130,28 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quests 9, 2002 completed. Quests 10, 2003 accepted. MUSU: 110,553. Auto_v2 restarted. Scavenge + reveal working. Inventory: 89 Stone, 19 Scrap Metal, 15 Cheeseburgers, 257 Ghost Gums, 99 Ice Creams.
 **Gas notes**: ~6 wasted tx: 3 ice cream uses at 500k gas limit (needed 1.5M), 3 nonce mismatches from failed txs. Fixed use_account_item gas to 1.5M. All movement and buying batched well. Key learning: quest 2002 needs ~4000-5000 MUSU spent, not 1000.
 **Next session**: Quest 10 + 2003 progress (unknown objectives). Try SQ 3003 (level up) when kami enters REST. Scavenge again. (scheduled: +6h)
+
+---
+
+## 2026-04-10 09:30 UTC — session 6
+
+**Perceived**: 20 kamis HARVESTING on node 47. Auto_v2 ACTIVE (survived since session 5). 121,734 MUSU. Quest 2003 already completed (objectives met passively — "Give 5 Scrap Metal" likely auto-tracked from session 5 burn). New quests 2004 and 2008 appeared in active list. Quest 10 + 3003 still not completable.
+**Decided**:
+  - Read game-data.md to learn quest objectives (key breakthrough — no longer flying blind)
+  - Quest 10: "Scavenge in 3 Normal-type rooms" — multi-session effort
+  - Quest 2004: "Harvest >720 min at Forest: Insect Node (node 10)" — move there now
+  - Quest 2008: "Scavenge 1 Pine Cone, 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles" — node 10 drops Pine Cones
+  - Move all 20 kamis from node 47 to node 10 for quest 2004
+**Acted**:
+  - harvest_collect (2x10 batches): +217 MUSU (short interval since session 5). Gas: 24.7M total
+  - scavenge_claim(47): reverted — no tiers accumulated. Gas: 335k wasted
+  - complete_quest(2003): reverted — already completed. Gas: 289k wasted
+  - stop_strategy(auto_v2): returned DELETED but slots NOT freed (Kamibots bug — 20/21 slots stuck)
+  - harvest_stop (2x10 batches): all 20 stopped + auto-collected. Gas: 28.4M total
+  - travel_to_room(10): 6 hops, 30 stamina. Gas: 5.3M
+  - harvest_start (2x10 batches, node 10): 1st attempt reverted (cooldown ~90s). Waited, 2nd attempt succeeded. Gas: 15.9M + 571k wasted
+  - start_strategy(auto_v2, node 10): FAILED — slots still full from zombie strategy
+  - stop_strategy on all 20 kamis individually: all returned DELETED, slots still 20/21
+**Result**: 20 kamis harvesting node 10 WITHOUT auto_v2 management. Quest 2004 timer started. MUSU: 121,951. Key risk: kamis at low HP without auto-retire. 720 min / 20 kamis = ~36 min real time needed.
+**Gas notes**: ~1.2M wasted (scavenge revert 335k, quest complete revert 289k, harvest start cooldown revert 571k). Lesson: check cooldown before harvest_start; don't try completing already-completed quests. Total gas: ~76M (expensive session due to node migration).
+**Next session**: Check quest 2004 completability. Restart auto_v2 (slots should clear). Scavenge node 10. Plan Normal-room scavenging for quest 10. (scheduled: +1h)
