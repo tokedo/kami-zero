@@ -1275,6 +1275,7 @@ async def travel_to_room(
                     "system.account.use.item",
                     _ABI_ACCOUNT_USE,
                     [step["id"], 1],
+                    gas_limit=1_500_000,
                 )
             except Exception as e:
                 exec_error = f"item {step['id']} use reverted: {e}"
@@ -1469,6 +1470,7 @@ def use_account_item(
         "system.account.use.item",
         _ABI_ACCOUNT_USE,
         [item_id, amount],
+        gas_limit=1_500_000,
     )
 
 
@@ -1643,6 +1645,40 @@ def drop_quest(quest_index: int, account: str = "bpeon") -> dict:
         "system.quest.drop",
         _ABI_QUEST_DROP,
         [q_id],
+        gas_limit=1_000_000,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Item burn
+# ---------------------------------------------------------------------------
+
+_ABI_ITEM_BURN = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"indices","type":"uint32[]"},'
+    '{"name":"amounts","type":"uint256[]"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
+
+
+@mcp.tool()
+def burn_items(
+    item_indices: list[int],
+    amounts: list[int],
+    account: str = "bpeon",
+) -> dict:
+    """Burn (destroy) items from inventory. Used for quest turn-ins.
+
+    Args:
+        item_indices: List of item indices to burn (e.g. [1005]).
+        amounts: List of amounts to burn, parallel to item_indices.
+        account: Account label.
+    """
+    return _send_tx(
+        account,
+        "system.item.burn",
+        _ABI_ITEM_BURN,
+        [item_indices, amounts],
         gas_limit=1_000_000,
     )
 
