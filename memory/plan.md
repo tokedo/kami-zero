@@ -1,30 +1,31 @@
-# Plan for session 7
+# Plan for session 8
 
-## Priority 0: Check quest 2004 + restart auto_v2
+## Priority 0: Complete quest 2005 — harvest 720 min at node 26
 
-- check_quest_completable(2004) — should be done (720 min / 20 kamis = 36 min)
-- If completable: complete, accept quest 2005 (harvest >720 min on Trash-Strewn Graves, node 26)
-- Retry auto_v2 on current node — zombie strategy slots should have cleared by now
-- If slots still stuck: alert in alerts.md, harvest manually
+- 20 kamis RESTING on node 26 (Trash-Strewn Graves, Eerie). HP ~18, need regen.
+- ~260 kami-min accumulated. Need 460 more. At full HP (~230), 20 kamis can harvest ~80 min each = 1600 kami-min. One cycle will complete it.
+- Steps: start harvest (2x10 batches), wait ~25 min (460/20 = 23 min minimum), stop all, check_quest_completable(2005), complete, accept quest 2006.
+- KEY: HARVEST_TIME counter updates on STOP, not COLLECT. Must stop before checking.
+- After completing, accept quest 2006 (harvest >720 min at Lost Skeleton Moonside, node unknown — check game-data.md).
 
 ## Priority 1: Quest 10 — Scavenge in 3 Normal-type rooms
 
 Objective: `SCAV_CLAIM_NODE` in 3 rooms with Normal affinity.
-Normal nodes (closest to node 10): 35 (Elder Path), 33 (Forest Entrance), 37 (Hollow Path), 55 (Shady Path), 57 (River Crossing)
-Plan: move to a Normal node, harvest enough to accumulate scavenge points (cost 100-200), claim, repeat for 3 nodes. This takes multiple sessions — each node needs harvest time for scav points.
+Normal nodes near current area: 35 (Elder Path), 33 (Forest Entrance), 37 (Hollow Path), 55 (Shady Path).
+Plan: after quest 2005, move to a Normal node, harvest to accumulate scavenge points (cost 100-200), claim, repeat 3x.
 
 ## Priority 2: Quest 2008 — Scavenge specific items
 
 Need: 1 Pine Cone, 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles
-- Pine Cone: node 10 drops "Stick Cone Rename" — scavenge here while harvesting for quest 2004
+- Pine Cone (1004?): nodes with INSECT affinity (node 10)
 - Daffodil: nodes 19, 55, 60, 63
 - Sanguine Shroom: nodes 18, 50, 72, 76
 - Plastic Bottle: nodes 1, 26, 51, 52, 65
-Multi-node effort. Plan around quest 10 Normal-room movement.
+Node 26 drops: 1002 (Stone), 1003 (?), 11302 (Cheeseburger). Maybe Plastic Bottle is 1003? Check.
 
 ## Priority 3: SQ 3003 — Level up a kami
 
-Need kami in RESTING state. Auto_v2 cycles kamis through REST. When auto_v2 is running, check for RESTING kami and level it up. Kami 43 has enough XP (level 37, skill points invested).
+Kami 43 needs XP. Have 4x Cultivation I (+100 XP, +20 HP) and 1x Cultivation II (+1000 XP, +50 HP). Feed Cultivation cards to a kami for XP, then level up. Do this when kamis are RESTING (next session start, before harvest).
 
 ## Priority 4: Quest 6 — Liquidate a kami
 
@@ -33,22 +34,17 @@ Deferred — destructive action.
 ## Active quests
 - Quest 6 — liquidate kami — deferred
 - Quest 10 — scavenge in 3 Normal rooms — not started
-- Quest 2004 — harvest 720 min at node 10 — IN PROGRESS (20 kamis harvesting)
+- Quest 2005 — harvest 720 min at node 26 — IN PROGRESS (~260/720 kami-min)
 - Quest 2008 — scavenge specific items — not started
-- SQ 3003 — level up kami — waiting for RESTING state
+- SQ 3003 — level up kami — waiting for XP + RESTING state
 
 ## Active strategies
-- NO auto_v2 running (Kamibots slot bug — 20/21 slots occupied by zombie strategy)
-- 20 kamis harvesting directly on node 10 (Forest: Insect Node)
-
-## Key data from game-data.md
-- Quest objectives now known — game-data.md has full quest table
-- Quest 2005 (next Mina): harvest 720 min at Trash-Strewn Graves (node 26, Eerie)
-- Quest 11 (next main): scavenge in 3 Eerie rooms
-- Quest 2008 branches from 2003 (parallel to 2004)
+- NO auto_v2 running (20/21 zombie slots, platform bug)
+- 20 kamis RESTING on node 26 at low HP
 
 ## Key learnings
-- After harvest_stop, there's a ~3 min cooldown before harvest_start works
-- Kamibots stop_strategy returns DELETED but may not free slots (platform bug)
-- Quest 2003 auto-completed from session 5's scrap metal activity
-- game-data.md has full quest catalog — always check before planning
+- HARVEST_TIME quest counter updates on STOP, not COLLECT
+- Per-kami harvest time is cumulative for quest tracking
+- Zombie strategy slots: unfixable platform bug, manage harvests manually
+- Collect sets ~3 min cooldown that blocks stop
+- HP regen rate: (Harmony + 20) * 0.6 / 3600 HP/sec. Kami 43 (H=19): ~23 HP/hr

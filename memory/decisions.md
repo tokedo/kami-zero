@@ -155,3 +155,36 @@ Append one entry per session. Newest at the bottom.
 **Result**: 20 kamis harvesting node 10 WITHOUT auto_v2 management. Quest 2004 timer started. MUSU: 121,951. Key risk: kamis at low HP without auto-retire. 720 min / 20 kamis = ~36 min real time needed.
 **Gas notes**: ~1.2M wasted (scavenge revert 335k, quest complete revert 289k, harvest start cooldown revert 571k). Lesson: check cooldown before harvest_start; don't try completing already-completed quests. Total gas: ~76M (expensive session due to node migration).
 **Next session**: Check quest 2004 completability. Restart auto_v2 (slots should clear). Scavenge node 10. Plan Normal-room scavenging for quest 10. (scheduled: +1h)
+
+---
+
+## 2026-04-10 11:46 UTC — session 7
+
+**Perceived**: 20 kamis HARVESTING on node 10 (correct for quest 2004). Auto_v2 ACTIVE but stale (configured for node 47 from session 5). 20/21 strategy slots stuck (zombie bug persists). 121,951 MUSU. Quest 2004 not completable before collection/stop.
+**Decided**:
+  - Collect from all 20 kamis, then stop to trigger HARVEST_TIME quest counter
+  - Complete quest 2004 and accept quest 2005 (harvest 720 min at node 26)
+  - Move to node 26 (Trash-Strewn Graves) and start harvesting for quest 2005
+  - Run one short harvest cycle at low HP, stop before danger zone
+  - Stop stale auto_v2 strategy — zombie slots prevent restarting on new node
+**Acted**:
+  - harvest_collect (2x10 batches): success. Gas: 24.7M
+  - harvest_stop attempt 1: reverted (cooldown from collect, 3 min). Gas: 304k wasted
+  - harvest_stop (2x10 batches, after cooldown): success. Gas: 28.4M
+  - stop_strategy (3 attempts: kami 43, 1064, 2553): all returned DELETED, slots still 20/21
+  - check_quest_completable(2004): TRUE after stop (not after collect — key learning)
+  - complete_quest(2004): success. Gas: 984k
+  - accept_quest(2005): success. Gas: 837k
+  - travel_to_room(26): 6 hops, 30 stamina. Gas: 5.3M
+  - harvest_start (2x10, node 26): success. Gas: 15.9M
+  - (waited 12 min for harvest time accumulation)
+  - harvest_stop (2x10): success. Gas: 28.4M
+  - check_quest_completable(2005): NOT MET (~260 kami-min of 720)
+**Result**: Quest 2004 completed. Quest 2005 accepted and partially progressed (~260/720 kami-min). 20 kamis RESTING on node 26 at low HP (~18). MUSU: 122,878. Auto_v2 unusable (zombie slots).
+**Key learnings**:
+  - HARVEST_TIME quest counter updates on STOP, NOT on COLLECT
+  - Per-kami time is cumulative (20 kamis * 72 min = 1440 > 720 for quest 2004)
+  - Zombie strategy slots: stop_strategy returns DELETED but slots never free. Platform bug, not fixable from agent side.
+  - Collect sets a ~3 min cooldown that blocks stop
+**Gas notes**: 304k wasted (stop during cooldown). All other tx successful. Total gas: ~104M (expensive session: 2 full collect+stop cycles + node migration).
+**Next session**: Wait for HP regen (~5h), start long harvest cycle on node 26, stop when quest 2005 is met. (scheduled: +5h)
