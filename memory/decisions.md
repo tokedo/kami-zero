@@ -279,3 +279,27 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 2007 completed. Auto_v2 running on node 37 (Normal). MUSU: ~138,460 (+3,482 from stops). Inventory: 4 Plastic Bottles, 2 Pine Cones remaining. Z=3 blocked — need to investigate portal requirements.
 **Gas notes**: 29.6M (stops) + 1.95M (scavenge+reveal) + 482k (burn) + 1.2M (quest complete) + 413k (quest accept revert, wasted) + 6.2M (travel partial) + 860k (move) = ~40.7M total. 413k wasted on premature quest 2009 accept.
 **Next session**: Stop kamis, scavenge node 37 (quest 10: 1/3 Normal). Then travel toward node 55 (Daffodil) or node 33 for quest 10 (2/3). Investigate Z=3 access for Sanguine Shroom. (scheduled: +6h)
+
+---
+
+## 2026-04-11 15:16 UTC — session 12
+
+**Perceived**: Auto_v2 ACTIVE on node 37 (~6h uptime). 20 kamis HARVESTING. 138,460 MUSU. 20/21 slots. Quest 10 active (scavenge 3 Normal rooms). Quest 2008 active (need Daffodil + Sanguine Shroom).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 37 for quest 10
+  - Complete quest 10 (already completable — previous scavenges at nodes 25, 26 counted as 2/3)
+  - Accept quest 11 (main line, objectives unknown — not completable yet)
+  - Travel to node 50 (Ancient Forest Entrance, Z=1, "Stone Shroom" droptable, scav cost 200) for Sanguine Shroom
+  - Node 50 chosen over node 55 (Daffodil) because: closer (7 hops vs 11), better drop rate (~44% vs ~31%), saves stamina
+**Acted**:
+  - stop_strategy(43): DELETED. Slots freed.
+  - harvest_stop (2x10 batches): success. Gas: 29.6M.
+  - scavenge_claim_and_reveal(37): success. Gas: 1.54M. Got: 5 Wooden Sticks (32→37).
+  - complete_quest(10): success. Gas: 981k.
+  - accept_quest(11): success. Gas: 837k.
+  - check_quest_completable(11): FALSE (objectives unknown).
+  - travel_to_room(50): 7 hops, 35 stamina. Gas: 6.2M. Stamina remaining: 28.
+  - start_strategy(auto_v2, 20 kamis, node 50): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Quest 10 completed. Quest 11 accepted. Auto_v2 running on node 50 for Sanguine Shroom. MUSU: 139,599 (+1,139 from stops). Scavenge at node 37 yielded only sticks (no cones).
+**Gas notes**: 29.6M (stops) + 1.54M (scavenge+reveal) + 981k (quest) + 837k (quest) + 6.2M (travel) = ~39.2M total. No wasted tx.
+**Next session**: Stop kamis, scavenge node 50 for Sanguine Shroom. If obtained, travel to node 55 for Daffodil. If both items secured, complete quest 2008 and start quest 2009 chain. Also investigate quest 11 objectives. (scheduled: +6h)

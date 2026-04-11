@@ -1,33 +1,27 @@
-# Plan for session 12
+# Plan for session 13
 
-## Priority 0: Scavenge node 37 (quest 10: Normal scavenge 1/3)
+## Priority 1: Scavenge node 50 for Sanguine Shroom (quest 2008)
 
-- Auto_v2 running on node 37 (Hollow Path, Normal, scav cost 200, drops "Sticks & Cones").
-- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(37).
-- This counts as 1 of 3 Normal-room scavenges for quest 10.
+- Auto_v2 running on node 50 (Ancient Forest Entrance, Insect, Z=1, scav cost 200, "Stone Shroom" droptable).
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(50).
+- Sanguine Shroom drop rate: ~44% (weight 7 out of 16). May need multiple scavenge cycles if unlucky.
 
-## Priority 1: Travel to node 55 for Daffodil (quest 2008)
+## Priority 2: Travel to node 55 for Daffodil (quest 2008)
 
-- Node 55 (Shady Path, Normal, scav cost 200, drops "Stick Stone Daffodil") is ~10 hops from room 37.
-- Path: 37→25→36→9→33→31→47→4→30→3→2→55 (11 hops, ~55 stamina).
-- Will need SP+ items or stamina regen. Current stamina ~60 (regen by next session).
-- Start auto_v2 on node 55, harvest for 6h, scavenge next session for Daffodil + quest 10 (2/3).
+- Node 55 (Shady Path, Normal, Z=1, scav cost 200, "Stick Stone Daffodil" droptable).
+- From node 50, path TBD — dry_run first.
+- Start auto_v2 on 55, harvest 6h, scavenge next session.
+- Daffodil drop rate: ~31% (weight 8 out of 26).
 
-## Priority 2: 3rd Normal node for quest 10 (3/3)
+## Priority 3: Investigate quest 11 (main line)
 
-- After 55, pick another Normal node nearby (e.g. node 57 River Crossing, node 2 Tunnel of Trees).
-- Scavenge there for quest 10 completion.
-
-## Priority 3: Sanguine Shroom for quest 2008 — USE Z=1 ALTERNATIVES
-
-- **Do NOT assume Z=3 is required.** Sanguine Shroom drops at multiple Z=1 nodes, e.g. Ancient Forest Entrance. Check catalogs/ and game-data.md for all nodes that drop Sanguine Shroom and pick one that's accessible.
-- Z=3 investigation is low priority — find an alternative route first.
+- Quest 11 accepted but objectives unknown. Not completable yet.
+- Check systems/ docs, or try to infer from game data.
 
 ## Priority 4: SQ012 — Spend 15000 MUSU at Mina's shop
 
-- This side quest is available and completable NOW (~138k MUSU on hand).
-- Accept it, buy items at Mina's shop totaling 15000 MUSU, complete it. A few tx.
-- Do this as housekeeping before entering any long wait.
+- Completable now (~139k MUSU). Requires travel to room 13 (Mina's shop).
+- Do when passing through, or as a detour if convenient. Not urgent.
 
 ## Priority 5: Quest 2009+ planning (blocked on 2008)
 
@@ -38,10 +32,10 @@
 
 ## Deferred quests
 - Quest 6 — liquidate kami — waiting for user review
-- Quest 10 — scavenge in 3 Normal rooms — IN PROGRESS (0/3, node 37 harvesting)
-- Quest 2008 — scavenge specific items — partially met (Pine Cone + Plastic Bottle done, need Daffodil + Sanguine Shroom — Sanguine Shroom available on Z=1 nodes, do NOT assume Z=3 required)
+- Quest 11 — main line — IN PROGRESS (objectives unknown)
+- Quest 2008 — scavenge Daffodil + Sanguine Shroom — IN PROGRESS (need both items)
 - SQ 3003 — level up kami — deferred (XP too expensive)
 - SQ012 — spend 15000 at Mina's shop — NOT STARTED, completable now
 
 ## Active strategies
-- auto_v2 on node 37, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 50, 20 kamis, REST regen, 5% safety. 20/21 slots used.
