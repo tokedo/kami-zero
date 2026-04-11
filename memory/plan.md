@@ -1,49 +1,42 @@
-# Plan for session 11
+# Plan for session 12
 
-## Priority 0: Get Plastic Bottles for quest 2007
+## Priority 0: Scavenge node 37 (quest 10: Normal scavenge 1/3)
 
-- Auto_v2 running on node 26 (Trash-Strewn Graves, Eerie, scav cost 100, drops "Stone Bottle Burger" = Stone + Plastic Bottle + Cheeseburger).
-- Need 5 Plastic Bottles. Have 7 Pine Cones (sufficient).
-- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(26) → check inventory for Plastic Bottles.
-- If >= 5 Plastic Bottles: complete_quest(2007) → accept_quest(2008 already active, accept 2009 if available).
-- If < 5: restart auto_v2 on node 26, schedule short session (+3h).
-- Plastic Bottle has tier 7 in droptable (7/22 ≈ 32% chance per roll). With scav cost 100 and ~500 MUSU/hr output, expect ~5 tiers/hr = ~1.6 Plastic Bottles/hr. In 6h: ~30 rolls, ~10 Plastic Bottles.
+- Auto_v2 running on node 37 (Hollow Path, Normal, scav cost 200, drops "Sticks & Cones").
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(37).
+- This counts as 1 of 3 Normal-room scavenges for quest 10.
 
-## Priority 1: Quest 10 — Scavenge in 3 Normal-type rooms
+## Priority 1: Travel to node 55 for Daffodil (quest 2008)
 
-Objective: SCAV_CLAIM_NODE in 3 rooms with Normal affinity.
-Best Normal nodes that also serve quest 2008:
-- Node 79 (Abandoned Campsite, Normal, "Butt Stems Shroom Pansy", scav 100) → Sanguine Shroom
-- Node 55 (Shady Path, Normal, "Stick Stone Daffodil", scav 200) → Daffodil
-- Any 3rd Normal node: 33 (Forest Entrance), 35 (Elder Path), 37 (Hollow Path), 57 (River Crossing)
+- Node 55 (Shady Path, Normal, scav cost 200, drops "Stick Stone Daffodil") is ~10 hops from room 37.
+- Path: 37→25→36→9→33→31→47→4→30→3→2→55 (11 hops, ~55 stamina).
+- Will need SP+ items or stamina regen. Current stamina ~60 (regen by next session).
+- Start auto_v2 on node 55, harvest for 6h, scavenge next session for Daffodil + quest 10 (2/3).
 
-## Priority 2: Quest 2008 — Scavenge specific items
+## Priority 2: 3rd Normal node for quest 10 (3/3)
 
-Need: 1 Pine Cone (may already count from session 10 scavenge), 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles.
-Overlaps with quest 10 plan (Normal nodes 79 and 55 provide Shroom + Daffodil).
-Plastic Bottles from node 26 scavenging should count.
+- After 55, pick another Normal node nearby (e.g. node 57 River Crossing, node 2 Tunnel of Trees).
+- Scavenge there for quest 10 completion.
 
-## Priority 3: Quest 2009+ planning
+## Priority 3: Investigate Z=3 access
 
-Quest 2009: Craft 500 Pine Pollen (need 1 Pine Cone + Grinder). We have 7 Pine Cones and Spice Grinder.
-Quest 2010: Craft 1 XP Potion (need 1 Plastic Bottle + 250 Pine Pollen + Burner). We have Portable Burner.
-Quest 2011: Craft 1 Bless Potion (needs 2007 + 2010 complete).
-Crafting quests can be done quickly once we have materials.
+- Room 11→15 portal reverts. Need to understand why (item requirement? level gate? game mechanic?).
+- Node 79 (Abandoned Campsite, Normal, Z=3) drops Sanguine Shroom for quest 2008.
+- Check game docs, try using Screwdriver or other items at portal.
+- Without Z=3 access, quest 2008 is blocked (Sanguine Shroom only drops at node 79).
 
-## Priority 4: SQ 3003 — Level up a kami (DEFERRED)
+## Priority 4: Quest 2009+ planning (blocked on 2008)
 
-All kamis level 33-37. XP cost too high. Revisit after XP potions become available via crafting quest line.
+- Quest 2009: Craft 500 Pine Pollen (need 1 Pine Cone + Grinder). Have 2 Pine Cones + Spice Grinder.
+- Quest 2010: Craft 1 XP Potion (need 1 Plastic Bottle + 250 Pine Pollen + Burner). Have Portable Burner.
+- Quest 2011: Craft 1 Bless Potion.
+- All blocked until quest 2008 is complete.
 
-## Priority 5: Quest 6 — Liquidate a kami (DEFERRED)
-
-Destructive action. Waiting for user review.
-
-## Active quests
-- Quest 6 — liquidate kami — deferred
-- Quest 10 — scavenge in 3 Normal rooms — not started
-- Quest 2007 — Give 5 Plastic Bottle + 5 Pine Cone — IN PROGRESS (have Pine Cones, need Bottles)
-- Quest 2008 — scavenge specific items — partially progressed (Pine Cone from node 25 may count)
-- SQ 3003 — level up kami — deferred
+## Deferred quests
+- Quest 6 — liquidate kami — waiting for user review
+- Quest 10 — scavenge in 3 Normal rooms — IN PROGRESS (0/3, node 37 harvesting)
+- Quest 2008 — scavenge specific items — partially met (Pine Cone + Plastic Bottle done, need Daffodil + Sanguine Shroom)
+- SQ 3003 — level up kami — deferred (XP too expensive)
 
 ## Active strategies
-- auto_v2 on node 26, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 37, 20 kamis, REST regen, 5% safety. 20/21 slots used.

@@ -252,3 +252,30 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 2006 completed. Quest 2007 accepted (need 5 Plastic Bottle + 5 Pine Cone — have 7 Pine Cones, need Plastic Bottles). Auto_v2 running on node 26. MUSU: 134,978 (+8,573 from harvest stops). Harness improved: scavenge_claim now returns commit_ids, new scavenge_claim_and_reveal combo tool.
 **Gas notes**: 29.6M (stops) + 1.1M (quest) + 931k (quest) + 778k (scavenge) + 1.2M (reveal) + 4.5M (travel) = ~38.1M total. No wasted tx. Commit ID extraction was manual this session; future sessions use improved tool.
 **Next session**: Stop kamis, scavenge node 26 for Plastic Bottles (use new scavenge_claim_and_reveal tool). If have 5+ Plastic Bottles, complete quest 2007. Then plan quest 10 (Normal-room scavenging) and quest 2008 (Daffodil + Shroom from specific nodes). (scheduled: +6h)
+
+---
+
+## 2026-04-11 12:38 UTC — session 11
+
+**Perceived**: Auto_v2 ACTIVE on node 26 (~6h uptime). 20 kamis HARVESTING. 134,978 MUSU. 20/21 slots. Quest 2007 active (need 5 Plastic Bottle + 5 Pine Cone). Have 7 Pine Cones, 0 Plastic Bottles.
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 26 for Plastic Bottles
+  - Burn 5 Plastic Bottle + 5 Pine Cone (ITEM_BURN objective), complete quest 2007
+  - Move toward Normal nodes for quest 10 (scavenge 3 Normal rooms) and quest 2008 (Daffodil + Sanguine Shroom)
+  - Z=3 inaccessible: room 11→15 portal reverts (unknown requirement). Node 79 (Sanguine Shroom) unreachable for now.
+  - Pivoted to node 37 (Hollow Path, Normal, Z=1, 1 hop from room 11) for quest 10 progress
+**Acted**:
+  - stop_strategy(43): DELETED. Gas: 0 (API call).
+  - harvest_stop (2x10 batches): success. Gas: 29.6M.
+  - scavenge_claim_and_reveal(26): success. Gas: 1.95M. Got: 52 Stone, 9 Plastic Bottle, 10 Cheeseburger.
+  - burn_items([1003, 1004], [5, 5]): success. Gas: 482k.
+  - check_quest_completable(2007): TRUE.
+  - complete_quest(2007): success. Gas: 1.2M.
+  - accept_quest(2009): REVERTED (needs 2008 complete first). Gas: 413k wasted.
+  - travel_to_room(79): PARTIAL — reached room 11 (7 hops), stuck at 11→15 Z=1→Z=3 portal. Gas: 6.2M.
+  - travel_to_room(79) retry: same revert at 11→15. Gas: 0.
+  - move_to_room(37): success (1 hop from room 11). Gas: 860k.
+  - start_strategy(auto_v2, 20 kamis, node 37): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Quest 2007 completed. Auto_v2 running on node 37 (Normal). MUSU: ~138,460 (+3,482 from stops). Inventory: 4 Plastic Bottles, 2 Pine Cones remaining. Z=3 blocked — need to investigate portal requirements.
+**Gas notes**: 29.6M (stops) + 1.95M (scavenge+reveal) + 482k (burn) + 1.2M (quest complete) + 413k (quest accept revert, wasted) + 6.2M (travel partial) + 860k (move) = ~40.7M total. 413k wasted on premature quest 2009 accept.
+**Next session**: Stop kamis, scavenge node 37 (quest 10: 1/3 Normal). Then travel toward node 55 (Daffodil) or node 33 for quest 10 (2/3). Investigate Z=3 access for Sanguine Shroom. (scheduled: +6h)
