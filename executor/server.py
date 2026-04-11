@@ -248,6 +248,7 @@ def _send_tx(
     abi: list,
     args: list,
     gas_limit: int | None = None,
+    return_receipt: bool = False,
 ) -> dict:
     """Build, sign, send a transaction with the account's operator key."""
     acct = _get_account(account)
@@ -269,13 +270,16 @@ def _send_tx(
     tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
 
-    return {
+    result = {
         "tx_hash": "0x" + receipt.transactionHash.hex(),
         "status": "success" if receipt.status == 1 else "reverted",
         "block": receipt.blockNumber,
         "gas_used": receipt.gasUsed,
         "account": account,
     }
+    if return_receipt:
+        result["_receipt"] = receipt
+    return result
 
 
 def _send_tx_retry(
@@ -1757,24 +1761,57 @@ def get_scavenge_points(node_index: int, account: str = "bpeon") -> dict:
     }
 
 
+def _extract_commit_ids(receipt) -> list[int]:
+    """Extract droptable commit entity IDs from a scavenge claim receipt.
+
+    Scans for the ScavengeClaimed event (topic 0x864886b8...) and extracts
+    commit IDs from the end of its data payload. Falls back to scanning all
+    StoreSetRecord logs for large entity-like values if the event is missing.
+    """
+    SCAVENGE_EVENT = "864886b848e1d5dcdb238c4d9a86fb039b25159246f11d33f6811d5b8919b4c1"
+    for log in receipt.logs:
+        if log.topics and log.topics[0].hex() == SCAVENGE_EVENT:
+            data = log.data
+            # The event data ends with: ... count, commitId[0], commitId[1], ...
+            # Scan backwards from the end to find commit IDs (large uint256 > 2^128)
+            words = [int.from_bytes(data[i:i+32], "big") for i in range(0, len(data), 32)]
+            commit_ids = []
+            # Walk backwards collecting large entity IDs until we hit a small number (the count)
+            for w in reversed(words):
+                if w > 2**128:
+                    commit_ids.append(w)
+                else:
+                    break
+            commit_ids.reverse()
+            if commit_ids:
+                return commit_ids
+    return []
+
+
 @mcp.tool()
 def scavenge_claim(node_index: int, account: str = "bpeon") -> dict:
     """Claim scavenge rewards for a node. Costs gas.
 
     Triggers droptable commit(s) that must be revealed in a later block.
+    Returns commit_ids for use with droptable_reveal.
 
     Args:
         node_index: Harvest node index.
         account: Account label.
     """
     reg_id = _scavenge_registry_id(node_index)
-    return _send_tx(
+    result = _send_tx(
         account,
         "system.scavenge.claim",
         _ABI_SCAV_CLAIM,
         [reg_id],
         gas_limit=2_000_000,
+        return_receipt=True,
     )
+    receipt = result.pop("_receipt", None)
+    if receipt and result["status"] == "success":
+        result["commit_ids"] = _extract_commit_ids(receipt)
+    return result
 
 
 @mcp.tool()
@@ -1794,6 +1831,42 @@ def droptable_reveal(commit_ids: list[int], account: str = "bpeon") -> dict:
         [commit_ids],
         gas_limit=2_000_000,
     )
+
+
+@mcp.tool()
+def scavenge_claim_and_reveal(node_index: int, account: str = "bpeon") -> dict:
+    """Claim scavenge rewards AND reveal droptable items in one call.
+
+    Combines scavenge_claim + droptable_reveal. Waits for the next block
+    between claim and reveal (reveal must be in a later block than claim).
+
+    Args:
+        node_index: Harvest node index.
+        account: Account label.
+    """
+    # Step 1: Claim
+    claim_result = scavenge_claim(node_index, account)
+    if claim_result["status"] != "success":
+        return {"claim": claim_result, "reveal": None, "error": "claim failed"}
+
+    commit_ids = claim_result.get("commit_ids", [])
+    if not commit_ids:
+        return {"claim": claim_result, "reveal": None, "error": "no commit_ids found in claim receipt"}
+
+    # Step 2: Wait for next block (reveal must be in a different block)
+    claim_block = claim_result["block"]
+    for _ in range(30):
+        time.sleep(2)
+        if w3.eth.block_number > claim_block:
+            break
+
+    # Step 3: Reveal
+    reveal_result = droptable_reveal(commit_ids, account)
+    return {
+        "claim": claim_result,
+        "reveal": reveal_result,
+        "commit_ids": commit_ids,
+    }
 
 
 # ---------------------------------------------------------------------------
