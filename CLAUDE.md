@@ -24,6 +24,7 @@ Every session follows this loop:
    - `get_inventory(account="bpeon")`
    - `get_all_strategies(account="bpeon")`
    - For each kami (or a sample): `get_kami_state_slim(kami_id, account="bpeon")`
+   - Check operator wallet ETH balance (record for session log)
 3. **Plan** — compare state vs plan, decide actions
 4. **Act** — execute via MCP tools (gas-efficient, see rules below)
 5. **Verify** — re-read state to confirm actions took effect
@@ -181,6 +182,7 @@ Compute the timestamp with `date +%s` math in bash, or use `time.time() + offset
 ```
 ## 2026-04-09 14:00 UTC — session N
 
+**ETH balance**: [start_balance] → [end_balance] (Δ [change])
 **Perceived**: [1-2 lines: what changed since last session]
 **Decided**: [1-3 bullets: the decisions you made and why]
 **Acted**:
