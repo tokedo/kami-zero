@@ -227,3 +227,28 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 2005 completed. Quest 2006 accepted and auto_v2 running on node 25. Current phase: EVENFALL, MOONSIDE in ~2h. If "(Moonside)" means harvest only counts during MOONSIDE phase, 12h window with 20 kamis = plenty (need 36 real min). 20/21 slots used.
 **Gas notes**: 29.6M (harvest stop) + 984k (quest) + 837k (quest) + 4.5M (travel) = ~36M total. No wasted tx. Efficient session.
 **Next session**: Stop kamis, check quest 2006 completability. If not met, may need to ensure harvesting during MOONSIDE. Plan quest 10 (Normal-room scavenging) and 2008 (specific scavenge items). (scheduled: +8h)
+
+---
+
+## 2026-04-11 06:26 UTC — session 10
+
+**Perceived**: Auto_v2 ACTIVE on node 25 (~14h uptime). 20 kamis HARVESTING. Quest 2006 not completable (HARVEST_TIME counter not flushed). 126,405 MUSU. 20/21 slots used.
+**Decided**:
+  - Stop auto_v2 + all kamis to flush HARVEST_TIME counter for quest 2006
+  - Complete quest 2006, accept quest 2007 (Give 5 Plastic Bottle + 5 Pine Cone)
+  - Scavenge node 25 (drops Pine Cone via "Stick Cone Berry" droptable) — got 7 Pine Cones
+  - Move to node 26 (Trash-Strewn Graves, scav cost 100, drops Plastic Bottle) for quest 2007
+  - Improved scavenge_claim to auto-extract commit IDs + added scavenge_claim_and_reveal combo tool
+**Acted**:
+  - stop_strategy(43): DELETED, slots freed to 0/21
+  - harvest_stop (2x10 batches): success. Gas: 29.6M
+  - check_quest_completable(2006): TRUE
+  - complete_quest(2006): success. Gas: 1.1M
+  - accept_quest(2007): success. Gas: 931k
+  - scavenge_claim(25): success. Gas: 778k. 1 commit ID extracted manually.
+  - droptable_reveal: success. Gas: 1.2M. Got: 31 Wooden Stick, 7 Pine Cone, 4 Chalkberry.
+  - travel_to_room(26): 5 hops (25→36→9→33→31→26), 25 stamina. Gas: 4.5M
+  - start_strategy(auto_v2, 20 kamis, node 26): RUNNING, ACTIVE
+**Result**: Quest 2006 completed. Quest 2007 accepted (need 5 Plastic Bottle + 5 Pine Cone — have 7 Pine Cones, need Plastic Bottles). Auto_v2 running on node 26. MUSU: 134,978 (+8,573 from harvest stops). Harness improved: scavenge_claim now returns commit_ids, new scavenge_claim_and_reveal combo tool.
+**Gas notes**: 29.6M (stops) + 1.1M (quest) + 931k (quest) + 778k (scavenge) + 1.2M (reveal) + 4.5M (travel) = ~38.1M total. No wasted tx. Commit ID extraction was manual this session; future sessions use improved tool.
+**Next session**: Stop kamis, scavenge node 26 for Plastic Bottles (use new scavenge_claim_and_reveal tool). If have 5+ Plastic Bottles, complete quest 2007. Then plan quest 10 (Normal-room scavenging) and quest 2008 (Daffodil + Shroom from specific nodes). (scheduled: +6h)

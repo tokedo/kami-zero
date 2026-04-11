@@ -48,3 +48,12 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: `burn_items(item_indices=[1005], amounts=[3], account="bpeon")` — burns 3 Scrap Metal. `use_account_item(item_id=21201, account="bpeon")` — now works reliably with 1.5M gas.
 - **Commit**: d56897b
+
+## 2026-04-11 — scavenge_claim returns commit_ids + scavenge_claim_and_reveal combo tool
+- **What**: `scavenge_claim` now parses the tx receipt to extract droptable commit entity IDs and returns them in the response. New `scavenge_claim_and_reveal` tool combines claim + wait-for-block + reveal into a single call. Added `_extract_commit_ids` helper and `return_receipt` param to `_send_tx`.
+- **Why**: Extracting commit IDs manually from receipt logs was painful and error-prone (required parsing MUD Store events, identifying the ScavengeClaimed event, finding the commit entity in the data payload). This was a 10-minute manual process every scavenge.
+- **Files**: `executor/server.py`
+- **How to use**:
+  - `scavenge_claim(47)` → now returns `{"commit_ids": [12345...], ...}` in addition to tx info
+  - `scavenge_claim_and_reveal(47)` → does claim + reveal in one call, returns `{"claim": {...}, "reveal": {...}, "commit_ids": [...]}`
+- **Commit**: fa71cab

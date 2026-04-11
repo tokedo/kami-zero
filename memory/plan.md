@@ -1,42 +1,49 @@
-# Plan for session 10
+# Plan for session 11
 
-## Priority 0: Complete quest 2006 — harvest 720 min at Lost Skeleton (Moonside)
+## Priority 0: Get Plastic Bottles for quest 2007
 
-- Auto_v2 running on 20 kamis at node 25 (REST regen, 5% safety).
-- "(Moonside)" may mean harvest time only counts during MOONSIDE phase (12h window per 36h cycle).
-- MOONSIDE started ~2h after session 9 launch. By session 10 (+8h), one full MOONSIDE window should have passed.
-- Steps: stop all kamis → check_quest_completable(2006) → complete_quest(2006) → accept_quest(2007).
-- If NOT completable: check if phase-gating is the issue. May need to time harvest cycles to MOONSIDE windows.
-- Quest 2007: "Give 5 Plastic Bottle, 5 Pine Cone" — need to find scavenge sources for these items.
+- Auto_v2 running on node 26 (Trash-Strewn Graves, Eerie, scav cost 100, drops "Stone Bottle Burger" = Stone + Plastic Bottle + Cheeseburger).
+- Need 5 Plastic Bottles. Have 7 Pine Cones (sufficient).
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(26) → check inventory for Plastic Bottles.
+- If >= 5 Plastic Bottles: complete_quest(2007) → accept_quest(2008 already active, accept 2009 if available).
+- If < 5: restart auto_v2 on node 26, schedule short session (+3h).
+- Plastic Bottle has tier 7 in droptable (7/22 ≈ 32% chance per roll). With scav cost 100 and ~500 MUSU/hr output, expect ~5 tiers/hr = ~1.6 Plastic Bottles/hr. In 6h: ~30 rolls, ~10 Plastic Bottles.
 
 ## Priority 1: Quest 10 — Scavenge in 3 Normal-type rooms
 
 Objective: SCAV_CLAIM_NODE in 3 rooms with Normal affinity.
-Normal nodes near current area: 35 (Elder Path), 33 (Forest Entrance), 37 (Hollow Path), 55 (Shady Path).
-Requires: move to Normal node, harvest to accumulate scavenge points (cost 100-200), claim, repeat 3x.
-Plan movement to Normal nodes after quest 2006.
+Best Normal nodes that also serve quest 2008:
+- Node 79 (Abandoned Campsite, Normal, "Butt Stems Shroom Pansy", scav 100) → Sanguine Shroom
+- Node 55 (Shady Path, Normal, "Stick Stone Daffodil", scav 200) → Daffodil
+- Any 3rd Normal node: 33 (Forest Entrance), 35 (Elder Path), 37 (Hollow Path), 57 (River Crossing)
 
 ## Priority 2: Quest 2008 — Scavenge specific items
 
-Need: 1 Pine Cone, 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles.
-Drops come from scavenge droptables at specific node types. Cross-reference with game-data.md.
-Overlaps with quest 2007 needs (5 Pine Cone, 5 Plastic Bottle).
+Need: 1 Pine Cone (may already count from session 10 scavenge), 1 Daffodil, 1 Sanguine Shroom, 2 Plastic Bottles.
+Overlaps with quest 10 plan (Normal nodes 79 and 55 provide Shroom + Daffodil).
+Plastic Bottles from node 26 scavenging should count.
 
-## Priority 3: SQ 3003 — Level up a kami (DEFERRED)
+## Priority 3: Quest 2009+ planning
 
-All kamis level 33-37. XP cost at these levels: 50k-143k XP per level.
-Revisit when a kami has naturally accumulated enough XP from auto_v2 harvesting.
+Quest 2009: Craft 500 Pine Pollen (need 1 Pine Cone + Grinder). We have 7 Pine Cones and Spice Grinder.
+Quest 2010: Craft 1 XP Potion (need 1 Plastic Bottle + 250 Pine Pollen + Burner). We have Portable Burner.
+Quest 2011: Craft 1 Bless Potion (needs 2007 + 2010 complete).
+Crafting quests can be done quickly once we have materials.
 
-## Priority 4: Quest 6 — Liquidate a kami (DEFERRED)
+## Priority 4: SQ 3003 — Level up a kami (DEFERRED)
+
+All kamis level 33-37. XP cost too high. Revisit after XP potions become available via crafting quest line.
+
+## Priority 5: Quest 6 — Liquidate a kami (DEFERRED)
 
 Destructive action. Waiting for user review.
 
 ## Active quests
 - Quest 6 — liquidate kami — deferred
 - Quest 10 — scavenge in 3 Normal rooms — not started
-- Quest 2006 — harvest 720 min at Lost Skeleton (Moonside) — IN PROGRESS (auto_v2 on node 25)
-- Quest 2008 — scavenge specific items — not started
-- SQ 3003 — level up kami — deferred (insufficient XP)
+- Quest 2007 — Give 5 Plastic Bottle + 5 Pine Cone — IN PROGRESS (have Pine Cones, need Bottles)
+- Quest 2008 — scavenge specific items — partially progressed (Pine Cone from node 25 may count)
+- SQ 3003 — level up kami — deferred
 
 ## Active strategies
-- auto_v2 on node 25, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 26, 20 kamis, REST regen, 5% safety. 20/21 slots used.
