@@ -303,3 +303,23 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 10 completed. Quest 11 accepted. Auto_v2 running on node 50 for Sanguine Shroom. MUSU: 139,599 (+1,139 from stops). Scavenge at node 37 yielded only sticks (no cones).
 **Gas notes**: 29.6M (stops) + 1.54M (scavenge+reveal) + 981k (quest) + 837k (quest) + 6.2M (travel) = ~39.2M total. No wasted tx.
 **Next session**: Stop kamis, scavenge node 50 for Sanguine Shroom. If obtained, travel to node 55 for Daffodil. If both items secured, complete quest 2008 and start quest 2009 chain. Also investigate quest 11 objectives. (scheduled: +6h)
+
+---
+
+## 2026-04-11 18:21 UTC — session 13
+
+**Perceived**: Auto_v2 ACTIVE on node 50 (~3h uptime). 20 kamis HARVESTING. 139,599 MUSU. 20/21 slots. Quest 2008 active (need Daffodil + Sanguine Shroom). Quest 11 active (objectives unknown).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 50 for Sanguine Shroom
+  - If obtained, travel to node 55 (Shady Path, Normal, Z=1) for Daffodil
+  - Investigated quest 11: "Scavenge in 3 Eerie-type rooms" — need 3 fresh Eerie scavenges (previous ones at nodes 25/26 were before quest 11 accepted)
+  - Side quests 3004-3006 not available
+**Acted**:
+  - stop_strategy(43): DELETED. Slots freed.
+  - harvest_stop (2x10 batches): success. Gas: 29.6M.
+  - scavenge_claim_and_reveal(50): success. Gas: 1.8M. Got: 8 Stone, 2 Sanguine Shroom.
+  - travel_to_room(55): 12 hops, 60 stamina. Gas: 10.5M. Stamina remaining: 5.
+  - start_strategy(auto_v2, 20 kamis, node 55): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Sanguine Shroom obtained (2x). Quest 2008 now only needs Daffodil. Auto_v2 running on node 55 for Daffodil scavenge next session. MUSU: 141,693 (+2,094 from stops). Quest 11 objectives identified.
+**Gas notes**: 29.6M (stops) + 1.8M (scavenge+reveal) + 10.5M (travel 12 hops) = ~41.9M total. No wasted tx. Travel was expensive (12 hops) but necessary.
+**Next session**: Stop kamis, scavenge node 55 for Daffodil. If obtained, quest 2008 should be completable. Then plan Eerie node scavenging for quest 11 (need 3 Eerie rooms). (scheduled: +6h)
