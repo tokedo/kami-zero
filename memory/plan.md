@@ -18,14 +18,18 @@
 - After 55, pick another Normal node nearby (e.g. node 57 River Crossing, node 2 Tunnel of Trees).
 - Scavenge there for quest 10 completion.
 
-## Priority 3: Investigate Z=3 access
+## Priority 3: Sanguine Shroom for quest 2008 — USE Z=1 ALTERNATIVES
 
-- Room 11→15 portal reverts. Need to understand why (item requirement? level gate? game mechanic?).
-- Node 79 (Abandoned Campsite, Normal, Z=3) drops Sanguine Shroom for quest 2008.
-- Check game docs, try using Screwdriver or other items at portal.
-- Without Z=3 access, quest 2008 is blocked (Sanguine Shroom only drops at node 79).
+- **Do NOT assume Z=3 is required.** Sanguine Shroom drops at multiple Z=1 nodes, e.g. Ancient Forest Entrance. Check catalogs/ and game-data.md for all nodes that drop Sanguine Shroom and pick one that's accessible.
+- Z=3 investigation is low priority — find an alternative route first.
 
-## Priority 4: Quest 2009+ planning (blocked on 2008)
+## Priority 4: SQ012 — Spend 15000 MUSU at Mina's shop
+
+- This side quest is available and completable NOW (~138k MUSU on hand).
+- Accept it, buy items at Mina's shop totaling 15000 MUSU, complete it. A few tx.
+- Do this as housekeeping before entering any long wait.
+
+## Priority 5: Quest 2009+ planning (blocked on 2008)
 
 - Quest 2009: Craft 500 Pine Pollen (need 1 Pine Cone + Grinder). Have 2 Pine Cones + Spice Grinder.
 - Quest 2010: Craft 1 XP Potion (need 1 Plastic Bottle + 250 Pine Pollen + Burner). Have Portable Burner.
@@ -35,8 +39,9 @@
 ## Deferred quests
 - Quest 6 — liquidate kami — waiting for user review
 - Quest 10 — scavenge in 3 Normal rooms — IN PROGRESS (0/3, node 37 harvesting)
-- Quest 2008 — scavenge specific items — partially met (Pine Cone + Plastic Bottle done, need Daffodil + Sanguine Shroom)
+- Quest 2008 — scavenge specific items — partially met (Pine Cone + Plastic Bottle done, need Daffodil + Sanguine Shroom — Sanguine Shroom available on Z=1 nodes, do NOT assume Z=3 required)
 - SQ 3003 — level up kami — deferred (XP too expensive)
+- SQ012 — spend 15000 at Mina's shop — NOT STARTED, completable now
 
 ## Active strategies
 - auto_v2 on node 37, 20 kamis, REST regen, 5% safety. 20/21 slots used.
