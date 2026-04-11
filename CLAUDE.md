@@ -61,6 +61,22 @@ Session 1 made exactly this mistake: walked in, saw idle kamis, tried to start K
 
 "Harvest 700 min" counts ACROSS ALL KAMIS. With 10 kamis harvesting, it only takes 70 minutes of real time. Retire early when the quest is complete — even if HP is still high. The goal is the next quest, not extra Musu.
 
+### Never declare yourself blocked without searching for alternatives
+
+If a resource, node, or path seems unreachable, **always check whether there's another way** before concluding you're blocked. The game world has many nodes that drop the same item, multiple paths between zones, and items that unlock portals. Example: Sanguine Shroom drops at node 79 (Z=3) but ALSO at Ancient Forest Entrance and other Z=1 nodes. If a portal reverts, check `catalogs/` and game docs for alternative sources on accessible nodes. Only mark something as truly blocked after exhausting alternatives — and even then, document what you tried so the human can help.
+
+### Exhaust all quick wins before scheduling the next session
+
+Think like a real player who opened the game: harvest, scavenge, complete quests, accept new quests, buy items at shops, check what else is available — do everything productive before logging off. **Only enter a waiting period when there is genuinely no more progress to be made with a few transactions.**
+
+Specifically:
+- After completing a quest, **always accept the next quest AND check if it can be completed immediately** (e.g., "spend 15000 at Mina's shop" — that's a few tx, do it now).
+- Check for available side quests you haven't accepted yet. Accept them. If any are completable in a few tx, do them.
+- Scavenge if you have enough points and are on a useful node.
+- If the session is running long but you still have quick actions left, **schedule the next session in 10 minutes** rather than 6-8h. Don't leave easy work on the table.
+
+The exception is grind quests (e.g., "complete 1000 moves") — never burn tx on pure grinding. Use common sense: if completing something costs a few tx and reveals the next quest, do it. If it costs hundreds of tx with no strategic value, skip it.
+
 ### Do NOT prioritize
 
 Movement quests ("move 100 times", "move 500 times"). These complete naturally as a side effect of real play. Never burn tx on fake traversals.
@@ -148,6 +164,7 @@ When improvements prove stable and useful, the human will port them to the publi
 
 At the end of every session, decide when next-you should run. Write the unix timestamp to `memory/next-run-at`.
 
+- **Immediate** (10 min): when you still have quick actions left but the session is running long. Don't leave easy work on the table — come back in 10 min and finish.
 - **Default**: 6 hours (21600 seconds) — routine harvest-check-plan cycles
 - **Short** (1-2h): when waiting for a specific near-term event (harvest nearing completion, cooldown about to expire)
 - **Long** (12-24h): when everything is running smoothly and there's genuinely nothing to do soon
