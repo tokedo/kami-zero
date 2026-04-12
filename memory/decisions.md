@@ -386,3 +386,23 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 11 completed. Quest 12 accepted (3 Insect scavenges). Auto_v2 running on node 50 (Insect). MUSU: 146,786 (+4,584 from stops). Red Amber Crystal still needed for quest 2012 — will retry at node 53 after Insect scavenges.
 **Gas notes**: 29.6M (stops) + 1.65M (scavenge+reveal) + 851k (quest complete) + 837k (quest accept) + 1.88M (travel) = ~34.8M total. No wasted tx. Efficient session.
 **Next session**: Stop kamis, scavenge node 50 (Insect 1/3 for quest 12). Move to node 10 (1 hop, Insect), start auto_v2. Plan: 50→10→51 for 3 Insect scavenges, then back to 53 for Red Amber. (scheduled: +6h)
+
+---
+
+## 2026-04-12 13:03 UTC — session 16
+
+**ETH balance**: 0.068967 → 0.068795 (Δ -0.000172)
+**Perceived**: Auto_v2 ACTIVE on node 50 (~6h uptime). 20 kamis HARVESTING. 146,786 MUSU. 20/21 slots. Quest 12 active (3 Insect scavenges, 0/3). Quest 2012 active (Red Amber Crystal).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 50 (Insect 1/3 for quest 12)
+  - Move to node 10 (1 hop, Insect) for next Insect scavenge
+  - Start auto_v2 on node 10
+**Acted**:
+  - stop_strategy(43): DELETED. Slots freed.
+  - harvest_stop (2x10 batches): success. Gas: 29.6M.
+  - scavenge_claim_and_reveal(50): success. Gas: 1.66M. Got: 17 Stone, 6 Sanguine Shroom.
+  - travel_to_room(10): 1 hop, 5 stamina. Gas: 860k. Stamina remaining: 85.
+  - start_strategy(auto_v2, 20 kamis, node 10): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Insect scavenge 1/3 done (node 50). Auto_v2 running on node 10 (Insect) for scavenge 2/3. MUSU: 151,418 (+4,632 from stops). Inventory: 8 Sanguine Shroom, 265 Stone, 3 Daffodil.
+**Gas notes**: 29.6M (stops) + 1.66M (scavenge+reveal) + 860k (travel) = ~32.1M total. No wasted tx. Efficient session.
+**Next session**: Stop kamis, scavenge node 10 (Insect 2/3). Move to node 51 (2 hops: 10→50→51, Insect), start auto_v2. Session 18: scavenge 51 (3/3), complete quest 12, move to 53 for Red Amber. (scheduled: +6h)
