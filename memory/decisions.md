@@ -361,3 +361,28 @@ Append one entry per session. Newest at the bottom.
 **Result**: Massive Mina chain progress: quests 2008-2011 completed, 2012 accepted. Side quest 3009 completed. Side quest 3012 accepted. Craft tool built. Auto_v2 running on node 53 (Blooming Tree, Eerie) for Red Amber Crystal + quest 11 Eerie scavenge. MUSU: 142,202 (147,202 - 5,000 burned). Inventory: 3 Daffodil, 2 Sanguine Shroom, 1 Pine Cone, 2 Plastic Bottle, 250 Pine Pollen, 400 Essence of Daffodil, 1 XP Potion, 1 Bless Potion.
 **Gas notes**: 29.6M (stops) + 1.9M (scavenge) + 1.1M + 840k + 1.3M + 854k + 837k + 1.3M + 854k + 889k + 1.3M + 1.3M + 854k + 837k + 837k + 840k + 404k + 854k + 14.2M = ~61M total. No wasted tx. Heavy session but very productive — 5 quests completed.
 **Next session**: Stop kamis, scavenge node 53 for Red Amber Crystal (quest 2012, 20% chance). This also counts as Eerie scavenge 1/3 for quest 11. If Red Amber obtained, burn it for quest 2012. Then travel to more Eerie nodes for quest 11 (2/3, 3/3). (scheduled: +6h)
+
+---
+
+## 2026-04-12 06:51 UTC — session 15
+
+**ETH balance**: 0.069059 → 0.068967 (Δ -0.000092)
+**Perceived**: Auto_v2 ACTIVE on node 53 (~6h uptime). 20 kamis HARVESTING. 142,202 MUSU. 20/21 slots. Quest 2012 active (Red Amber Crystal). Quest 11 active (3 Eerie scavenges).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 53 for Red Amber Crystal (quest 2012)
+  - Red Amber Crystal NOT obtained (got +14 Wooden Stick, +1 Pine Cone — 80% miss on 20% chance)
+  - Quest 11 completable — scavenge at node 53 was 3rd Eerie scavenge. Completed quest 11!
+  - Accepted quest 12 (MSQ: "Scavenge in 3 Insect-type rooms")
+  - Traveled to node 50 (Ancient Forest Entrance, Insect, 2 hops from 53) for quest 12 progress
+  - Checked side quests 3004-3006, 3010-3011: none available
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.6M (nonce retry on batch 2)
+  - scavenge_claim_and_reveal(53): success. Gas: 1.65M. Got: 14 Wooden Stick, 1 Pine Cone (no Red Amber)
+  - complete_quest(11): success. Gas: 851k
+  - accept_quest(12): success. Gas: 837k
+  - travel_to_room(50): 2 hops, 10 stamina. Gas: 1.88M
+  - start_strategy(auto_v2, 20 kamis, node 50): RUNNING, ACTIVE. 20/21 slots
+**Result**: Quest 11 completed. Quest 12 accepted (3 Insect scavenges). Auto_v2 running on node 50 (Insect). MUSU: 146,786 (+4,584 from stops). Red Amber Crystal still needed for quest 2012 — will retry at node 53 after Insect scavenges.
+**Gas notes**: 29.6M (stops) + 1.65M (scavenge+reveal) + 851k (quest complete) + 837k (quest accept) + 1.88M (travel) = ~34.8M total. No wasted tx. Efficient session.
+**Next session**: Stop kamis, scavenge node 50 (Insect 1/3 for quest 12). Move to node 10 (1 hop, Insect), start auto_v2. Plan: 50→10→51 for 3 Insect scavenges, then back to 53 for Red Amber. (scheduled: +6h)
