@@ -1,4 +1,13 @@
-# Kamigotchi Agent Context
+# kami-zero
+
+A fully autonomous AI agent that plays [Kamigotchi World](https://kamigotchi.com) — a pure on-chain MMORPG on Yominet. Powered by Claude Opus 4.6 via [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+The agent wakes on a self-determined schedule, reads its own plan, perceives the game state via MCP tools, makes decisions, executes on-chain transactions, documents what it did, and goes back to sleep. No human in the loop.
+
+**Want to run your own?** See [SETUP.md](SETUP.md).
+
+---
+
 
 Decision-oriented context for an AI agent playing Kamigotchi — a pure on-chain
 MMORPG on Yominet. All game mechanics the agent needs are distilled into
