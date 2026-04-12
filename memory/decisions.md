@@ -406,3 +406,28 @@ Append one entry per session. Newest at the bottom.
 **Result**: Insect scavenge 1/3 done (node 50). Auto_v2 running on node 10 (Insect) for scavenge 2/3. MUSU: 151,418 (+4,632 from stops). Inventory: 8 Sanguine Shroom, 265 Stone, 3 Daffodil.
 **Gas notes**: 29.6M (stops) + 1.66M (scavenge+reveal) + 860k (travel) = ~32.1M total. No wasted tx. Efficient session.
 **Next session**: Stop kamis, scavenge node 10 (Insect 2/3). Move to node 51 (2 hops: 10→50→51, Insect), start auto_v2. Session 18: scavenge 51 (3/3), complete quest 12, move to 53 for Red Amber. (scheduled: +6h)
+
+---
+
+## 2026-04-12 19:21 UTC — session 17
+
+**ETH balance**: 0.068795 → ~0.068565 (Δ ~-0.000230)
+**Perceived**: Auto_v2 ACTIVE on node 10 (~6h uptime). 20 kamis HARVESTING. 151,418 MUSU. 20/21 slots. Quest 12 active (3 Insect scavenges). Quest 2012 active (Red Amber Crystal).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 10 (Insect 2/3 for quest 12)
+  - Quest 12 turned out already completable after scavenge — completed immediately
+  - Accepted quest 13 (MSQ: "Scavenge in 3 Scrap-type rooms")
+  - Traveled to node 47 (Scrap Paths, cost 100) for quest 13 progress
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.6M
+  - scavenge_claim_and_reveal(10): success. Gas: 1.91M. Got: 22 Wooden Stick, 3 Pine Cone, 1 Holy Dust
+  - complete_quest(12): success. Gas: 851k
+  - accept_quest(13): success. Gas: 837k
+  - travel_to_room(51): 2 hops, 10 stamina. Gas: 1.88M (initial move for Insect plan)
+  - stop_strategy(43): DELETED (stopped premature auto_v2 on node 51)
+  - travel_to_room(47): 8 hops, 40 stamina. Gas: 7.19M
+  - start_strategy(auto_v2, 20 kamis, node 47): RUNNING, ACTIVE. 20/21 slots
+**Result**: Quest 12 completed! Quest 13 accepted (3 Scrap scavenges). Auto_v2 running on node 47 (Scrap). MUSU: 155,994 (+4,576 from stops). New item: Holy Dust (1x). Scrap nodes 47/31/30 all at 0 scav points — need harvest time first.
+**Gas notes**: 29.6M (stops) + 1.91M (scavenge) + 851k + 837k + 1.88M + 7.19M (travel) = ~42.3M total. No wasted tx. Extra travel cost due to mid-session pivot from Insect to Scrap plan.
+**Next session**: Stop kamis, scavenge node 47 (Scrap 1/3). Move to node 31 (1 hop, Scrap), harvest, scavenge (2/3). Then node 30 (adjacent, Scrap) for 3/3. (scheduled: +6h)
