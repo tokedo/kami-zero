@@ -323,3 +323,41 @@ Append one entry per session. Newest at the bottom.
 **Result**: Sanguine Shroom obtained (2x). Quest 2008 now only needs Daffodil. Auto_v2 running on node 55 for Daffodil scavenge next session. MUSU: 141,693 (+2,094 from stops). Quest 11 objectives identified.
 **Gas notes**: 29.6M (stops) + 1.8M (scavenge+reveal) + 10.5M (travel 12 hops) = ~41.9M total. No wasted tx. Travel was expensive (12 hops) but necessary.
 **Next session**: Stop kamis, scavenge node 55 for Daffodil. If obtained, quest 2008 should be completable. Then plan Eerie node scavenging for quest 11 (need 3 Eerie rooms). (scheduled: +6h)
+
+---
+
+## 2026-04-12 00:31 UTC — session 14
+
+**ETH balance**: 0.069307 → 0.069147 (Δ -0.000160)
+**Perceived**: Auto_v2 ACTIVE on node 55 (~18h uptime). 20 kamis HARVESTING. 141,693 MUSU. 20/21 slots. Quest 2008 active (need Daffodil). Quest 11 active (3 Eerie scavenges).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 55 for Daffodil
+  - If Daffodil obtained: complete quest 2008, then chain through 2009-2011 (all craftable with current materials)
+  - Built craft_item tool (missing from harness)
+  - After Mina chain, travel to node 53 (Blooming Tree, Eerie) for quest 2012 (Red Amber Crystal) + quest 11 (Eerie scavenge 1/3)
+  - Accept side quests 3009 and 3012 (newly unlocked by Mina chain progress)
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.6M
+  - scavenge_claim_and_reveal(55): success. Gas: 1.9M. Got: 13 Stone, 10 Wooden Sticks, 4 Daffodil
+  - complete_quest(2008): success. Gas: 1.1M
+  - accept_quest(2009): success. Gas: 840k
+  - craft_item(recipe=6, Pine Pollen): success. Gas: 1.3M. 1 Pine Cone → 500 Pine Pollen
+  - complete_quest(2009): success. Gas: 854k
+  - accept_quest(2010): success. Gas: 837k
+  - craft_item(recipe=1, XP Potion): success. Gas: 1.3M. 1 Plastic Bottle + 250 Pine Pollen → 1 XP Potion
+  - complete_quest(2010): success. Gas: 854k
+  - accept_quest(2011): success. Gas: 889k
+  - craft_item(recipe=8, Essence of Daffodil): success. Gas: 1.3M. 1 Daffodil → 500 Essence of Daffodil
+  - craft_item(recipe=5, Bless Potion): success. Gas: 1.3M. 1 Plastic Bottle + 100 Essence of Daffodil → 1 Bless Potion
+  - complete_quest(2011): success. Gas: 854k
+  - accept_quest(2012): success. Gas: 837k
+  - accept_quest(3009): success. Gas: 837k
+  - accept_quest(3012): success. Gas: 840k
+  - burn_items(MUSU, 5000): success. Gas: 404k
+  - complete_quest(3009): success. Gas: 854k
+  - travel_to_room(53): 14 hops, 2 Ice Cream used. Gas: 14.2M
+  - start_strategy(auto_v2, 20 kamis, node 53): RUNNING, ACTIVE. 20/21 slots
+**Result**: Massive Mina chain progress: quests 2008-2011 completed, 2012 accepted. Side quest 3009 completed. Side quest 3012 accepted. Craft tool built. Auto_v2 running on node 53 (Blooming Tree, Eerie) for Red Amber Crystal + quest 11 Eerie scavenge. MUSU: 142,202 (147,202 - 5,000 burned). Inventory: 3 Daffodil, 2 Sanguine Shroom, 1 Pine Cone, 2 Plastic Bottle, 250 Pine Pollen, 400 Essence of Daffodil, 1 XP Potion, 1 Bless Potion.
+**Gas notes**: 29.6M (stops) + 1.9M (scavenge) + 1.1M + 840k + 1.3M + 854k + 837k + 1.3M + 854k + 889k + 1.3M + 1.3M + 854k + 837k + 837k + 840k + 404k + 854k + 14.2M = ~61M total. No wasted tx. Heavy session but very productive — 5 quests completed.
+**Next session**: Stop kamis, scavenge node 53 for Red Amber Crystal (quest 2012, 20% chance). This also counts as Eerie scavenge 1/3 for quest 11. If Red Amber obtained, burn it for quest 2012. Then travel to more Eerie nodes for quest 11 (2/3, 3/3). (scheduled: +6h)

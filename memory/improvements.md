@@ -57,3 +57,10 @@ Format:
   - `scavenge_claim(47)` → now returns `{"commit_ids": [12345...], ...}` in addition to tx info
   - `scavenge_claim_and_reveal(47)` → does claim + reveal in one call, returns `{"claim": {...}, "reveal": {...}, "commit_ids": [...]}`
 - **Commit**: fa71cab
+
+## 2026-04-12 — craft_item tool
+- **What**: Added `craft_item` MCP tool and `_ABI_CRAFT` ABI for on-chain crafting via `system.craft`.
+- **Why**: No craft tool existed. Needed to craft Pine Pollen, XP Potion, Essence of Daffodil, and Bless Potion for Mina quest chain (2009-2011).
+- **Files**: `executor/server.py`
+- **How to use**: `craft_item(recipe_index=6, amount=1, account="bpeon")` — crafts 1x recipe 6 (Extract Pine Pollen: 1 Pine Cone → 500 Pine Pollen). See `catalogs/recipes.csv` for all recipe indices.
+- **Commit**: fc8e952
