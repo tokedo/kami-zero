@@ -2739,6 +2739,42 @@ def burn_items(
 
 
 # ---------------------------------------------------------------------------
+# Crafting
+# ---------------------------------------------------------------------------
+
+_ABI_CRAFT = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"recipeIndex","type":"uint32"},'
+    '{"name":"amount","type":"uint256"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
+
+
+@mcp.tool()
+def craft_item(
+    recipe_index: int,
+    amount: int = 1,
+    account: str = "main",
+) -> dict:
+    """Craft items from a recipe. Consumes inputs, produces outputs, costs stamina.
+
+    See catalogs/recipes.csv for recipe indices and requirements.
+
+    Args:
+        recipe_index: Recipe index (e.g. 6 for Extract Pine Pollen).
+        amount: Number of times to craft (multiplies inputs/outputs).
+        account: Account label.
+    """
+    return _send_tx(
+        account,
+        "system.craft",
+        _ABI_CRAFT,
+        [recipe_index, amount],
+        gas_limit=1_500_000,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Scavenge & Droptable
 # ---------------------------------------------------------------------------
 
