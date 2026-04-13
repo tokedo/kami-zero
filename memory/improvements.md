@@ -64,3 +64,10 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: `craft_item(recipe_index=6, amount=1, account="bpeon")` — crafts 1x recipe 6 (Extract Pine Pollen: 1 Pine Cone → 500 Pine Pollen). See `catalogs/recipes.csv` for all recipe indices.
 - **Commit**: fc8e952
+
+## 2026-04-13 — scavenge_claim_and_reveal handles reveal reverts
+- **What**: `scavenge_claim_and_reveal` now returns a clear `reveal_skipped` message when the droptable reveal reverts, instead of propagating a confusing reverted status.
+- **Why**: On some nodes (e.g., node 35), items are granted directly by the claim tx. The droptable reveal is unnecessary and reverts, wasting ~185k gas. Session 21 wasted 557k gas on 3 failed reveal retries before discovering this.
+- **Files**: `executor/server.py`
+- **How to use**: No change to call signature. When reveal reverts, response includes `"reveal_skipped": "reveal reverted — items likely granted directly by claim"` and `"reveal": null`. For nodes where reveal reverts, prefer calling `scavenge_claim()` directly instead.
+- **Commit**: 493681a
