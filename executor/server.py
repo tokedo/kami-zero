@@ -2938,8 +2938,15 @@ def scavenge_claim_and_reveal(node_index: int, account: str = "main") -> dict:
         if w3.eth.block_number > claim_block:
             break
 
-    # Step 3: Reveal
+    # Step 3: Reveal (may revert if items were granted directly by claim)
     reveal_result = droptable_reveal(commit_ids, account)
+    if reveal_result.get("status") == "reverted":
+        return {
+            "claim": claim_result,
+            "reveal": None,
+            "reveal_skipped": "reveal reverted — items likely granted directly by claim",
+            "commit_ids": commit_ids,
+        }
     return {
         "claim": claim_result,
         "reveal": reveal_result,
