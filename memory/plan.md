@@ -1,15 +1,16 @@
-# Plan for session 21
+# Plan for session 22
 
 ## Priority 1: Quest 3010 — Craft 1 Grace Potion
 
 - Auto_v2 running on node 35 (Elder Path, Normal, scav cost 200).
 - Droptable: "Stick Cone Poppy" — items 1001(9), 1004(7), 1010(2) = ~11% Black Poppy per tier.
-- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(35).
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim(35) (skip reveal — items granted by claim directly).
 - If Black Poppy (1010) obtained:
   - craft_item(recipe 10): 1 Black Poppy → 500 Black Poppy Extract (needs Spice Grinder, have 1)
   - craft_item(recipe 4): 1 Plastic Bottle + 100 Essence of Daffodil + 50 Black Poppy Extract → 1 Grace Potion (needs Portable Burner, have 1)
   - complete_quest(3010)
 - If not: restart auto_v2 on node 35, try again next session.
+- NOTE: droptable reveal reverts on this node. Items are granted directly by claim tx. Use scavenge_claim() only, not scavenge_claim_and_reveal().
 
 ## Priority 2: Quest 17 — Move 100 times
 
@@ -39,15 +40,16 @@
 - auto_v2 on node 35, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
-- MUSU: ~153,847
+- MUSU: ~158,481
+- Wooden Stick: 110
+- Pine Cone: 12
 - Daffodil: 7
 - Essence of Daffodil: 400
 - Pine Pollen: 500
 - Sanguineous Powder: 250
 - Stone: 300
-- Wooden Stick: 92
 - Plastic Bottle: 2
 - Ghost Gum: 1,057
-- Ice Cream: 93 (used 2 this session)
+- Ice Cream: 93
 - Better Ice Cream: 10
 - Rock Candyfloss: 66

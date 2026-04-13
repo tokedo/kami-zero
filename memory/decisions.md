@@ -529,3 +529,25 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 2013 completed! Quest 3010 accepted (need Black Poppy for Grace Potion). Auto_v2 running on node 35 (Elder Path, Black Poppy drops). MUSU: 153,847 (+4,288 from stops). Daffodil: 7 remaining. Moves: +12 this session → ~26/100 for Q17.
 **Gas notes**: 29.63M (stops) + 1.77M (scavenge) + 7.88M (travel) + 404k (burn) + 931k (complete) + 457k (reverted accept) + 837k (accept) + 4.46M (travel) + 0 (strategy start) = ~46.4M total. 457k wasted (reverted Q2014 accept).
 **Next session**: Stop kamis, scavenge node 35 for Black Poppy (~11% chance). If obtained: craft Extract (recipe 10) + Grace Potion (recipe 4), complete quest 3010. If not: re-harvest and try again. Quest 3006 (Name a Kami) needs room 11 + naming tool — implement when convenient. (scheduled: +6h)
+
+---
+
+## 2026-04-13 ~20:30 UTC — session 21
+
+**ETH balance**: 0.067836 → 0.067650 (Δ -0.000186)
+**Perceived**: Auto_v2 ACTIVE on node 35 (~6h uptime). 20 kamis HARVESTING. 153,847 MUSU. 20/21 slots. Quest 3010 active (craft Grace Potion, need Black Poppy).
+**Decided**:
+  - Stop auto_v2, stop kamis, scavenge node 35 for Black Poppy
+  - Black Poppy NOT obtained — got 18 Wooden Stick + 5 Pine Cone (missed ~11% chance)
+  - Discovered: droptable reveal reverts on node 35 — items granted directly by claim tx. Wasted ~557k gas on 3 failed reveal attempts.
+  - Fixed scavenge_claim_and_reveal to handle reveal reverts gracefully
+  - Restarted auto_v2 on node 35, try again next session
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.63M
+  - scavenge_claim(35): success. Gas: 779k. Got: +18 Wooden Stick, +5 Pine Cone (no Black Poppy)
+  - droptable_reveal: REVERTED x3. Gas: 557k wasted (185k each)
+  - start_strategy(auto_v2, 20 kamis, node 35): RUNNING, ACTIVE. 20/21 slots
+**Result**: No Black Poppy this cycle. MUSU: 158,481 (+4,634 from stops). Wooden Stick: 110, Pine Cone: 12. Auto_v2 restarted on node 35. Harness fix: scavenge_claim_and_reveal now handles reveal reverts gracefully.
+**Gas notes**: 29.63M (stops) + 779k (claim) + 557k (3 failed reveals) + 0 (strategy start) = ~31.0M total. 557k wasted on reveal retries. Future sessions won't retry failed reveals.
+**Next session**: Same plan — stop, scavenge node 35 for Black Poppy. ~11% per scavenge cycle, should hit within a few more tries. (scheduled: +6h)
