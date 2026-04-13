@@ -467,3 +467,39 @@ Append one entry per session. Newest at the bottom.
 **Result**: 5 quests completed (13, 14, 15, 16, 3012). Quest 17 accepted but objective unknown. Quest 3013 accepted. Auto_v2 running on node 53 (Eerie) for Red Amber Crystal scavenge. MUSU: 144,213. Ghost Gum: 1,057 (+800). Lost: 5 Pine Cone, 5 Sanguine Shroom, 4 Chalkberry to failed Q17 guesses.
 **Gas notes**: ~62M total. Wasted: ~1.9M (failed Q17 burns + reverted Q3014 accept). Rest was productive. Heavy session but 5 quest completions justify it.
 **Next session**: Stop kamis, scavenge node 53 for Red Amber Crystal (quest 2012, 20% chance). If obtained, complete quest 2012. Need to research quest 17 objectives (try harvest time, crafting, or room-based objectives). (scheduled: +6h)
+
+---
+
+## 2026-04-13 ~08:30 UTC — session 19
+
+**ETH balance**: 0.068244 → 0.068093 (Δ -0.000151)
+**Perceived**: Auto_v2 ACTIVE on node 53 (~12h uptime). 20 kamis HARVESTING. 144,213 MUSU. 20/21 slots. Quest 2012 active (Red Amber Crystal). Quest 17 active (unknown objectives). Quest 3013 active (unknown).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 53 for Red Amber Crystal
+  - Red Amber Crystal OBTAINED (hit the 20% chance!)
+  - Completed quest 2012 (burn Red Amber), accepted quest 2013 (Give 15 Daffodil at room 26)
+  - Researched quest 17 via game-data.md: "Move 100 times" — accumulates naturally, don't grind
+  - Researched quest 3013: "Craft 1 Hostility Potion" — craftable with current materials
+  - Crafted Sanguineous Powder (recipe 16), Empty Cup (recipe 17), Hostility Potion (recipe 18) → completed quest 3013
+  - Accepted quest 3006 (Name a Kami). 3004 and 3007 not available yet.
+  - Traveled to node 55 (14 hops, 2 Ice Cream) for Daffodil farming. 14 moves toward Q17.
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.6M
+  - scavenge_claim_and_reveal(53): success. Gas: 1.98M. Got: 9 Wooden Stick, 8 Pine Cone, 1 Red Amber Crystal
+  - burn_items(Red Amber Crystal): success. Gas: 550k
+  - complete_quest(2012): success. Gas: 854k
+  - accept_quest(2013): success. Gas: 851k
+  - craft_item(recipe 6, Pine Pollen): success. Gas: 1.1M (test for Q17 — negative)
+  - craft_item(recipe 16, Sanguineous Powder): success. Gas: 1.3M
+  - craft_item(recipe 17, Empty Cup): success. Gas: 1.3M
+  - craft_item(recipe 18, Hostility Potion): success. Gas: 1.4M
+  - complete_quest(3013): success. Gas: 854k
+  - accept_quest(3006): success. Gas: 835k
+  - accept_quest(3004): REVERTED (3003 not completed). Gas: 413k wasted
+  - accept_quest(3007): REVERTED (Q17 not done). Gas: 413k wasted
+  - travel_to_room(55): 14 hops, 2 Ice Cream. Gas: 14.1M
+  - start_strategy(auto_v2, 20 kamis, node 55): RUNNING, ACTIVE. 20/21 slots
+**Result**: Quests 2012 and 3013 completed. Quest 2013 accepted (need 15 Daffodil, have 3). Quest 3006 accepted (Name a Kami). Quest 17 = Move 100 times (14/100 this session). Auto_v2 running on node 55 (Normal, Daffodil drops). MUSU: ~149,559 (+5,346 from stops).
+**Gas notes**: 29.6M (stops) + 1.98M (scavenge) + 550k (burn) + 854k + 851k + 1.1M + 1.3M + 1.3M + 1.4M + 854k + 835k + 413k + 413k + 14.1M = ~55.5M total. ~826k wasted (2 reverted quest accepts). Productive session: 2 quest completions, full quest 17 research breakthrough.
+**Next session**: Stop kamis, scavenge node 55 for Daffodils (need 12 more). If enough, travel to room 26 and complete quest 2013. Each travel leg adds moves toward Q17. (scheduled: +6h)
