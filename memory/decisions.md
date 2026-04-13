@@ -431,3 +431,39 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 12 completed! Quest 13 accepted (3 Scrap scavenges). Auto_v2 running on node 47 (Scrap). MUSU: 155,994 (+4,576 from stops). New item: Holy Dust (1x). Scrap nodes 47/31/30 all at 0 scav points — need harvest time first.
 **Gas notes**: 29.6M (stops) + 1.91M (scavenge) + 851k + 837k + 1.88M + 7.19M (travel) = ~42.3M total. No wasted tx. Extra travel cost due to mid-session pivot from Insect to Scrap plan.
 **Next session**: Stop kamis, scavenge node 47 (Scrap 1/3). Move to node 31 (1 hop, Scrap), harvest, scavenge (2/3). Then node 30 (adjacent, Scrap) for 3/3. (scheduled: +6h)
+
+---
+
+## 2026-04-13 01:48 UTC — session 18
+
+**ETH balance**: ~0.068565 → TBD (heavy session)
+**Perceived**: Auto_v2 ACTIVE on node 47 (~18h uptime). 20 kamis HARVESTING. 155,994 MUSU. 20/21 slots. Quest 13 active (3 Scrap scavenges). Quest 2012 active (Red Amber Crystal).
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 47 (Scrap)
+  - Quest 13 was already completable after just 1 scavenge — completed immediately
+  - Chained quests 14 (burn 5 Wooden Stick), 15 (burn 5 Stone), 16 (burn 5 Scrap Metal) — all instant completions
+  - Quest 17 accepted but unknown objectives; tried burning Pine Cone, Sanguine Shroom, Chalkberry — none worked (wasted ~1.5M gas + items)
+  - Traveled to room 13 (Mina's shop), bought 800 Ghost Gums to spend ~16k MUSU for quest 3012
+  - Completed quest 3012, accepted quest 3013
+  - Traveled to node 53 (14 hops) for Red Amber Crystal farming (quest 2012)
+  - Started auto_v2 on node 53
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.6M (nonce retry on batch 2)
+  - scavenge_claim_and_reveal(47): success. Gas: 1.78M. Got: +29 Stone, +9 Scrap Metal, +6 Cheeseburger, +1 Neith spell card
+  - complete_quest(13): success. Gas: 981k
+  - accept_quest(14) + burn 5 Wooden Stick + complete_quest(14): success. Gas: ~2.1M
+  - accept_quest(15) + burn 5 Stone + complete_quest(15): success. Gas: ~2.1M
+  - accept_quest(16) + burn 5 Scrap Metal + complete_quest(16): success. Gas: ~2.1M
+  - accept_quest(17): success. Gas: 837k
+  - burn Pine Cone(5), Sanguine Shroom(5), Chalkberry(4) for Q17: all WASTED. Gas: ~1.5M
+  - travel_to_room(13): 5 hops. Gas: 4.3M
+  - listing_buy(Ghost Gum, 200+500+100): 3 tx. Gas: ~2.85M. Spent ~16k MUSU
+  - complete_quest(3012): success. Gas: 854k
+  - accept_quest(3013): success. Gas: 837k
+  - accept_quest(3014): REVERTED (not available). Gas: 394k wasted
+  - travel_to_room(53): 14 hops. Gas: 12.5M
+  - start_strategy(auto_v2, 20 kamis, node 53): RUNNING, ACTIVE. 20/21 slots
+**Result**: 5 quests completed (13, 14, 15, 16, 3012). Quest 17 accepted but objective unknown. Quest 3013 accepted. Auto_v2 running on node 53 (Eerie) for Red Amber Crystal scavenge. MUSU: 144,213. Ghost Gum: 1,057 (+800). Lost: 5 Pine Cone, 5 Sanguine Shroom, 4 Chalkberry to failed Q17 guesses.
+**Gas notes**: ~62M total. Wasted: ~1.9M (failed Q17 burns + reverted Q3014 accept). Rest was productive. Heavy session but 5 quest completions justify it.
+**Next session**: Stop kamis, scavenge node 53 for Red Amber Crystal (quest 2012, 20% chance). If obtained, complete quest 2012. Need to research quest 17 objectives (try harvest time, crafting, or room-based objectives). (scheduled: +6h)
