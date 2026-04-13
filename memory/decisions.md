@@ -503,3 +503,29 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quests 2012 and 3013 completed. Quest 2013 accepted (need 15 Daffodil, have 3). Quest 3006 accepted (Name a Kami). Quest 17 = Move 100 times (14/100 this session). Auto_v2 running on node 55 (Normal, Daffodil drops). MUSU: ~149,559 (+5,346 from stops).
 **Gas notes**: 29.6M (stops) + 1.98M (scavenge) + 550k (burn) + 854k + 851k + 1.1M + 1.3M + 1.3M + 1.4M + 854k + 835k + 413k + 413k + 14.1M = ~55.5M total. ~826k wasted (2 reverted quest accepts). Productive session: 2 quest completions, full quest 17 research breakthrough.
 **Next session**: Stop kamis, scavenge node 55 for Daffodils (need 12 more). If enough, travel to room 26 and complete quest 2013. Each travel leg adds moves toward Q17. (scheduled: +6h)
+
+---
+
+## 2026-04-13 ~14:20 UTC — session 20
+
+**ETH balance**: 0.068004 → 0.067836 (Δ -0.000168)
+**Perceived**: Auto_v2 ACTIVE on node 55 (~6h uptime). 20 kamis HARVESTING. 149,559 MUSU. Daffodil: 18 (up from 3 — unclear source, possibly auto_v2 scavenge or prior miscounted). Scavenge points: 0.
+**Decided**:
+  - Have 18 Daffodils, need 15 for quest 2013 — proceed immediately
+  - Stop auto_v2, stop kamis, scavenge node 55, travel to room 26, burn Daffodils, complete quest 2013
+  - Accept quest 3010 (Craft Grace Potion). Quest 2014 reverted (needs MSQ 30).
+  - Travel to node 35 (Elder Path, Normal, "Stick Cone Poppy" droptable with ~11% Black Poppy) for quest 3010 ingredients
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.63M (nonce retry on batch 2)
+  - scavenge_claim_and_reveal(55): success. Gas: 1.77M. Got: +4 Daffodil, +12 Stone, +5 Wooden Stick
+  - travel_to_room(26): 7 hops, 2 Ice Cream. Gas: 7.88M
+  - burn_items(Daffodil x15): success. Gas: 404k
+  - complete_quest(2013): success. Gas: 931k
+  - accept_quest(2014): REVERTED (needs MSQ 30). Gas: 457k wasted
+  - accept_quest(3010): success. Gas: 837k
+  - travel_to_room(35): 5 hops, no items. Gas: 4.46M
+  - start_strategy(auto_v2, 20 kamis, node 35): RUNNING, ACTIVE. 20/21 slots
+**Result**: Quest 2013 completed! Quest 3010 accepted (need Black Poppy for Grace Potion). Auto_v2 running on node 35 (Elder Path, Black Poppy drops). MUSU: 153,847 (+4,288 from stops). Daffodil: 7 remaining. Moves: +12 this session → ~26/100 for Q17.
+**Gas notes**: 29.63M (stops) + 1.77M (scavenge) + 7.88M (travel) + 404k (burn) + 931k (complete) + 457k (reverted accept) + 837k (accept) + 4.46M (travel) + 0 (strategy start) = ~46.4M total. 457k wasted (reverted Q2014 accept).
+**Next session**: Stop kamis, scavenge node 35 for Black Poppy (~11% chance). If obtained: craft Extract (recipe 10) + Grace Potion (recipe 4), complete quest 3010. If not: re-harvest and try again. Quest 3006 (Name a Kami) needs room 11 + naming tool — implement when convenient. (scheduled: +6h)
