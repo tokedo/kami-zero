@@ -1358,6 +1358,11 @@ _ABI_SKILL = json.loads(
     '"inputs":[{"name":"holderID","type":"uint256"},{"name":"skillIndex","type":"uint32"}],'
     '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
 )
+_ABI_NAME = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"kamiID","type":"uint256"},{"name":"name","type":"string"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
 _ABI_EQUIP = json.loads(
     '[{"type":"function","name":"executeTyped",'
     '"inputs":[{"name":"kamiID","type":"uint256"},{"name":"itemIndex","type":"uint32"}],'
@@ -1829,6 +1834,20 @@ def level_up_kami(kami_id: int, account: str = "main") -> dict:
     """
     return _send_tx(
         account, "system.kami.level", _ABI_LEVEL, [_kami_entity_id(kami_id)]
+    )
+
+
+@mcp.tool()
+def name_kami(kami_id: int, name: str, account: str = "main") -> dict:
+    """Name or rename a kami. Costs 1 Holy Dust. Kami must be in room 11.
+
+    Args:
+        kami_id: Kami token index (e.g. 45).
+        name: New name (1-16 characters, globally unique).
+        account: Account label.
+    """
+    return _send_tx(
+        account, "system.kami.name", _ABI_NAME, [_kami_entity_id(kami_id), name]
     )
 
 
