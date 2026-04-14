@@ -1,20 +1,20 @@
-# Plan for session 22
+# Plan for session 23
 
-## Priority 1: Quest 3010 — Craft 1 Grace Potion
+## Priority 1: Quest 3011 — Craft 1 Respec Potion
 
-- Auto_v2 running on node 35 (Elder Path, Normal, scav cost 200).
-- Droptable: "Stick Cone Poppy" — items 1001(9), 1004(7), 1010(2) = ~11% Black Poppy per tier.
-- Steps: stop auto_v2 → stop all kamis → scavenge_claim(35) (skip reveal — items granted by claim directly).
-- If Black Poppy (1010) obtained:
-  - craft_item(recipe 10): 1 Black Poppy → 500 Black Poppy Extract (needs Spice Grinder, have 1)
-  - craft_item(recipe 4): 1 Plastic Bottle + 100 Essence of Daffodil + 50 Black Poppy Extract → 1 Grace Potion (needs Portable Burner, have 1)
-  - complete_quest(3010)
-- If not: restart auto_v2 on node 35, try again next session.
-- NOTE: droptable reveal reverts on this node. Items are granted directly by claim tx. Use scavenge_claim() only, not scavenge_claim_and_reveal().
+- Auto_v2 running on node 49 (Clearing, Normal, scav cost 300).
+- Droptable: "Stick Stone Mint" — items 1001(9), 1002(9), 1012(4) = ~18% Mint per tier.
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim(49) (check if reveal works on this node).
+- If Mint (1012) obtained:
+  - craft_item(recipe 9): 1 Mint → 500 Shredded Mint (needs Spice Grinder, have 1)
+  - craft_item(recipe 3): 1 Plastic Bottle + 500 Shredded Mint → 1 Respec Potion (needs Portable Burner, have 1)
+  - complete_quest(3011)
+- If not: restart auto_v2 on node 49, try again next session.
+- NOTE: Only 1 Plastic Bottle remaining. Need to acquire more if used.
 
 ## Priority 2: Quest 17 — Move 100 times
 
-- ~26 moves done. Accumulates naturally from travel. Do NOT grind.
+- ~31 moves done. Accumulates naturally from travel. Do NOT grind.
 - After Q17: quest 18 = Harvest >720 min at Scrap Confluence (node 31).
 - Unlocks SQ 3007 (Move 500 times) which also accumulates naturally.
 
@@ -25,8 +25,8 @@
 
 ## Quest overview
 
-- **Quest 17** (MSQ): Move 100 times — ~26/100, accumulating naturally
-- **Quest 3010** (side): Craft 1 Grace Potion — need Black Poppy from scavenging node 35
+- **Quest 17** (MSQ): Move 100 times — ~31/100, accumulating naturally
+- **Quest 3011** (side): Craft 1 Respec Potion — need Mint from scavenging node 49
 - **Quest 3006** (side): Name a Kami — needs room 11 + naming tool
 - **Quest 6**: Liquidate kami — waiting for user review
 - **Quest 3003**: Level up kami — deferred (needs massive XP)
@@ -37,18 +37,19 @@
 - **Quest 2014** (Mina): Give 2 Wooden Stick + 125 Sanguineous Powder + 125 Resin Tincture (needs MSQ 30)
 
 ## Active strategies
-- auto_v2 on node 35, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 49, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
-- MUSU: ~158,481
+- MUSU: ~163,053
 - Wooden Stick: 110
 - Pine Cone: 12
 - Daffodil: 7
-- Essence of Daffodil: 400
+- Essence of Daffodil: 300
+- Black Poppy Extract: 450
 - Pine Pollen: 500
 - Sanguineous Powder: 250
 - Stone: 300
-- Plastic Bottle: 2
+- Plastic Bottle: 1 (critical — only 1 left)
 - Ghost Gum: 1,057
 - Ice Cream: 93
 - Better Ice Cream: 10

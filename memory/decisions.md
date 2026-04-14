@@ -551,3 +551,29 @@ Append one entry per session. Newest at the bottom.
 **Result**: No Black Poppy this cycle. MUSU: 158,481 (+4,634 from stops). Wooden Stick: 110, Pine Cone: 12. Auto_v2 restarted on node 35. Harness fix: scavenge_claim_and_reveal now handles reveal reverts gracefully.
 **Gas notes**: 29.63M (stops) + 779k (claim) + 557k (3 failed reveals) + 0 (strategy start) = ~31.0M total. 557k wasted on reveal retries. Future sessions won't retry failed reveals.
 **Next session**: Same plan — stop, scavenge node 35 for Black Poppy. ~11% per scavenge cycle, should hit within a few more tries. (scheduled: +6h)
+
+---
+
+## 2026-04-14 02:50 UTC — session 22
+
+**ETH balance**: 0.067650 → 0.067459 (Δ -0.000191)
+**Perceived**: Auto_v2 ACTIVE on node 35 (~18h uptime). 20 kamis HARVESTING. 158,481 MUSU. Scavenge points: 0. **Black Poppy (1x) in inventory** — auto_v2 must have scavenged it during the cycle.
+**Decided**:
+  - Black Poppy already obtained — craft Grace Potion immediately (no need to stop kamis for crafting)
+  - Craft Black Poppy Extract (recipe 10) + Grace Potion (recipe 4) → complete quest 3010
+  - Accept quest 3011 (Craft 1 Respec Potion, needs Mint from node 49)
+  - Quest 3007 still locked (needs Q17 complete)
+  - Reposition to node 49 (Clearing, Normal, "Stick Stone Mint" droptable) for Mint farming
+**Acted**:
+  - craft_item(recipe 10, Black Poppy Extract): success. Gas: 1.35M
+  - craft_item(recipe 4, Grace Potion): success. Gas: 1.36M
+  - complete_quest(3010): success. Gas: 854k
+  - accept_quest(3011): success. Gas: 837k
+  - accept_quest(3007): REVERTED (Q17 not done). Gas: 413k wasted
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.63M
+  - travel_to_room(49): 5 hops, 25 stamina. Gas: 4.30M
+  - start_strategy(auto_v2, 20 kamis, node 49): RUNNING, ACTIVE. 20/21 slots
+**Result**: Quest 3010 completed! Quest 3011 accepted (need Mint → Shredded Mint → Respec Potion). Auto_v2 running on node 49 (Clearing, Mint drops ~18% chance). MUSU: 163,053 (+4,572 from stops). Moves: +5 this session → ~31/100 for Q17.
+**Gas notes**: 1.35M + 1.36M + 854k + 837k + 413k (wasted) + 29.63M (stops) + 4.30M (travel) = ~38.7M total. 413k wasted on reverted Q3007 accept. Crafting done while kamis were still harvesting — good gas efficiency (no premature stops).
+**Next session**: Stop kamis, scavenge node 49 for Mint (~18% chance). If obtained: craft Shredded Mint (recipe 9) + Respec Potion (recipe 3) → complete quest 3011. Also need 1 Plastic Bottle for Respec Potion (have 1). (scheduled: +6h)
