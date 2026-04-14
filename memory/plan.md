@@ -25,23 +25,25 @@
   5. Remember: "Never submit speculative transactions" — verify XP is sufficient before each level-up tx.
 - After quest completion, check what quest 3004 requires (it was gated behind 3003).
 
-## Priority 3: Quest 17 — Move 100 times
+## Priority 3: Quest 3006 — Name a Kami
+
+- Quest requires naming a kami. You have all the items needed.
+- Figure out how naming works: check game-data.md, catalogs, and the on-chain system contracts for the naming mechanism. Build a naming tool if one doesn't exist yet (system.kami.name or similar).
+- Kami must be in room 11 for naming. Use travel_to_room to move one kami there while the rest harvest.
+- Complete this in the same session if possible — kamis are already stopped for Priorities 1-2.
+
+## Priority 4: Quest 17 — Move 100 times
 
 - ~31 moves done. Accumulates naturally from travel. Do NOT grind.
 - After Q17: quest 18 = Harvest >720 min at Scrap Confluence (node 31).
 - Unlocks SQ 3007 (Move 500 times) which also accumulates naturally.
-
-## Priority 4: Quest 3006 — Name a Kami
-
-- Requires kami to be in room 11. Need to build a naming tool (system.kami.name).
-- Low priority, do when traveling through room 11 area.
 
 ## Quest overview
 
 - **Quest 17** (MSQ): Move 100 times — ~31/100, accumulating naturally
 - **Quest 3011** (side): Craft 1 Respec Potion — need Mint from scavenging node 49
 - **Quest 3003** (side): Level up kami — kamis now have XP from 4+ days of harvesting, attempt while RESTING
-- **Quest 3006** (side): Name a Kami — needs room 11 + naming tool
+- **Quest 3006** (side): Name a Kami — figure out naming tool, move kami to room 11, name it
 - **Quest 6**: Liquidate kami — waiting for user review
 
 ## Upcoming quests (reference)
