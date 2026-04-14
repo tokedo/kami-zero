@@ -577,3 +577,23 @@ Append one entry per session. Newest at the bottom.
 **Result**: Quest 3010 completed! Quest 3011 accepted (need Mint → Shredded Mint → Respec Potion). Auto_v2 running on node 49 (Clearing, Mint drops ~18% chance). MUSU: 163,053 (+4,572 from stops). Moves: +5 this session → ~31/100 for Q17.
 **Gas notes**: 1.35M + 1.36M + 854k + 837k + 413k (wasted) + 29.63M (stops) + 4.30M (travel) = ~38.7M total. 413k wasted on reverted Q3007 accept. Crafting done while kamis were still harvesting — good gas efficiency (no premature stops).
 **Next session**: Stop kamis, scavenge node 49 for Mint (~18% chance). If obtained: craft Shredded Mint (recipe 9) + Respec Potion (recipe 3) → complete quest 3011. Also need 1 Plastic Bottle for Respec Potion (have 1). (scheduled: +6h)
+
+---
+
+## 2026-04-14 ~09:05 UTC — session 23
+
+**ETH balance**: 0.067371 → 0.067289 (Δ -0.000082)
+**Perceived**: Auto_v2 ACTIVE on node 49 (~12h uptime). 20 kamis HARVESTING. 163,053 MUSU. 20/21 slots. Quest 3011 active (craft Respec Potion, need Mint). No Mint in inventory.
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 49 for Mint (~18% chance)
+  - Mint NOT obtained — got +10 Stone, +5 Wooden Stick (missed 18% chance)
+  - No other quick wins available (Q17 not met, Q3006 not met, Q3011 not met)
+  - Restart auto_v2 on node 49, try again next session
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.63M
+  - scavenge_claim_and_reveal(49): success. Gas: 1.66M. Got: +10 Stone, +5 Wooden Stick (no Mint)
+  - start_strategy(auto_v2, 20 kamis, node 49): RUNNING, ACTIVE. 20/21 slots
+**Result**: No Mint this cycle. MUSU: 167,618 (+4,565 from stops). Auto_v2 restarted on node 49. Inventory: Stone 310, Wooden Stick 115, Plastic Bottle 1 (still critical).
+**Gas notes**: 29.63M (stops) + 1.66M (scavenge+reveal) = ~31.3M total. No wasted tx. Efficient but unproductive session — RNG miss.
+**Next session**: Same plan — stop, scavenge node 49 for Mint. ~18% per cycle, expected to hit within 2-3 more tries. (scheduled: +6h)

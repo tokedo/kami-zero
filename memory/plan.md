@@ -1,16 +1,17 @@
-# Plan for session 23
+# Plan for session 24
 
 ## Priority 1: Quest 3011 — Craft 1 Respec Potion
 
 - Auto_v2 running on node 49 (Clearing, Normal, scav cost 300).
 - Droptable: "Stick Stone Mint" — items 1001(9), 1002(9), 1012(4) = ~18% Mint per tier.
-- Steps: stop auto_v2 → stop all kamis → scavenge_claim(49) (check if reveal works on this node).
+- Steps: stop auto_v2 → stop all kamis → scavenge_claim_and_reveal(49).
 - If Mint (1012) obtained:
   - craft_item(recipe 9): 1 Mint → 500 Shredded Mint (needs Spice Grinder, have 1)
   - craft_item(recipe 3): 1 Plastic Bottle + 500 Shredded Mint → 1 Respec Potion (needs Portable Burner, have 1)
   - complete_quest(3011)
 - If not: restart auto_v2 on node 49, try again next session.
 - NOTE: Only 1 Plastic Bottle remaining. Need to acquire more if used.
+- Missed Mint in sessions 22 and 23. Expected to hit within 1-3 more attempts.
 
 ## Priority 2: Quest 17 — Move 100 times
 
@@ -40,15 +41,15 @@
 - auto_v2 on node 49, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
-- MUSU: ~163,053
-- Wooden Stick: 110
+- MUSU: ~167,618
+- Wooden Stick: 115
 - Pine Cone: 12
 - Daffodil: 7
 - Essence of Daffodil: 300
 - Black Poppy Extract: 450
 - Pine Pollen: 500
 - Sanguineous Powder: 250
-- Stone: 300
+- Stone: 310
 - Plastic Bottle: 1 (critical — only 1 left)
 - Ghost Gum: 1,057
 - Ice Cream: 93
