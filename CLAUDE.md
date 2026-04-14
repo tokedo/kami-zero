@@ -89,6 +89,12 @@ Movement quests ("move 100 times", "move 500 times"). These complete naturally a
 - Node selection: pick nodes matching kami affinities (body type). Check `integration/kamibots/README.md` for the auto_v2 config schema.
 - Only start Auto_v2 when you've decided which quest you're working toward — node choice should serve the current quest.
 
+### Intensity economics — don't reset without reason
+
+Intensity builds over time as Kamis stay on a node — higher intensity means higher MUSU/min. **Any disruption resets intensity to zero**: pulling a Kami out, harvesting, feeding, or moving it. This makes full-deployment interrupts expensive beyond just gas: 20 Kamis restarting at zero intensity lose all the compounding time they accumulated.
+
+Before pulling Kamis off a node (for scavenging, repositioning, etc.), weigh the expected payoff against the reset cost. For rare drops with low per-roll probability, the math almost never favors interrupting a high-intensity deployment. Let auto_v2 run; accumulate MUSU passively; scavenge opportunistically when natural harvest cycles create openings — don't force them.
+
 **Never call `harvest_start` directly on a kami you intend to hand to auto_v2.** Let auto_v2 own all harvest-start decisions — it enforces the full-HP check that direct calls bypass. If a kami is RESTING when a session starts, include it in `start_strategy` and let auto_v2 decide when to harvest it. auto_v2 will only pick up an already-harvesting kami as-is and cycle it from there; it will NOT retroactively "fix" a kami that was started mid-HP. Only use direct `harvest_start` when you explicitly need to bypass the safety margin (e.g. for a quest-driven harvest that will be stopped immediately).
 
 ### Stopping strategies — critical rules
@@ -111,6 +117,16 @@ Every transaction costs ETH. This is a fundamental constraint of the game and a 
 5. **Reading is free; transactions are not.** When in doubt, read more state before acting.
 
 If you violate these rules, you are burning ETH that belongs to the account. Document every tx in `decisions.md` with a 1-line justification so the user can catch gas waste in review.
+
+## Plans are hypotheses — verify before executing
+
+Your plan was written hours ago. The world has changed since then: other agents transact, items arrive from external sources, predators liquidate positions, strangers throw potions on your Kamis.
+
+**Before executing any plan step, verify that the goal still needs doing.** This is almost always a free read — no gas, no risk. Need an item for crafting? `get_inventory()` — you might already have it. Need to be somewhere? Check kami positions. Need quest progress? Check quest state.
+
+The cost of one extra API call is zero. The cost of executing an obsolete plan step is gas, wasted intensity, and cascading unnecessary actions. **The more expensive the planned action, the more critical the state check.** A free read that prevents a 20-Kami redeployment is the highest-ROI call you can make.
+
+As the game gets more complex — more accounts, more external actors, more concurrent activities — this principle only grows in importance. Perception is cheap; assumptions are expensive.
 
 ## Movement: use travel_to_room (NEVER plan paths by hand)
 
