@@ -13,13 +13,25 @@
 - NOTE: Only 1 Plastic Bottle remaining. Need to acquire more if used.
 - Missed Mint in sessions 22, 23, and 24. Expected to hit within 1-3 more attempts.
 
-## Priority 2: Quest 17 — Move 100 times
+## Priority 2: Quest 3003 — Level up kami
+
+- Kamis have been harvesting for 4+ days since last XP check. Some now have enough XP to level up.
+- Kamis must be RESTING to level up — do this while kamis are already stopped for Priority 1 scavenging.
+- Steps:
+  1. After stopping kamis for scavenge, call get_account_kamis() to check all kami levels and XP.
+  2. Use the /api/playwright/kami/{id}/ endpoint per kami to read progress.xp and progress.level.
+  3. For each kami that has enough XP: call level_up_kami(kami_id) (or level_to for multiple levels).
+  4. After at least 1 successful level-up: complete_quest(3003).
+  5. Remember: "Never submit speculative transactions" — verify XP is sufficient before each level-up tx.
+- After quest completion, check what quest 3004 requires (it was gated behind 3003).
+
+## Priority 3: Quest 17 — Move 100 times
 
 - ~31 moves done. Accumulates naturally from travel. Do NOT grind.
 - After Q17: quest 18 = Harvest >720 min at Scrap Confluence (node 31).
 - Unlocks SQ 3007 (Move 500 times) which also accumulates naturally.
 
-## Priority 3: Quest 3006 — Name a Kami
+## Priority 4: Quest 3006 — Name a Kami
 
 - Requires kami to be in room 11. Need to build a naming tool (system.kami.name).
 - Low priority, do when traveling through room 11 area.
@@ -28,13 +40,14 @@
 
 - **Quest 17** (MSQ): Move 100 times — ~31/100, accumulating naturally
 - **Quest 3011** (side): Craft 1 Respec Potion — need Mint from scavenging node 49
+- **Quest 3003** (side): Level up kami — kamis now have XP from 4+ days of harvesting, attempt while RESTING
 - **Quest 3006** (side): Name a Kami — needs room 11 + naming tool
 - **Quest 6**: Liquidate kami — waiting for user review
-- **Quest 3003**: Level up kami — deferred (needs massive XP)
 
 ## Upcoming quests (reference)
 
 - **Quest 18** (MSQ): Harvest >720 min at Scrap Confluence (node 31) — after Q17
+- **Quest 3004** (side): unlocks after 3003 — check objectives after completing 3003
 - **Quest 2014** (Mina): Give 2 Wooden Stick + 125 Sanguineous Powder + 125 Resin Tincture (needs MSQ 30)
 
 ## Active strategies
