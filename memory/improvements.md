@@ -71,3 +71,10 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: No change to call signature. When reveal reverts, response includes `"reveal_skipped": "reveal reverted — items likely granted directly by claim"` and `"reveal": null`. For nodes where reveal reverts, prefer calling `scavenge_claim()` directly instead.
 - **Commit**: 493681a
+
+## 2026-04-14 — name_kami tool
+- **What**: Added `name_kami` MCP tool and `_ABI_NAME` ABI for naming/renaming kamis via `system.kami.name`.
+- **Why**: Quest 3006 required naming a kami. No naming tool existed. Kami must be in room 11, costs 1 Holy Dust (item 11011).
+- **Files**: `executor/server.py`
+- **How to use**: `name_kami(kami_id=43, name="Zephyr", account="bpeon")` — names kami 43 "Zephyr". Name must be 1-16 chars, globally unique. Note: MCP server must be restarted to pick up the new tool; alternatively execute via direct Python script.
+- **Commit**: 2b61683

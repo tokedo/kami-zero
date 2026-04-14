@@ -617,3 +617,38 @@ Append one entry per session. Newest at the bottom.
 **Result**: No Mint this cycle (3rd miss). MUSU: 172,140 (+4,522 from stops). Auto_v2 restarted on node 49. Cumulative probability of eventually hitting: ~95% within 15 attempts total (done 4 so far counting session 22 miss).
 **Gas notes**: 29.63M (stops) + 1.66M (scavenge+reveal) = ~31.3M total. No wasted tx. Efficient but unproductive session — RNG miss.
 **Next session**: Same plan — stop, scavenge node 49 for Mint. (scheduled: +6h)
+
+---
+
+## 2026-04-14 21:39 UTC — session 25
+
+**ETH balance**: ~0.067190 → unknown (DNS issue prevented direct RPC check)
+**Perceived**: Auto_v2 ACTIVE on node 49 (~6h uptime). 20 kamis HARVESTING. 164,090 MUSU (down from 172,140 — auto_v2 may have spent on feeding/revives). **Mint (1x) already in inventory** — auto_v2 scavenged it during the cycle.
+**Decided**:
+  - Mint already obtained — craft Respec Potion immediately without stopping kamis (saves intensity)
+  - Stop auto_v2 for leveling (Q3003) + naming (Q3006) + scavenging (last grab from node 49)
+  - Level kami 11716 (32→33, only kami with enough XP: 51,060 >= ~50,448 cost)
+  - Travel to room 11, name kami 43 "Zephyr" (built name_kami tool), complete Q3006
+  - Accept quests 3004, 3014 (newly available after 3003/3006 completion)
+  - Travel back to room 49, restart auto_v2
+**Acted**:
+  - craft_item(recipe 9, Shredded Mint): success. Gas: 1.35M
+  - craft_item(recipe 3, Respec Potion): success. Gas: 1.47M
+  - complete_quest(3011): success. Gas: 854k
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 29.63M
+  - level_up_kami(11716): success. Gas: 866k
+  - scavenge_claim_and_reveal(49): success. Gas: 1.91M. Got: +4 Stone, +10 Wooden Stick, +1 Cultivation I Spell Card
+  - complete_quest(3003): success. Gas: 919k
+  - accept_quest(3004): success. Gas: 712k
+  - accept_quest(3014): success. Gas: 837k
+  - accept_quest(3015/3016/3017/3007): REVERTED x4. Gas: 1.62M wasted
+  - upgrade_skill(11716, 322): success. Gas: 1.12M. Guardian 322: 3→4
+  - travel_to_room(11): 3 hops. Gas: 2.58M
+  - name_kami(43, "Zephyr"): success. Gas: 659k (via direct Python script — MCP server hadn't reloaded new tool)
+  - complete_quest(3006): success. Gas: 851k
+  - travel_to_room(49): 3 hops. Gas: 2.58M
+  - start_strategy(auto_v2, 20 kamis, node 49): RUNNING, ACTIVE. 20/21 slots
+**Result**: 3 quests completed (3011, 3003, 3006)! Kami 43 named "Zephyr". Kami 11716 leveled 32→33. Respec Potion crafted. Quests 3004+3014 accepted. MUSU: 168,721 (+4,631 from stops). Moves: +6 this session → ~37/100 for Q17. Harness: added name_kami tool.
+**Gas notes**: ~47.5M total. 1.62M wasted on 4 reverted quest accepts — stop trying speculative accepts without knowing prerequisites. Crafting done while kamis still harvesting was efficient.
+**Next session**: Farm MUSU on node 49. Check Q3004/Q3014 objectives if possible. Q17 needs ~63 more moves (accumulates naturally). (scheduled: +6h)
