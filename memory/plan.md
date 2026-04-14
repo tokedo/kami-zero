@@ -1,4 +1,4 @@
-# Plan for session 24
+# Plan for session 25
 
 ## Priority 1: Quest 3011 — Craft 1 Respec Potion
 
@@ -11,7 +11,7 @@
   - complete_quest(3011)
 - If not: restart auto_v2 on node 49, try again next session.
 - NOTE: Only 1 Plastic Bottle remaining. Need to acquire more if used.
-- Missed Mint in sessions 22 and 23. Expected to hit within 1-3 more attempts.
+- Missed Mint in sessions 22, 23, and 24. Expected to hit within 1-3 more attempts.
 
 ## Priority 2: Quest 17 — Move 100 times
 
@@ -41,15 +41,15 @@
 - auto_v2 on node 49, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
-- MUSU: ~167,618
-- Wooden Stick: 115
+- MUSU: ~172,140
+- Wooden Stick: 119
 - Pine Cone: 12
 - Daffodil: 7
 - Essence of Daffodil: 300
 - Black Poppy Extract: 450
 - Pine Pollen: 500
 - Sanguineous Powder: 250
-- Stone: 310
+- Stone: 321
 - Plastic Bottle: 1 (critical — only 1 left)
 - Ghost Gum: 1,057
 - Ice Cream: 93

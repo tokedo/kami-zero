@@ -597,3 +597,23 @@ Append one entry per session. Newest at the bottom.
 **Result**: No Mint this cycle. MUSU: 167,618 (+4,565 from stops). Auto_v2 restarted on node 49. Inventory: Stone 310, Wooden Stick 115, Plastic Bottle 1 (still critical).
 **Gas notes**: 29.63M (stops) + 1.66M (scavenge+reveal) = ~31.3M total. No wasted tx. Efficient but unproductive session — RNG miss.
 **Next session**: Same plan — stop, scavenge node 49 for Mint. ~18% per cycle, expected to hit within 2-3 more tries. (scheduled: +6h)
+
+---
+
+## 2026-04-14 15:15 UTC — session 24
+
+**ETH balance**: 0.067289 → ~0.067190 (Δ ~-0.000099)
+**Perceived**: Auto_v2 ACTIVE on node 49 (~6h uptime). 20 kamis HARVESTING. 167,618 MUSU. No Mint in inventory.
+**Decided**:
+  - Stop auto_v2 + all kamis, scavenge node 49 for Mint (quest 3011)
+  - Mint NOT obtained — got +11 Stone, +4 Wooden Stick (3rd consecutive miss at ~18% chance)
+  - No other quick wins: Q17 not met (~31/100 moves), Q3006 needs naming tool + room 11, Q3003 deferred
+  - Restart auto_v2 on node 49
+**Acted**:
+  - stop_strategy(43): DELETED
+  - harvest_stop (2x10 batches): success. Gas: 29.63M (nonce retry on batch 2)
+  - scavenge_claim_and_reveal(49): success. Gas: 1.66M. Got: +11 Stone, +4 Wooden Stick (no Mint)
+  - start_strategy(auto_v2, 20 kamis, node 49): RUNNING, ACTIVE. 20/21 slots
+**Result**: No Mint this cycle (3rd miss). MUSU: 172,140 (+4,522 from stops). Auto_v2 restarted on node 49. Cumulative probability of eventually hitting: ~95% within 15 attempts total (done 4 so far counting session 22 miss).
+**Gas notes**: 29.63M (stops) + 1.66M (scavenge+reveal) = ~31.3M total. No wasted tx. Efficient but unproductive session — RNG miss.
+**Next session**: Same plan — stop, scavenge node 49 for Mint. (scheduled: +6h)
