@@ -756,3 +756,32 @@ Append one entry per session. Newest at the bottom.
 **Result**: All 20 kamis now HARVESTING on correct node 12 (Scrap Confluence) for Q18. MUSU: 184,959 (+783 from node 31 stops). Ice Cream: 81.
 **Gas notes**: 28.4M (stops) + 4.3M (travel) + 15.9M (harvest starts) + misc strategy ops = ~50M total. No wasted tx. Heavy but necessary — prior sessions harvested on wrong node.
 **Next session**: Stop kamis, check Q18 completability (720 kami-min / 20 kamis = 36 min). Complete Q18, accept Q19 (Harvest >720 min at Labs Entrance, node 6). (scheduled: +1h)
+
+---
+
+## 2026-04-15 15:15 UTC — session 30
+
+**ETH balance**: 0.066328 → 0.066033 (Δ -0.000295)
+**Perceived**: Auto_v2 ACTIVE on node 12 since session 29 (~1.3h). 20 kamis HARVESTING on node 12 (Scrap Confluence). 184,959 MUSU. Q18 should be met (1600+ kami-min accumulated).
+**Decided**:
+  - Stop auto_v2, stop all kamis, flush HARVEST_TIME, complete Q18
+  - Accept Q19 (Harvest >720 min at Labs Entrance, node 6)
+  - Travel to room 6 (7 hops), manually start harvests on node 6 (new node), restart auto_v2
+  - Node 12 scavenge points = 0, skip scavenge
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success (nonce retry on batch 2). Gas: 28.4M
+  - check_quest_completable(18): TRUE
+  - complete_quest(18): success. Gas: 986k
+  - accept_quest(19): success. Gas: 841k
+  - travel_to_room(6): 7 hops, 35 stamina. Gas: 6.2M
+  - harvest_start batch 1 (10 kamis, node 6): reverted (cooldown ~73s). Gas: 286k wasted
+  - (waited 80s for cooldown)
+  - harvest_start batch 1 (10 kamis, node 6): success. Gas: 7.95M
+  - harvest_start batch 2 (10 kamis, node 6): reverted (cooldown from batch 2 stop). Gas: 286k wasted
+  - (waited 90s)
+  - harvest_start batch 2 (10 kamis, node 6): success. Gas: 7.95M
+  - start_strategy(auto_v2, 20 kamis, node 6): RUNNING, ACTIVE. 20/21 slots
+**Result**: Q18 completed! Q19 accepted. All 20 kamis HARVESTING on node 6 (Labs Entrance) under auto_v2. MUSU: 184,959 (no collections this session — auto_v2 collected during prior cycles). 7 moves toward Q3007 (Move 500).
+**Gas notes**: 28.4M (stops) + 986k (quest) + 841k (quest) + 6.2M (travel) + 572k (2 reverted harvest starts, cooldown) + 15.9M (harvest starts) = ~52.9M total. 572k wasted on cooldown reverts. Rest productive.
+**Next session**: Stop kamis, check Q19 completability (720 kami-min / 20 kamis = 36 min). Complete Q19, accept Q20 (Harvest >720 min at Hollow Path, node 37). (scheduled: +1h)
