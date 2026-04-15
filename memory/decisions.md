@@ -809,3 +809,25 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q19 completed! Q20 accepted. All 20 kamis HARVESTING on node 37 (Hollow Path) under auto_v2. MUSU: 185,847. 8 moves toward Q3007 (Move 500, ~115/500). Smooth session — no wasted tx.
 **Gas notes**: 28.4M (stops) + 987k + 840k (quests) + 7.0M (travel) + 15.9M (harvest starts) = ~53.1M total. 0 wasted tx.
 **Next session**: Stop kamis, check Q20 completability (720 kami-min / 20 kamis = 36 min). Complete Q20, accept Q21 (2 Scav rolls at Scrap Trees, node 60). Then travel to room 60 (zone 2, via room 5). (scheduled: +1h)
+
+## 2026-04-15 17:45 UTC — session 32
+
+**ETH balance**: 0.065692 (start) → ~0.062 (end estimate, exact post-session TBD)
+**Perceived**: 20 kamis HARVESTING on node 37 under auto_v2 (started session 31). Q20 not yet completable (harvest time not flushed).
+**Decided**:
+  - Stop auto_v2 + stop all harvests to flush harvest time for Q20
+  - Complete Q20, accept Q21
+  - Travel to room 60 (Scrap Trees, zone 2) for Q21 (2 scav rolls)
+  - Launch auto_v2 on node 60 to build scav points
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success (2nd batch retried due to nonce collision). Gas: 14.2M + 14.2M = 28.4M
+  - check_quest_completable(20): TRUE (after flush)
+  - complete_quest(20): success. Gas: 1.24M
+  - accept_quest(21): success. Gas: 889k
+  - travel_to_room(60): 16 hops, 80 stamina (used 1 Ice Cream). Gas: 14.8M
+  - harvest_start(10 kamis, node 60): REVERTED (285k gas) — kamis still in cooldown from stop
+  - start_strategy(auto_v2, 20 kamis, node 60): RUNNING, ACTIVE. 20/21 slots. auto_v2 will start harvests when HP recovers.
+**Result**: Q20 completed! Q21 accepted. Traveled to room 60 (zone 2). 20 kamis under auto_v2 on node 60, waiting for HP recovery before harvesting begins. 16 moves toward Q3007 (Move 500, ~131/500). 1 wasted tx (285k gas on premature harvest_start).
+**Gas notes**: 28.4M (stops) + 1.24M + 889k (quests) + 14.8M (travel) + 285k (reverted harvest) = ~45.6M total. 1 wasted tx (285k).
+**Next session**: Check scav points on node 60. Need 1000 (2 rolls * 500 cost). Stop auto_v2, stop harvests, scavenge x2, complete Q21. Accept Q22 (3 scav at Centipedes, node 62). (scheduled: +2h)
