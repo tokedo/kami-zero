@@ -705,3 +705,30 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q17 completed — critical path unblocked! Q18 accepted (Harvest >720 min at Scrap Confluence, node 31). Q3007 accepted (Move 500 — leaf). Auto_v2 running on node 31. MUSU: ~169,627 (no collections this session). Ice Cream: 83 (used 11). 61 moves this session.
 **Gas notes**: 28.3M (stops) + 63.7M (travel, 61 hops) + 2.7M (quest ops) = ~94.7M total. 0 wasted tx. Heavy but justified — Q17 was blocking all MSQ progression.
 **Next session**: Stop kamis, check Q18 completability (720 kami-min / 20 kamis = ~36 min real). Complete Q18, accept Q19. Scavenge node 31. (scheduled: +2h)
+
+---
+
+## 2026-04-15 12:16 UTC — session 28
+
+**ETH balance**: ~0.066534 → unknown (RPC connection issue for direct balance check)
+**Perceived**: Auto_v2 ACTIVE on node 31 since session 27 (~2h uptime). But ALL kamis show harvest.node=49 (Clearing), NOT node 31. HARVEST_TIME at node 31 = zero. Q18 not completable.
+**Decided**:
+  - Root cause investigation: harvest_start gas limit (1.5M) is too low for starting on a NEW node (~900k+/kami). First node-change tx consumed exactly 1.5M and reverted as out-of-gas. Session 27's auto_v2 never actually harvested on node 31 — it was stuck because every harvest_start attempt on the new node ran out of gas.
+  - Fix: increase harvest_start gas_limit from 1.5M to 3M in executor/server.py
+  - Manually start all 20 kamis harvesting on node 31 via direct Python (MCP server not reloaded)
+  - Restart auto_v2 on node 31 to manage cycles
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 640k each (kamis were RESTING, not harvesting — confirms auto_v2 never started harvests on node 31)
+  - check_quest_completable(18): FALSE (confirmed 0 progress)
+  - harvest_start(43, node=31): REVERTED (gas 1,499,801/1,500,000 — out of gas). Wasted: 1.5M
+  - harvest_start(43, node=49): REVERTED (gas 858k — not in room 49). Wasted: 858k
+  - staticCall harvest_start(43, node=31): SUCCESS — confirmed it works with unlimited gas
+  - Fixed gas_limit in server.py: 1.5M → 3M
+  - harvest_start batch 1 (10 kamis, node=31): SUCCESS via direct Python. Gas: 9.02M
+  - harvest_start batch 2 (10 kamis, node=31): SUCCESS via direct Python. Gas: 9.02M
+  - Verified kami 43: HARVESTING, node=31 (Scrapyard Exit), HP 173/230
+  - start_strategy(auto_v2, 20 kamis, node 31): RUNNING
+**Result**: All 20 kamis now HARVESTING on node 31 for the first time. Q18 harvest time clock is finally ticking. MUSU: 184,176. Root cause of 2-hour wasted auto_v2 cycle identified and fixed.
+**Gas notes**: 1.28M (stops) + 2.36M (wasted reverts) + 18.05M (manual harvest starts) = ~21.7M total. 2.36M wasted on diagnostic reverts. Harness fix prevents future occurrence.
+**Next session**: Stop kamis, check Q18 completability. If met: complete Q18, accept Q19. Scavenge node 31. (scheduled: +1h)

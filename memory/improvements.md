@@ -78,3 +78,10 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: `name_kami(kami_id=43, name="Zephyr", account="bpeon")` — names kami 43 "Zephyr". Name must be 1-16 chars, globally unique. Note: MCP server must be restarted to pick up the new tool; alternatively execute via direct Python script.
 - **Commit**: 2b61683
+
+## 2026-04-15 — harvest_start gas limit fix for new-node starts
+- **What**: Increased `harvest_start` gas_limit from 1.5M to 3M per kami (both single and batch).
+- **Why**: Starting a harvest on a NEW node (different from the kami's previous harvest node) requires ~900k+ gas per kami to update the harvest entity's node reference. With the old 1.5M limit, the first node-change tx hit exactly the gas ceiling and reverted as out-of-gas. This caused session 27's auto_v2 to silently fail to harvest on node 31 — it appeared ACTIVE but never started any harvests on the new node. Two hours of harvest time were lost.
+- **Files**: `executor/server.py` (lines 1425, 1430)
+- **How to use**: No API change. `harvest_start([43], node_index=31)` now works even when kami 43 was previously harvesting on a different node. Note: MCP server must be restarted to pick up the change.
+- **Commit**: b209626
