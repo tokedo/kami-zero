@@ -732,3 +732,27 @@ Append one entry per session. Newest at the bottom.
 **Result**: All 20 kamis now HARVESTING on node 31 for the first time. Q18 harvest time clock is finally ticking. MUSU: 184,176. Root cause of 2-hour wasted auto_v2 cycle identified and fixed.
 **Gas notes**: 1.28M (stops) + 2.36M (wasted reverts) + 18.05M (manual harvest starts) = ~21.7M total. 2.36M wasted on diagnostic reverts. Harness fix prevents future occurrence.
 **Next session**: Stop kamis, check Q18 completability. If met: complete Q18, accept Q19. Scavenge node 31. (scheduled: +1h)
+
+---
+
+## 2026-04-15 13:45 UTC — session 29
+
+**ETH balance**: 0.066534 → 0.066328 (Δ -0.000206)
+**Perceived**: Auto_v2 ACTIVE on node 31 since session 28. Stopped all 20 kamis to flush HARVEST_TIME. Q18 check_quest_completable: FALSE. Investigated: **Q18 requires Scrap Confluence (node 12), NOT Scrapyard Exit (node 31).** Past sessions (27-28) confused the two nodes. All harvest time on node 31 was irrelevant for Q18.
+**Decided**:
+  - Root cause: game-data.md clearly says Q18 = "Harvest >720 min in Scrap Confluence" (node 12). Plan incorrectly said node 31.
+  - Travel to room 12, manually start harvests on node 12, restart auto_v2.
+  - Manual harvest start needed because auto_v2 can't start on new nodes (Kamibots gas limit issue from session 28).
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 14.2M + 14.2M = 28.4M (flushed node 31 time)
+  - check_quest_completable(18): FALSE (confirmed wrong node)
+  - travel_to_room(12): 4 hops, 1 Ice Cream. Gas: 4.3M
+  - stop_strategy(43): DELETED (auto_v2 that couldn't start harvests on new node)
+  - harvest_start batch 1 (10 kamis, node=12): success. Gas: 7.95M
+  - harvest_start batch 2 (10 kamis, node=12): success. Gas: 7.95M
+  - Verified kami 43: HARVESTING, node=12 (Scrap Confluence)
+  - start_strategy(auto_v2, 20 kamis, node 12): RUNNING, ACTIVE
+**Result**: All 20 kamis now HARVESTING on correct node 12 (Scrap Confluence) for Q18. MUSU: 184,959 (+783 from node 31 stops). Ice Cream: 81.
+**Gas notes**: 28.4M (stops) + 4.3M (travel) + 15.9M (harvest starts) + misc strategy ops = ~50M total. No wasted tx. Heavy but necessary — prior sessions harvested on wrong node.
+**Next session**: Stop kamis, check Q18 completability (720 kami-min / 20 kamis = 36 min). Complete Q18, accept Q19 (Harvest >720 min at Labs Entrance, node 6). (scheduled: +1h)

@@ -1,53 +1,55 @@
-# Plan for session 29
+# Plan for session 30
 
-## Priority 1: Complete Q18 — Harvest >720 min at Scrapyard Exit (node 31)
+## Priority 1: Complete Q18 — Harvest >720 min at Scrap Confluence (node 12)
 
-- 20 kamis now HARVESTING on node 31 (started session 28, ~12:35 UTC).
+- 20 kamis HARVESTING on node 12 since ~13:55 UTC (session 29).
 - Auto_v2 running with REST regen, 5% safety.
-- 720 kami-min / 20 kamis = ~36 min real time. Should be well past threshold.
+- 720 kami-min / 20 kamis = ~36 min real time. Should be done by ~14:31 UTC.
 - **Action**: stop auto_v2, stop all kamis (to flush HARVEST_TIME), check_quest_completable(18).
 - If met: complete_quest(18), accept_quest(19).
-- If NOT met: restart auto_v2 on node 31, schedule +2h.
+- If NOT met: restart auto_v2 on node 12, schedule +1h.
 
-## Priority 2: Accept Q19 + check objectives
+## Priority 2: Accept Q19 + prepare for it
 
-- Q19 objectives unknown — check completability after accepting.
-- Continue MSQ chain as far as possible.
+- Q19: "Harvesting Data II" — Harvest >720 min at Labs Entrance (node 6, room 6).
+- After completing Q18, travel from room 12 to room 6.
+- Manually start harvests on node 6 (new node = manual start needed), then auto_v2.
 
-## Priority 3: Scavenge node 31
+## Priority 3: Scavenge node 12
 
-- Node 31 = Scrapyard Exit (Scrap type, scav cost 100).
-- Droptable: Stone (9), Scrap Metal (7), Cheeseburger (6).
-- Scavenge after stopping kamis for Q18.
+- Node 12 = Scrap Confluence (Scrap type, scav cost 500).
+- Droptable: Scrap Metal (9), Cheeseburger (8), Holy Dust (6), Screwdriver (2).
+- Holy Dust is useful (needed for naming kamis). Scavenge if points available.
 
 ## Quest overview
 
-- **Q18** (MSQ): Harvest >720 min at Scrapyard Exit (node 31) — IN PROGRESS (kamis actively harvesting since ~12:35 UTC)
-- **Q6**: Liquidate kami — deferred (waiting for user review)
-- **Q3007** (side): Move 500 times — ~98/500, accumulates naturally
+- **Q18** (MSQ): Harvest >720 min at Scrap Confluence (node 12) — IN PROGRESS
+- **Q19** (MSQ, next): Harvest >720 min at Labs Entrance (node 6)
+- **Q20** (MSQ): Harvest >720 min at Hollow Path
+- **Q6**: Liquidate kami — deferred
+- **Q3007** (side): Move 500 times — accumulates naturally
 - **Mina line**: Q2014 unlocks at MSQ 30 — many MSQs to go
 
 ## Quest graph (critical path)
 
-MSQ is sequential: ...->Q17->Q18->Q19->...->Q30 (gates Mina Q2014)->...->Q108
-- Q17 DONE (session 27)
-- Q18 IN PROGRESS (harvest 720 min at node 31 — kamis now correctly on node 31)
-- Q19+ unknown objectives — advance as fast as possible
-
-Side quests (leaf, low priority):
-- Q3007: Move 500 times (natural accumulation)
-- Q6: Liquidate kami (needs user decision)
+MSQ is sequential: ...->Q17(done)->Q18->Q19->Q20->Q21->...->Q30 (gates Mina Q2014)->...->Q108
+- Q18 IN PROGRESS (harvest at node 12)
+- Q19 = harvest at node 6
+- Q20 = harvest at Hollow Path (need to find node index)
+- Q21+ = scavenge-based quests
 
 ## Active strategies
-- auto_v2 on node 31, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 12, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
-## Known issues
-- harvest_start gas limit was too low for new-node starts (fixed: 1.5M -> 3M in server.py)
-- MCP server needs restart to pick up gas limit fix (or use direct Python scripts)
+## CRITICAL LESSON: Always verify quest node before harvesting
+- Q18 requires Scrap Confluence (node 12), NOT Scrapyard Exit (node 31).
+- Sessions 27-29 wasted gas harvesting on wrong node because plan.md had wrong node.
+- Always cross-reference quest objectives against game-data.md before starting harvests.
+- Auto_v2 cannot start harvests on a new node (Kamibots gas issue) — always manual start first.
 
 ## Inventory notes
-- MUSU: ~184,176
-- Ice Cream: 82
+- MUSU: ~184,959
+- Ice Cream: 81
 - Better Ice Cream: 10
 - Rock Candyfloss: 66
 - Scrap Metal: 35
