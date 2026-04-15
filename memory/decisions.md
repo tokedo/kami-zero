@@ -785,3 +785,27 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q18 completed! Q19 accepted. All 20 kamis HARVESTING on node 6 (Labs Entrance) under auto_v2. MUSU: 184,959 (no collections this session — auto_v2 collected during prior cycles). 7 moves toward Q3007 (Move 500).
 **Gas notes**: 28.4M (stops) + 986k (quest) + 841k (quest) + 6.2M (travel) + 572k (2 reverted harvest starts, cooldown) + 15.9M (harvest starts) = ~52.9M total. 572k wasted on cooldown reverts. Rest productive.
 **Next session**: Stop kamis, check Q19 completability (720 kami-min / 20 kamis = 36 min). Complete Q19, accept Q20 (Harvest >720 min at Hollow Path, node 37). (scheduled: +1h)
+
+---
+
+## 2026-04-15 16:37 UTC — session 31
+
+**ETH balance**: ~0.066033 → ~0.065750 (Δ ~-0.000283 estimated)
+**Perceived**: Auto_v2 ACTIVE on node 6 since session 30 (~1.3h). 20 kamis HARVESTING. 185,847 MUSU. 20/21 slots.
+**Decided**:
+  - Stop auto_v2, stop all kamis, flush HARVEST_TIME, complete Q19
+  - Accept Q20 (Harvest >720 min at Hollow Path, node 37)
+  - Travel to room 37, manually start harvests (new node), restart auto_v2
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 14.2M + 14.2M = 28.4M
+  - check_quest_completable(19): FALSE (too fast after stop), TRUE (retry). Gas: 0
+  - complete_quest(19): success. Gas: 987k
+  - accept_quest(20): success. Gas: 840k
+  - travel_to_room(37): 8 hops, 40 stamina. Gas: 7.0M. Stamina remaining: 25.
+  - harvest_start batch 1 (10 kamis, node 37): success. Gas: 7.95M
+  - harvest_start batch 2 (10 kamis, node 37): success. Gas: 7.95M
+  - start_strategy(auto_v2, 20 kamis, node 37): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q19 completed! Q20 accepted. All 20 kamis HARVESTING on node 37 (Hollow Path) under auto_v2. MUSU: 185,847. 8 moves toward Q3007 (Move 500, ~115/500). Smooth session — no wasted tx.
+**Gas notes**: 28.4M (stops) + 987k + 840k (quests) + 7.0M (travel) + 15.9M (harvest starts) = ~53.1M total. 0 wasted tx.
+**Next session**: Stop kamis, check Q20 completability (720 kami-min / 20 kamis = 36 min). Complete Q20, accept Q21 (2 Scav rolls at Scrap Trees, node 60). Then travel to room 60 (zone 2, via room 5). (scheduled: +1h)
