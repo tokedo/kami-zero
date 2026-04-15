@@ -652,3 +652,27 @@ Append one entry per session. Newest at the bottom.
 **Result**: 3 quests completed (3011, 3003, 3006)! Kami 43 named "Zephyr". Kami 11716 leveled 32→33. Respec Potion crafted. Quests 3004+3014 accepted. MUSU: 168,721 (+4,631 from stops). Moves: +6 this session → ~37/100 for Q17. Harness: added name_kami tool.
 **Gas notes**: ~47.5M total. 1.62M wasted on 4 reverted quest accepts — stop trying speculative accepts without knowing prerequisites. Crafting done while kamis still harvesting was efficient.
 **Next session**: Farm MUSU on node 49. Check Q3004/Q3014 objectives if possible. Q17 needs ~63 more moves (accumulates naturally). (scheduled: +6h)
+
+---
+
+## 2026-04-15 03:49 UTC — session 26
+
+**ETH balance**: 0.066799 → 0.066787 (Δ -0.000012)
+**Perceived**: Auto_v2 ACTIVE on node 49 (~17h uptime). 20 kamis HARVESTING. 168,721 MUSU (unchanged from plan — auto_v2 cycles don't update balance until collect). Scavenge points: 0. Kami 43 intensity 0 — auto_v2 just cycled.
+**Decided**:
+  - Quest 3004 ("Spend a point in any Skill Tree") completable immediately — completed
+  - Quest 3014 ("Give 1 Mint") — burned 1 Mint, completed
+  - Tried accepting 3005 (needs kami liquidation), 3015 (needs Obol) — both reverted
+  - No other quick wins: Q17 ~37/100 moves, Q6 deferred (liquidation), scav points 0
+  - Obols not in any droptable — likely from liquidation or special events
+  - Let auto_v2 continue farming on node 49
+**Acted**:
+  - complete_quest(3004): success. Gas: 788k
+  - burn_items(Mint x1): success. Gas: 550k
+  - complete_quest(3014): success. Gas: 854k
+  - accept_quest(3005): REVERTED. Gas: 389k wasted
+  - accept_quest(3015): REVERTED x2. Gas: 780k wasted
+  - accept_quest(3005): REVERTED. Gas: 389k wasted
+**Result**: 2 quests completed (3004, 3014). No new quests available to accept. MUSU: 168,721. Mint: 0 (burned). Auto_v2 still running on node 49.
+**Gas notes**: 788k + 550k + 854k = 2.19M productive. 1.56M wasted on 4 reverted quest accepts. Total: ~3.75M. Light session — avoided stopping kamis (preserving intensity).
+**Next session**: Stop kamis, scavenge node 49. Check Q17 progress. Continue MUSU farming. (scheduled: +6h)
