@@ -1,61 +1,48 @@
-# Plan for session 27
+# Plan for session 28
 
-## Priority 0: Quest graph analysis (READ CLAUDE.md FIRST)
+## Priority 1: Complete Q18 — Harvest >720 min at Scrap Confluence (node 31)
 
-CLAUDE.md has a new "Quest graph analysis" section. Before acting on any other priority, analyze the quest dependency tree:
+- Auto_v2 running on node 31 since session 27. 20 kamis harvesting.
+- 720 kami-min / 20 kamis = ~36 min real time. HARVEST_TIME updates on STOP, not during harvest.
+- **Action**: stop auto_v2, stop all kamis, check_quest_completable(18). If met, complete + accept Q19.
+- If NOT met: restart auto_v2, come back in 1h.
 
-1. For all known quest indices (main 1-108, Mina 2001-2016, side 3001-3024), query the quest registry on-chain to map prerequisites and chains.
-2. Identify which of your active/available quests are **critical path** (gate many downstream quests) vs **leaf** (dead ends).
-3. Re-prioritize this plan based on the graph. If Quest 17 (Move 100 times) gates Q18 which gates further MSQ progression, it is critical — complete it now, even if that means grinding moves. 63 moves at ~400k gas each is a known cost; blocking weeks of progression is worse.
-4. Document the dependency tree in this plan for future sessions.
+## Priority 2: Accept Q19 + check objectives
 
-## Priority 1: MUSU farming + scavenge node 49
+- Q19 objectives unknown — check game-data.md or try completability after accepting.
+- Continue MSQ chain as far as possible.
 
-- Auto_v2 running on node 49 (Clearing, Normal, scav cost 300).
-- Droptable: Stick(9), Stone(9), Mint(4). Mint useful if another Mint quest appears.
-- Stop, scavenge, restart cycle when scavenge points accumulated.
+## Priority 3: Scavenge node 31
 
-## Priority 2: Quest 17 — Move 100 times
-
-- ~37/100 moves done. **Re-evaluate after Priority 0 graph analysis** — if this is critical path, grind it out.
-- After Q17: quest 18 = Harvest >720 min at Scrap Confluence (node 31).
-- Unlocks SQ 3007 (Move 500 times).
-
-## Priority 3: Quest 6 — Liquidate kami
-
-- Waiting for user review. Liquidation unlocks quest 3005 (auto-awarded) + potentially Obols.
-- Quest 3015 needs 5 Obols (not in any droptable — may come from liquidation or marketplace).
+- Node 31 = Scrap Confluence (Scrap type, scav cost 100).
+- Droptable: Stone + Scrap Metal.
+- Scavenge after stopping kamis for Q18.
 
 ## Quest overview
 
-- **Quest 17** (MSQ): Move 100 times — ~37/100, priority TBD after graph analysis
-- **Quest 6**: Liquidate kami — waiting for user review
-- **Quest 18** (MSQ, next): Harvest >720 min at Scrap Confluence (node 31) — after Q17
+- **Q18** (MSQ): Harvest >720 min at Scrap Confluence (node 31) — in progress
+- **Q6**: Liquidate kami — deferred (waiting for user review)
+- **Q3007** (side): Move 500 times — ~98/500, accumulates naturally
+- **Mina line**: Q2014 unlocks at MSQ 30 — many MSQs to go
 
-## Side quest status
+## Quest graph (critical path)
 
-- All completable side quests done through 3014
-- 3005: needs kami liquidation (auto-awarded)
-- 3015: needs ≥1 Obol (not farmable)
-- 3007: unlocks after Q17
+MSQ is sequential: ...→Q17→Q18→Q19→...→Q30 (gates Mina Q2014)→...→Q108
+- Q17 DONE (session 27)
+- Q18 IN PROGRESS (harvest 720 min at node 31)
+- Q19+ unknown objectives — advance as fast as possible
+
+Side quests (leaf, low priority):
+- Q3007: Move 500 times (natural accumulation)
+- Q6: Liquidate kami (needs user decision)
 
 ## Active strategies
-- auto_v2 on node 49, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 31, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
-- MUSU: ~168,721
-- Wooden Stick: 129
-- Stone: 325
-- Pine Cone: 12
-- Daffodil: 7
-- Essence of Daffodil: 300
-- Black Poppy Extract: 450
-- Pine Pollen: 500
-- Sanguineous Powder: 250
-- Ghost Gum: 1,057
-- Ice Cream: 93
+- MUSU: ~169,627
+- Ice Cream: 83 (was 93, used 11 for move grinding)
 - Better Ice Cream: 10
 - Rock Candyfloss: 66
-- Mint: 0 (burned for Q3014)
 - Respec Potion: 1
 - Holy Dust: 1

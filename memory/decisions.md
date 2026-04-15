@@ -676,3 +676,32 @@ Append one entry per session. Newest at the bottom.
 **Result**: 2 quests completed (3004, 3014). No new quests available to accept. MUSU: 168,721. Mint: 0 (burned). Auto_v2 still running on node 49.
 **Gas notes**: 788k + 550k + 854k = 2.19M productive. 1.56M wasted on 4 reverted quest accepts. Total: ~3.75M. Light session — avoided stopping kamis (preserving intensity).
 **Next session**: Stop kamis, scavenge node 49. Check Q17 progress. Continue MUSU farming. (scheduled: +6h)
+
+---
+
+## 2026-04-15 ~10:00 UTC — session 27
+
+**ETH balance**: 0.066781 → 0.066534 (Δ -0.000247)
+**Perceived**: Auto_v2 ACTIVE on node 49 (~36h uptime). 20 kamis HARVESTING. 169,627 MUSU. Scavenge points: 0. Q17 not completable at start (~37/100 moves).
+**Decided**:
+  - Priority 0: Quest graph analysis. Q17 (Move 100 times) is definitively critical path — it's sequential MSQ gating Q18→Q19→...→Q30 (which gates Mina Q2014). Blocking all MSQ progression for weeks is unacceptable.
+  - Grind moves immediately: stop auto_v2, stop all harvests, travel back and forth between distant rooms (13↔53 = 14 hops each way).
+  - After Q17: accept Q18 (Harvest >720 min at node 31), travel to node 31, restart auto_v2.
+  - Also accept Q3007 (Move 500 — leaf quest, accumulates naturally).
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 28.3M
+  - travel 49→33 (4 hops, 1 Ice Cream): partial — hop 5 tx timeout. Gas: 4.3M
+  - travel 33→13 (7 hops): success. Gas: 6.2M
+  - travel 13→53 (14 hops, 1 Ice Cream): success. Gas: 13.4M
+  - travel 53→13 (14 hops, 4 Ice Cream): success. Gas: 15.8M
+  - travel 13→53 (14 hops, 3 Ice Cream): success. Gas: 15.1M
+  - check_quest_completable(17): TRUE (after 53 moves this session + ~47 prior)
+  - complete_quest(17): success. Gas: 981k
+  - accept_quest(18): success. Gas: 837k
+  - accept_quest(3007): success. Gas: 837k
+  - travel 53→31 (8 hops, 2 Ice Cream): success. Gas: 8.9M
+  - start_strategy(auto_v2, 20 kamis, node 31): RUNNING, ACTIVE. 20/21 slots
+**Result**: Q17 completed — critical path unblocked! Q18 accepted (Harvest >720 min at Scrap Confluence, node 31). Q3007 accepted (Move 500 — leaf). Auto_v2 running on node 31. MUSU: ~169,627 (no collections this session). Ice Cream: 83 (used 11). 61 moves this session.
+**Gas notes**: 28.3M (stops) + 63.7M (travel, 61 hops) + 2.7M (quest ops) = ~94.7M total. 0 wasted tx. Heavy but justified — Q17 was blocking all MSQ progression.
+**Next session**: Stop kamis, check Q18 completability (720 kami-min / 20 kamis = ~36 min real). Complete Q18, accept Q19. Scavenge node 31. (scheduled: +2h)
