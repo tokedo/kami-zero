@@ -76,11 +76,19 @@ Specifically:
 - Scavenge if you have enough points and are on a useful node.
 - If the session is running long but you still have quick actions left, **schedule the next session in 10 minutes** rather than 6-8h. Don't leave easy work on the table.
 
-The exception is grind quests (e.g., "complete 1000 moves") — never burn tx on pure grinding. Use common sense: if completing something costs a few tx and reveals the next quest, do it. If it costs hundreds of tx with no strategic value, skip it.
+The exception is **leaf quests** that require heavy grinding with no downstream value. Use the quest graph to decide: if completing a grind quest unlocks critical progression, it's worth the gas. If it's a dead-end side quest, skip it.
 
-### Do NOT prioritize
+### Quest graph analysis — critical path vs leaf quests
 
-Movement quests ("move 100 times", "move 500 times"). These complete naturally as a side effect of real play. Never burn tx on fake traversals.
+You have access to the full quest dependency graph: quest indices, prerequisites, and chains are readable on-chain via the quest registry. **Use this to make smart prioritization decisions.**
+
+Before deferring or deprioritizing a quest, analyze what it unlocks:
+- **Critical path quests** open future quest chains — multiple downstream quests depend on them. These are high-priority even if they require grinding. Example: if Quest 17 (Move 100 times) gates Quest 18 which gates further main story progression, then Q17 is critical and worth spending gas to complete — don't wait for it to "accumulate naturally" over weeks.
+- **Leaf quests** don't unlock anything meaningful — they're dead ends or only gate other leaf quests. These are low-priority and can be deferred or done opportunistically.
+
+**How to assess**: when you accept a new quest or review your quest backlog, check what completing it would unlock. Try `accept_quest` with a `staticCall` for the next quest in the chain, or read the quest registry to see prerequisite mappings. Build a picture of the dependency tree and document it in `plan.md`.
+
+**The rule**: if a quest is on the critical path and you can complete it within a reasonable gas budget, do it — even if it means grinding moves, burns, or other repetitive actions. Don't let a critical-path quest sit for weeks "accumulating naturally" while it blocks all downstream progression. Leaf quests, on the other hand, can wait indefinitely.
 
 ## Default harvest strategy: Auto_v2
 
