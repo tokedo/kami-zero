@@ -1422,12 +1422,12 @@ def harvest_start(kami_ids: list[int], node_index: int, account: str = "main") -
     if len(entity_ids) == 1:
         return _send_tx(
             account, "system.harvest.start", _ABI_HARVEST_START,
-            [entity_ids[0], node_index, 0, 0], gas_limit=1_500_000,
+            [entity_ids[0], node_index, 0, 0], gas_limit=3_000_000,
         )
     # Batch
     return _send_batch_tx(
         account, "system.harvest.start", _ABI_HARVEST_START,
-        "executeBatched", [entity_ids, node_index, 0, 0], 1_500_000,
+        "executeBatched", [entity_ids, node_index, 0, 0], 3_000_000,
     )
 
 
