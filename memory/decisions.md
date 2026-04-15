@@ -831,3 +831,20 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q20 completed! Q21 accepted. Traveled to room 60 (zone 2). 20 kamis under auto_v2 on node 60, waiting for HP recovery before harvesting begins. 16 moves toward Q3007 (Move 500, ~131/500). 1 wasted tx (285k gas on premature harvest_start).
 **Gas notes**: 28.4M (stops) + 1.24M + 889k (quests) + 14.8M (travel) + 285k (reverted harvest) = ~45.6M total. 1 wasted tx (285k).
 **Next session**: Check scav points on node 60. Need 1000 (2 rolls * 500 cost). Stop auto_v2, stop harvests, scavenge x2, complete Q21. Accept Q22 (3 scav at Centipedes, node 62). (scheduled: +2h)
+
+## 2026-04-15 20:09 UTC — session 33
+
+**ETH balance**: 0.065549 (start≈end, minimal gas this session)
+**Perceived**: 20 kamis under auto_v2 on node 60 (10 HARVESTING, 10 RESTING). Scav points reader returns 0 (broken since session 9 — component.value ABI mismatch). Attempted scav claim — REVERTED (insufficient points). MUSU: 187,536 (+798 from session 32, but includes Q20 completion reward). Estimated real harvest output ~480 MUSU over 2.3h.
+**Decided**:
+  - Too early for Q21 (need 1000 scav points, have ~480). Node 60 yields ~220 MUSU/hr with 20 kamis (Power ~15, neutral efficacy). Need ~5-6 more hours.
+  - Restart auto_v2 and wait. Don't stop harvests until scav points are definitely sufficient.
+  - Investigated get_scavenge_points bug: component.value has() returns True but getValue() reverts for all output types. Non-standard ABI — needs deeper investigation.
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 4.3M + 12.1M = 16.4M
+  - scavenge_claim_and_reveal(60): REVERTED. Gas: 335k (wasted)
+  - start_strategy(auto_v2, 20 kamis, node 60): RUNNING, ACTIVE. 20/21 slots.
+**Result**: No quest progress. Premature stop+restart wasted gas and reset intensity. Lesson: don't stop harvests to check scav — the scav claim revert itself tells you if points are insufficient, but costs 335k gas. Better to wait longer and be confident.
+**Gas notes**: 16.4M (stops) + 335k (reverted scav) = ~16.7M total. 1 wasted tx (335k). Intensity reset on all 20 kamis is the bigger cost (lost compound time).
+**Next session**: Wait for scav points to accumulate (~6h more). Do NOT stop harvests preemptively. Try scav claim directly — if it succeeds, then stop+flush+claim remaining. (scheduled: +6h)
