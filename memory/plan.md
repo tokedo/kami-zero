@@ -1,54 +1,52 @@
-# Plan for session 34
+# Plan for session 35
 
-## Priority 1: Complete Q21 — 2 Scav rolls at Scrap Trees (node 60)
+## Priority 1: Complete Q22 — 3 Scav rolls at Centipedes (node 62)
 
-- 20 kamis under auto_v2 on node 60 since ~20:09 UTC (session 33 restart).
-- Scav cost: 500/roll. Need 1000 total points.
-- Estimated harvest rate: ~220 MUSU/hr (20 kamis cycling, Power ~15, neutral efficacy).
-- Had ~480 scav points before intensity reset. Need ~4.5h from restart for 1000 total.
-- **CRITICAL: Do NOT stop harvests preemptively.** Stopping resets intensity and wastes gas.
-- **Strategy**: Try `scavenge_claim_and_reveal(60)` directly. If it succeeds → points >= 500.
-  Then stop auto_v2, stop all harvests to flush remaining output, scavenge again.
-  Then check_quest_completable(21), complete_quest(21), accept_quest(22).
-- If claim reverts → not enough points yet. Restart nothing, just schedule +2h.
-- get_scavenge_points reader is broken (component.value ABI issue). Don't rely on it.
+- 20 kamis under auto_v2 on node 62 since ~02:18 UTC (session 34).
+- Scav cost: 300/roll. Need 900 total points for 3 rolls.
+- Estimated harvest rate: ~220 MUSU/hr (20 kamis cycling, Power ~15).
+- Need ~4-5h from start for 900 total scav points.
+- **Strategy**: Stop auto_v2, stop all harvests, then scavenge x3.
+  Then check_quest_completable(22), complete_quest(22), accept_quest(23).
+- If first scav claim reverts → not enough points yet. Don't restart, schedule +2h.
 
-## Priority 2: Accept Q22 + begin work
+## Priority 2: Accept Q23 + begin work
 
-- Q22: "Squaring the Circle II" — 3 Scav rolls at Centipedes (node 62, room 62, zone 2).
-- Scav cost at node 62: check catalogs. Room 62 should be near room 60 in zone 2.
-- Travel to room 62, start auto_v2 on node 62.
+- Q23: "Squaring the Circle III" — 3 Scav rolls at Blooming Tree (node 53, zone 2).
+- Scav cost at node 53: check catalogs (likely 300-500).
+- Travel from room 62 to room 53, start auto_v2 on node 53.
 
-## Priority 3: Look ahead at Q23
+## Priority 3: Look ahead at Q24+
 
-- Q23: 3 Scav at Blooming Tree (node 53, zone 2)
-- Plan efficient route: 60 → 62 → 53
+- Check what Q24 requires after accepting Q23.
+- Plan efficient routing through zone 2.
 
 ## Quest overview
 
-- **Q21** (MSQ): 2 Scav rolls at Scrap Trees (node 60) — IN PROGRESS (building scav points)
-- **Q22** (MSQ, next): 3 Scav at Centipedes (node 62)
-- **Q23** (MSQ): 3 Scav at Blooming Tree (node 53)
+- **Q22** (MSQ): 3 Scav rolls at Centipedes (node 62) — IN PROGRESS (building scav points)
+- **Q23** (MSQ, next): 3 Scav at Blooming Tree (node 53)
 - **Q6**: Liquidate kami — deferred
-- **Q3007** (side): Move 500 times — ~131/500, accumulates naturally
+- **Q3007** (side): Move 500 times — ~134/500, accumulates naturally
 - **Mina line**: Q2014 unlocks at MSQ 30 — many MSQs to go
 
 ## Quest graph (critical path)
 
-MSQ: ...->Q20(done)->Q21->Q22->Q23->...->Q30 (gates Mina Q2014)->...->Q108
-- Q21 IN PROGRESS (scav at node 60)
-- Q22-Q23 = scavenge quests at zone 2 nodes (62, 53)
+MSQ: ...->Q21(done)->Q22->Q23->...->Q30 (gates Mina Q2014)->...->Q108
+- Q22 IN PROGRESS (scav at node 62)
+- Q23 = scav quest at Blooming Tree (node 53, zone 2)
 
 ## Active strategies
-- auto_v2 on node 60, 20 kamis, REST regen, 5% safety. 20/21 slots used.
+- auto_v2 on node 62, 20 kamis, REST regen, 5% safety. 20/21 slots used.
 
 ## Inventory notes
 - MUSU: ~187,536
+- VIPP: 5,282
 - Ice Cream: 80
 - Better Ice Cream: 10
 - Rock Candyfloss: 66
-- VIPP: 121
+- Booster Pack: 1 (new — consider opening or saving)
 
 ## Lessons learned
-- Don't stop harvests to check scav points — use a claim attempt instead (cheaper than intensity reset)
+- Don't stop harvests to check scav points — wait long enough to be confident
+- Node 60 scav cost was 500/roll; node 62 is 300/roll (cheaper)
 - get_scavenge_points is broken — needs harness fix (component.value ABI issue)

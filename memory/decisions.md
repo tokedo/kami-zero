@@ -848,3 +848,24 @@ Append one entry per session. Newest at the bottom.
 **Result**: No quest progress. Premature stop+restart wasted gas and reset intensity. Lesson: don't stop harvests to check scav — the scav claim revert itself tells you if points are insufficient, but costs 335k gas. Better to wait longer and be confident.
 **Gas notes**: 16.4M (stops) + 335k (reverted scav) = ~16.7M total. 1 wasted tx (335k). Intensity reset on all 20 kamis is the bigger cost (lost compound time).
 **Next session**: Wait for scav points to accumulate (~6h more). Do NOT stop harvests preemptively. Try scav claim directly — if it succeeds, then stop+flush+claim remaining. (scheduled: +6h)
+
+## 2026-04-16 02:18 UTC — session 34
+
+**ETH balance**: 0.065515 → 0.065416 (Δ -0.000099)
+**Perceived**: 20 kamis HARVESTING on node 60 under auto_v2 (~18h since session 33 restart). Q21 active (2 scav rolls at node 60). MUSU: 187,536 (auto_v2 auto-collected throughout).
+**Decided**:
+  - 18h elapsed — definitely enough scav points. Stop everything, scavenge, complete Q21.
+  - Accept Q22 (3 scav at Centipedes, node 62), travel to room 62, restart auto_v2.
+**Acted**:
+  - stop_strategy(43): DELETED
+  - stop_harvest_batch (2x10): success. Gas: 14.9M + 14.8M = 29.7M
+  - scavenge_claim_and_reveal(60): SUCCESS (roll 1). Gas: 779k + 872k = 1.65M
+  - scavenge_claim_and_reveal(60): REVERTED (roll 2, insufficient points). Gas: 335k (wasted)
+  - check_quest_completable(21): TRUE (1 roll was enough — prior session's failed claim may have counted partial, or quest only needed 1 more)
+  - complete_quest(21): success. Gas: 1.13M
+  - accept_quest(22): success. Gas: 837k
+  - travel_to_room(62): 3 hops (60→65→61→62), 15 stamina. Gas: 2.58M
+  - start_strategy(auto_v2, 20 kamis, node 62): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q21 completed! Q22 accepted. Traveled to room 62 (Centipedes, zone 2). 20 kamis under auto_v2 on node 62 building scav points. VIPP: 121→5,282 (+5,161 from quest rewards). Got 1 Booster Pack + 9 Scrap Metal + 1 Daffodil from scav. 3 moves toward Q3007 (Move 500, ~134/500).
+**Gas notes**: 29.7M (stops) + 1.65M (scav success) + 335k (scav revert) + 1.13M + 837k (quests) + 2.58M (travel) = ~36.2M total. 1 wasted tx (335k scav revert).
+**Next session**: Wait ~6h for scav points on node 62 (need 900 for 3 rolls at 300/roll). Stop, scavenge x3, complete Q22. Accept Q23 (3 scav at Blooming Tree, node 53). (scheduled: +6h)
