@@ -103,7 +103,16 @@ Intensity builds over time as Kamis stay on a node — higher intensity means hi
 
 Before pulling Kamis off a node (for scavenging, repositioning, etc.), weigh the expected payoff against the reset cost. For rare drops with low per-roll probability, the math almost never favors interrupting a high-intensity deployment. Let auto_v2 run; accumulate MUSU passively; scavenge opportunistically when natural harvest cycles create openings — don't force them.
 
-**Never call `harvest_start` directly on a kami you intend to hand to auto_v2.** Let auto_v2 own all harvest-start decisions — it enforces the full-HP check that direct calls bypass. If a kami is RESTING when a session starts, include it in `start_strategy` and let auto_v2 decide when to harvest it. auto_v2 will only pick up an already-harvesting kami as-is and cycle it from there; it will NOT retroactively "fix" a kami that was started mid-HP. Only use direct `harvest_start` when you explicitly need to bypass the safety margin (e.g. for a quest-driven harvest that will be stopped immediately).
+**Never call `harvest_start` directly on a kami you intend to hand to auto_v2.** Let auto_v2 own all harvest-start decisions — it enforces the full-HP check that direct calls bypass. If a kami is RESTING when a session starts, include it in `start_strategy` and let auto_v2 decide when to harvest it. auto_v2 will only pick up an already-harvesting kami as-is and cycle it from there; it will NOT retroactively "fix" a kami that was started mid-HP.
+
+**Manual `harvest_start` is a rare exception, not a routine step after travel.** auto_v2 starts harvests on its own once kami HP clears the safety margin — typically within minutes of `start_strategy`. The difference between "manually start now" and "auto_v2 starts in 10 minutes" is trivial on a 720-minute HARVEST_TIME quest; it is not trivial on gas spent, and it resets the intensity that auto_v2 would have built up had it done the start itself.
+
+Only bypass auto_v2 when there is a **hard time constraint** that makes waiting 10–30 minutes actually costly:
+- A cooldown about to expire and you need the harvest counted before it does
+- An expiring event, round, or window
+- A quest that will be stopped *immediately* after start (e.g., you're triggering a single HARVEST_TIME tick)
+
+"I just traveled to a new node for a multi-hour harvest quest" is **not** a hard time constraint — hand the kamis to auto_v2 and let it start them. Document the reason in `decisions.md` any time you do bypass.
 
 ### Stopping strategies — critical rules
 
