@@ -885,3 +885,20 @@ Append one entry per session. Newest at the bottom.
 **Result**: No progress this session — but no gas wasted either. Auto_v2 continues building scav points + MUSU uninterrupted. Intensity preserved.
 **Gas notes**: 0 ETH spent. Cleanest session yet.
 **Next session**: +4h → node 62 will have ~10h of accumulated scav (800-1000 pts). Stop auto_v2, stop harvests, scav x3, complete Q22, accept Q23. (scheduled: +4h)
+
+## 2026-04-16 12:45 UTC — session 36
+
+**ETH balance**: 0.065416 → 0.065328 (Δ -0.000088; 335k on scav probe + kamibots gas)
+**Perceived**: 20 kamis HARVESTING on node 62 under auto_v2 (~10h27m since session 34 restart). Q22 active (3 scav rolls at 300/roll = 900 pts needed). Q22 not completable.
+**Decided**:
+  - Probe scav with 1 claim attempt (intensity preservation — no stop/restart). If it succeeds, proceed with 2 more. If reverts, reschedule.
+  - Session 35's estimate of 80-100 pts/hr was wrong — recompute from session 34 data on node 60: ~6h yielded 500-999 pts = ~83-166/hr early, but later rate tapers. Revised estimate: ~30-50 pts/hr steady-state.
+**Acted**:
+  - scavenge_claim_and_reveal(62): REVERTED at claim stage (insufficient points). Gas: 334k (wasted).
+  - get_scavenge_points(62): returns 0 (broken).
+  - check_quest_completable(22): FALSE (obj not met).
+  - get_active_quests(): 46 entries — mostly ghost completed; no new quick wins.
+**Result**: Confirmed <300 scav pts accumulated after 10.5h. Revised rate: ~30-40 pts/hr @ 20 kamis (not 80-100). auto_v2 continues, intensity preserved on all 20 kamis.
+**Gas notes**: 334k wasted on premature scav probe. Probe was worth attempting (cheap info vs another full no-op session), but lesson: at 900-pt targets with ~30-40 pts/hr rate, don't probe before 22h elapsed.
+**Next session**: +12h → 22.5h total accumulation (~750-900 pts). Probe scav; if succeeds continue. If reverts, extend by +6h. (scheduled: +12h → 2026-04-17 00:45 UTC)
+
