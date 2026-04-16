@@ -869,3 +869,19 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q21 completed! Q22 accepted. Traveled to room 62 (Centipedes, zone 2). 20 kamis under auto_v2 on node 62 building scav points. VIPP: 121→5,282 (+5,161 from quest rewards). Got 1 Booster Pack + 9 Scrap Metal + 1 Daffodil from scav. 3 moves toward Q3007 (Move 500, ~134/500).
 **Gas notes**: 29.7M (stops) + 1.65M (scav success) + 335k (scav revert) + 1.13M + 837k (quests) + 2.58M (travel) = ~36.2M total. 1 wasted tx (335k scav revert).
 **Next session**: Wait ~6h for scav points on node 62 (need 900 for 3 rolls at 300/roll). Stop, scavenge x3, complete Q22. Accept Q23 (3 scav at Blooming Tree, node 53). (scheduled: +6h)
+
+## 2026-04-16 08:30 UTC — session 35
+
+**ETH balance**: 0.065416 (start, no tx this session) → 0.065416 (end)
+**Perceived**: 20 kamis HARVESTING on node 62 under auto_v2 (~6h12m since session 34 restart). Q22 active (3 scav rolls at Centipedes, 300/roll = 900 points total). MUSU: 187,536. Q22 not completable yet.
+**Decided**:
+  - Scav points at node 62 likely ~500-600 (estimated from node 60 baseline: ~80-100 pts/hr for 20 kamis). Need 900. Not enough for 3 rolls.
+  - Per session 33 lesson: don't stop harvests to check. Wait longer, preserve intensity.
+  - Quick-win survey: checked 2001-2013 — all already completed (ghosts in active_quests list). 3007 still 134/500 (grind). No quick wins available without disrupting Q22.
+**Acted**:
+  - 0 transactions. Pure perception session.
+  - check_quest_completable: 22 (false, obj not met), 3007 (false), 2001-2013 (all "alr completed").
+  - get_scavenge_points(62): still returns 0 (broken reader, known bug).
+**Result**: No progress this session — but no gas wasted either. Auto_v2 continues building scav points + MUSU uninterrupted. Intensity preserved.
+**Gas notes**: 0 ETH spent. Cleanest session yet.
+**Next session**: +4h → node 62 will have ~10h of accumulated scav (800-1000 pts). Stop auto_v2, stop harvests, scav x3, complete Q22, accept Q23. (scheduled: +4h)
