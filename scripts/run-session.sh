@@ -37,7 +37,8 @@ cd "$KAMI_ZERO"
     timeout 30m claude \
         -p "$(cat session-prompt.md)" \
         --max-turns 200 \
-        --model claude-opus-4-6 \
+        --model claude-opus-4-7 \
+        --effort xhigh \
         --dangerously-skip-permissions \
         2>&1
 
