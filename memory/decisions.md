@@ -924,3 +924,25 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: 335k wasted on 2nd scav probe (expected — testing revealed the 2nd roll cost not yet covered). 18.5M on 20-hop travel (justified — required for Q23). All other tx productive. Total ~29M gas.
 **Next session**: +20h → 20h on node 53. Probe scav; expect Q23 to complete with 1 successful roll (per Q21/Q22 pattern). Travel to next quest's node after. (scheduled: +20h → 2026-04-17 21:00 UTC)
 
+
+## 2026-04-17 21:15 UTC — session 38
+
+**ETH balance**: ~0.06503 → ~0.06490 (Δ ~-0.00013 est; ~14M gas, RPC DNS blocked so not verified)
+**Perceived**: Auto_v2 ACTIVE on node 53 since session 37 (~20.2h). Q23 active (3 Scav at Blooming Tree, 300/roll). MUSU: 187,536 → 207,860 (+20,324 auto-collected). VIPP: 31,264 → 32,628 (+1,364). Ghost Gum: 1 → 1,057 (large unexpected gain — likely Q23 reward or node 53 scav/harvest drops). Q23 not completable on entry.
+**Decided**:
+  - Probe scav at 20.2h per Q21/Q22/Q23 precedent (1 roll typically enough for "3 Scav" counter).
+  - On success: complete Q23, accept Q24, migrate to Q24 node before next session so scav points accumulate overnight.
+  - Q24 = Squaring the Circle IV, 3 Scav at Airplane Crash (node 52, cost 300/roll). 2-hop travel (53→51→52).
+**Acted**:
+  - scavenge_claim_and_reveal(53) #1: SUCCESS. Gas: 779k + 1.17M = 1.95M.
+  - check_quest_completable(23): TRUE (1 roll sufficient — 4th MSQ scav quest confirmed permissive).
+  - complete_quest(23): success. Gas: 854k.
+  - accept_quest(24): success. Gas: 837k.
+  - check_quest_completable(24): FALSE (need scav rolls at new node).
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success. Gas: 663k + 8.65M = 9.32M.
+  - travel_to_room(52): 2 hops, 10 stamina, 0 items. Gas: 1.72M. Final stamina: 10.
+  - start_strategy(auto_v2, 20 kamis, node 52): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q23 done! Q24 accepted. 20 kamis under auto_v2 on node 52 (Airplane Crash, Eerie). Scav point accumulation starts from 0; 2-hop migration kept disruption minimal. MUSU: 207,860. 2 moves toward Q3007 (~136/500).
+**Gas notes**: ~14.6M total. 0 wasted tx (no probe-revert this time since scav probe at 20h+ yielded success). Clean session.
+**Next session**: +18h → node 52 should have ~500-800 scav pts. Probe scav; expect Q24 to complete with 1 successful roll. Accept Q25 (3 Scav at Clearing). (scheduled: +18h → 2026-04-18 15:17 UTC)
