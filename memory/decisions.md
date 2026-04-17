@@ -902,3 +902,25 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: 334k wasted on premature scav probe. Probe was worth attempting (cheap info vs another full no-op session), but lesson: at 900-pt targets with ~30-40 pts/hr rate, don't probe before 22h elapsed.
 **Next session**: +12h → 22.5h total accumulation (~750-900 pts). Probe scav; if succeeds continue. If reverts, extend by +6h. (scheduled: +12h → 2026-04-17 00:45 UTC)
 
+## 2026-04-17 01:03 UTC — session 37
+
+**ETH balance**: ~0.06533 → ~0.06503 (Δ ~-0.0003; ~29M gas at ~10 gwei)
+**Perceived**: Auto_v2 ACTIVE on node 62 since session 34 (~22.7h). Q22 not completable on entry. VIPP: 5,282 → 31,264 (+25,982 — likely auto_v2 collected during cycles). MUSU: 187,536 (no change — likely also collected mid-cycle).
+**Decided**:
+  - Probe scav at 22.7h — high confidence given ~30-40 pts/hr rate.
+  - If 1+ roll succeeds, complete Q22 (per Q21 precedent: Q22 may complete with fewer than 3 successful rolls if quest counter is permissive).
+  - Migrate to node 53 for Q23. 20-hop traverse via node 50 portal area.
+**Acted**:
+  - scavenge_claim_and_reveal(62) #1: SUCCESS. Gas: 778k + 1.25M = 2.03M.
+  - scavenge_claim_and_reveal(62) #2: REVERTED (insufficient pts). Gas: 335k wasted.
+  - check_quest_completable(22): TRUE (1 roll sufficient, same pattern as Q21).
+  - complete_quest(22): success. Gas: 854k.
+  - accept_quest(23): success. Gas: 840k.
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success. Gas: 5.83M + 640k = 6.47M.
+  - travel_to_room(53): 20 hops, 100 stamina, 1 Ice Cream. Gas: 18.52M.
+  - start_strategy(auto_v2, 20 kamis, node 53): RUNNING.
+**Result**: Q22 done! Q23 (Squaring the Circle III, 3 Scav at Blooming Tree node 53) accepted + auto_v2 building points there. MUSU: 187,536. VIPP: 31,264 (passive accumulation from auto_v2 since session 34). Inventory grew: +325 Stone, +44 Scrap Metal, +250 Sanguineous Powder, +450 Black Poppy Extract, +Hostility/Grace/Bless/Respec potions. Q21+Q22 each completed with 1 successful scav roll despite "3 Scav" objective text — counter is permissive.
+**Gas notes**: 335k wasted on 2nd scav probe (expected — testing revealed the 2nd roll cost not yet covered). 18.5M on 20-hop travel (justified — required for Q23). All other tx productive. Total ~29M gas.
+**Next session**: +20h → 20h on node 53. Probe scav; expect Q23 to complete with 1 successful roll (per Q21/Q22 pattern). Travel to next quest's node after. (scheduled: +20h → 2026-04-17 21:00 UTC)
+

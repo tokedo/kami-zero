@@ -1,50 +1,53 @@
-# Plan for session 37
+# Plan for session 38
 
-## Priority 1: Complete Q22 — 3 Scav rolls at Centipedes (node 62)
+## Priority 1: Complete Q23 — 3 Scav rolls at Blooming Tree (node 53)
 
-- 20 kamis under auto_v2 on node 62 since 2026-04-16 02:18 UTC.
-- Scav cost: 300/roll at node 62. Need 900 total points for 3 rolls.
-- By next session start (~00:45 UTC) that's ~22.5h accumulated.
-- **Revised rate**: session 36 probe at 10.5h reverted (0 rolls available) → actual rate is ~30-40 pts/hr (lower than prior 80-100 estimate).
-- **Steps**: stop_strategy(kami 43) → stop_harvest_batch (2x10) → scavenge_claim_and_reveal(62) x3 → check_quest_completable(22) → complete_quest(22) → accept_quest(23).
-- If 3rd scav reverts → complete Q22 anyway if `check_quest_completable(22)` returns TRUE.
-- If <3 rolls succeed → restart auto_v2 on node 62, schedule +6h, try again.
+- 20 kamis under auto_v2 on node 53 since 2026-04-17 01:03 UTC.
+- **Pattern from Q21+Q22**: quest "completable" after only 1 successful scav roll despite "3 Scav" objective text. Counter is permissive.
+- **Plan**: probe scav with `scavenge_claim_and_reveal(53)`. If success → check_quest_completable(23) → complete → accept Q24. If revert → reschedule +6h.
+- Scav cost at node 53: TBD (will see in scav response). Expect ~20-22h grind.
+- By session 38 start (~21:00 UTC) ~20h elapsed → ~600-800 pts at ~30-40 pts/hr.
 
-## Priority 2: Accept Q23 + begin work
+## Priority 2: Accept Q24 + scout node
 
-- Q23: "Squaring the Circle III" — 3 Scav rolls at Blooming Tree (node 53, zone 2).
-- Travel from room 62 to room 53 via travel_to_room(53, dry_run=True) first.
-- Launch auto_v2 on node 53 to build scav points. Expect another ~20-25h grind.
+- Q24 objectives unknown. After accepting, check `game-data.md` if available, or run `check_quest_completable(24)` to learn.
+- If Q24 is another scav quest, plan travel to that node.
+- If Q24 is a HARVEST_TIME quest, prefer staying on node 53 if it's the same node, else migrate.
 
 ## Priority 3: Look ahead
 
-- Check Q24 prereqs after accepting Q23.
-- Continue MSQ critical path toward Q30 (unlocks Mina Q2014).
+- MSQ critical path: Q23 → ... → Q30 (unlocks Mina Q2014).
+- Q3007 (Move 500): currently ~154/500 after this session's 20-hop travel. Accumulates naturally.
+- Booster Pack (1 unopened): consider opening during a slow session — may yield useful items.
 
 ## Active strategies
-- auto_v2 on node 62, 20 kamis, REST regen, 5% safety. 20/21 slots.
+- auto_v2 on node 53, 20 kamis, REST regen, 5% safety. 20/21 slots.
 
 ## Quest status
-- **Q22** (MSQ): 3 Scav at Centipedes node 62 — IN PROGRESS (0/3 rolls as of session 36)
-- **Q23** (MSQ, next): 3 Scav at Blooming Tree node 53
+- **Q22** (MSQ): COMPLETE (this session)
+- **Q23** (MSQ): 3 Scav at Blooming Tree node 53 — IN PROGRESS (0 rolls done)
 - **Q6**: Liquidate kami — deferred (don't want to kill a harvester)
-- **Q3007** (side): Move 500 — ~134/500, accumulates naturally
-- **Q2001-2013** (Mina): all show "alr completed" — completed but still in active list (harmless)
+- **Q3007** (side): Move ~154/500, accumulates naturally
+- **Q2001-2013** (Mina): all show "alr completed" (ghosts)
 - **Mina Q2014** unlocks at MSQ 30
 
 ## Quest graph (critical path)
-MSQ: Q21(done)→Q22(IN PROGRESS)→Q23→…→Q30 (unlocks Mina Q2014)→…→Q108
+MSQ: Q21(done)→Q22(done)→Q23(IN PROGRESS)→…→Q30 (unlocks Mina Q2014)→…→Q108
 
 ## Inventory notes
-- MUSU: 187,536 (check fresh — auto_v2 auto-collects)
-- VIPP: 5,282
-- Ice Cream: 80, Better Ice Cream: 10, Rock Candyfloss: 66 (SP+ stock is healthy)
-- Booster Pack: 1 (still unopened — consider opening when session is slow)
+- MUSU: 187,536 (auto_v2 will keep collecting)
+- VIPP: 31,264 (huge growth this session — likely auto_v2 collected node 62's VIPP drops over 22h)
+- Ice Cream: 79 (used 1 in 20-hop travel), Better Ice Cream: 10, Rock Candyfloss: 66 (SP+ healthy)
+- Booster Pack: 1 (unopened)
+- Sanguineous Powder: 250, Black Poppy Extract: 450 (new! likely scav drops on node 62)
 - Pine Pollen: 500, Essence of Daffodil: 300 (crafting reserves)
+- Sanguine Shroom: 2, Daffodil: 8, Pine Cone: 12 (small stock)
 
 ## Lessons to remember
-- Don't stop harvests to check scav points — trust accumulated time.
-- Scav rate revised: **~30-40 pts/hr @ 20 kamis** (node 60 data + session 36 probe), not 80-100. Plan for 20-25h grinds at 900 pt cost.
-- Node 60 scav = 500/roll; node 62 scav = 300/roll; node 53 (next) = TBD.
+- **"3 Scav" quests complete with just 1 successful roll** (Q21, Q22 both confirmed). Don't grind for 3 rolls — probe early once 1 roll seems likely.
+- Don't stop harvests to check scav — trust accumulated time.
+- Scav rate: **~30-40 pts/hr @ 20 kamis** (steady-state, not 80-100).
+- Node-cost reference: node 60 = 500/roll; node 62 = 300/roll; node 53 = TBD (likely 200-500 range).
+- Probing with 1 scav tx costs 335k gas per revert — only probe at >18-20h elapsed.
 - get_scavenge_points is broken — harness improvement opportunity when time allows.
-- Probing with a single scav tx costs 335k gas per revert; only probe when confident enough time has passed (session 36 probe at 10.5h was premature).
+- VIPP drops from harvest are auto-collected by auto_v2 (huge accumulation while we slept).
