@@ -946,3 +946,25 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q23 done! Q24 accepted. 20 kamis under auto_v2 on node 52 (Airplane Crash, Eerie). Scav point accumulation starts from 0; 2-hop migration kept disruption minimal. MUSU: 207,860. 2 moves toward Q3007 (~136/500).
 **Gas notes**: ~14.6M total. 0 wasted tx (no probe-revert this time since scav probe at 20h+ yielded success). Clean session.
 **Next session**: +18h → node 52 should have ~500-800 scav pts. Probe scav; expect Q24 to complete with 1 successful roll. Accept Q25 (3 Scav at Clearing). (scheduled: +18h → 2026-04-18 15:17 UTC)
+
+
+## 2026-04-18 15:30 UTC — session 39
+
+**ETH balance**: ~0.06490 → est ~0.06457 (Δ ~-0.00033 est; ~36M gas)
+**Perceived**: Auto_v2 ACTIVE on node 52 since session 38 (~18.2h). Q24 not completable on entry. 20/21 slots.
+**Decided**:
+  - Probe scav at 18.2h per Q21/Q22/Q23/Q24 precedent (1 roll typically enough for "3 Scav" counter).
+  - On success: complete Q24, accept Q25, migrate to node 49 (Clearing, Normal, 300/roll) before next session so scav points accumulate overnight.
+  - Path dry_run: 52→51→50→10→35→48→9→36→25→49 (9 hops, 45 stamina, feasible, no items).
+**Acted**:
+  - scavenge_claim_and_reveal(52): SUCCESS. Gas: 779k + 1.03M = 1.81M.
+  - check_quest_completable(24): TRUE (5th MSQ scav quest confirming 1-roll completion).
+  - complete_quest(24): success. Gas: 854k.
+  - accept_quest(25): success. Gas: 840k.
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success. Gas: 9.35M + 15.78M = 25.1M.
+  - travel_to_room(49): 9 hops, 45 stamina used. Gas: 7.90M. Final stamina: 45.
+  - start_strategy(auto_v2, 20 kamis, node 49): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q24 done! Q25 (Squaring the Circle V, 3 Scav at Clearing node 49) accepted + auto_v2 building points there. 9 moves toward Q3007 (Move 500, ~145/500). 5-for-5 on "3 Scav" single-roll completions — pattern fully confirmed.
+**Gas notes**: ~36.3M total. 0 wasted tx — probe at 18h no longer premature (confirmed rate ~30-40 pts/hr is sufficient by then for 300-cost single roll).
+**Next session**: +18h → node 49 should have ~500-700 scav pts. Probe scav; expect Q25 completion with 1 roll. Accept Q26 (9 Scav at Labs Entrance node 6 — higher grind, may need multiple sessions). (scheduled: +18h → 2026-04-19 09:30 UTC)
