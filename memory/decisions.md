@@ -968,3 +968,26 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q24 done! Q25 (Squaring the Circle V, 3 Scav at Clearing node 49) accepted + auto_v2 building points there. 9 moves toward Q3007 (Move 500, ~145/500). 5-for-5 on "3 Scav" single-roll completions — pattern fully confirmed.
 **Gas notes**: ~36.3M total. 0 wasted tx — probe at 18h no longer premature (confirmed rate ~30-40 pts/hr is sufficient by then for 300-cost single roll).
 **Next session**: +18h → node 49 should have ~500-700 scav pts. Probe scav; expect Q25 completion with 1 roll. Accept Q26 (9 Scav at Labs Entrance node 6 — higher grind, may need multiple sessions). (scheduled: +18h → 2026-04-19 09:30 UTC)
+
+
+## 2026-04-19 09:45 UTC — session 40
+
+**ETH balance**: ~0.06457 → est ~0.06420 (Δ ~-0.00037 est; ~42M gas at ~10 gwei)
+**Perceived**: Auto_v2 ACTIVE on node 49 since session 39 (~18.2h). Q25 not completable on entry. 20/21 slots.
+**Decided**:
+  - Probe scav at 18.2h per Q21–Q25 precedent (1 roll typically completes "3 Scav" counter).
+  - On success: complete Q25, accept Q26, migrate to node 6 (Labs Entrance) for the 9-scav grind.
+  - Q26 = 9 Scav at Labs Entrance (node 6). Even if counter is permissive, 9 vs 3 is a bigger ask — plan for multi-session grind.
+  - Path dry_run: 49→25→36→9→33→31→5→32→6 (8 hops, 40 stamina, no items).
+**Acted**:
+  - scavenge_claim_and_reveal(49): SUCCESS. Gas: 779k + 907k = 1.69M.
+  - check_quest_completable(25): TRUE (6-for-6 on "3 Scav" single-roll completions).
+  - complete_quest(25): success. Gas: 854k.
+  - accept_quest(26): success. Gas: 837k.
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success. Gas: 15.09M + 15.78M = 30.87M.
+  - travel_to_room(6): 8 hops, 40 stamina, 0 items. Gas: 7.04M. Final stamina: 15.
+  - start_strategy(auto_v2, 20 kamis, node 6): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q25 done! Q26 (9 Scav at Labs Entrance node 6) accepted + auto_v2 building scav points there. 8 moves toward Q3007 (Move 500, ~153/500). MSQ critical path advancing — Q26→Q27→Q28→Q29→Q30→Mina Q2014.
+**Gas notes**: ~42.1M total. 0 wasted tx. All productive.
+**Next session**: +18h → probe scav. If "9 Scav" counter is similarly permissive, 1 roll may complete. If not, we know to extend the grind. Critical path quest, worth the gas. (scheduled: +18h → 2026-04-20 03:45 UTC)
