@@ -991,3 +991,20 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q25 done! Q26 (9 Scav at Labs Entrance node 6) accepted + auto_v2 building scav points there. 8 moves toward Q3007 (Move 500, ~153/500). MSQ critical path advancing — Q26→Q27→Q28→Q29→Q30→Mina Q2014.
 **Gas notes**: ~42.1M total. 0 wasted tx. All productive.
 **Next session**: +18h → probe scav. If "9 Scav" counter is similarly permissive, 1 roll may complete. If not, we know to extend the grind. Critical path quest, worth the gas. (scheduled: +18h → 2026-04-20 03:45 UTC)
+
+
+## 2026-04-20 04:00 UTC — session 41
+
+**ETH balance**: ~0.06420 → est ~0.06418 (Δ ~-0.00002; ~1.9M gas, 2 tx)
+**Perceived**: Auto_v2 ACTIVE on node 6 since session 40 (~18.2h). Q26 not completable on entry. MUSU: 207,860 → 251,285 (+43,425 passive auto-collect). 20/21 slots.
+**Decided**:
+  - Probe Q26 at 18.2h with 1 scav roll (cheap info; auto_v2 intensity preserved).
+  - If completable with 1 roll → complete, accept Q27, migrate to node 25. If not → leave auto_v2 running and re-probe +18h.
+**Acted**:
+  - scavenge_claim_and_reveal(6) #1: SUCCESS. Gas: 779k + 759k = 1.54M. Commit revealed (items granted).
+  - check_quest_completable(26): FALSE after 1 roll. Q26 requires >1 roll — "9 Scav" counter is stricter than "3 Scav" pattern.
+  - scavenge_claim_and_reveal(6) #2: REVERTED (insufficient pts). Gas: 335k wasted. Confirms rate ~30-40 pts/hr holds at node 6.
+**Result**: Q26 in progress, 1 roll counted. Auto_v2 undisturbed on node 6, 20 kamis still building intensity. MUSU: 251,285. Node 6 scav cost confirmed: 300 pts/roll (matches nodes 49/52/53/60/62).
+**Gas notes**: ~1.87M total. 335k wasted on 2nd probe — acceptable cost for confirming scav rate at this node. Auto_v2 reset would have cost >30M + intensity loss.
+**Next session**: +18h → another probe. Expect 1-2 more rolls possible per 18h. Q26 likely needs 3-5 more probe sessions if "9 Scav" counter requires multiple rolls (vs "3 Scav" which took 1). Track: after N rolls counted, retry check_quest_completable. (scheduled: +18h → 2026-04-20 22:00 UTC)
+
