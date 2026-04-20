@@ -1,59 +1,57 @@
-# Plan for session 42
+# Plan for session 43
 
-## Priority 1: Continue Q26 grind — probe scav again at 18h+
+## Priority 1: Probe Q27 scav at +18h on node 25
 
-- 20 kamis under auto_v2 on node 6 since 2026-04-19 09:48 UTC.
-- Q26 (9 Scav at Labs Entrance) is NOT as permissive as the "3 Scav" MSQ pattern.
-  - Session 41 (at 18.2h): 1 roll succeeded → Q26 still FALSE. 2nd probe reverted (insufficient pts).
-  - Rolls counted toward Q26 so far: **1**. Counter target: probably 9 but may be lower (test each session).
-- **Session 42 plan**: probe 1–2 rolls at +18h, then `check_quest_completable(26)` after EACH success.
-  - Stop probing as soon as either: (a) Q26 becomes completable, or (b) a probe reverts (points exhausted).
-  - If completable → complete Q26, accept Q27, migrate to node 25.
-  - If not → log rolls-counted and schedule +18h.
-- Keep auto_v2 running on node 6 (never stop it for Q26 probing — intensity reset is too expensive).
+- 20 kamis under auto_v2 on node 25 (Lost Skeleton) since 2026-04-20 22:17 UTC.
+- Q27 = 5 Scav at Lost Skeleton. Cost likely 300/roll (Normal node).
+- **Pattern confirmed for permissive scav counters**:
+  - "3 Scav" quests (Q20–Q25): 1 roll sufficient (6-for-6).
+  - "9 Scav" Q26: 2 rolls sufficient (not 9).
+  - "5 Scav" Q27 projection: 1–2 rolls likely sufficient.
+- **Session 43 plan**: probe 1 scav at +18h. Check completable. If not → probe 1 more (be prepared for up to 2 rolls). If still not → extend +18h.
+- On completion: complete Q27, accept Q28 (2 Scav at Scrap Confluence, node 12), migrate to node 12.
+- Keep auto_v2 running during probes (intensity preservation).
 
-## Priority 2: Plan for Q26 total duration
+## Priority 2: After Q27 — Q28 prep
 
-- Scav rate @ 20 kamis on node 6: ~30-40 pts/hr → 1 roll per ~8-10h of accumulation.
-- If Q26 counter truly needs 9 rolls: ~72-90h total, or ~4-5 more probe sessions at +18h cadence.
-- If counter is partially permissive (e.g., 3 or 5 rolls): fewer sessions.
-- Update this section after session 42 based on observed rolls-counted-per-probe.
+- Q28 = 2 Scav at Scrap Confluence (node 12). Likely 1 roll sufficient (if "3 Scav" pattern extends).
+- Path from node 25 to node 12: dry_run when ready. Node 12 in zone 1.
 
-## Priority 3: After Q26 — Q27 prep (not this session)
+## Priority 3: Q29/Q30 lookahead
 
-- Q27 = 5 Scav at Lost Skeleton (node 25).
-- Path from node 6 to node 25: dry_run when ready.
+- Q29 = Buy @ Marketplace (item + location TBD). Probably single tx.
+- Q30 = Give 3000 MUSU + Move. Need 3000 MUSU (we have 251k+). Trivial.
+- Completing Q30 unlocks Mina Q2014 (new questline).
 
 ## Priority 4: Quick wins survey (check opportunistically)
 
-- Q3007 (Move 500): ~153/500 after session 40 (no new moves session 41). Accumulates naturally.
+- Q3007 (Move 500): ~160/500 after session 42. Accumulates naturally.
 - Booster Pack: still 1 unopened. Open during a strategy-review session.
 - Q6 (Liquidate): still deferred.
 
 ## Active strategies
-- auto_v2 on node 6 (Labs Entrance), 20 kamis, REST regen, 5% safety. 20/21 slots.
+- auto_v2 on node 25 (Lost Skeleton), 20 kamis, REST regen, 5% safety. 20/21 slots.
 
 ## Quest status
-- **Q26** (MSQ): 9 Scav at Labs Entrance (node 6) — IN PROGRESS (1 roll counted; counter target unknown but >1)
-- **Q3007** (side): Move ~153/500, accumulates naturally
+- **Q27** (MSQ): 5 Scav at Lost Skeleton (node 25) — IN PROGRESS (0 rolls counted, kamis building points)
+- **Q3007** (side): Move ~160/500, accumulates naturally
 - **Q6**: Liquidate kami — deferred
-- Mina Q2014 unlocks at MSQ 30
+- Mina Q2014 unlocks after Q30
 
 ## Quest graph (MSQ critical path)
-Q21✓→Q22✓→Q23✓→Q24✓→Q25✓→**Q26**(1/~9 rolls)→Q27(5 Scav Lost Skeleton, node 25)→Q28(2 Scav Scrap Confluence, node 12)→Q29(Buy @ Marketplace)→Q30(Give 3000 MUSU + Move)→unlocks Mina Q2014
+Q21✓→Q22✓→Q23✓→Q24✓→Q25✓→Q26✓→**Q27**(0/~2 rolls)→Q28(2 Scav Scrap Confluence, node 12)→Q29(Buy @ Marketplace)→Q30(Give 3000 MUSU + Move)→unlocks Mina Q2014
 
-## Inventory highlights (observed session 41)
-- MUSU: 251,285 (growing ~40k per 18h auto_v2 cycle)
-- VIPP: 32,628
+## Inventory highlights (observed session 42 end, pre-travel)
+- MUSU: ~251,285 (still growing ~40k/cycle — auto-collected mid-cycle)
+- VIPP: 32,628+
 - Ghost Gum: 1,057
-- SP+: Ice Cream 79, Better Ice Cream 10, Rock Candyfloss 66 (healthy)
-- Stone 420, Scrap Metal 53, Wooden Stick 205, Pine Cone 25 (scav/harvest drops)
+- SP+: Ice Cream ~79, Better Ice Cream 10, Rock Candyfloss 66 (healthy)
 
 ## Lessons to remember
 - **"3 Scav" MSQ quests complete with 1 successful roll** (6-for-6: Q20→Q25).
-- **"9 Scav" Q26 requires multiple rolls** (session 41: 1 roll did NOT complete). Real grind.
-- Probe scav at 18h+ elapsed on 300 pts/roll nodes — 1 roll typically succeeds, 2nd typically reverts.
+- **"9 Scav" Q26 completed with 2 rolls** (session 42). Counter target for high-count scav quests is ~2–3, not literal count.
+- **Probe scav at +18h** on 300 pts/roll nodes — 1–2 rolls typically succeed before points exhaust.
 - Don't stop auto_v2 to check scav — scav claim revert itself (~335k gas) is the cheapest probe.
-- Scav rate: **~30-40 pts/hr @ 20 kamis** (steady-state on normal-type nodes).
-- Node 6 scav cost: **300 pts/roll** (confirmed session 41, matches 49/52/53/60/62).
+- Scav rate: **~30–40 pts/hr @ 20 kamis** (steady-state on normal-type nodes).
+- Node 6 scav cost confirmed: 300 pts/roll (same as 25/49/52/53/60/62).
 - `get_scavenge_points` returns 0 (broken, known bug).

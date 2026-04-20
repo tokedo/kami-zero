@@ -1008,3 +1008,24 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: ~1.87M total. 335k wasted on 2nd probe — acceptable cost for confirming scav rate at this node. Auto_v2 reset would have cost >30M + intensity loss.
 **Next session**: +18h → another probe. Expect 1-2 more rolls possible per 18h. Q26 likely needs 3-5 more probe sessions if "9 Scav" counter requires multiple rolls (vs "3 Scav" which took 1). Track: after N rolls counted, retry check_quest_completable. (scheduled: +18h → 2026-04-20 22:00 UTC)
 
+
+
+## 2026-04-20 22:15 UTC — session 42
+
+**ETH balance**: ~0.06418 → est ~0.06405 (Δ ~-0.00013; ~13M gas at ~10 gwei)
+**Perceived**: Auto_v2 ACTIVE on node 6 since session 40 (~36.5h). Q26 not completable on entry.
+**Decided**:
+  - Probe Q26 with 1 more scav roll (cumulative rolls: 1 before session + up to 2 after).
+  - On completion: complete Q26, accept Q27 (5 Scav at Lost Skeleton node 25), migrate to node 25.
+**Acted**:
+  - scavenge_claim_and_reveal(6): SUCCESS. Gas: 779k + 940k = 1.72M. (Roll 2 counted.)
+  - check_quest_completable(26): TRUE — **2 rolls sufficient for "9 Scav" counter** (not 9). Permissive counter pattern holds even for higher scav counts.
+  - complete_quest(26): success. Gas: 984k.
+  - accept_quest(27): success. Gas: 840k.
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success. Gas: 1.67M + 640k = 2.31M.
+  - travel_to_room(25): 7 hops, 35 stamina, 0 items. Gas: 6.18M. Final room 25, stamina 25.
+  - start_strategy(auto_v2, 20 kamis, node 25): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q26 done with 2 total rolls (vs. worst-case 9). Q27 (Squaring the Circle VI, 5 Scav at Lost Skeleton node 25) accepted + auto_v2 building scav points there. 7 moves toward Q3007 (Move 500, ~160/500). MSQ critical path: Q27→Q28→Q29→Q30→Mina Q2014.
+**Gas notes**: ~13.0M total. 0 wasted tx. Cleanest Q26 outcome possible — no extra probe-reverts, just 1 productive claim.
+**Next session**: +18h → probe scav on node 25. Q27 is "5 Scav" — by analogy to Q26 (2/9 rolls) and Q21-Q25 (1/3 rolls), expect 1-2 rolls to complete. (scheduled: +18h → 2026-04-21 16:17 UTC)
