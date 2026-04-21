@@ -1029,3 +1029,27 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q26 done with 2 total rolls (vs. worst-case 9). Q27 (Squaring the Circle VI, 5 Scav at Lost Skeleton node 25) accepted + auto_v2 building scav points there. 7 moves toward Q3007 (Move 500, ~160/500). MSQ critical path: Q27→Q28→Q29→Q30→Mina Q2014.
 **Gas notes**: ~13.0M total. 0 wasted tx. Cleanest Q26 outcome possible — no extra probe-reverts, just 1 productive claim.
 **Next session**: +18h → probe scav on node 25. Q27 is "5 Scav" — by analogy to Q26 (2/9 rolls) and Q21-Q25 (1/3 rolls), expect 1-2 rolls to complete. (scheduled: +18h → 2026-04-21 16:17 UTC)
+
+
+## 2026-04-21 16:30 UTC — session 43
+
+**ETH balance**: ~0.06405 → est ~0.06382 (Δ ~-0.00023; ~23M gas at ~10 gwei)
+**Perceived**: Auto_v2 ACTIVE on node 25 since session 42 (~18.3h). Q27 not completable on entry. 20/21 slots. Node 25 scav cost: 200/roll (cheaper than Q26's 300/roll — observed via kami_state_slim scavenge.cost).
+**Decided**:
+  - Probe Q27 at 18.3h per Q21–Q26 precedent. Expect 1 roll sufficient even for "5 Scav" objective.
+  - On success: complete Q27, accept Q28, migrate to node 12 (Scrap Confluence) for 2-scav Q28.
+  - Path dry_run: 25→36→9→33→31→47→4→34→12 (8 hops, 40 stamina, no items).
+**Acted**:
+  - scavenge_claim_and_reveal(25): SUCCESS. Gas: 779k + 1.20M = 1.98M.
+  - check_quest_completable(27): TRUE — **"5 Scav" counter completed with 1 roll** (permissive counter extends to higher targets).
+  - complete_quest(27): success. Gas: 1.24M.
+  - accept_quest(28): success. Gas: 837k.
+  - check_quest_completable(28): FALSE (need scav rolls at node 12).
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch #1 (10 kamis): success. Gas: 7.26M.
+  - stop_harvest_batch #2 (10 kamis): sequence mismatch error, retried → success. Gas: 5.82M. (No wasted gas — first call never landed on chain.)
+  - travel_to_room(12): 8 hops, 40 stamina, 0 items. Gas: 7.04M. Final stamina: 25.
+  - start_strategy(auto_v2, 20 kamis, node 12): RUNNING, ACTIVE. 20/21 slots.
+**Result**: Q27 done with 1 roll (permissive counter confirmed for "5 Scav"). Q28 (Squaring the Circle VII, 2 Scav at Scrap Confluence node 12) accepted + auto_v2 building scav points there. 8 moves toward Q3007 (Move 500, ~168/500). MSQ critical path: Q28→Q29→Q30→Mina Q2014.
+**Gas notes**: ~23.2M total. 0 wasted tx. The sequence-mismatch error on batch #2 was a transient RPC nonce-tracking issue and did not consume gas (no tx submitted). Cleanest possible outcome.
+**Next session**: +18h → probe Q28. Expect 1 roll sufficient (2-Scav trivially within "≤2 rolls" pattern). After Q28 → accept Q29 (Buy @ Marketplace); likely completable immediately with a listing_buy tx. (scheduled: +18h → 2026-04-22 10:33 UTC)
