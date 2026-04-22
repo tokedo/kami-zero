@@ -1404,6 +1404,12 @@ _ABI_LISTING_BUY = json.loads(
     '{"name":"amts","type":"uint32[]"}],'
     '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
 )
+_ABI_AUCTION_BUY = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"itemIndex","type":"uint32"},'
+    '{"name":"amt","type":"uint32"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
 
 
 @mcp.tool()
@@ -1789,6 +1795,37 @@ def listing_buy(
         "system.listing.buy",
         _ABI_LISTING_BUY,
         [merchant_index, item_indices, amounts],
+        gas_limit=1_500_000,
+    )
+
+
+@mcp.tool()
+def auction_buy(
+    item_index: int,
+    amount: int = 1,
+    account: str = "main",
+) -> dict:
+    """Buy items from the global Dutch auction (Marketplace room 66).
+
+    Uses the OWNER wallet (not operator). GDA-priced: decays over time,
+    each purchase resets the price upward. No room gating on the tx
+    itself, but MSQ 29 ("Buy something in the Marketplace") is satisfied
+    by this system. Check the live price first with get_prices().
+
+    Auction items (live as of 2026-04):
+        10 = Gacha Ticket (paid in MUSU, target 32,000)
+        11 = Reroll Ticket (paid in Onyx Shards, target 50)
+
+    Args:
+        item_index: Index of the auction item.
+        amount: Amount to buy (uint32).
+        account: Account label.
+    """
+    return _send_tx_owner(
+        account,
+        "system.auction.buy",
+        _ABI_AUCTION_BUY,
+        [item_index, amount],
         gas_limit=1_500_000,
     )
 
