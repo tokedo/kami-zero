@@ -85,3 +85,10 @@ Format:
 - **Files**: `executor/server.py` (lines 1425, 1430)
 - **How to use**: No API change. `harvest_start([43], node_index=31)` now works even when kami 43 was previously harvesting on a different node. Note: MCP server must be restarted to pick up the change.
 - **Commit**: b209626
+
+## 2026-04-22 — auction_buy tool (Gacha/Reroll Ticket via Dutch auction)
+- **What**: Added `auction_buy` MCP tool and `_ABI_AUCTION_BUY` for `system.auction.buy` (GDA-priced global auction for Gacha Tickets and Reroll Tokens).
+- **Why**: Q29 ("Computer Blues") requires buying at the Marketplace — room 66's Asphodel machine = the auction system. No auction tool existed; listing_buy (merchants 1 Mina / 2 Vending Machine) doesn't satisfy Q29. Also useful long-term for sustainable Gacha Ticket acquisition.
+- **Files**: `executor/server.py`
+- **How to use**: `auction_buy(item_index=10, amount=1, account="bpeon")` — buys 1 Gacha Ticket at current GDA price (check via `get_prices()` first; target 32k MUSU, decays ~25%/day when unbought). Item 11 = Reroll Token (paid in Onyx Shards). Uses OWNER wallet, not operator. Note: MCP server must be restarted to pick up the new tool.
+- **Commit**: 418f815

@@ -1053,3 +1053,25 @@ Append one entry per session. Newest at the bottom.
 **Result**: Q27 done with 1 roll (permissive counter confirmed for "5 Scav"). Q28 (Squaring the Circle VII, 2 Scav at Scrap Confluence node 12) accepted + auto_v2 building scav points there. 8 moves toward Q3007 (Move 500, ~168/500). MSQ critical path: Q28→Q29→Q30→Mina Q2014.
 **Gas notes**: ~23.2M total. 0 wasted tx. The sequence-mismatch error on batch #2 was a transient RPC nonce-tracking issue and did not consume gas (no tx submitted). Cleanest possible outcome.
 **Next session**: +18h → probe Q28. Expect 1 roll sufficient (2-Scav trivially within "≤2 rolls" pattern). After Q28 → accept Q29 (Buy @ Marketplace); likely completable immediately with a listing_buy tx. (scheduled: +18h → 2026-04-22 10:33 UTC)
+
+## 2026-04-22 10:45 UTC — session 44
+
+**ETH balance**: ~0.06382 → est ~0.06376 (Δ ~-0.00006; ~5.4M gas)
+**Perceived**: Auto_v2 ACTIVE on node 12 since session 43 (~18.2h). MUSU 251,285 → 309,380 (+58k passive). Booster Packs: 1 → 4 (+3 from node 12 scav drops during cycle). Q28 not completable on entry.
+**Decided**:
+  - Probe Q28 with 1 scav roll (18.2h elapsed, "2 Scav" counter — expect 1 roll sufficient per Q21-Q27 permissive pattern).
+  - After Q29 accepted, learned its objective: "Buy something in the Marketplace" (room 66, Asphodel auction machine). Requires `system.auction.buy` (new system) — no tool existed.
+  - Current Gacha Ticket auction price: ~180k MUSU (vs 32k target). GDA decays at ~25%/day when unbought. Waiting 1-2 days saves ~45-90k MUSU.
+  - Don't stop auto_v2. Don't travel. Preserve intensity, let price decay, accumulate more MUSU passively.
+  - Implement `auction_buy` as harness improvement so future session can execute directly.
+**Acted**:
+  - scavenge_claim_and_reveal(12): SUCCESS. Gas: 779k + 978k = 1.76M.
+  - check_quest_completable(28): TRUE (1 roll sufficient for "2 Scav" — 7-for-7 on permissive-counter pattern).
+  - complete_quest(28): success. Gas: 854k.
+  - accept_quest(29): success. Gas: 837k.
+  - check_quest_completable(29): FALSE (need Marketplace buy).
+  - Added `auction_buy` MCP tool (uses owner wallet). 0 tx (tool exists, not yet used).
+**Result**: Q28 done! Q29 accepted. Auto_v2 undisturbed, 20 kamis still harvesting/building intensity on node 12. MUSU: 309,380. Critical path progression now blocked on Gacha Ticket purchase (price watch).
+**Gas notes**: ~4.4M total (3 operational tx). 0 wasted. No migration this session = no 20-30M stop/travel/restart overhead.
+**Next session**: +24h. Check Gacha price; if ≤135k → execute (travel to 66, auction_buy, complete Q29, accept Q30, travel to 13, listing_buy ~3000 MUSU worth at Mina to complete Q30). If still >135k → extend +24h. (scheduled: +24h → 2026-04-23 10:55 UTC)
+
