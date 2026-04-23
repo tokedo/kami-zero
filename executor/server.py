@@ -2259,6 +2259,145 @@ _ABI_TRADE_COMPLETE = json.loads(
     '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
 )
 
+_ABI_TRADE_EXECUTE = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"tradeID","type":"uint256"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
+
+
+@mcp.tool()
+def take_trade(trade_id: str, account: str = "main") -> dict:
+    """Take (execute) a pending trade as the taker. Owner wallet.
+
+    Pays the maker's buy items from your inventory and escrows them; the
+    trade moves to EXECUTED status until the maker calls complete().
+
+    To buy items the maker is selling for MUSU (Q29 "Buy at Marketplace"),
+    pass a trade where buy_item=1 (MUSU). Discover candidate trade IDs via
+    `list_open_sell_offers`.
+
+    Args:
+        trade_id: Trade entity ID (decimal or hex string starting with 0x).
+        account: Account label.
+    """
+    trade_int = int(trade_id, 16) if trade_id.startswith("0x") else int(trade_id)
+    return _send_tx_owner(
+        account, "system.trade.execute", _ABI_TRADE_EXECUTE, [trade_int]
+    )
+
+
+@mcp.tool()
+def list_open_sell_offers(
+    seed_account: str = "main",
+    max_offers: int = 50,
+) -> dict:
+    """Discover open sell offers from OTHER players (taker = buyer side).
+
+    The Kamiden indexer's GetOpenOffers requires a maker account filter — there
+    is no global "all offers" endpoint. We work around this by seeding the search
+    with counterparties from `seed_account`'s historical trades, then querying
+    each one's open offers. Returns offers where MAKER sells items for MUSU
+    (i.e., where TAKER is the buyer), sorted cheapest-first by total MUSU cost.
+
+    Use the returned `trade_id` with `take_trade()` to buy.
+
+    Caveat: discovery is bounded by the seed account's trade history. To widen
+    the search, complete more trades or pass an account that has done many.
+
+    Args:
+        seed_account: Account label whose trade history seeds the search.
+        max_offers: Cap the number of offers returned.
+    """
+    acct = _get_account(seed_account)
+    seed_eid = str(int(acct.owner_addr, 16))
+
+    # Step 1: get our own trade history → extract counterparty entity IDs
+    history_req = (
+        _proto_encode_string_field(1, seed_eid)
+        + _proto_encode_varint_field(2, 500)
+    )
+    history_payload = _kamiden_grpc_call(
+        "kamiden.KamidenService/GetTradeHistory", history_req
+    )
+    cps: set[str] = set()
+    if history_payload:
+        outer = _proto_decode_fields(history_payload)
+        for _, raw in outer.get(1, []):
+            if not isinstance(raw, bytes):
+                continue
+            f = _proto_decode_fields(raw)
+            maker = _proto_field_str(f, 2)
+            counterparty = _proto_field_str(f, 3)
+            if maker and maker != seed_eid and maker != "0":
+                cps.add(maker)
+            if counterparty and counterparty != seed_eid and counterparty != "0":
+                cps.add(counterparty)
+
+    # Step 2: also pull each counterparty's trade history → expand the set
+    expanded = set(cps)
+    for eid in list(cps):
+        try:
+            req = _proto_encode_string_field(1, eid) + _proto_encode_varint_field(2, 500)
+            payload = _kamiden_grpc_call(
+                "kamiden.KamidenService/GetTradeHistory", req
+            )
+            if not payload:
+                continue
+            outer = _proto_decode_fields(payload)
+            for _, raw in outer.get(1, []):
+                if not isinstance(raw, bytes):
+                    continue
+                f = _proto_decode_fields(raw)
+                m = _proto_field_str(f, 2)
+                cp = _proto_field_str(f, 3)
+                if m and m != seed_eid and m != "0":
+                    expanded.add(m)
+                if cp and cp != seed_eid and cp != "0":
+                    expanded.add(cp)
+        except Exception:
+            pass
+
+    # Step 3: query each candidate's open offers, keep MAKER-sell side
+    offers: list[dict] = []
+    for eid in expanded:
+        try:
+            req = _proto_encode_string_field(1, eid) + _proto_encode_varint_field(2, 500)
+            payload = _kamiden_grpc_call(
+                "kamiden.KamidenService/GetOpenOffers", req
+            )
+            trades = _parse_kamiden_trades(payload) if payload else []
+        except Exception:
+            continue
+        for t in trades:
+            # Existing parser's "BUY" side = maker buy_item is MUSU (f4=0x01) =
+            # maker is selling items for MUSU. Taker (us) pays MUSU and
+            # receives items — exactly what Q29 "Buy at Marketplace" wants.
+            if t["status"] == "PENDING" and t["side"] == "BUY":
+                offers.append(
+                    {
+                        "trade_id": t["trade_id_hex"],
+                        "maker_eid": eid,
+                        "item_index": t["item_index"],
+                        "item_name": t["item_name"],
+                        "item_amount": t["item_amount"],
+                        "musu_total": t["musu_amount"],
+                        "musu_per_unit": t["unit_price"],
+                        "summary": (
+                            f"{t['item_amount']}x {t['item_name']} for "
+                            f"{t['musu_amount']:,} MUSU"
+                        ),
+                    }
+                )
+
+    offers.sort(key=lambda o: o["musu_total"])
+    return {
+        "seed_account": seed_account,
+        "counterparties_searched": len(expanded),
+        "offers_found": len(offers),
+        "offers": offers[:max_offers],
+    }
+
 
 @mcp.tool()
 def get_account_trades(account: str = "main") -> dict:
