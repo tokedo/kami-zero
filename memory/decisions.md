@@ -1075,3 +1075,54 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: ~4.4M total (3 operational tx). 0 wasted. No migration this session = no 20-30M stop/travel/restart overhead.
 **Next session**: +24h. Check Gacha price; if ≤135k → execute (travel to 66, auction_buy, complete Q29, accept Q30, travel to 13, listing_buy ~3000 MUSU worth at Mina to complete Q30). If still >135k → extend +24h. (scheduled: +24h → 2026-04-23 10:55 UTC)
 
+
+## 2026-04-23 12:00 UTC — session 45
+
+**ETH balance**: not measured (RPC DNS blocked from VM); ~28.5M gas burned this session ≈ -0.000285 ETH at 10 gwei.
+**Perceived (HUGE SURPRISE)**: Q29, Q30, Q2014, Q2015 ALL show "alr completed" — the user (or another instance) ran the entire pre-Q31 chain manually between sessions 44 and 45. Pyramid Engine (Q2015 reward), Aetheric Sextant, Resin Tincture (375), and other artifacts already in inventory. Q31 already accepted, status "objs not met". Auto_v2 had been restarted today at 11:29 UTC on node 12. MUSU 327,248. 20/21 strategy slots.
+**Decided**:
+  - Pivot from session 44 plan (which targeted Q29 order-book buy — moot now). Push the entire Q31 → Q2016 → Q32 → Q33 chain in one session, since most prereqs are met or can be unlocked with on-hand materials.
+  - Q31 = "Give Pyramid Engine + Move to Lost Skeleton (room 25)". Burn the engine (Soulbound items ARE burnable for quest turn-ins), then complete at room 25.
+  - Q2016 = "Move to Temple by Waterfall (room 11)". 2 hops further.
+  - Q32 = "Give 5000 Resin Tincture". We have 25 Resin → recipe 15 yields 500 RT each; craft 10× to add 5000 RT.
+  - Q33 = "Give 1000 Holy Syrup". We have 6 Holy Dust → recipe 14 yields 500 HS each; craft 2× = 1000 HS.
+  - Q34 = "Give 1000 Black Poppy Extract" — need 2-3 Black Poppy (scav drop). Migrate auto_v2 to node 36 (1 hop from 25, drops Resin + Black Poppy) so points accumulate for next session's grind.
+**Acted**:
+  - git: committed take_trade + list_open_sell_offers (uncommitted from session 44, kept since the tools may still be useful for non-quest trading later). Commit `991cdfd`.
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): success, low gas (640k each — kamis were RESTING).
+  - travel_to_room(25): 8 hops, 40 stamina, no items. Gas: 7.04M.
+  - burn_items([100005], [1]): Pyramid Engine consumed. Gas: 550k. KEY DISCOVERY: Soulbound items ARE burnable; "soulbound" only blocks transfer/listing, not burn-for-quest.
+  - check_quest_completable(31): TRUE.
+  - complete_quest(31): success. Gas: 931k. +6× Agency Reputation.
+  - accept_quest(2016): success. Gas: 715k.
+  - travel_to_room(11): 2 hops, 10 stamina. Gas: 1.72M.
+  - check_quest_completable(2016): TRUE (just by being in room 11).
+  - complete_quest(2016): success. Gas: 817k. +4× Elders Loyalty.
+  - accept_quest(32): success. Gas: 840k.
+  - travel_to_room(25): 2 hops + 1 Ice Cream. Gas: 2.57M.
+  - use_account_item(21205, 1): Rock Candyfloss (+80 SP). Gas: 849k.
+  - craft_item(15, 10): REVERTED (insufficient stamina — 100 SP needed, max ~53). Gas: 624k wasted.
+  - craft_item(15, 5): success (2500 RT). Gas: 1.11M.
+  - use_account_item(21205, 1) + craft_item(15, 5): success (another 2500 RT, total 5375 RT). Gas: 1.96M.
+  - burn_items([1202], [5000]): give 5000 RT. Gas: 404k.
+  - complete_quest(32): success. Gas: 1.05M. +2× Agency Rep, +2× Elders Loyalty, +1 Booster Pack.
+  - accept_quest(33): success. Gas: 837k.
+  - use_account_item(21205, 1) + craft_item(14, 2): 1000 Holy Syrup made. Gas: 2.11M.
+  - burn_items([1201], [1000]): give 1000 HS. Gas: 550k.
+  - complete_quest(33): success. Gas: 925k. +2× Agency Rep, +2× Elders Loyalty.
+  - accept_quest(34): success. Gas: 837k.
+  - check_quest_completable(34): FALSE (need 1000 BPE, have 450).
+  - travel_to_room(36): 1 hop. Gas: 860k.
+  - start_strategy(auto_v2, 20 kamis, node 36): RUNNING, ACTIVE. 20/21 slots.
+**Result**: **4 quests completed in one session — Q31, Q2016, Q32, Q33.** MSQ critical path advanced from Q31 to Q34. Mina chain advanced to Q2016 (last Mina quest in current visible tree). Auto_v2 now farming Black Poppy + Resin on node 36 for Q34. Inventory after: MUSU ~325k, Pyramid Engine 0, Resin 15 (was 25, -10), Holy Dust 4 (was 6, -2), Resin Tincture 375, Holy Syrup 0. Booster Pack 5 (Q32 reward +1).
+**Key learnings**:
+  - **Soulbound items are burnable for quest turn-ins.** "Give Pyramid Engine" requires `burn_items([100005], [1])` BEFORE `complete_quest(31)`. The "Soulbound" tag only blocks transfers/listings.
+  - **"Give X" quest objectives require explicit `burn_items` first** — they don't auto-burn from inventory on `complete_quest`. Consistent with Q9/Q11 pattern; differs from `ITEM_SPEND` (Q30 used listing_buy at Mina, no burn needed).
+  - **Account stamina max appears to be ~53 SP** (cap observed when Rock Candyfloss +80 didn't lift past it). Plan craft batches accordingly: max ~5 RT crafts (50 SP) per stamina cycle. After resting/regen the cap can climb (saw 61 SP later — max may be level-dependent or have a small overshoot allowance).
+  - **`craft_item(amount=N)` is gas-efficient**: 5x in one tx = 1.11M gas vs 5 separate tx. Use batch param.
+  - **Rock Candyfloss is the right SP+ item to use** — same +80 SP as Best Ice Cream (don't have) but plentiful (66 in stock). Keep Ice Creams (+20) for travel auto-use; reserve Better Ice Cream (+40) and Neith's Spell Card (+80, soulbound) for emergencies.
+**Gas notes**: ~28.5M gas total. 624k wasted on overzealous craft_item(15, 10) attempt (should have started smaller knowing stamina cap). All other tx productive. Excellent ROI — 4 critical-path quest completions for ~28M gas vs typical ~30-40M for 1 quest with travel/migration.
+**Next session**: +18h → probe Q34 (Black Poppy scav at node 36). Expect 1-2 Poppy per reveal (drop weight 2/18 ≈ 11%, but droptables tend to roll multiple item types). Need ≥2 Poppy → craft BPE → burn 1000 BPE → complete Q34 → accept Q35 (Give 25 Scrap Metal, have 96 — instant) → accept Q36 (Enter cave room 15). (scheduled: +18h → 2026-04-24 06:00 UTC, ts 1777010436)
+
+
