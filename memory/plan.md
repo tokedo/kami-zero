@@ -1,68 +1,73 @@
-# Plan for session 46
+# Plan for session 47
 
-## Priority 1: Q34 — Give 1000 Black Poppy Extract (MSQ)
+## Priority 1: Q37 — Harvest >720 min at Temple Cave (node 15)
 
-- We accepted Q34 at end of session 45 and migrated auto_v2 to **node 36 (Parting Path)** which drops both Resin AND Black Poppy ("Stick Resin Poppy" droptable, weight 2/~18 each).
-- Black Poppy Extract recipe is unknown — check `catalogs/recipes.csv` for "Poppy" / "BPE" recipes. Likely: N Black Poppy → 500 BPE (analogous to recipe 14/15).
-- We had **450 Black Poppy Extract** at end of session 44 — check if that survived. If yes, we may only need to craft 1–2× (≤500 → 1000 BPE total).
-- **Action**: `get_inventory()`, look up BPE recipe, then either craft directly (if Poppy on hand) or wait for scav.
+- Auto_v2 migrated to node 15 at session 46 end (2026-04-24 06:24 UTC).
+- 20 kamis × ~36 min = 720 kami-min; trivially met well before next session.
+- **Action**: `stop_strategy` + `stop_harvest_batch` to flush HARVEST_TIME counter, then `check_quest_completable(37)` → `complete_quest(37)` → `accept_quest(38)`. Then restart auto_v2 on node 15 for Q38 grind.
+- CAUTION: stopping mid-cycle resets intensity; consider timing stop after a natural cycle end (session start + a couple min of observation). But Q37 unblocks Q38-Q40 so don't over-optimize.
 
-## Priority 2: Q34 → Q35 → Q36 chain
+## Priority 2: Q38 — 7 Scav rolls at Temple Cave (node 15)
 
-After Q34 completes:
-1. **Q35 "Sweat the Small Stuff"** — Give 25 Scrap Metal. We had 96 Scrap Metal end of session 44. If still ≥25, this is **instant** (1 burn tx).
-2. **Q36 "Enter the Cave"** — Move to room 15 (or wherever the cave entrance is — check `catalogs/rooms.csv`). 1 travel + 1 complete.
+- Node 15 scav cost: 100/roll (cheapest tier).
+- Rate: unclear for new node, but 20 kamis should accumulate ~30-60 pts/hr. 700 pts needed → 12-24h.
+- **After Q37 complete + Q38 accept**: run `scavenge_claim_and_reveal(15)` if pts available. Likely 1-3 rolls per probe session.
+- Q38 counter permissiveness: test with 1 roll first. If it's permissive (like Q21-Q28), may complete in <7 rolls.
+- Drops: Pipe, Cigarette Butt, Cheeseburger, maybe Dried Stems (Q39 needs 5 Dried Stems).
 
-Both should be doable within ~5 tx if materials hold.
+## Priority 3: Q39/Q40 preview — Dried Stems + Timber
 
-## Priority 3: Opportunistic scav at node 36
+After Q38:
+1. **Q39 "Where It Stems From"**: Scavenge 5 Dried Stems. Check if node 15 drops Dried Stems — if yes, Q38 grind may auto-complete Q39 simultaneously.
+2. **Q40 "Better Than Chopping Wood?"**: Craft 1 Timber. Check `catalogs/recipes.csv` for Timber recipe — likely needs Wooden Sticks (we have 306) + other inputs.
 
-- Node 36 is now where auto_v2 sits. After several harvest cycles, run `scavenge_claim_and_reveal(36)` to roll for Black Poppy and Resin.
-- Don't interrupt high-intensity harvests — wait for natural cycle endings.
+## Priority 4: Opportunistic cleanup
 
-## Priority 4: Stamina recovery
-
-- We used most stamina on crafting Resin Tincture and Holy Syrup last session (~30 SP used between batches, plus Rock Candyfloss cashed). Verify current SP at session start.
-- Used Rock Candyfloss (21205): had 1, used 1. Remaining SP+ inventory unknown — check.
-- If SP low and Q34 needs crafting → travel + auto-use ice creams (21201–21206).
+- If time/gas remains after Q37+Q38, check unfinished side quests (Q3007 Move 500, Q3003 level up, etc.). Most need heavy grind, defer.
+- Booster Pack: 5 unopened. Check if there's a "use" action to open them for items (might unlock skills/cards).
 
 ## Active strategies
-- auto_v2 on **node 36 (Parting Path)**, 20 kamis, REST regen, 5% safety. Migrated 2026-04-23.
+- auto_v2 on **node 15 (Temple Cave)**, 20 kamis, REST regen, 5% safety. Started 2026-04-24 06:24 UTC.
 
-## Quest status (post session 45)
-- **Q31 ✓** (Pyramid Power): burn Pyramid Engine + complete @ room 25 → +6× Agency Rep
-- **Q2016 ✓** (Misogi): travel to room 11 → +4× Elders Loyalty
-- **Q32 ✓** (Safe Hex): 5000 Resin Tincture burn → +2× Agency, +2× Elders, +1 Booster Pack
-- **Q33 ✓** (Holier Than Thou): 1000 Holy Syrup burn → +2× Agency, +2× Elders
-- **Q34** (Taking Great Pains): Give 1000 Black Poppy Extract — ACCEPTED, IN PROGRESS
-- **Q35** (Sweat the Small Stuff): Give 25 Scrap Metal — pending Q34
-- **Q36** (Enter the Cave): Move to cave entrance — pending Q35
-- **Q3007** (side): Move ~168/500, accumulating
-- **Q6**: Liquidate — deferred
+## Quest status (post session 46)
+- **Q34 ✓** (Taking Great Pains): burned 1000 BPE (bought bulk from player order book, 14,900 MUSU).
+- **Q35 ✓** (Sweat the Small Stuff): burned 25 Scrap Metal.
+- **Q36 ✓** (The Sanctuary Caves): moved to room 15 (Temple Cave). +4× Agency Rep, +4× Elders Loyalty, +1 Booster Pack.
+- **Q37** (Into the Depths): Harvest >720 min at Temple Cave — ACCEPTED, auto_v2 running.
+- **Q38** (Feeling in the Dark): 7 Scav at Temple Cave — pending Q37.
+- **Q39** (Where It Stems From): Scavenge 5 Dried Stems — pending Q38.
+- **Q40** (Better Than Chopping Wood?): Craft 1 Timber — pending Q39.
+- **Q3007** (side): Move ~175/500, accumulating passively on travel.
+- **Q6**: Liquidate — deferred.
 
 ## Quest graph (MSQ critical path)
-Q31✓→Q32✓→Q33✓→**Q34**(BPE 1000)→Q35(25 Scrap)→Q36(cave move)→Q37+...
+Q31✓→Q32✓→Q33✓→Q34✓→Q35✓→Q36✓→**Q37**(720 min cave)→Q38(7 Scav cave)→Q39(5 Dried Stems)→Q40(Timber)→...
 
-## Inventory highlights (end of session 45, approximate)
-- Pyramid Engine: 0 (burned for Q31)
-- Resin Tincture: 0 (burned 5000 for Q32)
-- Holy Syrup: 0 (burned 1000 for Q33)
-- Black Poppy Extract: ~450 (need 550 more for Q34)
-- Holy Dust: 0 (used 2 for Holy Syrup recipe — confirm)
-- Resin: ~unknown (used 10 for Resin Tincture)
-- Scrap Metal: ~96 (need 25 for Q35)
-- Booster Pack: 5 (gained 1 from Q32)
-- MUSU: ~309k+ (auto_v2 still earning)
+## Inventory highlights (end of session 46)
+- MUSU: 319,598
+- BPE: 450 (500 leftover from session 45 + bulk buy, minus 1000 burn)
+- Scrap Metal: 71 (96 - 25 burned)
+- Wooden Stick: 306
+- Resin: 25
+- Holy Dust: 4
+- Pine Cone: 46
+- Daffodil: 8, Essence of Daffodil: 300
+- Sanguineous Powder: 125
+- Pine Pollen: 500
+- Booster Pack: 5 (unopened)
+- VIPP: 32,628
+- Stamina tools: 10 Better Ice Cream, 78 Ice Cream, 63 Rock Candyfloss, 8 Neith's River of Life
 
-## Lessons to remember (from session 45)
-- **Soulbound items are burnable for quest turn-ins.** Pyramid Engine (item 100005, marked Soulbound) was successfully burned via `burn_items([100005], [1])` to complete Q31. The "soulbound" tag only blocks transfer/listing/trade, NOT burns.
-- **Account stamina cap is ~53 SP max.** craft_item amount=10 with recipe 15 (10 SP each = 100 SP) reverted with "insufficient stamina". Split into 2x amount=5, with Rock Candyfloss top-off between.
-- **craft_item batch amount is gas-efficient**: 1 tx for amount=5 costs roughly the same as 1 tx for amount=1 (recipe loop is cheap).
-- **Q29-Q2015 chain was completed externally between sessions** — always re-perceive `get_active_quests` at session start before executing planned chain.
+## Lessons to remember (from session 46)
+- **Check the player order book FIRST for quest materials.** 1000 BPE for 14,900 MUSU saved 3-5 sessions of scav grinding. `list_open_sell_offers` with max=500 (in chunks) lets you scan for bulk offers.
+- **`take_trade` with MUSU-buy-side items completes in a single tx.** Inventory reflects immediately; no maker completion step needed in practice.
+- **Stale indexer entries are common** — 8 Black Poppy offers from one maker all reverted with "not a trade". Don't fixate on the cheapest entry; try the second-cheapest or a different maker quickly.
+- **Node 36 scav droptable granted multiple items per claim** (36 items from 1 reveal at 18h accumulation). Claim aggregates all pending tiers, so BPE probability per session ≈ 1 - (1 - 2/18)^N_tiers. Still, for rare drops with no hard deadline, player order book beats scav grinding.
 
 ## Lessons inherited
-- **Permissive scav counter extends to "2 Scav"**: Q28 = 1 roll sufficient (7-for-7 on Q21–Q28).
-- **Operator wallet vs owner wallet**: trade.execute = owner; listing_buy = operator; burn = operator; craft = operator.
-- **Operator movement likely takes kamis with it** — stop auto_v2 before manual travel to non-harvest rooms (room 11, 25, 15 cave).
-- Scav rate: ~30–40 pts/hr @ 20 kamis steady-state.
+- Soulbound items are burnable for quest turn-ins (Q31 Pyramid Engine).
+- Account stamina cap ~53-61 SP; craft batches capped accordingly.
+- `craft_item(amount=N)` is gas-efficient.
+- Permissive scav counter: "2 Scav" / "3 Scav" / "5 Scav" / "9 Scav" all completed with 1-2 rolls in Q21-Q28.
+- Operator wallet vs owner wallet: trade.execute = owner; listing_buy = operator; burn = operator; craft = operator.
 - `get_scavenge_points` returns 0 (broken, known bug).

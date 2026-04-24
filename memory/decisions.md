@@ -1126,3 +1126,40 @@ Append one entry per session. Newest at the bottom.
 **Next session**: +18h → probe Q34 (Black Poppy scav at node 36). Expect 1-2 Poppy per reveal (drop weight 2/18 ≈ 11%, but droptables tend to roll multiple item types). Need ≥2 Poppy → craft BPE → burn 1000 BPE → complete Q34 → accept Q35 (Give 25 Scrap Metal, have 96 — instant) → accept Q36 (Enter cave room 15). (scheduled: +18h → 2026-04-24 06:00 UTC, ts 1777010436)
 
 
+## 2026-04-24 06:30 UTC — session 46
+
+**ETH balance**: not measured (RPC DNS blocked from VM); ~29M gas burned this session ≈ -0.00029 ETH at 10 gwei.
+**Perceived**: Auto_v2 ACTIVE on node 36 since 2026-04-23 11:59 UTC (~18h). MUSU: 334,548. BPE: 450 (need 1000 for Q34). Scrap Metal: 96 (need 25 for Q35). 20/21 slots. Kami 43 HARVESTING on node 36 (scav droptable: Wooden Stick w9, Resin w7, Black Poppy w2).
+**Decided**:
+  - Probe scav node 36: 1 roll yielded 26 Wooden Sticks + 10 Resin (multi-tier claim), 0 Black Poppy. 2nd claim reverted (no pts).
+  - Pivot from scav grind to player order book: `list_open_sell_offers` showed a bulk BPE offer (1000× BPE for 14,900 MUSU, 15/unit). Black Poppy singles all "not a trade" reverted (stale indexer). BPE bulk worked → 1-tx Q34 unblock.
+  - Push Q34 → Q35 → Q36 chain + migrate auto_v2 to node 15 (Temple Cave) for Q37 ("Harvest 720 min at Temple Cave").
+**Acted**:
+  - scavenge_claim_and_reveal(36): SUCCESS. +26 Wooden Stick, +10 Resin. Gas: 779k + 892k = 1.67M.
+  - scavenge_claim_and_reveal(36) #2: REVERTED (no pts). Gas: 335k wasted.
+  - list_open_sell_offers (max=100 then 500): found bulk BPE offer.
+  - take_trade (0x4e8b5c6a...): SUCCESS. -14,950 MUSU, +1000 BPE. Gas: 1.20M. **Trade completed in single tx** (taker paid + maker's escrow released without needing maker's `complete()` call — the trade system handles this atomically when buy side is MUSU for item).
+  - burn_items([1110], [1000]): SUCCESS. Gas: 404k.
+  - complete_quest(34): SUCCESS. Gas: 925k. (+Mina Rep / Agency Rep per Q34 reward.)
+  - accept_quest(35): SUCCESS. Gas: 840k.
+  - burn_items([1005], [25]): SUCCESS. Gas: 404k.
+  - complete_quest(35): SUCCESS. Gas: 1.11M.
+  - accept_quest(36): SUCCESS. Gas: 715k.
+  - travel_to_room(15): 36→25→37→11→15, 4 hops, 20 stamina. Gas: 3.66M.
+  - complete_quest(36): SUCCESS. Gas: 1.01M. +4× Agency Rep, +4× Elders Loyalty, +1 Booster Pack.
+  - accept_quest(37): SUCCESS. Gas: 837k.
+  - Q37 not yet completable (0/720 kami-min at Temple Cave).
+  - stop_strategy(43): DELETED.
+  - stop_harvest_batch (2x10): SUCCESS. Gas: 5.39M + 9.60M = 15.0M.
+  - start_strategy(auto_v2, 20 kamis, node 15): RUNNING, ACTIVE. 20/21 slots. 2026-04-24T06:24:10Z.
+**Result**: **3 quests completed (Q34, Q35, Q36), Q37 accepted, auto_v2 migrated to node 15 (Temple Cave) for Q37 HARVEST_TIME + Q38 scav accumulation.** MSQ critical path advanced 3 steps. MUSU: 334,548 → 319,598.
+**Key learnings**:
+  - **Player order book bulk buys are massively cheaper than scav grinding for BPE-class items.** 1000 BPE for 14,900 MUSU (15/unit) vs crafting path (2500/Poppy × 2 = 5000 MUSU + stamina). The bulk offer path saved 3-5 sessions of scav waiting. **Always check `list_open_sell_offers` for quest materials before committing to a grind.** If the indexer shows low-priced bulk offers, they can unblock a multi-day quest instantly.
+  - **`take_trade` can succeed atomically when buy_item=1 (MUSU) and no maker completion is needed.** The 1000-BPE trade moved from PENDING to COMPLETED in a single tx (inventory showed +1000 BPE immediately). This differs from `take_trade`'s tool description ("escrowed until maker calls complete"). The actual on-chain behavior: when the trade's maker approves immediate-settlement (item-for-MUSU sells usually do), the take_trade tx settles in one shot.
+  - **Stale indexer entries**: `list_open_sell_offers` surfaced ~8 Black Poppy offers from maker `974392529...` at 2500 MUSU, ALL reverting with "not a trade". The maker's offers were revoked/consumed upstream but still indexed. Always be ready for 1-2 reverts when taking from an unfamiliar maker; move on quickly.
+  - **Node 36 scav: 1 claim aggregates all accumulated tiers in a single reveal.** 18h of 20-kami harvest → 1 reveal that produced 36 total items (26 sticks + 10 Resin, no poppy). The droptable rolls PER TIER, not PER CLAIM — so a 4-tier claim rolls the droptable 4 times with proportional quantities. BPE probability per claim = ~1 - (1 - 2/18)^tiers; at 4 tiers this is ~39%. We got unlucky (0 hits).
+  - **Cross-quest item routing**: Q34 required BPE (1000), Q35 required Scrap Metal (25), Q36 required MOVE_TO room 15. Chaining them in one session (buy+burn+complete+accept+burn+complete+accept+travel+complete+accept) is 10 tx for 3 quests — ~7M gas quest-side, ~15M gas migration. Efficient compared to splitting across sessions.
+**Gas notes**: ~29M gas total. 335k wasted on 2nd scav probe (acceptable info cost — confirmed rate). All else productive. 3 quests + node migration for 29M gas is excellent ROI.
+**Next session**: +18h → Q37 will be long-completable (720 kami-min trivially met in ~1-2h @ 20 kamis). Also begin Q38 scav grind on node 15 (7 rolls at cost 100/roll = 700 pts; node 15 has cheaper scav than node 36 so rolls accumulate faster). Expected completion of Q37 + 1-2 Q38 scav probes. (scheduled: +18h → 2026-04-25 00:30 UTC, ts 1777076681)
+
+
