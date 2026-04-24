@@ -1197,3 +1197,42 @@ Append one entry per session. Newest at the bottom.
   - 0 wasted tx (the initial 15-kami batch simulation failed pre-submit, so no gas spent).
 
 **Next session** (+6h → ~2026-04-24 21:05 UTC, ts 1777064706): Verify auto_v2 has deployed all 20 kamis and some harvest time has accumulated. Check Q37 completable (720 kami-min trivially met in 1-2 hours @ 20 kamis). Complete Q37, accept Q38 (7 Scav at Temple Cave), start scav probe.
+
+
+## 2026-04-24 21:15 UTC — session 48
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 15 since session 47 (~6h12m). 11 kamis HARVESTING / 9 RESTING (auto_v2 cycling). Q37 NOT completable on entry — `check_quest_completable(37)` returned `objs not met`. MUSU 342,503. 20/21 slots.
+**Decided**:
+  - Per session 9 learning: HARVEST_TIME counter only flushes on STOP. Auto_v2's internal "stop" cycles apparently DO NOT update the on-chain counter for an active strategy — manual `harvest_stop` required to flush.
+  - Stop strategy + manually stop the 10 currently-HARVESTING kamis to flush HARVEST_TIME → complete Q37 → accept Q38 → probe Q38 scav (1 roll likely sufficient per permissive pattern, 8/8 since session 21) → complete Q38 → accept Q39.
+  - Q39 = "Scavenge 5 Dried Stems" (item 1016). Node 15 droptable does NOT include 1016 (keys: 1017, 1018, 11302). Need migration to a Dried-Stems node.
+  - Test order-book buy first (per session 46 BPE pattern): 100 Dried Stems @ 2000 MUSU available. If quest counts owned-stems → 1-tx Q39 win. If counter requires actual scavenge action → migrate.
+  - Migrate to node 77 (Thriving Mushrooms): cheapest scav (100/roll), INSECT (matches our setup), highest stems weight (9/25 = 36%). 3 hops from 15 (15→18→76→77, 15 stamina).
+**Acted**:
+  - stop_strategy(43, permanent=True): DELETED.
+  - stop_harvest_batch [6096,10011,1064,7803,13235]: SUCCESS. Gas 8.47M.
+  - stop_harvest_batch [13702,13857,3874,3983,7722]: SUCCESS. Gas 8.47M.
+  - get_account_kamis: ALL 20 RESTING confirmed ✓
+  - check_quest_completable(37): TRUE.
+  - complete_quest(37): SUCCESS. Gas 854k. +Agency Rep / Booster Pack rewards.
+  - accept_quest(38): SUCCESS. Gas 837k.
+  - scavenge_claim_and_reveal(15): SUCCESS. Gas 779k + 1.20M = 1.98M. Got +9 Patinated Pipe, +6 Cigarette Butt, +5 Cheeseburger, +2037 MUSU.
+  - check_quest_completable(38): TRUE (1 roll satisfied "7 Scav" — permissive pattern 9/9).
+  - complete_quest(38): SUCCESS. Gas 1.05M.
+  - accept_quest(39): SUCCESS. Gas 837k.
+  - check_quest_completable(39): FALSE (need 5 Dried Stems via scavenge).
+  - take_trade(0x70bbb566... maker 1035...): REVERTED `not a trade` (stale indexer entry, same pattern as session 46's BPE Black Poppy revokes).
+  - take_trade(0x254a21... maker 877...): SUCCESS. Gas 1.28M. -2000 MUSU, +100 Dried Stems.
+  - check_quest_completable(39): FALSE — **buy did not satisfy the counter. Q39 requires actual scavenge action, not item ownership.**
+  - travel_to_room(77): 3 hops (15→18→76→77), 15 stamina, 0 items. Gas 2.58M. Final stamina 52.
+  - start_strategy(auto_v2, kami_id=43, node_id=77, 20 kamis, REST regen, 5% safety): RUNNING. Strategy ID `b08c71c4-f09e-4982-b03b-da82c382987c`. 20/21 slots.
+**Result**: **2 quests completed (Q37, Q38), Q39 accepted, auto_v2 migrated to node 77 for Q39 scav grind.** Bonus: 100 Dried Stems in inventory (covers recipe 31 for Q40 Timber if we want to take that path; we also have 306 Wooden Sticks → recipe 34 same output). MUSU: 342,503 → ~342,540 (small net gain after scav rewards minus trade cost minus gas).
+**Key learnings**:
+  - **`check_quest_completable` for HARVEST_TIME quests does NOT count active-but-not-yet-stopped harvests.** Even with 20 kamis cycling under auto_v2 for 6h, the staticCall returned "objs not met" until manual stops flushed time. Confirms session 9's rule and extends it: even in-flight cycles by auto_v2 don't auto-flush. Pattern: when an HARVEST_TIME quest looks stalled, the fix is `stop_strategy + stop_harvest_batch` on the actively-harvesting kamis (RESTING ones already flushed during their last auto_v2 cycle stop). Cost: ~17M gas for 2x batch_5 stops. Accept that cost — without it the quest never completes.
+  - **`scavenge_claim_and_reveal` on a Q-progress node IS gas-effective even on first try.** 1.98M gas for 1 reveal that yielded 21 useful items. Don't double-roll on probe — first roll usually carries enough event-counter weight to complete sub-10 scav-counter quests.
+  - **Q39 `Scavenge X Dried Stems` ≠ Q34 `Give 1000 BPE` semantics.** Q34's "Give" satisfies via `burn_items` of any-source items; Q39's "Scavenge" requires the actual scavenge tx. The buy was a free probe that ruled out a 0-tx win. The 100 stems aren't waste — they cover recipe 31 (100 stems → 1 Timber) for Q40 if needed, or just pad inventory.
+  - **Node 77 vs node 18 for Dried Stems**: node 77 cost 100 vs node 18 cost 200; node 77 weight 9/25 (36%) vs node 18 weight 9/27 (33%). Node 77 is strictly better. Ignore the on-route node 18 option.
+  - **Stale indexer offers persist for the maker `1035887153580953898717850104419936983599636105893`** (same maker who had the bulk BPE offer in session 46). Their offers tend to be revoked but still indexed. Try second/third offer immediately on `not a trade` revert; don't burn a session diagnosing.
+**Gas notes**: ~31M gas total (17M stops + 1M cascade tx + 1.3M trade + 2M scav + 2.6M travel + ~7M overhead). 0 wasted tx (the failed take_trade reverted before gas use; reverts on `not a trade` cost only the call simulation, no on-chain gas).
+**Next session** (+6h → ~2026-04-25 03:23 UTC, ts 1777087411): probe Q39 scav at node 77. Expect 1 reveal to yield enough stems if event-counter is item-quantity-based (avg 5+ stems per claim with weight 9/25 across multiple tiers). Also consider: maybe Q39 counts SCAV EVENTS not item count — would need 5 separate scav rolls. Either way, 1-2 probes per session. Once Q39 done → accept Q40 (Craft 1 Timber, recipe 34 from 100 of our 306 sticks, requires Portable Burner ✓ have 2, 50 SP ✓ have 52). Q40 should complete in 2 tx (craft + complete).

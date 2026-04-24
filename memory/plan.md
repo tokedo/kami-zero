@@ -1,61 +1,74 @@
-# Plan for session 48
+# Plan for session 49
 
-## Priority 1: Verify + complete Q37 (Harvest >720 min at Temple Cave, node 15)
+## Priority 1: Probe Q39 scav at node 77 (Thriving Mushrooms)
 
-Priority 0 (stranded kamis) was resolved in session 47 — all 20 kamis now RESTING/HARVESTING under a single clean auto_v2 at node 15. When session 48 opens:
+Auto_v2 deployed at node 77 since 2026-04-24 21:23 UTC. By session 49 (+6h) ~6h of 20-kami harvest should accumulate ~hundreds of scav points (cost 100/roll → likely 5-15 tier rolls available in one claim).
 
-1. **Perceive first.** `get_account_kamis(bpeon)` — expect most/all 20 in HARVESTING state at node 15. Any still RESTING hours after session 47's launch is suspicious: check HP + whether auto_v2 has attempted to deploy them. `get_strategy_logs` is useful here.
-2. **Check Q37 completable.** `check_quest_completable(37, account="bpeon")`. With 20 kamis harvesting for 6h, HARVEST_TIME counter should be ~7200+ kami-min — way past the 720 threshold. If not completable, diagnose *why*:
-   - Does HARVEST_TIME accumulate only while actively harvesting (not resting)? If so, a fresh-launch scenario with 15 kamis at low HP means their productive harvest only began 1-3h in.
-   - Is the objective keyed to a specific node? Verify the quest targets node 15 specifically.
-3. **Complete Q37, accept Q38.** Both small tx. Then stop + restart auto_v2 isn't necessary for Q38 — Q38 is scav-based, not harvest-based. Auto_v2 keeps running.
-4. **Q38 = 7 Scav at Temple Cave (node 15).** Node 15 cost = 100/roll (cheap). Run `scavenge_claim_and_reveal(15)` as soon as points accumulate (likely 1-3 rolls possible per session). Test counter permissiveness with first roll.
+1. **Perceive first.** `get_account_kamis(bpeon)` — expect mix of HARVESTING/RESTING under auto_v2. `get_all_strategies` — confirm strategy `b08c71c4-f09e-4982-b03b-da82c382987c` still ACTIVE.
+2. **Probe Q39.** `scavenge_claim_and_reveal(77, account="bpeon")`. Expected: multi-tier reveal yielding mix of Dried Stems (1016, weight 9/25), Bone Chunk (1020, weight 9/25), Honeydew Scale (11312, weight 7/25). Average ~5+ stems per claim.
+3. **Two completion theories — test both:**
+   - Theory A (item-count): need 5x item 1016 in inventory acquired via scavenge. After 1 reveal, `check_quest_completable(39)`; if TRUE → complete + accept Q40.
+   - Theory B (scav-event count): need 5 separate scav events that yielded stems. Would require 5 separate `scavenge_claim` calls — each costs ~100 points. With ~500-1500 points accumulated over 6h, doable in a single session: claim, wait ~1 block, reveal, repeat. Each cycle ~2M gas → 10M total.
+4. **If Q39 not completable after 1 reveal** AND we got ≥5 stems → it's Theory B. Repeat scav 4 more times.
+5. **If Q39 not completable after 1 reveal** AND we got <5 stems → it's Theory A. Repeat scav until stems ≥ 5 (the stems we BOUGHT this session don't count — buys don't satisfy Q39 per session 48 test).
 
-## Priority 2: Q39 preview (5 Dried Stems via scavenge)
+## Priority 2: Q40 — Craft 1 Timber (instant after Q39)
 
-Q39 "Where It Stems From" accepts after Q38. Node 15 droptable: [1017, 1018, 11302] — **Dried Stems is item 1017 or 1018**; check `catalogs/items.csv` to confirm. If node 15 drops it, Q38 + Q39 may grind simultaneously. If not, need to find a Dried Stems node.
+Q40 = `Craft 1 Timber`. Available recipes:
+- **Recipe 34**: 100 Wooden Stick → 1 Timber. 50 SP. Tool: Portable Burner ✓ (have 2). Min level 15 ✓.
+- Recipe 31: 100 Dried Stems → 1 Timber. Same SP/tool/level. (Backup; we have 100 stems from session 48 bulk buy.)
 
-## Priority 3: Q40 preview (Craft 1 Timber)
+**Use recipe 34** to preserve the Dried Stems for any future quest needing them (and because we have 306 sticks, 3x what we need). Sequence:
+1. Verify account stamina ≥ 50. If not, `use_account_item(21205, 1)` (Rock Candyfloss +80 SP).
+2. `craft_item(34, 1, account="bpeon")` — produces 1 Timber.
+3. `check_quest_completable(40)` → expect TRUE.
+4. `complete_quest(40)` → `accept_quest(41)` → check Q41 prereqs.
 
-Check `catalogs/recipes.csv` for Timber. Likely needs Wooden Sticks (we have 306) + other inputs. If all inputs are already in inventory, Q40 is a 2-tx finish (craft + complete).
+## Priority 3: Q41 preview
+
+Unknown objectives. Before next session, consider reading `systems/quests.md` or peek at the quest registry to map Q41-Q45. Critical-path planning: if Q41+ requires a different node, fold the migration into session 49's scav loop where possible.
 
 ## Active strategies
-- auto_v2 on **node 15 (Temple Cave)**, 20 kamis, REST regen, 5% safety. Started 2026-04-24 15:03 UTC. Strategy ID `a0f98a64-dbba-407f-bc5e-40008550c33f`.
+- auto_v2 on **node 77 (Thriving Mushrooms)** — 20 kamis, REST regen, 5% safety, started 2026-04-24 21:22:57 UTC. Strategy ID `b08c71c4-f09e-4982-b03b-da82c382987c`. INSECT affinity matches our setup.
 
-## Quest status (post session 47)
-- **Q31–Q36 ✓** (prior sessions).
-- **Q37** (Into the Depths): Harvest >720 min at Temple Cave — ACCEPTED, auto_v2 running, expected completable within ~1-3h.
-- **Q38** (Feeling in the Dark): 7 Scav at Temple Cave — pending Q37.
-- **Q39** (Where It Stems From): Scavenge 5 Dried Stems — pending Q38.
-- **Q40** (Better Than Chopping Wood?): Craft 1 Timber — pending Q39.
-- **Q3007** (side): Move accumulating passively on travel.
+## Quest status (post session 48)
+- **Q31–Q38 ✓** (Q37 + Q38 done this session).
+- **Q39** (Where It Stems From): Scavenge 5 Dried Stems — ACCEPTED, scav grinding at node 77.
+- **Q40** (Better Than Chopping Wood?): Craft 1 Timber — pending Q39. Will be 2-tx completion.
+- **Q41+**: unknown — research before/during session 49.
+- **Q3007** (side): Move accumulating passively via travel.
 - **Q6**: Liquidate — deferred.
 
-## Inventory highlights (end of session 47)
-- MUSU: 319,657
+## Inventory highlights (end of session 48)
+- MUSU: ~342,540
 - BPE: 450 (unchanged)
-- Cheeseburger: 46 (was 61 — used 15 for starving-kami rescue)
-- Wooden Stick: 306
+- **Dried Stems: 100** (NEW from order book; for backup Timber recipe; do NOT use for Q39)
+- Patinated Pipe: 9 (NEW from node 15 scav)
+- Cigarette Butt: 6 (NEW from node 15 scav)
+- Cheeseburger: 52 (+5 from scav)
+- Wooden Stick: 306 (use 100 for Q40 Timber)
 - Pine Pollen: 500
 - Ghost Gum: 1057 (food reserve)
 - Sanguineous Powder: 125
-- Booster Pack: 8 (unchanged, still unopened)
+- Booster Pack: 8
 - Holy Dust: 4
+- Stamina at session-end: 52 SP
 
-## Lessons from session 47 — do not repeat
-- **`stop_harvest_batch` uses `executeBatchedAllowFailure` — it silently skips failures.** After any batch stop that matters (migration, quest turn-in), read kami states to confirm each actually transitioned. Session 46 trusted the batch's "SUCCESS" return and left 15 kamis stranded for 18h.
-- **`harvest_stop` needs ≥3M gas for long-accumulated harvests.** Bumped to 4M in this session (commit 23b4555). MCP server must be restarted to pick it up.
-- **Starving kamis (HP=0 while HARVESTING) block `harvest_stop` with `revert: kami starving`.** Feed each (Cheeseburger 11302 = 50 HP, one is enough to clear the precondition) before attempting stop. Feed must be issued from the kami's current room.
-- **5 is the max safe batch size for `stop_harvest_batch`** — ~8M gas per call fits under the RPC's eth_estimateGas simulation cap. 15-kami batches hit OOG in simulation.
-- **On account wallet at start of session**: 80 stamina. Stamina regenerates over time; full travel loop (36→15, 4 hops) costs 20.
+## Lessons from session 48 — apply going forward
+- **HARVEST_TIME quests need explicit `stop_harvest_batch` to flush the counter even when auto_v2 has been cycling for hours.** When `check_quest_completable(harvest_time_quest)` returns "objs not met" but auto_v2 has been running long enough to obviously qualify, stop the strategy + stop the currently-HARVESTING kamis (RESTING ones already flushed at their last cycle end). ~17M gas cost is acceptable — without the flush the quest is permanently stuck.
+- **"Scavenge X" quests require actual `scavenge_claim` tx, not item ownership.** Confirmed by failed take_trade test on Q39. Save the buy-test pattern for "Give X" / "Burn X" quests where it does work (Q34 BPE).
+- **`scavenge_claim_and_reveal` on a Q-progress node should be tried with 1 roll first.** Permissive event-counter pattern (8/8 sessions) means most scav-count quests complete on the first roll. Don't pre-batch rolls.
+- **Stale order-book entries from maker `1035...`**: try the next maker immediately on `not a trade` revert; both `877...` and `1035...` show up as bulk sellers but `1035...`'s offers tend to be stale.
 
 ## Quest graph (MSQ critical path)
-Q31✓→Q32✓→Q33✓→Q34✓→Q35✓→Q36✓→**Q37**(720 min cave, accepted)→Q38(7 Scav cave)→Q39(5 Dried Stems)→Q40(Timber)→...
+Q31✓→Q32✓→Q33✓→Q34✓→Q35✓→Q36✓→Q37✓→Q38✓→**Q39**(scav 5 stems, in progress)→Q40(craft Timber, near-instant)→Q41(?)→...
 
 ## Inherited harness lessons
 - Soulbound items are burnable for quest turn-ins.
-- Account stamina cap ~53-61 SP; craft/travel capped accordingly.
+- Account stamina max ~53-61 SP; craft batches capped accordingly. Rock Candyfloss (+80) is best SP+ to use.
 - `craft_item(amount=N)` is gas-efficient batch crafting.
-- Operator wallet vs owner wallet: trade.execute = owner; listing_buy = operator; burn = operator; craft = operator.
+- Operator vs owner wallet: trade.execute = owner; listing_buy = operator; burn = operator; craft = operator; auction_buy = owner.
 - `get_scavenge_points` returns 0 (broken, known bug).
-- Player order book bulk buys often beat scav grinding for BPE-class items; check `list_open_sell_offers` first.
+- Player order book bulk buys often beat scav grinding for "Give X" / "Burn X" item-quantity quests; check `list_open_sell_offers` first. Does NOT work for "Scavenge X" quests.
+- 5-kami batch is the safe upper bound for `stop_harvest_batch` (eth_estimateGas cap on larger sims).
+- After any `stop_harvest_batch`, READ kami states — `executeBatchedAllowFailure` silently skips reverts.
