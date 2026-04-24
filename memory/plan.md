@@ -1,5 +1,25 @@
 # Plan for session 47
 
+## Priority 0 (INJECTED 2026-04-24 by founder via blocklife-ai): Fix stranded kamis, restart Temple Cave auto_v2
+
+Founder observed a live failure: auto_v2 on Temple Cave (node 15) has stalled. Symptom — half of the 20 bpeon kamis are stranded at the prior node ("Parting Path"). The session 45→46 migration stopped the strategy and moved on, but did not verify that every kami actually transitioned. Since kamis placed elsewhere can't be deployed, the operator has been silently failing to start them at node 15, and no harvest is happening right now.
+
+**Before acting, re-read `CLAUDE.md` → "Migrating strategies between nodes — verify end state, not tx submission".** That subsection was added today in direct response to this incident. This Priority 0 is the case-study instance of the principle.
+
+**Goal state**: all 20 bpeon kamis at Temple Cave (node 15), RESTING at session start, then HARVESTING under a clean auto_v2 launch with zero stranded kamis. `get_all_strategies()` shows exactly one auto_v2 strategy, at node 15, with all 20 indices.
+
+Suggested shape (adapt based on what you actually observe — don't prescribe; perceive first):
+1. **Full perception before any tx.** For every bpeon kami: current room, state (HARVESTING/RESTING/etc.), and the node they're harvesting on if any. Also `get_all_strategies()`. Map reality before touching anything.
+2. **Tear down cleanly.** Stop any lingering strategy rows (`stop_strategy` on `kami_indices[0]`, `permanent=True`). Stop every in-flight harvest (`stop_harvest_batch`, then per-kami retries until every kami is confirmed RESTING — not just until txes submitted).
+3. **Get everyone home.** Whatever the game mechanic is for relocating the stranded kamis to node 15, use it. If no tool exists or an obvious harness gap blocks you, treat it as an improvement opportunity (see "Harness improvement mandate") — but only if the gap is real.
+4. **Re-launch cleanly.** Only after every kami is RESTING at node 15's room: `start_strategy` auto_v2 with all 20 indices. Observe the first cycle — confirm every kami transitions to HARVESTING. If any stays stuck, stop and re-diagnose before anyone wastes more gas.
+
+Priority 1 (Q37 progression) continues AFTER Priority 0 is fully resolved. If the whole session goes to this fix, that's the right trade — no harvest is happening currently, so restoring the deployment is strictly higher ROI than advancing Q37.
+
+Log the diagnosis, the actions taken, and the final verified state in `decisions.md` as a concrete case study reinforcing the "verify end state" principle. Future sessions should be able to read that entry and learn from it.
+
+---
+
 ## Priority 1: Q37 — Harvest >720 min at Temple Cave (node 15)
 
 - Auto_v2 migrated to node 15 at session 46 end (2026-04-24 06:24 UTC).

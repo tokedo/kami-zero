@@ -121,6 +121,20 @@ Only bypass auto_v2 when there is a **hard time constraint** that makes waiting 
 3. **Verify after stopping**: call `get_all_strategies()` to confirm the strategy is gone AND `get_tier()` to confirm `usedSlots` decreased.
 4. **`nodeId` on start must match kami's current room.** Use `get_kami_state_slim(kami_indices[0])` to verify before calling `start_strategy`.
 
+### Migrating strategies between nodes — verify end state, not tx submission
+
+A strategy migration is incomplete until every kami reaches the expected end state. `stop_strategy` halts the controller but does NOT stop in-flight harvests — any kami mid-harvest stays placed at the old node. If you then launch auto_v2 at a new node, the operator silently loops failing to deploy kamis that aren't available, and harvesting quietly stalls. The controller will not self-heal.
+
+Principle: a transaction receipt is not proof of end state. Read the state.
+
+**When tearing down a strategy for migration:**
+- After `stop_strategy`, issue `stop_harvest_batch` for every kami that was harvesting under it.
+- Read each kami's state. Any still HARVESTING? That tx failed or wasn't included — retry `stop_harvest` per-kami until all are RESTING. Do not leave this step until every kami is confirmed RESTING.
+
+**Before `start_strategy` at a new node:**
+- Perceive every kami you plan to include. Confirm each is RESTING and at the new node's room.
+- Any kami still placed at a prior node or still harvesting is a migration leak — resolve it (additional `stop_harvest`, travel, etc.) before calling `start_strategy`. Starting a strategy on a partially-prepared roster wastes gas on operator retries and leaves the deployment broken.
+
 ## Gas efficiency — CRITICAL
 
 Every transaction costs ETH. This is a fundamental constraint of the game and a core skill you must learn.
