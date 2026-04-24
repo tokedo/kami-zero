@@ -1163,3 +1163,37 @@ Append one entry per session. Newest at the bottom.
 **Next session**: +18h → Q37 will be long-completable (720 kami-min trivially met in ~1-2h @ 20 kamis). Also begin Q38 scav grind on node 15 (7 rolls at cost 100/roll = 700 pts; node 15 has cheaper scav than node 36 so rolls accumulate faster). Expected completion of Q37 + 1-2 Q38 scav probes. (scheduled: +18h → 2026-04-25 00:30 UTC, ts 1777076681)
 
 
+
+## 2026-04-24 15:05 UTC — session 47 (Priority 0: stranded kamis fix)
+
+**ETH balance**: not sampled (cast unavailable in this env)
+**Perceived**: 15 of 20 kamis HARVESTING at node 36 (Parting Path); 5 RESTING. Zero active strategies (session 46's migration stopped the controller but NOT in-flight harvests). All 15 HARVESTING kamis in "starving" sub-state — HP=0 from 18h of rest-less harvest. Founder-reported incident confirmed in detail.
+**Decided**:
+  - Feed each starving kami once with Cheeseburger (11302, 50 HP) to clear the `kami starving` revert precondition. 14 feeds needed (kami 43 fed before summary checkpoint).
+  - Bump `harvest_stop` gas limit 2M→4M — the actual 2M ceiling was hit exactly at `gas_used=1_999_573` on kami 43's post-feed retry. Same failure mode as harvest_start's 1.5M→3M fix in 2026-04-15.
+  - Batch-stop via existing `stop_harvest_batch` in groups of 5 (eth_estimateGas on 15 = OOG simulation cap; 5 fits comfortably).
+**Acted**:
+  - feed_kami × 14 (item 11302): all SUCCESS, ~1.89M gas each = ~26.5M gas.
+  - stop_harvest_batch([43,1064,2553,8745,10011]): SUCCESS, 8.24M gas.
+  - stop_harvest_batch([10647,11716,12459,13235,13390]): SUCCESS, 8.20M gas.
+  - stop_harvest_batch([13702,13857,13947,14286,14306]): SUCCESS, 8.02M gas.
+  - get_account_kamis: **all 20 RESTING confirmed** ✓
+  - travel_to_room(15): 36→25→37→11→15, 4 hops, 20 stamina. 3.66M gas.
+  - start_strategy(auto_v2, kami_id=43, node_id=15, 20 kamis, REST regen, 5% safety): RUNNING. Strategy ID a0f98a64…. 20/21 slots used.
+  - Verified first cycle: kami 6096 HARVESTING at node 15 (Temple Cave) within minutes of launch. Kami 43 RESTING regenerating (was just fed, HP 49/230 = 21%) — expected, auto_v2 will deploy once HP clears threshold.
+  - harness: bumped `harvest_stop` (and `harvest_collect` for symmetry) gas 2M→4M. Committed as 23b4555.
+**Result**: **Priority 0 RESOLVED.** All 20 kamis RESTING/HARVESTING under a single clean auto_v2 at node 15. No stranded kamis. Q37 (Harvest >720 min at Temple Cave) now genuinely progressing.
+
+**Case study for the "verify end state, not tx submission" rule** (the principle was injected into CLAUDE.md because of exactly this incident):
+  - Session 46 called stop_harvest_batch twice, reported "SUCCESS Gas: 5.39M + 9.60M" — both calls succeeded at the **tx level** but silently skipped all 15 starving kamis at the **business-logic level**. Root cause: `stop_harvest_batch` uses `executeBatchedAllowFailure`, which catches individual sub-call reverts and reports overall success. Session 46 never re-read kami states, so the failure was invisible for 18 hours.
+  - The diagnostic that finally exposed it: calling the single-kami `harvest_stop` (which uses `executeBatched` — revert-all semantics). That tx reverted with a clear `revert: kami starving..` in the tx trace.
+  - Fix at two levels: (a) today's session manually fed each starving kami so stops would succeed; (b) `harvest_stop`'s 2M→4M gas bump — the OOG on fed-kami retry was its own latent bug independent of starving state.
+  - **Lesson**: `executeBatchedAllowFailure` is useful but dangerous. After every batch whose outcome matters, READ the end state. Do not trust batch status alone. For critical migrations, prefer the single-kami `harvest_stop` (revert-all) or iterate with per-kami reads between each tx.
+  - **Future harness improvement candidate**: make `stop_harvest_batch` parse the MUD `Log` events from the receipt and return a per-kami success/failure map. That turns the silent-skip into a loud diagnostic without losing the "don't revert the whole batch" UX.
+
+**Gas notes**: ~62M gas total this session (14 feeds + 3 batch stops + travel + strategy launch API-only).
+  - Feeds were unavoidable precondition for stops. Cheeseburger is 50 HP — one feed per kami was enough to unblock.
+  - Batch size of 5 is the sweet spot (8M gas/batch fits safely under the ~25M gas simulation cap; 15 was too large to simulate).
+  - 0 wasted tx (the initial 15-kami batch simulation failed pre-submit, so no gas spent).
+
+**Next session** (+6h → ~2026-04-24 21:05 UTC, ts 1777064706): Verify auto_v2 has deployed all 20 kamis and some harvest time has accumulated. Check Q37 completable (720 kami-min trivially met in 1-2 hours @ 20 kamis). Complete Q37, accept Q38 (7 Scav at Temple Cave), start scav probe.
