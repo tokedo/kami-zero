@@ -92,3 +92,10 @@ Format:
 - **Files**: `executor/server.py`
 - **How to use**: `auction_buy(item_index=10, amount=1, account="bpeon")` — buys 1 Gacha Ticket at current GDA price (check via `get_prices()` first; target 32k MUSU, decays ~25%/day when unbought). Item 11 = Reroll Token (paid in Onyx Shards). Uses OWNER wallet, not operator. Note: MCP server must be restarted to pick up the new tool.
 - **Commit**: 418f815
+
+## 2026-04-24 — harvest_stop gas limit bumped 2M → 4M
+- **What**: Raised `gas_limit` on both single and batch variants of `harvest_stop` (and `harvest_collect` for consistency) from 2_000_000 to 4_000_000.
+- **Why**: Session 47 diagnostic: 18-hour-accumulated harvests reverted OOG at exactly 1_999_573 gas (the 2M ceiling). The `system.harvest.stop` path is much more gas-intensive when the harvest has been active a long time and/or the kami has been in "starving" sub-state. 2M was insufficient — the tx reverted on success-path logic, not on a business-logic failure. This is the same failure pattern that 2026-04-15's harvest_start bump fixed (1.5M→3M). The single-call `harvest_stop` uses `executeBatched` (revert-all) so it propagates the OOG clearly; the separate `stop_harvest_batch` tool uses `executeBatchedAllowFailure` which silently skips failures — a starving/OOG kami in that batch is invisible. Session 46's "successful" migration hid behind that silent-skip.
+- **Files**: `executor/server.py` (lines 1455, 1459, plus matching harvest_collect lines 1480, 1484)
+- **How to use**: No API change. `harvest_stop([id])` and `harvest_stop([ids...])` now complete reliably for long-accumulated harvests. Note: MCP server must be restarted to pick up the change.
+- **Commit**: (see next session commit)

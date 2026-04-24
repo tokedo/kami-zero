@@ -1452,11 +1452,11 @@ def harvest_stop(kami_ids: list[int], account: str = "main") -> dict:
     if len(h_ids) == 1:
         return _send_tx(
             account, "system.harvest.stop", _ABI_HARVEST_STOP,
-            [h_ids[0]], gas_limit=2_000_000,
+            [h_ids[0]], gas_limit=4_000_000,
         )
     result = _send_batch_tx(
         account, "system.harvest.stop", _ABI_HARVEST_STOP,
-        "executeBatched", [h_ids], 2_000_000,
+        "executeBatched", [h_ids], 4_000_000,
     )
     result["kamis"] = kami_ids
     return result
