@@ -1236,3 +1236,20 @@ Append one entry per session. Newest at the bottom.
   - **Stale indexer offers persist for the maker `1035887153580953898717850104419936983599636105893`** (same maker who had the bulk BPE offer in session 46). Their offers tend to be revoked but still indexed. Try second/third offer immediately on `not a trade` revert; don't burn a session diagnosing.
 **Gas notes**: ~31M gas total (17M stops + 1M cascade tx + 1.3M trade + 2M scav + 2.6M travel + ~7M overhead). 0 wasted tx (the failed take_trade reverted before gas use; reverts on `not a trade` cost only the call simulation, no on-chain gas).
 **Next session** (+6h → ~2026-04-25 03:23 UTC, ts 1777087411): probe Q39 scav at node 77. Expect 1 reveal to yield enough stems if event-counter is item-quantity-based (avg 5+ stems per claim with weight 9/25 across multiple tiers). Also consider: maybe Q39 counts SCAV EVENTS not item count — would need 5 separate scav rolls. Either way, 1-2 probes per session. Once Q39 done → accept Q40 (Craft 1 Timber, recipe 34 from 100 of our 306 sticks, requires Portable Burner ✓ have 2, 50 SP ✓ have 52). Q40 should complete in 2 tx (craft + complete).
+
+
+## 2026-04-25 03:30 UTC — session 49 (probe-only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-24 21:23 UTC (~6h7m wall-clock). Strategy ID `be906a24-a5b9-4c17-8b2c-72afe8d32ad7`. 20/21 slots, all 20 kamis registered. MUSU: 342,490 (~no change since session 48 — auto_v2 collected during cycles but most was already on hand). Q39 not completable. Inventory unchanged from session 48 (still 100 Dried Stems from buy, 306 Wooden Stick, 9 Booster Pack, etc.).
+**Decided**:
+  - Probe Q39 with 1 scav at node 77 (cheap info, intensity preserved).
+  - REVERTED at claim — insufficient scav points after 6h. Confirms scav rate is closer to ~15-20 pts/hr (matches session 33 baseline at node 60). Cost 100 → ~5-7h to reach threshold; we likely needed +1-2h more on top of the cycling lag (kami 43 harvest-start was at 22:46 UTC, only ~4h45m of effective cycle time).
+  - Don't stop strategy. Reschedule short (+4h → ~07:32 UTC, total ~10h) for Q39 retry probe.
+  - No other quick wins available without disrupting the deployment (Q41 prereqs unknown, Q3007 grinds passively, no quests turnable in <2 tx today).
+**Acted**:
+  - scavenge_claim_and_reveal(77): REVERTED at claim. Gas 335k wasted.
+**Result**: Probe-only session. No quest progress. Auto_v2 continues uninterrupted on node 77 — intensity preserved on all 20 kamis. Net: 1 wasted tx (335k gas) for confirming threshold not yet met.
+**Gas notes**: 335k wasted. Acceptable cost vs the alternative of waiting another 4h blindly and over-shooting (or worse, a 30M+ stop/restart cycle to "verify" by reading post-stop state).
+**Next session** (+4h → ~2026-04-25 07:32 UTC, ts 1777102321): retry Q39 scav probe with ~10h total elapsed. If still reverts at 10h, the rate is even slower than the node 60 baseline and we extend by +6h. If succeeds and yields ≥5 stems → check_quest_completable(39); expect TRUE (Theory A). If succeeds but <5 stems → continue scav rolls per Theory B (harder; would need ~5 successful claims = 500 pts cumulative ≈ another 24-30h on node).
+
