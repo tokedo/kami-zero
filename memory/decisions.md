@@ -1308,3 +1308,39 @@ Append one entry per session. Newest at the bottom.
   3. Probe Q41 by elimination: try check_quest_completable() on it after each likely-cheap action.
   Default plan if Q41 still unknown: extend to +12h, let auto_v2 keep grinding stems/scav at node 77, and use a future session to build the harness fix.
 
+
+
+## 2026-04-25 22:20 UTC — session 52
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-24 21:22:57 UTC (~25h elapsed). Strategy `be906a24…`, 20/21 slots. MUSU 372,679 (vs 363,182 last session: +9,497 from auto_v2 collections during 6h). Q41 not completable on entry (snapshot-based — session 51's bone chunks pre-date Q41 acceptance).
+**Decided**:
+  - **Q41 identification — zero-gas approach**: rather than build the registry-read harness fix, grep `integration/game-data.md` for the MSQ table. Q41 = "Throw Me a Bone!" — Scavenge 5 Bone Chunks. Confirms downstream chain: Q42 Craft 1 Ashlar, Q43 Scavenge 1 Essence of Hearing, Q44 Harvest 720 min at Techno Temple, Q45 Move to Lost Skeleton, Q46 Scavenge 5 Honeydew Scale, etc.
+  - Probe scav at node 77 to satisfy Q41 (need fresh post-acceptance scav).
+  - Q42 craftable immediately if scav yields ≥14 more bones (have 86 → need 100). Recipe 33: 100 Bone Chunk + 50 SP + Spice Grinder ✓. Recipe 36 (100 Stone) is backup.
+  - Q43 (Essence of Hearing) only drops at node 16 (Techno Temple, droptable "Pipe Burger Cone Hearing"). Q44 also at node 16 (HARVEST_TIME). Migrate now to amortize.
+**Acted**:
+  - scavenge_claim_and_reveal(77): SUCCESS (claim 779k gas, reveal granted by claim). +48 Bone Chunk (86→134), +36 Dried Stems (199→235), +11 Honeydew Scale (21→32).
+  - check_quest_completable(41): TRUE.
+  - complete_quest(41): SUCCESS, 984k gas. +2× Agency Rep, +1 Booster Pack.
+  - accept_quest(42): SUCCESS, 837k gas.
+  - craft_item(33, 1): SUCCESS, 1.26M gas. -100 Bone Chunk, +1 Ashlar, -50 SP.
+  - check_quest_completable(42): TRUE.
+  - complete_quest(42): SUCCESS, 854k gas. +4× Elders Loyalty.
+  - accept_quest(43): SUCCESS, 837k gas.
+  - stop_strategy(43, permanent=True): DELETED.
+  - get_account_kamis: 4 still HARVESTING (10011, 1064, 3874, 3983).
+  - stop_harvest_batch([10011, 1064, 3874, 3983]): SUCCESS, 6.99M gas.
+  - get_account_kamis: ALL 20 RESTING confirmed ✓.
+  - travel_to_room(16): 4 hops (77→76→18→15→16), 20 stamina, 0 items. 3.63M gas. Stamina 30 remaining.
+  - start_strategy(auto_v2, kami_id=43, node_id=16, 20 kamis, REST regen, 5% safety): RUNNING. Strategy ID `7ce0b4fd-514d-40b9-b6c6-f36d047d357f`. 20/21 slots.
+**Result**: **Q41 + Q42 done in single chain.** Auto_v2 migrated from node 77 to node 16 (Techno Temple) for Q43+Q44. Q43 accepted. Inventory: Bone Chunk 34 (134-100), Dried Stems 235, Honeydew Scale 32, Resin 25, Timber 1, Ashlar 0 (consumed by Q42 turn-in? need to verify next session).
+**Key learnings**:
+  - **Quest introspection by docs grep beats on-chain read.** `integration/game-data.md` lines 393-471 contain the full MSQ table (Q1-Q53 explicit, Q54-Q104 noted) and Mina table (Q2001-2016). Future sessions: when Q4X has unknown objectives, **ALWAYS grep this file FIRST** before trying registry-read harness fixes. Saved an entire session of harness work.
+  - **Snapshot-based progress confirmed for Q41**: Session 51's 86 Bone Chunks (scavenged BEFORE Q41 was accepted) did NOT count toward Q41's "Scavenge 5 Bone Chunks" objective. The snapshot is taken at acceptance — pre-existing items don't satisfy Scavenge counters. Same pattern likely for Q43, Q46, Q48, Q49 (all "Scavenge X" quests). **Always accept BEFORE the scav action if possible** — but with auto_v2 already grinding, it's also fine to scav post-acceptance (cheap incremental probe).
+  - **Cross-droptable amortization**: One 25h auto_v2 deployment on node 77 satisfied Q39 (stems), and (post-acceptance fresh scav) Q41 (bones). The same droptable will help Q46 (Honeydew Scale) IF Q46 is accepted while we're still scavenging at node 77. Future planning consideration: stack scav-objective quests on the same node when possible.
+  - **Quest chain Q42→Q43→Q44 maps to single migration**: Q42 (craft, location-agnostic), Q43 (scav at node 16), Q44 (HARVEST_TIME at node 16). Migrating once for both is right call. Cost: ~10.6M gas (stop+stop_harvest_batch+travel) for 2 quests of value.
+  - **Node 16 scav cost is 500/roll vs node 77's 100/roll**. 5x harder threshold. With ~10 pts/hr at 20 kamis, single roll requires ~50h elapsed. Q43 ("Scavenge 1 Essence of Hearing") may need multiple probes. But Q44 (720 kami-min) completes in ~36 min real-time, so Q44 will be ready long before Q43.
+  - **The ordering Q43 (Scav)→Q44 (Harvest) is awkward**: must complete Q43 before accepting Q44, but Q43 takes 1-2 days while Q44 is ~36 min real-time. The harvest progresses on node 16 in the meantime — but Q44's HARVEST_TIME counter only starts after acceptance (snapshot-based). So the harvest time accumulating now doesn't pre-credit Q44. Expect: probe Q43 every 1-2 days; once it succeeds, Q44 becomes a quick 36-min completion.
+**Gas notes**: ~16.2M gas total. 0 wasted tx. All tx productive (2 quest completions + 1 successful craft + 1 successful migration). Excellent ROI.
+**Next session** (+12h → 2026-04-26 10:20 UTC, ts 1777198831): probe Q43 scav at node 16. If reverts (likely — only 12h at node 16, would need 50h+), reschedule +24h. Also worth a free check_quest_completable(44) to test if Q44 has any pre-credit mechanism. **Don't disrupt auto_v2** — this deployment needs to run for 50h+ to clear node 16's higher scav threshold.
