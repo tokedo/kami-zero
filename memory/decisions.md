@@ -1273,3 +1273,38 @@ Append one entry per session. Newest at the bottom.
   - **`get_active_quests` confirmed all known side quests Q3009-Q3014 are already done.** Future sessions should not re-check these. Remaining incomplete quests for bpeon: Q39 (current focus), Q3007 (Move 500, passive), Q6 (Liquidate, deferred), and the unknown Q40/Q41+ chain.
 **Gas notes**: 335k wasted on the probe. Acceptable diagnostic cost — far cheaper than waiting a full extra cycle blindly.
 **Next session** (+8h → 2026-04-25 15:48 UTC, ts 1777132096): retry Q39 scav probe at ~18h25m elapsed (~150-180 pts expected at <10 pts/hr). Should comfortably clear 100-pt threshold for at least 1 successful roll. If 1 roll yields stems → check Q39 → likely complete → chain into Q40 (Craft Timber, recipe 34 from sticks). If reverts again, rate is even slower than current estimate; extend by +10-12h.
+
+
+## 2026-04-25 16:05 UTC — session 51
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-24 21:22:57 UTC (~18h37m elapsed). Strategy `be906a24…`, 20/21 slots, 7 HARVESTING / 13 RESTING (mid-cycle). MUSU 363,182 (vs 342,490 last session — +20,692 from auto_v2 collections during 18h). Q39 probe at this elapsed time succeeded.
+**Decided**: Execute the Q39→Q40→Q41 chain per plan. Q41 objectives unknown; defer probing.
+**Acted**:
+  - scavenge_claim_and_reveal(77): SUCCESS (claim 779k gas; reveal reverted = items granted by claim itself, ~no extra gas).
+  - **Big haul**: +99 Dried Stems (100→199), +86 Bone Chunk (0→86), +21 Honeydew Scale (0→21), +25 Resin (0→25). Per-tier rolls × multi-tier accumulation = ~231 items in one claim.
+  - check_quest_completable(39): TRUE (item-quantity counter — 99>>5 stems easily satisfied via single multi-tier claim).
+  - complete_quest(39): SUCCESS, 854k gas. Rewards (assumed: Agency Rep + items).
+  - accept_quest(40): SUCCESS, 840k gas.
+  - craft_item(34, 1): SUCCESS, 1.26M gas (recipe 34: 100 Wooden Stick → 1 Timber, 50 SP, requires Portable Burner ✓).
+  - check_quest_completable(40): TRUE.
+  - complete_quest(40): SUCCESS, 925k gas.
+  - accept_quest(41): SUCCESS, 840k gas.
+  - check_quest_completable(41): FALSE (`quest objs not met`). check_quest_completable(42): reverts (not accepted).
+  - get_active_quests: confirms Q41 entity `0x78e2937…` is in active list.
+  - **Q41 introspection attempts**: tried to read `component.name`/`component.description`/`component.index.quest` for Q41 registry entity (`registry.quest`+keccak). `has()` returned True for all three but `getValue()` reverted under multiple ABI return types (string, bytes). Either the resolver is picking the wrong contract address (multiple components share id collision) or the schema needs special MUD decoding. Deferred — not worth burning more session time on offline introspection.
+**Result**: **Q39 + Q40 done in single chain (2 quests / 4 successful tx + 1 craft).** Auto_v2 untouched, intensity preserved. Q41 accepted, objectives unknown, no completion path identified yet.
+**Key learnings**:
+  - **Node 77 multi-tier scav is HUGELY productive once threshold clears**: 1 claim at ~18h elapsed yielded ~231 items across 4 droptable types (stems 36% / bone 36% / honeydew 28% by weight, weights matched expected). Per-tier rolls compound, NOT per-claim. Every additional tier = another full droptable roll with proportional quantities. The 1-claim probe pattern works for any X-item quest in this droptable family — even higher-thresholds (e.g. "Scavenge 50 Stems") would likely satisfy in 1-2 claims at this density.
+  - **Q39 is item-quantity counter (Theory A)**, NOT scav-event count. 1 claim → 99 stems → completable. Confirms quest-counter pattern: `DROPTABLE_ITEM_TOTAL` accumulates item count, not claim count.
+  - **Q40 craft cost confirmed**: recipe 34 (Wooden Stick → Timber) uses 100 sticks + 50 SP + Portable Burner ✓. Account stamina at session start was unmeasured but accepted the craft tx without needing top-up; suggests SP regen during the 18h between sessions (account stamina max ≈ 53-61, regen passive). No SP+ item spent.
+  - **Q41 intro was a fail-safe gas-burner avoidance**: 0 speculative actions taken. If we had blindly tried "burn Timber" or "burn 100 BPE" or "move to room X" we'd have wasted 0.5-2M gas per probe. Better to defer than guess.
+  - **`get_quest_status` for a fresh-accepted quest returns `state: null, active: false, note: "Not accepted"`** even immediately after a successful accept tx. The state component must require a few blocks to index OR uses a different state-tracking mechanism. `get_active_quests` is the authoritative source — Q41 IS in the active list.
+  - **Component resolver `_resolve_component` may not be reliable for `component.name`/`component.description`** — getValue reverts under multiple ABI types despite has() returning True. Future harness improvement: scan `getEntitiesWithValue` results to find ALL contracts sharing a component-id collision, or hardcode known component addresses for name/description reads.
+**Gas notes**: ~5.4M gas total (779k scav claim + 854k complete39 + 840k accept40 + 1.26M craft + 925k complete40 + 840k accept41). 0 wasted tx. Excellent ROI — 2 main-quest completions.
+**Next session** (+6h → 2026-04-25 22:05 UTC, ts 1777154743): probe Q41. Approaches:
+  1. Try free completable-checks after natural progression (auto_v2 may complete a HARVEST_TIME or scav objective passively).
+  2. Build a harness improvement to read quest objective list (DROPTABLE_ITEM_TOTAL etc) from on-chain registry. Workable path: enumerate `getEntitiesWithValue` for component-id keccak collisions; identify the canonical Name/Description contract by querying a known kami's name (kami 43 = "Zephyr") and verifying decode.
+  3. Probe Q41 by elimination: try check_quest_completable() on it after each likely-cheap action.
+  Default plan if Q41 still unknown: extend to +12h, let auto_v2 keep grinding stems/scav at node 77, and use a future session to build the harness fix.
+

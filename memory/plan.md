@@ -1,72 +1,76 @@
-# Plan for session 51
+# Plan for session 52
 
-## Priority 1: Retry Q39 scav probe at node 77 (~18h25m elapsed)
+## Priority 1: Crack Q41 — objectives are unknown
 
-Auto_v2 still ACTIVE on node 77 since 2026-04-24 21:22:57 UTC. Session 50's probe at ~10h25m reverted (still <100 pts). Confirms node 77 rate <10 pts/hr at 20 kamis. By session 51 (+8h after 50), strategy-elapsed will be ~18h25m → ~150-180 pts expected → should clear threshold for 1 roll.
+Q41 is accepted (entity `0x78e2937…`, in active list) but `check_quest_completable(41)` returns `quest objs not met`. We don't know what it requires. Three approaches in order of effort:
 
-1. **Perceive first.** `get_account_kamis(bpeon)` — expect HARVESTING/RESTING mix under auto_v2. `get_all_strategies` — confirm `be906a24-a5b9-4c17-8b2c-72afe8d32ad7` ACTIVE.
-2. **Probe Q39.** `scavenge_claim_and_reveal(77, account="bpeon")`.
-   - **If REVERTED**: rate is even slower than current estimate (<10 pts/hr). Schedule +10-12h, intensity preserved.
-   - **If SUCCESS**: count items received. Droptable: Dried Stems (1016, w9/25 = 36%), Bone Chunk (1020, w9/25), Honeydew Scale (11312, w7/25). At 1 tier, expect 1 item-type stack of ~5-10 items. 36% chance it's stems.
-3. **Two completion theories — test both:**
-   - Theory A (item-count, prevailing pattern): need 5x item 1016 acquired via scavenge. After 1 reveal yielding stems, `check_quest_completable(39)`; if TRUE → complete.
-   - Theory B (scav-event count): need 5 separate scav events with stem yield. Slower path; only fall back if 1 reveal yields ≥5 stems but quest still not completable.
-4. **If completable** → `complete_quest(39)` → `accept_quest(40)` → continue Priority 2.
+1. **Free probe first.** `check_quest_completable(41)` on entry — auto_v2 has been grinding node 77 for ~24h+ by then; if Q41 is a HARVEST_TIME or scav-event objective at node 77, it may be passively complete. Cost: 0.
 
-## Priority 2: Q40 — Craft 1 Timber (instant after Q39)
+2. **Build registry-read harness fix.** Add a tool `get_quest_objectives(quest_index)` that reads the Name/Description/Objectives from the registry entity (`registry.quest`+keccak). Current blocker: `_resolve_component('component.name')` returns a contract whose `getValue` reverts despite `has()=true`. Fix: enumerate ALL entities returned by `getEntitiesWithValue(keccak('component.name'))` and probe each candidate with a known kami entity (e.g. kami 43 entity 5231 = "Zephyr") until one decodes. Cache the working address. Same approach for `component.description`.
 
-Q40 = `Craft 1 Timber`. Recipes:
-- **Recipe 34**: 100 Wooden Stick → 1 Timber. 50 SP. Tool: Portable Burner ✓ (have 2). Min level 15 ✓.
-- Recipe 31: 100 Dried Stems → 1 Timber. (Backup; 100 stems on hand from session 48 bulk buy.)
+3. **Probe by elimination (LAST resort, gas cost).** Only if 1 and 2 fail. Try each plausible action class and re-check completable:
+   - Move to a probable next-step room (e.g., room 18, 76, or back to 15) — `travel_to_room(X, dry_run=True)` first to budget stamina.
+   - Burn an item (Timber, Bone Chunk, Honeydew Scale).
+   - Do NOT speculate without rationale — limit to 1-2 cheap probes.
 
-**Use recipe 34** to preserve Dried Stems for any future stem-quest. Sequence:
-1. Verify account stamina ≥ 50. If not, `use_account_item(21205, 1)` (Rock Candyfloss +80 SP).
-2. `craft_item(34, 1, account="bpeon")` — produces 1 Timber.
-3. `check_quest_completable(40)` → expect TRUE.
-4. `complete_quest(40)` → `accept_quest(41)` → check Q41 prereqs.
+## Priority 2: Use the scav haul productively while we wait
 
-## Priority 3: Q41 preview
-
-Unknown objectives. Try `accept_quest(41)` (real call after Q40 done). Check `check_quest_completable(41)` for revert msg naming next prereq, that maps the next dependency. Otherwise read on-chain quest registry.
+If Q41 needs more time, don't sit idle:
+- 199 Dried Stems on hand → Recipe 31 (100 stems → 1 Timber, 50 SP) is a cheaper Timber backup if Q4X needs more. Don't pre-craft though — wait for actual quest signal.
+- 86 Bone Chunk, 21 Honeydew Scale, 25 Resin — unknown crafting outputs. Check `catalogs/recipes.csv` if Q41 hints at any.
+- 9 Booster Pack — unopened. Could open if we need a specific material; otherwise hoard.
 
 ## Active strategies
-- auto_v2 on **node 77 (Thriving Mushrooms)** — 20 kamis, REST regen, 5% safety. Strategy ID `be906a24-a5b9-4c17-8b2c-72afe8d32ad7`. Started 2026-04-24 21:22:57 UTC. INSECT affinity matches setup. **Do NOT stop unless completing Q39.**
+- auto_v2 on **node 77 (Thriving Mushrooms)** — 20 kamis, REST regen, 5% safety. Strategy ID `be906a24-a5b9-4c17-8b2c-72afe8d32ad7`. Started 2026-04-24 21:22:57 UTC. **Do NOT stop unless Q41 demands a different node.** If Q41 turns out to be HARVEST_TIME at 77, the active strategy is already paying it off.
 
-## Quest status (post session 50)
-- **Q31–Q38 ✓**.
-- **Q39** (Where It Stems From): Scavenge 5 Dried Stems — ACCEPTED, scav grinding at node 77. Probe at 6h7m (s49) and 10h25m (s50) both reverted. Rate <10 pts/hr.
-- **Q40** (Better Than Chopping Wood?): Craft 1 Timber — pending Q39. 2-tx completion.
-- **Q41+**: unknown.
+## Quest status (post session 51)
+- **Q31–Q40 ✓**.
+- **Q41**: ACCEPTED, objectives unknown. Need introspection or smart probes.
+- **Q42+**: gated behind Q41.
 - **Q3007**: Move 500 — accumulating passively.
-- **Q3009-Q3014**: ✓ already completed (verified s50 via free staticCalls).
 - **Q6**: Liquidate — deferred.
+- Mina line **Q2014–Q2016**: in active list but not investigated. Worth a check next session via `check_quest_completable` for each.
 
-## Inventory highlights (end of session 50 — unchanged from 48/49)
-- MUSU: ~342,490
+## Inventory highlights (end of session 51)
+- MUSU: 363,182 (+20,692 vs s50, from auto_v2 cycles)
+- VIPP: 32,628
 - BPE: 450
-- Dried Stems: 100 (backup Timber recipe; do NOT use for Q39)
+- Dried Stems: **199** (was 100; +99 from scav)
+- Bone Chunk: **86** (new)
+- Honeydew Scale: **21** (new)
+- Resin: **25** (new)
 - Patinated Pipe: 9
 - Cigarette Butt: 6
 - Cheeseburger: 52
-- Wooden Stick: 306 (use 100 for Q40 Timber)
+- Wooden Stick: 206 (was 306; -100 used for Timber craft)
 - Pine Pollen: 500
-- Ghost Gum: 1057 (food reserve)
+- Pine Cone: 46
+- Ghost Gum: 1057
 - Sanguineous Powder: 125
+- Sanguine Shroom: 2
+- Daffodil: 8
+- Essence of Daffodil: 300
+- Black Poppy Extract: 450
 - Booster Pack: 9
 - Holy Dust: 4
 - Rock Candyfloss: 63 (SP+ for crafting)
+- Ice Cream: 78 / Better Ice Cream: 10 (SP+ travel use)
+- Timber: 1 (NEW from Q40 craft — keep in case Q4X needs)
 
 ## Lessons applicable
 - **Don't stop auto_v2 to check scav points.** Scav cost reverts cheaply (~335k gas) — that's the test.
-- **Node 77 scav rate <10 pts/hr at 20 kamis** (slower than node 60 baseline ~17 pts/hr). Cost-100 nodes ≈ 12-15h to threshold; 2-tier multi-roll ≈ 24-30h.
+- **Node 77 multi-tier scav is high-yield once threshold clears**: 18h elapsed → 1 claim → ~231 items across 4 droptable types. Per-tier rolls compound, droptable rolls per tier.
+- **`DROPTABLE_ITEM_TOTAL` is item-count, not event-count.** 1 multi-tier claim with 99 stems satisfied "Scavenge 5 Stems".
 - **HARVEST_TIME quests need explicit `stop_harvest_batch` to flush.** Active auto_v2 cycles don't auto-flush. Cost: ~17M gas, accept it.
-- **"Scavenge X" quests need actual scavenge tx, not item ownership.** Bought stems from order book DO NOT count.
-- **`scavenge_claim_and_reveal` with 1 roll usually completes "X Scav" counters** (8/8 sessions on permissive event-counter pattern). Don't pre-batch rolls.
+- **"Scavenge X" quests need actual scavenge tx, not item ownership.** Bought stems do NOT count.
+- **`scavenge_claim_and_reveal` with 1 roll usually completes "X Scav" counters** (8/8 sessions on permissive event-counter pattern).
 - **Stale order-book entries from maker `1035…`**: try the next maker immediately on `not a trade` revert.
 - **`get_active_quests` returns history not just active.** Use it to enumerate, then filter via per-index `check_quest_completable` (free).
+- **`get_quest_status` returns `state: null` even for fresh-accepted quests.** `get_active_quests` is authoritative.
+- **Component resolver may collide on common names like `component.name`** — getValue reverts despite has()=true. Future fix: enumerate all candidate addresses and probe with a known entity to find canonical.
 
 ## Quest graph (MSQ critical path)
-Q31✓→Q32✓→Q33✓→Q34✓→Q35✓→Q36✓→Q37✓→Q38✓→**Q39**(scav 5 stems, probe pending)→Q40(craft Timber, near-instant)→Q41(?)→...
+Q31✓→Q32✓→Q33✓→Q34✓→Q35✓→Q36✓→Q37✓→Q38✓→Q39✓→Q40✓→**Q41**(unknown)→Q42(?)→...
 
 ## Inherited harness lessons
 - Soulbound items are burnable for quest turn-ins.
