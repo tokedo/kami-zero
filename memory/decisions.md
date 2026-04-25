@@ -1253,3 +1253,23 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: 335k wasted. Acceptable cost vs the alternative of waiting another 4h blindly and over-shooting (or worse, a 30M+ stop/restart cycle to "verify" by reading post-stop state).
 **Next session** (+4h → ~2026-04-25 07:32 UTC, ts 1777102321): retry Q39 scav probe with ~10h total elapsed. If still reverts at 10h, the rate is even slower than the node 60 baseline and we extend by +6h. If succeeds and yields ≥5 stems → check_quest_completable(39); expect TRUE (Theory A). If succeeds but <5 stems → continue scav rolls per Theory B (harder; would need ~5 successful claims = 500 pts cumulative ≈ another 24-30h on node).
 
+
+
+## 2026-04-25 07:48 UTC — session 50 (probe-only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-24 21:22:57 UTC (~10h25m wall-clock strategy elapsed). Strategy `be906a24…`. 20/20 kamis registered, all 20 currently HARVESTING (mid-cycle, none RESTING). MUSU 342,490 (unchanged). Inventory unchanged from session 49. Past-me's session 49 next-run-at was set relative to session 48 (off by one base) so this session ran at 4h18m after session 49 instead of intended 4h. Net strategy-elapsed at probe = ~10h25m.
+**Decided**:
+  - Probe Q39 once (cheap diagnostic). If reverts → schedule longer.
+  - Check unknown side quest indices 3009-3014 with free staticCalls — surface any quick wins not in plan.md.
+  - Don't disrupt auto_v2; intensity is at premium.
+**Acted**:
+  - scavenge_claim_and_reveal(77): REVERTED at claim. Gas 335k.
+  - check_quest_completable(3007/3009/3010/3011/3012/3013/3014/39): all already-completed (3009-3014) or objs-not-met (3007 Move 500, 39 stems). Zero unknown side-quest wins. Free staticCalls cost 0 gas.
+**Result**: Probe-only session. No quest progress. No quick wins anywhere. Auto_v2 untouched, intensity preserved.
+**Key learnings**:
+  - **Node 77 scav rate is slower than node 60 baseline**: 10h25m elapsed, still <100 pts → rate <10 pts/hr at 20 kamis (vs ~17 pts/hr at node 60). Per-tier threshold 100 means we need ~12-15h for 1 roll, ~24-30h for 2-tier multi-roll.
+  - **`get_active_quests` returns historical-or-active, not strictly-active.** Q1-Q38, Q2001-Q2016, Q3009-Q3014 all show in the active list despite being long-completed (`quest alr completed` on staticCall). The list IS useful for finding accepted-but-unaddressed side quests — combine with `check_quest_completable` per index to filter to truly-incomplete quests cheaply (free reads).
+  - **`get_active_quests` confirmed all known side quests Q3009-Q3014 are already done.** Future sessions should not re-check these. Remaining incomplete quests for bpeon: Q39 (current focus), Q3007 (Move 500, passive), Q6 (Liquidate, deferred), and the unknown Q40/Q41+ chain.
+**Gas notes**: 335k wasted on the probe. Acceptable diagnostic cost — far cheaper than waiting a full extra cycle blindly.
+**Next session** (+8h → 2026-04-25 15:48 UTC, ts 1777132096): retry Q39 scav probe at ~18h25m elapsed (~150-180 pts expected at <10 pts/hr). Should comfortably clear 100-pt threshold for at least 1 successful roll. If 1 roll yields stems → check Q39 → likely complete → chain into Q40 (Craft Timber, recipe 34 from sticks). If reverts again, rate is even slower than current estimate; extend by +10-12h.
