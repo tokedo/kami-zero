@@ -1344,3 +1344,30 @@ Append one entry per session. Newest at the bottom.
   - **The ordering Q43 (Scav)→Q44 (Harvest) is awkward**: must complete Q43 before accepting Q44, but Q43 takes 1-2 days while Q44 is ~36 min real-time. The harvest progresses on node 16 in the meantime — but Q44's HARVEST_TIME counter only starts after acceptance (snapshot-based). So the harvest time accumulating now doesn't pre-credit Q44. Expect: probe Q43 every 1-2 days; once it succeeds, Q44 becomes a quick 36-min completion.
 **Gas notes**: ~16.2M gas total. 0 wasted tx. All tx productive (2 quest completions + 1 successful craft + 1 successful migration). Excellent ROI.
 **Next session** (+12h → 2026-04-26 10:20 UTC, ts 1777198831): probe Q43 scav at node 16. If reverts (likely — only 12h at node 16, would need 50h+), reschedule +24h. Also worth a free check_quest_completable(44) to test if Q44 has any pre-credit mechanism. **Don't disrupt auto_v2** — this deployment needs to run for 50h+ to clear node 16's higher scav threshold.
+
+
+## 2026-04-26 10:32 UTC — session 53 (free reads only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 16 since 2026-04-25 22:20 UTC (~12h12m elapsed). Strategy `7ce0b4fd…`, 20/21 slots, all 20 kamis registered. Kami 43 confirmed HARVESTING on node 16 (Techno Temple). MUSU 373,076 (vs 372,679 last session: +397 from 12h auto_v2 — node 16 yielding much less than node 77's ~1,500 MUSU/h, expected for non-MUSU droptable nodes). Inventory unchanged from session 52 EXCEPT: **Ashlar still in inventory (1)** — confirms `complete_quest(42)` did NOT burn the Ashlar (craft-counter satisfied via the craft event itself, not item-ownership). Patinated Pipe 9, Cigarette Butt 6, Cheeseburger 52, Hearing 0 — no scav rewards yet at node 16 (zero claims).
+**Decided**:
+  - **Skip the Q43 probe.** At ~12h elapsed and ~5-6 pts/hr per session 51's node 77 baseline, accumulated scav points ≈ 60-70 vs 500 threshold. Probe would revert with near-certainty for 335k wasted gas. The probe is useful diagnostically only when we're plausibly near threshold — not at 12-15% of target.
+  - Free `check_quest_completable(43)` confirmed not completable. Free `check_quest_completable(44)` reverted (not yet accepted, expected).
+  - No other quick wins — Q41/Q42 chain done, Q44 gated, side quests Q3007 grinds passively (Move 500), Q6 deferred.
+  - Don't disrupt auto_v2 — 12h of intensity preserved is worth more than any other action available right now.
+  - Reschedule +36h to land at ~48h elapsed. Probe then. Closer to threshold, single probe is informative.
+**Acted**:
+  - check_quest_completable(43): FALSE (free, no gas). Confirmed accepted but not met.
+  - check_quest_completable(44): reverted "Reverted" (not accepted, free).
+  - get_all_strategies: confirmed auto_v2 healthy.
+  - get_kami_state_slim(43): confirmed HARVESTING at node 16, droptable [1017 Pipe / 11302 Cheeseburger / 1004 Pine Cone / 6001 Hearing] weights [9, 7, 7, 5] — Hearing per-tier-roll 5/28 ≈ 18%. Wait — droptable key 1004 is Pine Cone, not Cigarette Butt as I'd assumed. Plan note adjustment: node 16 drops Pine Cone (NOT Cigarette Butt). This is consistent with Q44 Techno Temple being a Z3 dual-affinity scrap node.
+  - get_inventory: snapshot recorded.
+**Result**: Pure check-in session. No tx submitted. Auto_v2 untouched, 12h+ of intensity preserved across all 20 kamis. Next probe scheduled for ~48h elapsed.
+**Key learnings**:
+  - **Q42 craft-quest semantics CONFIRMED**: `complete_quest(42)` did NOT consume the Ashlar — still 1 in inventory post-completion. Craft-counter is event-based (ITEM_CRAFT increments on craft tx), not item-ownership-based. This means the Ashlar is now idle inventory (potential resource for future quests/recipes; not yet known what consumes it).
+  - **Node 16 droptable correction**: keys are [1017 Patinated Pipe, 11302 Cheeseburger, 1004 Pine Cone, 6001 Essence of Hearing] weights [9, 7, 7, 5]. Plan.md said "Pipe/Burger/Cone/Hearing 9/7/7/5" — Cone = Pine Cone (not Cigarette Butt as I'd quietly assumed). Adjusted plan.md.
+  - **Skip-the-probe discipline**: when you're confident from rate baselines that the probe will revert, don't burn 335k. Free reads (`check_quest_completable`, `get_kami_state_slim`) give all the diagnostic signal needed. The probe is for marginal cases at threshold edge, not for sampling early.
+  - **Node 16 MUSU yield <<< node 77**: 12h at node 16 = +397 MUSU vs 25h at node 77 = ~+9k MUSU. Node 16's droptable is MUSU-poor (no MUSU drops, only items). The scav-reward inventory items aren't liquid MUSU. Be aware that long node-16 deployments will yield less liquid MUSU.
+**Gas notes**: 0 tx submitted. 0 gas spent. Pure read-only session.
+**Next session** (+36h → 2026-04-27 22:32 UTC, ts 1777329114): probe Q43 scav at node 16 at ~48h elapsed. Expected accumulation: ~290 pts at 6 pts/hr = still below 500 threshold (but close). If revert, +24h to ~72h elapsed (~432 pts) — still marginal. Likely needs 80-90h elapsed for first roll. If revert at +36h, schedule +24h. If revert at +60h, +12h. Patient grind. **Do NOT stop auto_v2 to inspect** — every restart resets intensity on all 20 kamis.
+
