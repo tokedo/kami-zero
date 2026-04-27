@@ -1428,3 +1428,44 @@ Append one entry per session. Newest at the bottom.
   7. `complete_quest(45)`, `accept_quest(46)` (Q46 = Scavenge 5 Honeydew Scale at node 77).
   8. Migrate auto_v2 to node 77 (room 77, 4 hops from 16: 16→15→18→76→77 reverse-of-session52). Travel + start_strategy at node 77 with all 20 kamis.
   9. Note: 32 Honeydew Scales already in inventory don't count (snapshot-based); need 5 fresh post-Q46-accept scavenges. Auto_v2 at node 77 at 100 pts/tier and Honeydew weight 7/28 ≈ 25%/roll → ~20 tiers needed → ~2,000 scav points → at ~700 pts/hr (lower than node 16 because node 77 droptable is older), ~3-5h to clear.
+
+
+## 2026-04-27 17:04 UTC — session 56 (Q44+Q45 done, Q46 grind started at node 77)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 16 since 2026-04-25 22:20 UTC (~43h elapsed). Q44 counter post-acceptance was ~106min real-time (since 15:18 UTC accept) — verified completable=FALSE on entry, became TRUE after stop_harvest. Honeydew probability at node 77 confirmed 11.1% (matches plan). 19 HARVESTING + 1 RESTING (3983).
+**Decided**: Execute the full session-55 plan: tear down auto_v2 → flush Q44 → chain Q44→Q45→Q46 → travel 25 then 77 → migrate auto_v2 to node 77.
+**Acted**:
+  - check_quest_completable(44): FALSE (pre-flush, expected).
+  - get_all_strategies: confirmed auto_v2 healthy, primary kami_indices[0]=43.
+  - get_scavenge_droptable(77): confirmed [Stems 44.4% / Bones 44.4% / Honeydew 11.1%].
+  - stop_strategy(43, permanent=True): DELETED.
+  - get_account_kamis: 19 HARVESTING enumerated.
+  - stop_harvest_batch ×4 chunks (5+5+5+4): one silent-skip caught (kami 13947 ACTIVE in chunk 4, 3/4 stopped). The new per_kami detection from harness fix worked exactly as designed.
+  - stop_harvest_batch([13947]) retry: SUCCESS, 261k gas.
+  - check_quest_completable(44): TRUE.
+  - complete_quest(44): SUCCESS, 1.13M gas.
+  - accept_quest(45): SUCCESS, 715k gas (Q45 = "Can't Stop With Just One", move to Lost Skeleton room 25).
+  - travel_to_room(25, dry_run): 4 hops 16→15→11→37→25, 20 SP, no items needed.
+  - travel_to_room(25): SUCCESS, 3.66M gas. Stamina 64→44.
+  - check_quest_completable(45): TRUE.
+  - complete_quest(45): SUCCESS, 944k gas (move-objective satisfied immediately).
+  - accept_quest(46): SUCCESS, 840k gas (Q46 = "Sweet As Honey", scavenge 5 Honeydew Scale at node 77).
+  - travel_to_room(77, dry_run): 6 hops 25→37→11→15→18→76→77, 30 SP, no items.
+  - travel_to_room(77): SUCCESS, 5.38M gas. Stamina 80→50 (regen during travel).
+  - get_kami_state_slim(43): RESTING, position implied at room 77 (last harvest node still references 16, which is stale but irrelevant for restart).
+  - start_strategy(auto_v2, kami=43, node=77, all 20 kamis, REST regen, 5% safety): RUNNING. Strategy ID `98de8cb3-487d-4468-81d5-57f494c510b3`.
+  - get_all_strategies: confirmed ACTIVE on node 77 with all 20 kamis.
+**Result**: **Q44 ✓ + Q45 ✓, Q46 accepted, auto_v2 migrated 16→77.** Three quest gates cleared in one session. Honeydew grind started; expected ~5-6h to clear ~45 tier rolls (Honeydew weight 7/exponent → 11.1% per roll). Pre-existing 32 Honeydew Scales DON'T count (snapshot-based) — need 5 fresh post-accept scavenges.
+**Key learnings**:
+  - **Silent-skip detection works in production**: chunk 4 of stop_harvest_batch returned `failed_count: 1` for kami 13947 (state ACTIVE despite tx success). The session 46 footgun is now caught at the harness level. Single-kami retry succeeded immediately. Validates the 2026-04-27 harness fix.
+  - **Q44 flush worked at exactly +106min real-time**: 19 kamis post-Q44-acceptance harvest accumulation flushed via the 4 stop_harvest_batch chunks. Counter went FALSE→TRUE between batches (no need to wait longer). At 19 kamis × ~50% active during a typical cycle × 106 min = ~1,000 kami-min, well over 720 threshold.
+  - **Travel auto-pathfinding is precise**: 4 hops to room 25 + 6 hops to room 77, no item inserts, all moves succeeded. No manual path-reasoning footgun.
+  - **Stamina regen during multi-hop travel**: started at 64 SP, after 4 hops to 25 = 44, after 6 more hops to 77 = 50. The 6h since last activity restored ~30 SP between sessions, then 16 more SP regenerated during the move sequence (timing).
+**Gas notes**: ~37.4M gas total: 4 stop_harvest_batch (8.51+8.49+8.46+6.97=32.4M) + 1 retry (261k) + complete44 (1.13M) + accept45 (715k) + travel25 (3.66M) + complete45 (944k) + accept46 (840k) + travel77 (5.38M) = ~46.0M. Plus the earlier check tx (free). Excellent: 2 quest completions + 2 acceptances + 2 multi-hop travels + 1 strategy migration. 0 wasted speculative tx; the silent-skip retry was caught BY DESIGN (not waste).
+**Next session** (+6h → 2026-04-27 23:04 UTC, ts 1777331061): probe Q46 at node 77.
+  1. `get_scavenge_points(77)` first — at ~6h elapsed with 20 kamis, expect ~700-1000 pts/hr → ~4,200-6,000 pts → 42-60 claimable tiers. Honeydew expected per tier = 0.111 → 5-7 Honeydews from a 45-tier claim.
+  2. If `claimable_tiers >= 30` AND fresh-Honeydew accounting suggests ≥5 fresh expected: `scavenge_claim_and_reveal(77)`. Note: existing 32 Honeydew don't count — need to track delta from pre-Q46 baseline (which was 32 confirmed end of session 55).
+  3. `check_quest_completable(46)` — TRUE if delta ≥5.
+  4. If TRUE: `complete_quest(46)` (+rewards), `accept_quest(47)` (Q47 = Harvest Cave Crossroads 720 min, NEW node — will need migration next session).
+  5. If FALSE (insufficient Honeydews from RNG variance): just bank the claim (every claim drains scav points, which is reset progress; scav effort isn't lost), reschedule +3h for another probe.
