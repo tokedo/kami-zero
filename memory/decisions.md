@@ -1469,3 +1469,46 @@ Append one entry per session. Newest at the bottom.
   3. `check_quest_completable(46)` — TRUE if delta ≥5.
   4. If TRUE: `complete_quest(46)` (+rewards), `accept_quest(47)` (Q47 = Harvest Cave Crossroads 720 min, NEW node — will need migration next session).
   5. If FALSE (insufficient Honeydews from RNG variance): just bank the claim (every claim drains scav points, which is reset progress; scav effort isn't lost), reschedule +3h for another probe.
+
+
+## 2026-04-27 23:15 UTC — session 57 (Q46 grind: zero accumulation observed at node 77, free reads only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-27 17:04 UTC (~6h11m elapsed). 19/20 HARVESTING (kami 12459 RESTING). MUSU 412,444 → 420,757 (+8,313 in 6h ≈ 1,400 MUSU/h). Honeydew Scale = 32 (unchanged from baseline). check_quest_completable(46) = FALSE.
+
+**Critical anomaly**: scav points at node 77 = 86 (UNCHANGED from session 56's post-claim remainder). But scav points at node 16 = 8,681 (vs 368 at session 55 end, +8,313 — exactly matching MUSU delta).
+
+**Diagnosis**: The +8,313 scav-point bump went to **node 16's instance, not node 77's**, despite kamis migrating to node 77 at 17:04 UTC. Most likely explanation: session 56's `stop_harvest_batch` chunks (called BEFORE the migration travel) flushed all in-flight harvest balances on the kamis' then-active harvest entities (still pointing to node 16). Each `harvest.stop` credits scav points on `(account, current_node_of_harvest_entity)`. The MUSU delta and the node-16 scav delta both come from that single migration teardown event, not from ongoing leakage. After migration, kami 43 + 1064 confirmed harvest entity now points to node 77 (via slim state) and they JUST started their current cycle (~50-63 min ago, balance=0). No harvest_collect or harvest_stop has fired YET on node 77 since migration, so scav points there haven't moved.
+
+**Decided**: 
+  - No transactions this session — preserve intensity, conserve gas.
+  - Skip the 17-tier node-16 claim — account is at room 77, scav_claim from a remote room is untested and risks 335k wasted gas. 17 tiers can wait; points are sticky.
+  - Reschedule +4h to observe whether scav points start flowing to node 77 after first auto_v2 cycle completes there (~3-5h cycle time, 5% safety margin).
+
+**Acted**:
+  - get_scavenge_points(77, "bpeon"): 86 pts / 100 cost = 0 claimable tiers.
+  - get_inventory: Honeydew 32 baseline, MUSU 420,757.
+  - check_quest_completable(46): FALSE (expected).
+  - get_all_strategies: auto_v2 ACTIVE on node 77, all 20 kamis configured.
+  - get_account_kamis: 19 HARVESTING, 1 RESTING (12459).
+  - get_kami_state_slim(43, 1064): both confirmed harvest.node = 77 (Thriving Mushrooms), state ACTIVE, balance 0, recent start times (kami 43: 1777312051 = 22:27 UTC; kami 1064: 1777311197 = 22:13 UTC).
+  - get_scavenge_points(16): 8,681 pts (revealing the migration-flush anomaly).
+  - get_scavenge_droptable(77): re-confirmed [Stems 44.4% / Bones 44.4% / Honeydew 11.1%].
+  - get_active_quests: 73 entries; cross-referenced against memory — only Q46 is the live grind. Q3007 (Move 500) passive.
+
+**Result**: Pure check-in. 0 tx, 0 gas. Diagnostic insight gained: node-16 leftover scav points are from migration teardown, not ongoing leak. Plan stays valid; just need more elapsed time at node 77.
+
+**Key learnings**:
+  - **Migration scav-point flush goes to OLD node**: `stop_harvest_batch` before migration credits scav points on the kamis' last-active node (16), not the destination (77). This is expected per the contract semantics but visually surprising — the +8,313 looks like a leak unless you decompose the timing.
+  - **Node-77 scav-point accumulation begins POST-FIRST-CYCLE at the new node**: until the first auto_v2 collect/stop fires after migration, node 77 stays at its pre-migration remainder (86). Cycle time at 5% safety margin is ~3-5h, so the first observable accumulation window is ~3-5h post-start.
+  - **17 unclaimed tiers at node 16**: bonus payout sitting there. Plan: claim opportunistically during a future migration back through room 16, OR test whether scav_claim works from a remote room (unverified, deferred).
+  - **MUSU/h rate at node 77 (1,400)** is consistent with prior observations (~1,150-1,400/h). Healthy node.
+
+**Gas notes**: 0 tx submitted. 0 gas spent.
+
+**Next session** (+4h → 2026-04-28 03:15 UTC, ts 1777346110): probe Q46 at node 77.
+  1. `get_scavenge_points(77)` first — at ~10h elapsed, expect first auto_v2 cycle to have flushed → some accumulation. Even 1,000-2,000 pts = 10-20 tiers = 1-2 expected Honeydews. Need 5 fresh.
+  2. Also `get_scavenge_points(16)` — confirm it stayed at 8,681 (validates migration-flush diagnosis) or grew further (would indicate ongoing leak — bigger problem).
+  3. If node 77 has ≥30 tiers AND node 16 stable: scavenge_claim_and_reveal(77), check delta vs Honeydew=32, complete chain if ≥5.
+  4. If node 77 has <30 tiers: defer claim, reschedule +4-6h.
+  5. If node 16 grew unexpectedly: investigate auto_v2 routing — might be a Kamibots strategy bug.
