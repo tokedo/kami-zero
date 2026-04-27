@@ -127,18 +127,22 @@ def _quest_entity_id(quest_index: int, account_entity_id: int) -> int:
 
 
 # Component read ABIs
+# NOTE: Yominet's MUD-flavored components expose `get(uint256)`, NOT
+# `getValue(uint256)` despite what kamigotchi-context docs say. The selector
+# mismatch silently reverts and any try/except that swallows it returns "0",
+# which is what made get_scavenge_points look like a known bug.
 _STRING_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"getValue",'
+    '[{"type":"function","name":"get",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"string"}],"stateMutability":"view"}]'
 )
 _UINT_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"getValue",'
+    '[{"type":"function","name":"get",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint256"}],"stateMutability":"view"}]'
 )
 _UINT32_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"getValue",'
+    '[{"type":"function","name":"get",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint32"}],"stateMutability":"view"}]'
 )
@@ -408,7 +412,7 @@ _ID_COMPONENT_ABI = json.loads(
     '[{"type":"function","name":"getEntitiesWithValue",'
     '"inputs":[{"name":"v","type":"uint256"}],'
     '"outputs":[{"type":"uint256[]"}],"stateMutability":"view"},'
-    '{"type":"function","name":"getValue",'
+    '{"type":"function","name":"get",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint256"}],"stateMutability":"view"},'
     '{"type":"function","name":"has",'
@@ -2793,7 +2797,7 @@ def get_quest_status(quest_index: int, account: str = "main") -> dict:
     state_comp = w3.eth.contract(address=state_addr, abi=_STRING_VALUE_ABI)
 
     try:
-        state = state_comp.functions.getValue(q_id).call()
+        state = state_comp.functions.get(q_id).call()
         return {
             "quest_index": quest_index,
             "entity_id": hex(q_id),
@@ -3011,25 +3015,37 @@ _ABI_DROPTABLE_REVEAL = json.loads(
 
 @mcp.tool()
 def get_scavenge_points(node_index: int, account: str = "main") -> dict:
-    """Check accumulated scavenge points for a node.
+    """Check accumulated scavenge points + claimable tiers for a node.
 
-    Reads the Value component on the scavenge instance entity.
+    Reads the Value component on the scavenge instance entity (per-account
+    points) and the registry entity (per-node tier cost). Returns 0 points
+    if the account has never harvested at this node (instance not created).
 
     Args:
-        node_index: Harvest node index (e.g., 47 for Scrap Paths).
+        node_index: Harvest node index (e.g., 16 for Techno Temple).
         account: Account label.
     """
     instance_id = _scavenge_instance_id(node_index, account)
+    registry_id = _scavenge_registry_id(node_index)
     comp_addr = _resolve_component("component.value")
     comp = w3.eth.contract(address=comp_addr, abi=_UINT_VALUE_ABI)
-    try:
-        points = comp.functions.getValue(instance_id).call()
-    except Exception:
+
+    tier_cost = comp.functions.get(registry_id).call()
+
+    has_abi = w3.eth.contract(address=comp_addr, abi=_BOOL_COMPONENT_ABI)
+    if has_abi.functions.has(instance_id).call():
+        points = comp.functions.get(instance_id).call()
+    else:
         points = 0
+
+    claimable_tiers = points // tier_cost if tier_cost else 0
     return {
         "node_index": node_index,
         "account": account,
         "points": points,
+        "tier_cost": tier_cost,
+        "claimable_tiers": claimable_tiers,
+        "remainder": points % tier_cost if tier_cost else 0,
         "instance_entity": hex(instance_id),
     }
 

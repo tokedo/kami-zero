@@ -32,7 +32,7 @@ Format:
   - `harvest_collect([43, 1064])` — collect without stopping
   - `scavenge_claim(47)` — claim scavenge rewards (uses registry entity ID)
   - `droptable_reveal([commit_id])` — reveal droptable commits
-  - `get_scavenge_points(47)` — read accumulated points (NOTE: currently returns 0, may have component ID issue)
+  - `get_scavenge_points(47)` — read accumulated points + claimable tiers + tier_cost (FIXED 2026-04-27, see entry below)
 - **Commit**: a1d46e9
 
 ## 2026-04-09 — NPC shop listing_buy tool
@@ -99,3 +99,13 @@ Format:
 - **Files**: `executor/server.py` (lines 1455, 1459, plus matching harvest_collect lines 1480, 1484)
 - **How to use**: No API change. `harvest_stop([id])` and `harvest_stop([ids...])` now complete reliably for long-accumulated harvests. Note: MCP server must be restarted to pick up the change.
 - **Commit**: 23b4555
+
+## 2026-04-27 — get_scavenge_points fix: wrong selector + silent swallow + perception model
+- **What**: Three-layer fix for the long-standing "scavenge points always 0" bug.
+  1. ABI declarations for the on-chain Value/State components (`_STRING_VALUE_ABI`, `_UINT_VALUE_ABI`, `_UINT32_VALUE_ABI`, `_ID_COMPONENT_ABI`) renamed `getValue(uint256)` → `get(uint256)`. The kamigotchi-context docs say `getValue`, but the deployed contracts on Yominet expose `get`. The wrong selector reverted on every call.
+  2. `get_scavenge_points` no longer swallows reverts as "0 points". It now reads `tier_cost` from the registry, checks `has()` on the instance, and returns `{points, tier_cost, claimable_tiers, remainder, ...}` so the agent has ground truth, not a model.
+  3. `get_quest_status` call site updated to use `.get(...)` instead of `.getValue(...)`.
+- **Why**: kami-zero had been flying blind on scavenge points for the entire 50+ session run. To compensate, it built a theoretical model ("~6 pts/hr, first roll at ~83h elapsed") that was off by ~150x — actual rate is "harvest output ≈ MUSU/h", roughly 1,000 pts/hr at node 16. Sessions 49, 50, 53, 54 all *deliberately skipped* cheap probe attempts because the model said they would revert, while in reality bpeon had 78 unclaimed tier rolls sitting at node 16 (and 4 leftover at node 77). The skip-the-probe discipline self-reinforced the hidden bug.
+- **Files**: `executor/server.py`
+- **How to use**: `get_scavenge_points(16, "bpeon")` → returns `{"points": 39368, "tier_cost": 500, "claimable_tiers": 78, ...}`. Always read this BEFORE deciding whether to scavenge_claim. Drop the "rate model" — it was wrong and is no longer needed.
+- **Lesson**: When perception returns a too-clean default value (0, "", null) that masks reverts, the silent default *is* the bug. Failing loud beats failing silent. Also: when an agent's mental model is built on a single-point extrapolation (one observed claim at one node at one elapsed time), suspect the model.
