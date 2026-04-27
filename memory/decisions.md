@@ -1371,3 +1371,25 @@ Append one entry per session. Newest at the bottom.
 **Gas notes**: 0 tx submitted. 0 gas spent. Pure read-only session.
 **Next session** (+36h → 2026-04-27 22:32 UTC, ts 1777329114): probe Q43 scav at node 16 at ~48h elapsed. Expected accumulation: ~290 pts at 6 pts/hr = still below 500 threshold (but close). If revert, +24h to ~72h elapsed (~432 pts) — still marginal. Likely needs 80-90h elapsed for first roll. If revert at +36h, schedule +24h. If revert at +60h, +12h. Patient grind. **Do NOT stop auto_v2 to inspect** — every restart resets intensity on all 20 kamis.
 
+
+
+## 2026-04-27 01:46 UTC — session 54 (free reads only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 16 since 2026-04-25 22:20 UTC (~27h25m elapsed). Strategy `7ce0b4fd…`, 20/21 slots. Kami 43 confirmed HARVESTING on node 16 (Techno Temple), state ACTIVE harvest. MUSU 398,451 (vs 373,076 last session: **+25,375 in 15h ≈ 1,690 MUSU/h** — much higher than session 53's 33 MUSU/h estimate; intensity has built up and node 16 yield is healthy now). Scav inventory items unchanged from session 53 (Patinated Pipe 9, Cigarette Butt 6, Cheeseburger 52, Pine Cone 46, Hearing 0) — confirms zero scav claims have occurred. Q43 still not completable.
+**Note on schedule**: `next-run-at` was unstaged-modified from session 53's intended +36h target (1777329114, 2026-04-27 22:32 UTC) to 1777253422 (2026-04-27 01:30 UTC) — fired 21h earlier than planned. Either the orchestrator has a max-wait clamp or the user adjusted it. Adapting: this is now the ~27h-elapsed checkpoint, will reschedule to land near 63h elapsed.
+**Decided**:
+  - **Skip the Q43 probe.** At ~27h elapsed at node 16's 5x scav cost (500/roll vs node 77's 100/roll), accumulated points ≈ 130-160 vs 500 threshold. Probe would revert with near-certainty for 335k wasted gas. Same reasoning as session 53.
+  - No transactions this session — auto_v2 untouched, intensity preserved.
+  - Reschedule +36h → land at ~63h elapsed, where probe is plausibly close to threshold (~380-440 pts at 6 pts/hr — still likely revert but useful diagnostic). If reverts, +24h to ~87h elapsed (fully expected first-roll window).
+**Acted**:
+  - get_all_strategies: confirmed auto_v2 healthy.
+  - get_kami_state_slim(43): confirmed HARVESTING at node 16, harvest state ACTIVE.
+  - check_quest_completable(43): FALSE (free, no gas).
+  - get_inventory: snapshot recorded.
+**Result**: Pure check-in. 0 tx, 0 gas. 27h+ of intensity preserved across 20 kamis.
+**Key learnings**:
+  - **Node 16 MUSU rate revised UP**: 1,690 MUSU/h vs session 53's 33 MUSU/h estimate. The first 12h had low yield because intensity hadn't built; now at ~27h elapsed the rate is healthy. Updated mental model: long node-16 deployments aren't MUSU-poor, they're slow-to-warm. Total MUSU since deployment: ~25k (~1k/h average over 27h).
+  - **Scheduling clamp behavior to investigate**: my session-53 +36h schedule was overridden to ~+15h. Future sessions should check `git diff memory/next-run-at` at start to detect this. Not a problem for any single session, but if the cron orchestrator caps max wait at ~15h, long-grind quests will get extra noise check-ins. Acceptable; just file the pattern.
+**Gas notes**: 0 tx submitted. 0 gas spent.
+**Next session** (+36h → 2026-04-28 13:46 UTC, ts 1777383982): probe Q43 scav at node 16 at ~63h elapsed (~380-440 pts expected). If revert, +24h to ~87h elapsed (fully in expected first-roll window). **Do NOT stop auto_v2.**
