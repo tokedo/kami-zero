@@ -131,18 +131,23 @@ def _quest_entity_id(quest_index: int, account_entity_id: int) -> int:
 # `getValue(uint256)` despite what kamigotchi-context docs say. The selector
 # mismatch silently reverts and any try/except that swallows it returns "0",
 # which is what made get_scavenge_points look like a known bug.
+# NOTE: Yominet's MUD-flavored components expose `get(uint256)` and
+# `safeGet(uint256)`, NOT `getValue(uint256)` despite what older
+# kamigotchi-context docs say. Prefer `safeGet` — it returns the
+# component's default value (0 / empty string) for unset entities,
+# whereas `get` reverts. kami-oracle's MUSU decoder uses safeGet too.
 _STRING_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"get",'
+    '[{"type":"function","name":"safeGet",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"string"}],"stateMutability":"view"}]'
 )
 _UINT_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"get",'
+    '[{"type":"function","name":"safeGet",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint256"}],"stateMutability":"view"}]'
 )
 _UINT32_VALUE_ABI = json.loads(
-    '[{"type":"function","name":"get",'
+    '[{"type":"function","name":"safeGet",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint32"}],"stateMutability":"view"}]'
 )
@@ -412,7 +417,7 @@ _ID_COMPONENT_ABI = json.loads(
     '[{"type":"function","name":"getEntitiesWithValue",'
     '"inputs":[{"name":"v","type":"uint256"}],'
     '"outputs":[{"type":"uint256[]"}],"stateMutability":"view"},'
-    '{"type":"function","name":"get",'
+    '{"type":"function","name":"safeGet",'
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint256"}],"stateMutability":"view"},'
     '{"type":"function","name":"has",'
@@ -2797,7 +2802,7 @@ def get_quest_status(quest_index: int, account: str = "main") -> dict:
     state_comp = w3.eth.contract(address=state_addr, abi=_STRING_VALUE_ABI)
 
     try:
-        state = state_comp.functions.get(q_id).call()
+        state = state_comp.functions.safeGet(q_id).call()
         return {
             "quest_index": quest_index,
             "entity_id": hex(q_id),
@@ -3030,13 +3035,10 @@ def get_scavenge_points(node_index: int, account: str = "main") -> dict:
     comp_addr = _resolve_component("component.value")
     comp = w3.eth.contract(address=comp_addr, abi=_UINT_VALUE_ABI)
 
-    tier_cost = comp.functions.get(registry_id).call()
-
-    has_abi = w3.eth.contract(address=comp_addr, abi=_BOOL_COMPONENT_ABI)
-    if has_abi.functions.has(instance_id).call():
-        points = comp.functions.get(instance_id).call()
-    else:
-        points = 0
+    # safeGet returns 0 for unset entities (e.g. account never harvested
+    # at this node), so no has()-gate needed.
+    tier_cost = comp.functions.safeGet(registry_id).call()
+    points = comp.functions.safeGet(instance_id).call()
 
     claimable_tiers = points // tier_cost if tier_cost else 0
     return {
