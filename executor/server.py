@@ -2694,8 +2694,14 @@ def stop_harvest_batch(
 ) -> dict:
     """Stop harvests for multiple kamis in one transaction. Collects rewards automatically.
 
-    Uses executeBatchedAllowFailure — skips kamis that aren't harvesting
-    instead of reverting the entire batch. Max ~10 per batch recommended.
+    Uses executeBatchedAllowFailure — individual reverts skip silently
+    instead of reverting the entire batch. After the tx commits, this
+    function reads each kami's harvest entity state on-chain to detect
+    silent skips (session 46 bug: 15 starving kamis silently failed).
+    Returns `per_kami` map with the resulting harvest state and a
+    `stopped` boolean. `stopped_count`/`failed_count` summarize.
+
+    Max ~5 per batch is the safe upper bound (eth_estimateGas cap).
 
     Args:
         kami_ids: List of kami token indices (e.g. [45, 46, 47]).
@@ -2722,6 +2728,27 @@ def stop_harvest_batch(
     tx_hash = w3.eth.send_raw_transaction(signed.raw_transaction)
     receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
 
+    # Post-tx verification: read each kami's harvest.state component.
+    # ACTIVE = still harvesting (silent skip), INACTIVE = stopped successfully.
+    state_addr = _resolve_component("component.state")
+    state_comp = w3.eth.contract(address=state_addr, abi=_STRING_VALUE_ABI)
+    per_kami: dict[int, dict] = {}
+    stopped = 0
+    failed = 0
+    for kid, hid in zip(kami_ids, harvest_ids):
+        try:
+            hstate = state_comp.functions.safeGet(hid).call()
+        except Exception as exc:
+            per_kami[kid] = {"harvest_state": "ERROR", "stopped": None, "error": str(exc)[:120]}
+            failed += 1
+            continue
+        is_stopped = hstate != "ACTIVE"
+        per_kami[kid] = {"harvest_state": hstate, "stopped": is_stopped}
+        if is_stopped:
+            stopped += 1
+        else:
+            failed += 1
+
     return {
         "tx_hash": "0x" + receipt.transactionHash.hex(),
         "status": "success" if receipt.status == 1 else "reverted",
@@ -2730,6 +2757,9 @@ def stop_harvest_batch(
         "account": account,
         "kami_ids": kami_ids,
         "count": len(kami_ids),
+        "stopped_count": stopped,
+        "failed_count": failed,
+        "per_kami": per_kami,
     }
 
 
@@ -3049,6 +3079,89 @@ def get_scavenge_points(node_index: int, account: str = "main") -> dict:
         "claimable_tiers": claimable_tiers,
         "remainder": points % tier_cost if tier_cost else 0,
         "instance_entity": hex(instance_id),
+    }
+
+
+_UINT32_ARRAY_ABI = json.loads(
+    '[{"type":"function","name":"safeGet",'
+    '"inputs":[{"name":"entity","type":"uint256"}],'
+    '"outputs":[{"type":"uint32[]"}],"stateMutability":"view"}]'
+)
+
+
+@mcp.tool()
+async def get_scavenge_droptable(
+    node_index: int, account: str = "main"
+) -> dict:
+    """Read on-chain scavenge droptable + correctly compute drop probabilities.
+
+    The on-chain `weights` field for droptables is NOT a linear pick weight.
+    Drop probability is `prob_i = 2^weight_i / sum(2^weight_j)` — exponential
+    rarity bands. Weight 5 ≈ 4%, weight 7 ≈ 16%, weight 9 ≈ 64% in a 4-entry
+    table. Reading the raw weights as linear shares overestimates rare
+    drops by 4-5x.
+
+    Args:
+        node_index: Harvest node index (e.g., 16 for Techno Temple, 77 for
+            Thriving Mushrooms).
+        account: Account label (used for the API auth header).
+    """
+    nodes = await _api_get("/api/playwright/nodes", account)
+    node = next((n for n in nodes if n.get("index") == node_index), None)
+    if node is None:
+        return {"node_index": node_index, "error": "node not found"}
+
+    scav = node.get("scavenge") or {}
+    rewards = scav.get("rewards") or []
+    dt_rewards = [r for r in rewards if r.get("type") == "ITEM_DROPTABLE"]
+    if not dt_rewards:
+        return {
+            "node_index": node_index,
+            "node_name": node.get("name"),
+            "tier_cost": scav.get("cost"),
+            "droptables": [],
+            "error": "no ITEM_DROPTABLE reward on this node",
+        }
+
+    keys_addr = _resolve_component("component.keys")
+    weights_addr = _resolve_component("component.weights")
+    keys_c = w3.eth.contract(address=keys_addr, abi=_UINT32_ARRAY_ABI)
+    weights_c = w3.eth.contract(address=weights_addr, abi=_UINT32_ARRAY_ABI)
+
+    droptables = []
+    for r in dt_rewards:
+        dt_id = int(r["id"], 16)
+        keys = list(keys_c.functions.safeGet(dt_id).call())
+        weights = list(weights_c.functions.safeGet(dt_id).call())
+        exp_w = [2 ** w for w in weights]
+        total = sum(exp_w) or 1
+        items = [
+            {
+                "index": int(k),
+                "name": _get_item_name(int(k)),
+                "weight": int(w),
+                "probability": e / total,
+                "expected_per_100_tiers": round(100 * e / total, 2),
+            }
+            for k, w, e in zip(keys, weights, exp_w)
+        ]
+        droptables.append({
+            "entity": r["id"],
+            "keys": keys,
+            "weights": weights,
+            "items": items,
+        })
+
+    return {
+        "node_index": node_index,
+        "node_name": node.get("name"),
+        "tier_cost": scav.get("cost"),
+        "droptables": droptables,
+        "note": (
+            "Probabilities use 2^weight / sum(2^weight) — exponential "
+            "rarity bands, NOT linear pick. Weight 9=common, 7=uncommon, "
+            "5=rare, lower=rarer."
+        ),
     }
 
 

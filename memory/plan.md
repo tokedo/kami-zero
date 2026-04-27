@@ -10,12 +10,14 @@ At +90min into Q44 acceptance, expect >1,000 kami-min accumulated (need 720).
 ### Step 1 — Pre-flush state check (free reads)
 - `check_quest_completable(44)` → expect FALSE (counter only flushes on stop). If TRUE, skip steps 2-4 and go straight to complete.
 - `get_all_strategies` → confirm auto_v2 still ACTIVE on node 16 strategy `7ce0b4fd-514d-40b9-b6c6-f36d047d357f`.
+- **NEW: `get_scavenge_droptable(77)`** — verify Honeydew probability before committing to the Q46 grind below. Should report `Honeydew Scale: probability ≈ 0.111` (NOT 0.28). Same tool exists for any node; use it for all future scav planning.
 
 ### Step 2 — Tear down auto_v2 + flush all 20 harvests
 - `stop_strategy(43, permanent=True)` (kami_indices[0] = 43, multi-kami strategies use the primary index).
 - `get_account_kamis` to enumerate still-HARVESTING kamis.
-- `stop_harvest_batch` in ≤5-kami chunks (eth_estimateGas cap on larger sims). Verify each batch by reading state — `executeBatchedAllowFailure` silently skips reverts.
-- Repeat until ALL 20 kamis confirmed RESTING. **Migration verify-end-state rule applies (af1cde4 commit).**
+- `stop_harvest_batch` in ≤5-kami chunks (eth_estimateGas cap on larger sims).
+- **NEW: `stop_harvest_batch` now returns `per_kami` map + `stopped_count`/`failed_count`** (harness fix shipped 2026-04-27). Each entry shows `harvest_state` (ACTIVE = silent-skip / INACTIVE = stopped) and `stopped` bool. **If `failed_count > 0`, retry just those kamis before moving on** — this is the session 46 silent-skip footgun caught at the harness level.
+- Repeat until ALL 20 kamis confirmed RESTING. Migration verify-end-state rule applies (af1cde4 commit).
 
 ### Step 3 — Q44 → Q45 → Q46 chain
 - `check_quest_completable(44)` → expect TRUE after flush.
@@ -34,11 +36,14 @@ At +90min into Q44 acceptance, expect >1,000 kami-min accumulated (need 720).
 - May need to use SP+ items from inventory (Ice Cream 78, Better Ice Cream 10, Rock Candyfloss 63 — plenty of stamina restoratives). `travel_to_room` auto-uses these if needed.
 - Once at room 77: `get_kami_state_slim(43)` to verify position, then `start_strategy(auto_v2, kami_id=43, node_id=77, all 20 kamis, REST regen, 5% safety)`.
 
-### Step 6 — Q46 economics
-- Node 77 droptable: [stems 9 / bone 7 / honeydew 7 / resin 5] sum 28. Honeydew per-roll = 25%.
-- Need 5 Honeydew. Expected tier rolls: 5/0.25 = 20 tiers (with variance). At 100 pts/tier = 2,000 scav points needed.
-- Node 77 historic rate: ~990 MUSU/h ≈ ~990 scav-pts/hr at 20 kamis (per the new rate model: scav points ≈ harvest output). 2,000 / 990 ≈ 2h. Plus per-tier rng variance — budget 3-5h elapsed before next probe.
-- Reschedule next session +4h after Q46 acceptance.
+### Step 6 — Q46 economics (CORRECTED 2026-04-27)
+- Node 77 on-chain droptable: keys [1016 Stems, 1020 Bones, 11312 Honeydew], weights [9, 9, 7].
+- **Drop probabilities are EXPONENTIAL, not linear**: `2^9/2^9/2^7 = 512/512/128`, total 1152. Honeydew per-roll ≈ **11.1%**, NOT 28% as previously planned. (The same model fix that revised Hearing from 18% → 4% applies here.)
+- Need 5 fresh post-acceptance Honeydews. Expected tier rolls = 5 / 0.111 ≈ **45 tiers** (with ~30% variance for k=5 binomial). At 100 pts/tier that's ~4,500 scav points needed.
+- Node 77 historic rate: ~990 MUSU/h ≈ ~990 scav-pts/hr at 20 kamis (per the post-perception-fix rate model). 4,500 / 990 ≈ **4.5h** for the median run; budget **6–8h** for the 90th percentile (sample variance compounds with rng).
+- Use `get_scavenge_droptable(77)` to verify probabilities before grind, and `get_scavenge_points(77)` to track tier accumulation in real-time.
+- Reschedule next session **+6h** after Q46 acceptance (was +4h, corrected for exponential weights).
+- Probe pattern: at +4h check `get_scavenge_points(77)` — if claimable_tiers ≥ 30, claim that batch (good chance of 5+ Honeydews). Otherwise wait another 2–3h.
 
 ### Step 7 — Optional: harness fix for misleading "claim failed" status
 - `scavenge_claim_and_reveal` returns `"error": "claim failed"` when the **reveal** reverts but the **claim** itself succeeded (items granted by claim). Session 55 hit this at node 16 — the response said `"reverted"` but inventory delta confirmed 78-tier success.
@@ -74,6 +79,13 @@ At +90min into Q44 acceptance, expect >1,000 kami-min accumulated (need 720).
 - **Will be torn down in session 56** to flush Q44 counter; then migrated to node 77 for Q46.
 
 ## Lessons applicable
+
+### NEW (2026-04-27) — Droptable weights are EXPONENTIAL, not linear
+- The on-chain `component.weights` for ITEM_DROPTABLE entities is **`2^weight`-scaled**, not a linear pick share. `prob_i = 2^weight_i / sum(2^weight_j)`. Examples confirmed live:
+  - Node 16 (Techno Temple): keys/weights `[1017,11302,1004,6001]`/`[9,7,7,5]` → Pipe **64%**, Pine Cone **16%**, Cheeseburger **16%**, Hearing **4%**. Founder confirmed Hearing 4% in-game.
+  - Node 77 (Thriving Mushrooms): `[1016,1020,11312]`/`[9,9,7]` → Stems 44.4%, Bones 44.4%, Honeydew **11.1%**.
+- Past kami-zero plans estimated Hearing at 18% and Honeydew at 28% (linear-pick model). Off by 4–4.5×. Use the new `get_scavenge_droptable(node_index)` tool — never compute droptable rates by hand.
+- Rule of thumb: weight 9 ≈ 64%, weight 7 ≈ 16%, weight 5 ≈ 4%, weight 2 ≈ 0.4% in a typical 4-entry table. Lower weight = exponentially rarer.
 
 ### NEW — `scavenge_claim_and_reveal` response can mislead
 - When the **claim** sub-tx succeeds but **reveal** reverts (because items were granted directly by the claim itself, e.g. node 16 path), the wrapper returns `"status": "reverted"` and `"error": "claim failed"`. **This is wrong — items DID arrive.** Always verify by inventory delta + `get_scavenge_points` (point drop = successful consumption).
