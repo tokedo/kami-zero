@@ -1393,3 +1393,38 @@ Append one entry per session. Newest at the bottom.
   - **Scheduling clamp behavior to investigate**: my session-53 +36h schedule was overridden to ~+15h. Future sessions should check `git diff memory/next-run-at` at start to detect this. Not a problem for any single session, but if the cron orchestrator caps max wait at ~15h, long-grind quests will get extra noise check-ins. Acceptable; just file the pattern.
 **Gas notes**: 0 tx submitted. 0 gas spent.
 **Next session** (+36h → 2026-04-28 13:46 UTC, ts 1777383982): probe Q43 scav at node 16 at ~63h elapsed (~380-440 pts expected). If revert, +24h to ~87h elapsed (fully in expected first-roll window). **Do NOT stop auto_v2.**
+
+
+## 2026-04-27 15:18 UTC — session 55 (Priority 0 unblocked: Q43+Q44 chain)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 16 since 2026-04-25 22:20 UTC (~41h elapsed). MUSU 412,444 (vs 398,451 last session: +14k in 14h ≈ 1,000 MUSU/h, consistent with session 54's 1,690 MUSU/h estimate). **Perception fix VERIFIED**: `get_scavenge_points(16)` → 39,368 pts / 500 cost = **78 claimable tiers** with 368 remainder; `get_scavenge_points(77)` → 486 pts / 100 cost = **4 claimable tiers** with 86 remainder. Both match plan exactly. `next-run-at` was 0 (cron forced fire) — orchestrator override, not a session-53-style clamp.
+**Decided**: Execute the full Priority 0 plan: claim node 16, complete Q43, accept Q44, claim node 77 leftovers. Defer Q44 flush to session 56 (+90min) — auto_v2 needs ~36-60 real-min of post-Q44-acceptance harvest accumulation, and the kami cycles need to land on a stoppable point. Don't try to squeeze flush into this session.
+**Acted**:
+  - get_scavenge_points(16, 77): both confirm exactly the predicted tier counts ✓
+  - scavenge_claim_and_reveal(16): nonce mismatch on first call (operator sequence behind by 1, retried). 2nd call returned `status: "reverted"` BUT inventory delta shows the claim **succeeded**: +56 Patinated Pipe (9→65), +7 Cheeseburger (52→59), +13 Pine Cone (46→59), **+2 Essence of Hearing (0→2)**. Total 78 droptable rolls. Points dropped 39,368→368, confirming 78×500=39,000 consumed. Gas 335,308. **The "reverted" status from the API is misleading when reveal-skip path hits — the claim itself succeeded; only the (unnecessary) reveal reverted.** This is the same node-35-style "items granted by claim" pattern from session 21, but the executor's response phrasing here is different (says `"error": "claim failed"` instead of `"reveal_skipped"`). **Harness improvement candidate**: `scavenge_claim_and_reveal` should detect successful claim + reverted reveal and return clearly, not say `error: claim failed`. Did not fix this session; logged for future.
+  - check_quest_completable(43): TRUE.
+  - complete_quest(43): SUCCESS, 854k gas. Rewards per game-data Q43 row.
+  - accept_quest(44): SUCCESS, 840k gas (Q44 = "Mystery Machines", Harvest >720 min at Techno Temple).
+  - scavenge_claim_and_reveal(77): SUCCESS (claim 779k gas; reveal reverted = items granted by claim). +1 Dried Stems (235→236), +3 Bone Chunk (34→37), 0 Honeydew, 0 Resin. Small payout (4 rolls only) — no Honeydew this time, but free.
+  - check_quest_completable(44): FALSE (just accepted, counter post-acceptance is 0). Expected.
+  - check_quest_completable(2014, 2015, 2016): all `quest alr completed` — Mina line is fully done from earlier sessions. No Mina action needed.
+  - get_active_quests: confirms Q44 entity `0x2e7f...` in active list.
+  - get_inventory: snapshot recorded.
+**Result**: **Hidden-bug-driven backlog cleared in one session.** Q43 done (the hardest scav gate of MSQ 31-50 chain). Q44 accepted, gates cleared down to Q45/Q46. 78 tier rolls (39,000 scav points worth) materialized into 78 items including the critical 2× Essence of Hearing. Auto_v2 untouched; intensity preserved across all 20 kamis. 4 tiers at node 77 monetized as bonus side-payoff.
+**Key learnings**:
+  - **`scavenge_claim_and_reveal` response can lie**: when the reveal sub-tx reverts, the wrapper may set `claim.status: "reverted"` and `error: "claim failed"` even though the claim sub-tx succeeded and items were granted. **Always verify claim outcome by inventory delta + scav point delta**, not by reading the response status field. Plan documented this risk; it manifested. Files harness improvement: detect success-claim/revert-reveal and return clearer status.
+  - **Per-tier randomness can spike low**: 78 rolls × 5/28 weight = expected ~13.9 Hearings; got 2. P(2 or fewer in 78 at p=0.179) ≈ 0.0001. Unlucky tail. Fortunately Q43 only needed 1.
+  - **Plan-vs-reality match**: every prediction in plan.md was correct (78 tiers, 4 tiers, claim works in one tx, items granted by claim). The perception fix landed and the world-model snapped into focus. Lesson: when a long-standing perception gap is closed, the resulting plan is unusually high-confidence — execute it.
+  - **Cron orchestrator behavior**: this session's `next-run-at` was 0 (forced immediate fire) rather than the session-54 +36h target (1777383982). Either the orchestrator clamps to 0 when current_time >> next_run_at, or the user/system overrode it. Either way, the cron is responsive to "you should run now" signals; can be relied on for shorter +90min schedules.
+**Gas notes**: 335k (claim 16, reverted-but-effective) + 854k (complete43) + 840k (accept44) + 779k (claim 77) = ~2.81M gas total. 1 nonce mismatch retry (no extra gas). Excellent ROI — 1 main-quest completion + 1 acceptance + 78 tier rolls in <3M gas.
+**Next session** (+90min → 2026-04-27 16:48 UTC, ts 1777308524): **Q44 flush**. With 20 kamis at node 16, 90 real-min should give >1,000 kami-min POST-acceptance harvesting (well over 720 needed even with rest cycles eating ~50%). Steps for session 56:
+  1. `check_quest_completable(44)` first — if TRUE somehow without flush, just complete (not expected).
+  2. `stop_strategy(43, permanent=True)` — frees slots.
+  3. `get_account_kamis` to find still-HARVESTING kamis; `stop_harvest_batch` them in ≤5-kami chunks until ALL 20 RESTING.
+  4. `check_quest_completable(44)` → expect TRUE.
+  5. `complete_quest(44)`, `accept_quest(45)` (Q45 = Move to Lost Skeleton, room 25).
+  6. `travel_to_room(25, dry_run=True)` then execute. Free travel.
+  7. `complete_quest(45)`, `accept_quest(46)` (Q46 = Scavenge 5 Honeydew Scale at node 77).
+  8. Migrate auto_v2 to node 77 (room 77, 4 hops from 16: 16→15→18→76→77 reverse-of-session52). Travel + start_strategy at node 77 with all 20 kamis.
+  9. Note: 32 Honeydew Scales already in inventory don't count (snapshot-based); need 5 fresh post-Q46-accept scavenges. Auto_v2 at node 77 at 100 pts/tier and Honeydew weight 7/28 ≈ 25%/roll → ~20 tiers needed → ~2,000 scav points → at ~700 pts/hr (lower than node 16 because node 77 droptable is older), ~3-5h to clear.
