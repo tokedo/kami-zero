@@ -1601,3 +1601,47 @@ Append one entry per session. Newest at the bottom.
   6. If Q47 not completable yet: another +60min reschedule, NO teardown — auto_v2 continues accumulating.
   7. Bonus: check_quest_completable on a few side-quest indices to see if any are passively completable now (e.g., Q3007 Move 500 — passive accumulation, may be near completion).
 
+
+## 2026-04-28 13:35 UTC — session 60 (Q47 ramping at node 18, no force-flush)
+
+**ETH balance**: not sampled.
+**Perceived**: At ~1h47m post-migration to node 18, only 1/20 kamis HARVESTING (kami 3983, just started 6 min ago). 19 RESTING. MUSU 438,781 → 443,028 (+4,247). Honeydew/Stems/Bones unchanged. check_quest_completable(47) FALSE. Auto_v2 container healthy (uptime 103min, 0 restarts). node 18 scav points = 0 (instance fresh). Sample slim reads on kamis 43/1064/12459/14306: all show harvest entity at node 77 INACTIVE with stale time.last (10:00-12:48 UTC) — meaning auto_v2 has not yet issued harvest_start on these kamis at node 18.
+
+**Diagnosis**: Auto_v2 is correctly waiting for HP regen. Sample sync HP: kami 43 = 43/230 (~19%), kami 1064 < 100%. The 5% safety margin gates harvest_start until HP ≥ ~95%. Most kamis came off node 77 at sub-full HP from late-cycle stops, so REST regen must complete before auto_v2 fires harvest_start. This adds hours of upstream regen on top of the previously-observed 18.75h bountyCollectThreshold cycle. The "ramp + first flush" timeline at a fresh node, post-migration from another active grind, is closer to 24h end-to-end than the 6-12h I previously assumed.
+
+**Decided**: 
+  - **No transactions.** A force-flush via stop_strategy + manual harvest_start wave on 20 kamis would cost ~76M gas to skip ~12-18h of patience. Q47 has no deadline; bad ROI.
+  - Trust auto_v2 to fire harvest_start as kamis regen, and to flush HARVEST_TIME on first cycle stop. First kami's first cycle (~12-18h) will credit >720min, satisfying Q47 in one stop.
+  - Reschedule +6h to give regen + first-cycle ramp room. By 19:30 UTC = ~7.5h post-migration, expect majority of kamis HARVESTING and possibly first cycles flushing.
+
+**Acted**:
+  - check_quest_completable(47): FALSE.
+  - get_all_strategies: auto_v2 ACTIVE on node 18, 20 kamis configured.
+  - get_account_kamis: 19 RESTING + 1 HARVESTING (kami 3983).
+  - get_inventory: MUSU +4,247 since session 59; otherwise unchanged.
+  - get_scavenge_points(18): 0 pts (fresh instance, expected).
+  - get_kami_state_slim(43, 1064, 12459, 14306, 3983): only kami 3983's harvest entity points at node 18 (ACTIVE, started 13:36 UTC); others stale at node 77 INACTIVE.
+  - get_quest_status(47): state="" / active=false (false-negative from this tool; cross-checked active list — Q47 IS active, entity_id matches).
+  - get_active_quests: confirmed 74 active including Q47.
+  - get_strategy_status(43): container running, uptime 6.2M ms (~103 min), 0 restarts, healthy.
+  - check_quest_completable(3007): FALSE (Move 500 still accumulating).
+  - check_quest_completable(3009/3010/3011/3012/3013/3014): all return "quest alr completed" — past sessions cleared these. Skip in future side-quest sweeps.
+
+**Result**: Pure check-in. 0 tx, 0 gas. Diagnostic insight: post-migration HP regen, not just intensity ramp, is the dominant first-cycle delay. The session 59 "75 real min × 50% active" estimate was off because most kamis can't START due to safety-margin HP gate.
+
+**Key learnings**:
+  - **Post-migration HP regen is the rate-limiter for fresh auto_v2 deployments.** Kamis ending the previous grind below full HP must rest fully before auto_v2's safety margin lets them start at the new node. Add hours of regen on top of intensity-ramp + bountyCollectThreshold cycle. End-to-end first-cycle window: budget 18-24h, not 6-12h.
+  - **Slim API harvest entity reflects last on-chain harvest action, NOT current room.** A kami at room 18 can show harvest entity at node 77 INACTIVE — that just means auto_v2 hasn't fired harvest_start at the new node yet. To distinguish "leak" from "patient ramp", count HARVESTING kamis from get_account_kamis (state field) — that's chain-authoritative.
+  - **`get_quest_status` may return active=false even for active quests.** Cross-check with get_active_quests entity_id list. Don't trust the boolean alone.
+  - **Side-quest sweep economy**: 6 of the 3xxx side quests are already completed. Skip Q3009-Q3014 in future passive checks. Q3007 (Move 500) remains the only passive accumulator worth probing.
+  - **Force-flush gas budget rule of thumb**: manual harvest_start wave on 20 kamis = ~60M gas; stop_harvest_batch for 20 = ~16M; total ~76M. Only justified if waiting >24h AND quest has hard deadline. Q47 has no deadline → wait.
+
+**Gas notes**: 0 tx submitted. 0 gas spent.
+
+**Next session** (+6h → 2026-04-28 19:30 UTC, ts 1777404879):
+  1. `get_account_kamis` first — count HARVESTING. If ≥10, auto_v2 ramped up; if ≤2, investigate stuck kamis (low sync HP, strain) and consider Cheeseburger feed (59 in inventory) to unblock.
+  2. `check_quest_completable(47)` — TRUE if any kami has cycled stop_harvest. Likely TRUE on first cycle (>720 kami-min from one ~12-18h cycle).
+  3. If TRUE: `complete_quest(47)`, `accept_quest(48)`, decide Q48 routing.
+  4. If FALSE: `get_inventory` MUSU delta as proxy for harvest activity, `get_strategy_status(43)` health check, reschedule +4h.
+  5. Bonus: `check_quest_completable(3007)` if not yet TRUE.
+
