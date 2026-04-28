@@ -1673,3 +1673,48 @@ Append one entry per session. Newest at the bottom.
   4. If FALSE: `get_inventory` MUSU delta as proxy for harvest activity, `get_strategy_status(43)` health check, reschedule +4h.
   5. Bonus: `check_quest_completable(3007)` if not yet TRUE.
 
+
+
+## 2026-04-28 19:46 UTC — session 61 (Q47 ramping at node 18, full deployment, no flush yet)
+
+**ETH balance**: not sampled.
+**Perceived**: At ~7h58m post-migration to node 18, **20/20 HARVESTING** (massive ramp from session 60's 1/20 — HP regen completed for the rest of the roster as expected). MUSU UNCHANGED at 443,028 (no kami has hit `stop_harvest` yet → no auto-collect → no MUSU credit → no Q47 HARVEST_TIME credit yet). Honeydew/Stems/Bones unchanged (52/319/115). Node 18 scav points = 0 (no flush yet, expected). Node 16 scav points = 8,681 (stable, no leak ✓). Auto_v2 container healthy: uptime 7.94h, 0 restarts, 4.5% CPU, 47.5% mem. check_quest_completable(47) = FALSE. check_quest_completable(3007) = FALSE.
+
+**Cycle progress sample**:
+- kami 3983: harvest.start 1777378590 = 12:56 UTC (~6h49m elapsed) — most advanced
+- kami 43 (Zephyr): harvest.start 1777395593 = 17:39 UTC (~2h6m elapsed) — recently started
+Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h elapsed; first kami to enter time-to-health-danger sets the first-flush clock.
+
+**Decided**:
+  - **No transactions.** 0 tx, 0 gas. Strategy is healthy and ramping; force-flush would burn ~76M gas to skip patience that has no deadline cost.
+  - Trust auto_v2 to fire `stop_harvest` on the first kami to reach health danger (typically ≥12h elapsed at this affinity/intensity profile). That single stop credits >720min HARVEST_TIME → Q47 completable.
+  - Reschedule +6h to 01:46 UTC. By then kami 3983 will be ~12.8h elapsed, well into flush territory.
+
+**Acted**:
+  - check_quest_completable(47): FALSE.
+  - get_account_kamis: 20/20 HARVESTING.
+  - get_inventory: MUSU 443,028 (UNCHANGED).
+  - get_all_strategies: auto_v2 ACTIVE on node 18, 20 kamis configured.
+  - get_strategy_status(43): container healthy, uptime 7.94h, 0 restarts.
+  - get_scavenge_points(18): 0 / 200 cost (fresh, expected).
+  - get_scavenge_points(16): 8,681 / 500 cost = 17 tiers (UNCHANGED — no-leak invariant holds across 4 sessions ✓).
+  - get_kami_state_slim(43, 3983): both confirmed harvest entity at node 18 ACTIVE; cycle ages 2h6m and 6h49m respectively.
+  - check_quest_completable(3007): FALSE (Move 500 still accumulating).
+
+**Result**: Pure check-in. The session-60 prediction held: regen completed, all 20 kamis are now active, auto_v2 is correctly waiting for natural cycle stops. Next session has the highest probability of catching the first flush.
+
+**Key learnings**:
+  - **Full deployment achieved at ~8h post-migration.** Session 60's 1/20 → Session 61's 20/20 in 6h. HP regen window for a roster coming off mid-cycle stops is ~6-10h end-to-end. Future migrations: budget 10h to "all kamis active" before any flush expectations apply.
+  - **MUSU/h appears 0 between flushes is NORMAL.** auto_v2 only credits MUSU to account inventory on `stop_harvest` (auto-fire when HP enters danger). Mid-cycle, each kami's per-harvest balance grows on-chain but doesn't enter inventory. Don't read "MUSU unchanged" as "harvest broken" — confirm by checking HARVESTING count + container health.
+  - **Slim API harvest entity DOES update once auto_v2 fires harvest_start at the new node.** Session 60 saw stale node-77 entity for non-active kamis; session 61 confirms node-18 entity for the now-active kami 43 (whose first session-60 read showed node 77). Resolution = on-chain truth catches up after auto_v2 starts.
+  - **5% safety margin gates HP at ≥95%, not at full HP**: kami 43 was at 19% sync HP in session 60 and is now harvesting at session 61. Kamis don't need a perfect 100% — auto_v2 will start them once HP clears the safety threshold.
+
+**Gas notes**: 0 tx submitted. 0 gas spent.
+
+**Next session** (+6h → 2026-04-29 01:46 UTC, ts 1777427179):
+  1. `check_quest_completable(47)` first — by ~13.8h post-migration, kami 3983 (~12.8h cycle) likely in flush territory; first auto_v2 stop_harvest could have fired and credited >720min HARVEST_TIME.
+  2. `get_inventory` MUSU delta — if MUSU jumped, a flush happened. Cross-reference with HARVESTING count drop.
+  3. If Q47 completable: complete_quest(47), accept_quest(48). Q48 unknown — read on accept and decide migration.
+  4. If Q47 NOT completable but partial flush observed: reschedule +4h.
+  5. If still 20/20 HARVESTING with no MUSU change at 14h: investigate — maybe insect-affinity at node 18 stretches cycle time vs node 77's rate. Compare elapsed time deltas.
+  6. Side-quest sweep: skip Q3009-Q3014 (already done); only Q3007 worth probing.
