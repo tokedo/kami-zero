@@ -1551,3 +1551,53 @@ Append one entry per session. Newest at the bottom.
   3. If ≥30 tiers AND P(≥5 Honeydews) ≥ ~30%: scavenge_claim_and_reveal(77), check delta vs Honeydew=32, complete chain if ≥5.
   4. If still 0-1 tiers: SOMETHING is wrong with the flush mechanic at this node. Investigate: re-examine bountyCollectThreshold, consider manual harvest_collect on kami 43 to force a cycle (cheap probe).
   5. If <30 tiers but progress: defer claim, reschedule +6h to bank more.
+
+
+## 2026-04-28 11:49 UTC — session 59 (Q46 ✓ + Q47 accepted + auto_v2 migrated 77→18)
+
+**ETH balance**: not sampled.
+**Perceived**: At ~18.75h post-migration, the first auto_v2 cycle FINALLY flushed at node 77. Scav points 86 → 18,110 (+18,024 pts = 181 claimable tiers at 100/tier). MUSU 420,757 → 438,781 (+18,024 — 1:1 match with scav delta confirms a clean MUSU-collect→scav-credit pipeline at node 77). Node 16 stable at 8,681 (no-leak invariant holds across 3 sessions). 13 RESTING + 7 HARVESTING (mid-cycle).
+
+**Decided**: Execute the full plan-Step-2 path: claim 181 tiers (P(≥5 Honeydews from 181 rolls at p=0.111)≈1.0), complete Q46→accept Q47→migrate auto_v2 immediately to node 18 (Cave Crossroads). Migration NOW rather than next session because: (1) 13 already RESTING = cheap teardown (only 5 stop_harvest needed); (2) Q47 is now the active gate, every hour at node 77 is a wasted hour for Q47 progress; (3) at 20 kamis ~50% active, Q47's 720 HARVEST_TIME flushes in ~75 real min — next session can complete the chain.
+
+**Acted**:
+  - get_scavenge_points(77): 18,110 pts / 100 = 181 tiers ✓
+  - get_scavenge_points(16): 8,681 pts (UNCHANGED — no leak across 3 sessions ✓)
+  - get_inventory: MUSU +18,024 since session 58, Honeydew baseline 32
+  - check_quest_completable(46): FALSE (pre-claim, expected)
+  - get_all_strategies: auto_v2 ACTIVE on node 77, all 20 kamis
+  - get_account_kamis: 13 RESTING + 7 HARVESTING
+  - scavenge_claim_and_reveal(77): SUCCESS BOTH SUB-TX (claim 779k gas, reveal 1.12M gas — clean two-tx flow, no reverts).
+  - Verify inventory delta: Honeydew 32→52 (+20), Dried Stems 236→319 (+83), Bone Chunk 37→115 (+78). 20+83+78=181 rolls ✓. Honeydew rate 11.05% — exact match to expected 11.1%. RNG variance was zero this batch.
+  - check_quest_completable(46): TRUE.
+  - complete_quest(46): SUCCESS, 984k gas.
+  - accept_quest(47): SUCCESS, 837k gas (Q47 = "Sliding Down the Drainpipe" / Harvest 720min at Cave Crossroads).
+  - stop_strategy(43, permanent=True): DELETED.
+  - get_account_kamis: 5 still HARVESTING (12459, 13390, 10647, 11716, 13947).
+  - stop_harvest_batch([12459, 13390, 10647, 11716, 13947]): SUCCESS 8.44M gas, 5/5 stopped, 0 silent skips.
+  - travel_to_room(18, dry_run): 2 hops 77→76→18, 10 SP, no items.
+  - travel_to_room(18): SUCCESS 1.72M gas. Stamina 50→40.
+  - get_kami_state_slim(43): RESTING ✓
+  - start_strategy(auto_v2, kami=43, node=18, all 20 kamis, REST regen, 5% safety, bountyCollectThreshold 10000): RUNNING. Strategy ID `36c20fbd-86c0-4188-81d9-c531eef3f765`.
+  - get_all_strategies: confirmed ACTIVE on node 18 with all 20 kamis.
+
+**Result**: **Q46 ✓ + Q47 accepted + auto_v2 migrated to node 18 in one session.** The 18.75h fresh-migration first-cycle delay at node 77 paid out cleanly: 181 tiers materialized into 20 Honeydews (4× the 5 needed), 83 Stems, 78 Bones. Q46 chain cleared. Migration to Cave Crossroads is positioned for Q47's HARVEST_TIME counter — at 20 kamis × ~50% active, expect Q47 completable in 75-120 real min.
+
+**Key learnings**:
+  - **Honeydew RNG was on-spec**: 181 rolls × 0.111 = 20.1 expected; got 20. Stems 81/83 vs 80.4 expected; Bones 78 vs 80.4 expected. Variance near zero — large-N law of large numbers held cleanly.
+  - **Fresh-migration first cycle: 18.75h at node 77 with bountyCollectThreshold 10000.** At MUSU/h ~1,400 with 20 kamis sharing intensity ramp, hitting 10k per kami took longer than the 6h estimate. For future auto_v2 starts at fresh nodes, plan ~18h to first flush. (Note: subsequent cycles will be much faster as intensity stabilizes.)
+  - **scavenge_claim_and_reveal worked cleanly this time**: both sub-tx succeeded, no reveal-reverted weirdness. Contrast session 55 at node 16 (claim succeeded, reveal reverted). Difference was that session 55 hit a node where reveal granted directly via claim (node-35-style), while node 77 uses standard droptable reveal flow. Both flows now well-understood.
+  - **stop_harvest_batch single chunk = no silent-skips needed**: with 5 kamis in one chunk and all confirmed RESTING by per_kami inspection, the migration teardown was very efficient. The session-56 4-chunk migration was painful; this one was a single 8.44M-gas tx.
+  - **Migration window timing**: catching the migration just AFTER a flush event (kamis still recovering, many RESTING) made teardown cheap. Future migrations: time them within 1-2h of an observable scav-point flush — that's when you'll have the highest RESTING fraction.
+
+**Gas notes**: ~14.7M total: claim 779k + reveal 1.12M + complete46 984k + accept47 837k + stop_harvest_batch 8.44M + travel 1.72M = 13.88M. Plus 2 free reads, 1 stop_strategy (off-chain). Excellent ROI: 1 quest completion + 1 acceptance + 181 tier claim + 1 migration in <15M gas. No wasted tx.
+
+**Next session** (+90min → 2026-04-28 13:19 UTC, ts 1777382356): Q47 flush at node 18.
+  1. `check_quest_completable(47)` first — auto_v2's autoCollect cycles may have flushed HARVEST_TIME passively if any kami hit 10k MUSU at node 18 (low MUSU at insect-affinity node likely won't trigger this fast — passive flush unlikely in 90 min).
+  2. Most likely path: stop_strategy(43, permanent=True), then stop_harvest_batch all HARVESTING kamis (forces HARVEST_TIME flush per session 48 lesson). After ~75 real min × 20 kamis × ~50% active, expect ~750 kami-min accumulated post-Q47-accept.
+  3. check_quest_completable(47): expect TRUE post-flush.
+  4. complete_quest(47), accept_quest(48). Q48 unknown — read it on accept and decide migration vs in-place.
+  5. Decision branch: if Q48 is at the same node (18) or a nearby node, restart auto_v2 there. If Q48 doesn't need harvest at all, evaluate next quest in chain.
+  6. If Q47 not completable yet: another +60min reschedule, NO teardown — auto_v2 continues accumulating.
+  7. Bonus: check_quest_completable on a few side-quest indices to see if any are passively completable now (e.g., Q3007 Move 500 — passive accumulation, may be near completion).
+
