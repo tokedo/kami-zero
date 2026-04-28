@@ -1516,6 +1516,19 @@ Append one entry per session. Newest at the bottom.
 
 ## 2026-04-28 03:30 UTC — session 58 (Q46 grind: first cycle still unflushed at 10.5h, free reads only)
 
+> **CORRECTION 2026-04-28 (founder review)**: The "Decided" reasoning below
+> attributes the unflushed scav points to `bountyCollectThreshold: 10000`
+> not yet being hit. **That model is wrong.** auto_v2's harvest cycle is
+> HP-driven, not threshold-driven: kamis can't realistically hit 10k MUSU
+> before HP forces a rest, so `bountyCollectThreshold` is effectively
+> inert at the standard value. The actual cause of the delay was the
+> session-60 diagnosis: post-migration HP regen + intensity ramp +
+> time-to-health-danger before auto_v2 fires `stop_harvest` (which
+> auto-collects MUSU and credits scav 1:1). See
+> [strategies/auto_v2-mechanics.md](../strategies/auto_v2-mechanics.md)
+> for the canonical model. Keep the threshold at 10000; lowering it would
+> reset intensity on every collect and tank yield.
+
 **ETH balance**: not sampled.
 **Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-27 17:04 UTC (~10.5h elapsed). Strategy container `98de8cb3…` healthy: uptime 10.46h, 0 restarts, 5% CPU, 55% mem. ALL 20 kamis HARVESTING. Kami 43 harvest start = 1777312051 (22:27 UTC, ~5h post-migration), UNCHANGED since session 57 — same ~10.5h cycle still running. Inventory MUSU 420,757 — UNCHANGED from session 57 (+0 in 4h). Honeydew 32 baseline. node 77 scav points: 86 (UNCHANGED from session 56 post-claim). node 16 scav points: 8,681 (UNCHANGED from session 57 — confirms migration-flush diagnosis was correct, no ongoing leak). check_quest_completable(46) FALSE.
 
@@ -1554,6 +1567,21 @@ Append one entry per session. Newest at the bottom.
 
 
 ## 2026-04-28 11:49 UTC — session 59 (Q46 ✓ + Q47 accepted + auto_v2 migrated 77→18)
+
+> **CORRECTION 2026-04-28 (founder review)**: The "Key learnings" entry
+> below — *"Fresh-migration first cycle: 18.75h at node 77 with
+> bountyCollectThreshold 10000. At MUSU/h ~1,400 with 20 kamis sharing
+> intensity ramp, hitting 10k per kami took longer than the 6h estimate"*
+> — has the right number (18.75h is real) but the wrong cause. Kamis
+> never hit 10k before HP forces rest; the threshold doesn't gate the
+> flush. The flush is gated by auto_v2's HP-safety stop, which fires
+> `stop_harvest` and auto-collects (crediting scav 1:1). The 1:1
+> MUSU↔scav match observation is correct; the trigger label was wrong.
+> The 4-18× variance vs the 1k–5k pre-session prediction is now
+> explained: `stop_harvest` collects whatever MUSU has accumulated for
+> that kami at the moment of stop (intensity-pumped over the long
+> uninterrupted cycle), not in 10k chunks. See
+> [strategies/auto_v2-mechanics.md](../strategies/auto_v2-mechanics.md).
 
 **ETH balance**: not sampled.
 **Perceived**: At ~18.75h post-migration, the first auto_v2 cycle FINALLY flushed at node 77. Scav points 86 → 18,110 (+18,024 pts = 181 claimable tiers at 100/tier). MUSU 420,757 → 438,781 (+18,024 — 1:1 match with scav delta confirms a clean MUSU-collect→scav-credit pipeline at node 77). Node 16 stable at 8,681 (no-leak invariant holds across 3 sessions). 13 RESTING + 7 HARVESTING (mid-cycle).
@@ -1607,7 +1635,7 @@ Append one entry per session. Newest at the bottom.
 **ETH balance**: not sampled.
 **Perceived**: At ~1h47m post-migration to node 18, only 1/20 kamis HARVESTING (kami 3983, just started 6 min ago). 19 RESTING. MUSU 438,781 → 443,028 (+4,247). Honeydew/Stems/Bones unchanged. check_quest_completable(47) FALSE. Auto_v2 container healthy (uptime 103min, 0 restarts). node 18 scav points = 0 (instance fresh). Sample slim reads on kamis 43/1064/12459/14306: all show harvest entity at node 77 INACTIVE with stale time.last (10:00-12:48 UTC) — meaning auto_v2 has not yet issued harvest_start on these kamis at node 18.
 
-**Diagnosis**: Auto_v2 is correctly waiting for HP regen. Sample sync HP: kami 43 = 43/230 (~19%), kami 1064 < 100%. The 5% safety margin gates harvest_start until HP ≥ ~95%. Most kamis came off node 77 at sub-full HP from late-cycle stops, so REST regen must complete before auto_v2 fires harvest_start. This adds hours of upstream regen on top of the previously-observed 18.75h bountyCollectThreshold cycle. The "ramp + first flush" timeline at a fresh node, post-migration from another active grind, is closer to 24h end-to-end than the 6-12h I previously assumed.
+**Diagnosis**: Auto_v2 is correctly waiting for HP regen. Sample sync HP: kami 43 = 43/230 (~19%), kami 1064 < 100%. The 5% safety margin gates harvest_start until HP ≥ ~95%. Most kamis came off node 77 at sub-full HP from late-cycle stops, so REST regen must complete before auto_v2 fires harvest_start. This adds hours of upstream regen on top of the intensity ramp + time-to-health-danger before auto_v2 fires `stop_harvest` (which auto-collects MUSU and credits scav 1:1). The "ramp + first flush" timeline at a fresh node, post-migration from another active grind, is closer to 24h end-to-end than the 6-12h I previously assumed. [Note 2026-04-28: this HP-regen diagnosis is correct; earlier sessions' framing of `bountyCollectThreshold: 10000` as a contributing gate is wrong — that parameter is inert at standard values. See [strategies/auto_v2-mechanics.md](../strategies/auto_v2-mechanics.md).]
 
 **Decided**: 
   - **No transactions.** A force-flush via stop_strategy + manual harvest_start wave on 20 kamis would cost ~76M gas to skip ~12-18h of patience. Q47 has no deadline; bad ROI.
@@ -1630,7 +1658,7 @@ Append one entry per session. Newest at the bottom.
 **Result**: Pure check-in. 0 tx, 0 gas. Diagnostic insight: post-migration HP regen, not just intensity ramp, is the dominant first-cycle delay. The session 59 "75 real min × 50% active" estimate was off because most kamis can't START due to safety-margin HP gate.
 
 **Key learnings**:
-  - **Post-migration HP regen is the rate-limiter for fresh auto_v2 deployments.** Kamis ending the previous grind below full HP must rest fully before auto_v2's safety margin lets them start at the new node. Add hours of regen on top of intensity-ramp + bountyCollectThreshold cycle. End-to-end first-cycle window: budget 18-24h, not 6-12h.
+  - **Post-migration HP regen is the rate-limiter for fresh auto_v2 deployments.** Kamis ending the previous grind below full HP must rest fully before auto_v2's safety margin lets them start at the new node. Add hours of regen on top of the intensity-ramp + time-to-health-danger pipeline (`stop_harvest` is what credits MUSU/scav, NOT `bountyCollectThreshold` — that parameter is inert at 10000). End-to-end first-cycle window: budget 18-24h, not 6-12h.
   - **Slim API harvest entity reflects last on-chain harvest action, NOT current room.** A kami at room 18 can show harvest entity at node 77 INACTIVE — that just means auto_v2 hasn't fired harvest_start at the new node yet. To distinguish "leak" from "patient ramp", count HARVESTING kamis from get_account_kamis (state field) — that's chain-authoritative.
   - **`get_quest_status` may return active=false even for active quests.** Cross-check with get_active_quests entity_id list. Don't trust the boolean alone.
   - **Side-quest sweep economy**: 6 of the 3xxx side quests are already completed. Skip Q3009-Q3014 in future passive checks. Q3007 (Move 500) remains the only passive accumulator worth probing.
