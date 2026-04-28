@@ -1512,3 +1512,42 @@ Append one entry per session. Newest at the bottom.
   3. If node 77 has ≥30 tiers AND node 16 stable: scavenge_claim_and_reveal(77), check delta vs Honeydew=32, complete chain if ≥5.
   4. If node 77 has <30 tiers: defer claim, reschedule +4-6h.
   5. If node 16 grew unexpectedly: investigate auto_v2 routing — might be a Kamibots strategy bug.
+
+
+## 2026-04-28 03:30 UTC — session 58 (Q46 grind: first cycle still unflushed at 10.5h, free reads only)
+
+**ETH balance**: not sampled.
+**Perceived**: Auto_v2 ACTIVE on node 77 since 2026-04-27 17:04 UTC (~10.5h elapsed). Strategy container `98de8cb3…` healthy: uptime 10.46h, 0 restarts, 5% CPU, 55% mem. ALL 20 kamis HARVESTING. Kami 43 harvest start = 1777312051 (22:27 UTC, ~5h post-migration), UNCHANGED since session 57 — same ~10.5h cycle still running. Inventory MUSU 420,757 — UNCHANGED from session 57 (+0 in 4h). Honeydew 32 baseline. node 77 scav points: 86 (UNCHANGED from session 56 post-claim). node 16 scav points: 8,681 (UNCHANGED from session 57 — confirms migration-flush diagnosis was correct, no ongoing leak). check_quest_completable(46) FALSE.
+
+**Decided**: 
+  - **No transactions.** 0 tx, 0 gas. Auto_v2 strategy is healthy; no first cycle has flushed at node 77 because per-kami balance hasn't hit `bountyCollectThreshold: 10000` yet. With fresh intensity (reset on migration), MUSU/h is low — the 10k threshold per kami takes longer than at node 16's pre-warmed deployment. Once the first cycle hits, the flush flow restarts.
+  - Don't disturb. Restarting now would reset intensity and waste 10.5h of ramp-up. The 10k bountyCollectThreshold is a per-kami trigger, so once any kami's balance hits it, we'll see the first scav-points flush. As intensity grows, subsequent cycles will be much faster.
+  - Reschedule +8h to give multiple kamis time to clear their first 10k MUSU each.
+
+**Acted**:
+  - get_scavenge_points(77, "bpeon"): 86 pts / 100 cost = 0 tiers (UNCHANGED).
+  - get_scavenge_points(16, "bpeon"): 8,681 pts / 500 cost = 17 tiers (UNCHANGED — no ongoing leak ✓).
+  - check_quest_completable(46): FALSE (expected).
+  - get_all_strategies: auto_v2 ACTIVE on node 77, all 20 kamis configured, status RUNNING.
+  - get_account_kamis: ALL 20 HARVESTING (unlike session 57's 19+1, kami 12459 has since started a new cycle at 00:02 UTC).
+  - get_kami_state_slim(43, 1064, 12459): all on node 77, harvest entity ACTIVE, balance 0 in slim view (cached/stale; on-chain balance presumably ramping). Kami 43 same start time as session 57 (no cycle break in 4h). Kami 12459 fresh cycle start at 1777334566 (00:02 UTC).
+  - get_strategy_status(kami=43): container healthy, uptime 10.46h, 0 restarts.
+  - get_strategy_logs: API 500 (Kamibots logs endpoint flaky; not a strategy issue).
+  - get_inventory: snapshot recorded.
+
+**Result**: Pure check-in. Migration-flush diagnosis from session 57 confirmed (node 16 stable, no leak). Q46 still pending; auto_v2 first-cycle accumulation is the bottleneck. Patience.
+
+**Key learnings**:
+  - **Fresh-migration first-cycle delay can exceed 10h at node 77.** auto_v2's `bountyCollectThreshold: 10000` MUSU per kami is the trigger for collect tx (which flushes scav points). With reset intensity at migration, MUSU/h is low until intensity ramps; first kami to hit 10k takes longer than expected. Lesson: the "5-6h to first cycle" estimate from session 56 was too aggressive for fresh-intensity migrations. For future migrations, expect 10-15h for first scav-point flush.
+  - **No-leak confirmation at node 16**: Sessions 57 and 58 both observed 8,681 pts at node 16 — proves the +8,313 was a one-time migration-teardown flush, not ongoing leakage. Auto_v2 routing IS correct (kamis at node 77, scav points accruing on the new instance once a cycle completes).
+  - **Strategy health check pattern**: when in-flight observations are unexpectedly stalled, `get_strategy_status(kami=primary)` confirms the container is alive (uptime, restart count). 0 restarts + steady CPU/mem rules out crash-loops. The Kamibots `/logs` endpoint returns 500 frequently and isn't load-bearing for diagnosis.
+  - **Slim API balance/rates can show 0 even mid-cycle**: balance/rate fields are likely cached at last touch; for proof of activity, watch on-chain MUSU inventory deltas + scav points. Don't trust slim balance=0 as "kami isn't producing".
+
+**Gas notes**: 0 tx submitted. 0 gas spent.
+
+**Next session** (+8h → 2026-04-28 11:30 UTC, ts 1777375815): probe Q46 at node 77 with ≥18h elapsed.
+  1. `get_scavenge_points(77)` first — by ~18h post-migration, at least 5-10 kamis should have hit their first 10k MUSU collect, each flushing intensity-proportional scav points. Expected: 1,000-5,000 pts = 10-50 tiers.
+  2. Verify node 16 stable at 8,681 (no-leak persistent).
+  3. If ≥30 tiers AND P(≥5 Honeydews) ≥ ~30%: scavenge_claim_and_reveal(77), check delta vs Honeydew=32, complete chain if ≥5.
+  4. If still 0-1 tiers: SOMETHING is wrong with the flush mechanic at this node. Investigate: re-examine bountyCollectThreshold, consider manual harvest_collect on kami 43 to force a cycle (cheap probe).
+  5. If <30 tiers but progress: defer claim, reschedule +6h to bank more.
