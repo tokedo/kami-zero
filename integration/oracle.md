@@ -83,7 +83,15 @@ for the most common questions.
 
 ## Schema cheat sheet
 
-Five tables, all read-only:
+**Snapshot cadence**: `kami_static` rows are refreshed by a daily
+populator sweep. `build_refreshed_ts` is the per-row age. The
+`kami_equipment` view exposes `freshness_seconds` and `is_stale`
+(TRUE when > 36 hours old). For destructive ops (unequip, trade,
+liquidate) **always verify against live chain state via Kamibots
+before committing** — a row can carry an item that's been
+unequipped since the last sweep.
+
+Six tables and one view, all read-only:
 
 ### `kami_action` — decoded, one row per logical game action
 
@@ -132,8 +140,10 @@ daily by the populator:
   not stored; cross-reference against the skill catalog if you need
   to break a stat down by source.
 - `equipment_json` — JSON array of item indices currently equipped.
-  Slot labels are not resolved (chain registry quirk); raw item
-  indices only. Empty `[]` for most kamis — equipment is rare today.
+  Use the `kami_equipment` view (below) for slot-resolved access;
+  raw `equipment_json` remains available for callers that want the
+  original chain payload. Empty `[]` for most kamis — equipment is
+  rare today.
 - `build_refreshed_ts` — when the build was last fetched from chain.
 
 Skill-effect modifiers (Session 11) — the 12 non-stat skill effects
@@ -187,6 +197,42 @@ Kamibots, not the oracle):
   (`harvester_points` / `predator_points` / `guardian_points` /
   `enlightened_points`) — derive in SQL from `skills_json` × the
   skill catalog if you need it; not stored as columns.
+
+### `kami_equipment` — slot-resolved equipped items (view)
+
+A view (Session 13). One row per equipped item per kami, with slot
+resolved via `items_catalog` (a static mirror of
+`kami_context/catalogs/items.csv`). Replaces the previous workaround
+of joining `equipment_json` against items.csv inline.
+
+Columns: `kami_id`, `kami_index`, `name`, `account_name`,
+`slot_type` (`Kami_Pet_Slot`, `Passport_slot`, …), `item_index`,
+`item_name`, `item_effect`, `build_refreshed_ts`,
+`freshness_seconds`, `is_stale`.
+
+```sql
+-- All pet equips on a roster
+SELECT kami_index, item_name, item_effect,
+       freshness_seconds, is_stale
+FROM kami_equipment
+WHERE account_name = 'fey'
+  AND slot_type = 'Kami_Pet_Slot';
+```
+
+**Always check `is_stale` before unequip / trade / liquidate.** A
+false positive (item shown equipped, slot actually empty on chain)
+is a normal consequence of snapshot lag, not a bug. Verify with
+`get_kami_state(kami_index)` on Kamibots before committing the
+destructive op.
+
+### `items_catalog` — static item registry
+
+Mirror of `kami_context/catalogs/items.csv`. Re-loaded only when
+`kami_context` is re-vendored (not on every poll). Columns:
+`item_index` (PK), `name`, `type`, `rarity`, `slot_type` (the
+chain "For" value; NULL for non-equipment items like consumables
+and currency), `effect`, `description`, `loaded_ts`. Most callers
+go through `kami_equipment` rather than touching this directly.
 
 ### `raw_tx` — one row per tx touching Kamigotchi systems
 
