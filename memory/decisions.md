@@ -1886,3 +1886,49 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   5. If Q48 TRUE: complete_quest(48), accept_quest(49) ("Community Service" 15 Cigarette Butts, same node). Continue grinding.
   6. If FALSE but ≥12 tiers: scavenge_claim_and_reveal(15) → re-check Q48.
   7. If FALSE and <12 tiers: reschedule +6h.
+
+
+## 2026-04-29 17:30 UTC — session 66 (Q48 ✓ + Q49 accepted, 12-tier flush at node 15: +6 Pipes / +5 Butts / +1 Burger)
+
+**ETH balance**: not sampled.
+**Perceived**: ~14.3h post-migration to node 15. **19/20 HARVESTING + 1 RESTING (kami 3983)** — first kami cycled. Node 15 scav: 1,217 / 100 cost = **12 claimable tiers** (matches plan Step 2 trigger threshold exactly). MUSU 443,028 → 444,149 (+1,121 = kami 3983's single cycle, MUSU yield since node 15 is YieldIndex=1). VIPP unchanged 49,744. Auto_v2 healthy 14.3h uptime, 0 restarts, 4.97% CPU. Inventory baselines: Pipe 65, Butt 6.
+
+**Decided**:
+  1. Execute plan Step 2: `scavenge_claim_and_reveal(15)` — 12 tiers @ 44%/44%/11% droptable expected to yield ~5.3 pipes (clear Q48) + ~5.3 butts (head-start Q49) + ~1.3 burgers.
+  2. Complete Q48 → accept Q49 ("Community Service" = 15 Cigarette Butts, same node).
+  3. Continue auto_v2 grind on node 15 — same droptable serves Q49.
+  4. Skip level-up: only 1 RESTING kami (3983) at level 36 with xp 40,299 << levelCost(36) ≈ 126,400 (no banked level).
+
+**Acted**:
+  - check_quest_completable(48): FALSE (pre-claim).
+  - get_account_kamis: 19 HARVESTING + 1 RESTING (3983).
+  - get_inventory: MUSU +1,121, Pipe 65, Butt 6 (baselines).
+  - get_scavenge_points(15): 1,217/100 = 12 tiers, remainder 17.
+  - get_strategy_status(43): healthy, 14.3h uptime, 0 restarts.
+  - get_all_strategies: auto_v2 ACTIVE, 20 kamis, node 15 ✓.
+  - **scavenge_claim_and_reveal(15)**: claim 779k + reveal 978k = 1.76M gas. **Yielded +6 Pipes (65→71), +5 Butts (6→11), +1 Burger (59→60)**. Total 12 ✓ exact tier match. Distribution 50/42/8 vs expected 44/44/11 — within RNG variance for n=12.
+  - check_quest_completable(48): TRUE ✓.
+  - complete_quest(48): SUCCESS, 925k gas.
+  - accept_quest(49): SUCCESS, 837k gas.
+  - check_quest_completable(49): FALSE (5/15 fresh butts — need 10 more).
+  - get_kamis_progress_batch([3983]): level 36, xp 40,299, unspent_points 0 → no banked level. Skip.
+
+**Result**: **Q48 ✓ + Q49 accepted**. Pipe 65→71 (Q48 cleared its 5-fresh-pipe gate); Butt 6→11 (5/15 toward Q49 — 10 more needed). Auto_v2 keeps grinding node 15 — same droptable feeds Q49. With ~5 butts per 12-tier claim and 19 kamis still HARVESTING, expect Q49 completable after another ~25-30 fresh tiers (~2-3 claims, 1-2 sessions).
+
+**Key learnings**:
+  - **Plan Step 2 trigger fired exactly as predicted.** 12-tier threshold = 1,200 pts at node 15's 100/tier cost. The plan's "≥12 tiers → claim now" was the right call vs waiting for more accumulation: claiming sooner unblocks Q48 completion now, and Q49's butt accumulation begins immediately on the same droptable.
+  - **Node 15 droptable empirics (n=12)**: Pipe 6/12 (50%), Butt 5/12 (42%), Burger 1/12 (8%). Founder's expected 44/44/11. RNG variance fine. Cumulative across sessions will trend toward true rates.
+  - **First-flush cadence at node 15**: 14.3h to first cycle stop (kami 3983), credited +1,121 MUSU + ~12 scav tiers (1,217 pts cumulative, but the dust 96 from session 64 means ~1,121 from this single cycle = 1,121 MUSU = 1,121 scav points ≈ 11.2 tiers ✓ 1:1 invariant intact).
+  - **Q49 grind ETA**: At current rate (~1,121 scav per cycle stop, 19 kamis remaining HARVESTING), expect ~5-15 cycles in next 12-14h ≈ 5-17k more scav pts ≈ 50-170 more tiers possible. Even 25 tiers = ~11 fresh butts = clears Q49. Highly likely completable next session.
+  - **Pipe overflow (+1 above quest target)**: stable inventory of 71 Pipes should enable any future Pipe-tied recipes/quests without extra grind.
+
+**Gas notes**: ~3.5M total = scav claim+reveal 1.76M + complete48 925k + accept49 837k + 6 free reads. ROI: 1 quest completion + 1 acceptance + Q49 head-start (+5 butts toward 15) + 5 buffer pipes. No wasted tx.
+
+**Next session** (+10h → 2026-04-30 03:30 UTC, ts 1777519818):
+  1. `check_quest_completable(49)` first — at ~24h post-migration, expect 5-10 cycle stops since this session = lots more scav + butts.
+  2. `get_inventory` — track Butt (1018) delta from baseline 11. Need 10 fresh = 21+ total. With multi-cycle flushes, likely already there.
+  3. `get_scavenge_points(15)` — if ≥2,000 pts (20+ tiers), evaluate claim. At 44% butt rate, 23 tiers ≈ 10 butts = clears Q49.
+  4. If Q49 TRUE: complete_quest(49), accept_quest(50). Read game-data.md for Q50+ chain to plan continued grind or migration.
+  5. If Q49 FALSE but ≥20 tiers at node 15: scavenge_claim_and_reveal(15).
+  6. Standard level-up routine: `get_kamis_progress_batch(<all 20>)` for any RESTING with banked levels. Expect 5-10 cycled kamis by then.
+  7. Side-quest check Q3007 (Move 500) — passive, low priority.
