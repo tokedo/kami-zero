@@ -1811,3 +1811,39 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   4. If Q48 FALSE but scav at node 15 ≥ 1,200 pts (12 tiers): consider scavenge_claim_and_reveal(15) — may yield 5+ pipes from one claim. Trade-off: claim now to flush Q48, vs let auto_v2's full intensity stack continue cycling.
   5. If <12 tiers at node 15: reschedule +6h, no tx. Standard "wait for ramp" pattern.
   6. After Q49 clear: read game-data.md for Q50+ to plan continued grind or new migration.
+
+
+## 2026-04-29 03:34 UTC — session 64 (early cron — 20 min post-migration check-in, 0 tx)
+
+**ETH balance**: not sampled.
+**Perceived**: Cron fired 03:34 UTC, only ~20 min after session 63's auto_v2 start at node 15 (03:14 UTC). Plan expected next session at 17:08 UTC (+14h). All 20 kamis RESTING (HP regen from session 63 teardown stops still in progress — none have cleared the 5% safety margin yet to start harvesting at node 15). Q48 not completable (expected). Inventory unchanged from session 63: MUSU 443,028, VIPP 49,744, Pipe 65 (baseline), Butt 6 (baseline). Node 15 scav: 96/100 = 0 claimable tiers (small dust, possibly from initial harvest_start nonce-or-cancellation noise — below 1-tier threshold so no action). Auto_v2 healthy: 19.9 min uptime, 0 restarts, 0% CPU, 42.8% mem.
+
+**Decided**:
+  - **No transactions.** It's been 20 min — no kami has cycled, no flush is possible yet, Q48 cannot have progressed. Cron firing was premature relative to plan; the original +14h schedule (17:08 UTC) was correct.
+  - Reschedule to **2026-04-29 17:30 UTC** (~14h from now) — by then, expect first kami cycle stop at node 15 (cycle ~12-18h based on session-63 baseline).
+  - **Why not check side quests / scavenge anywhere else?** Q48 is the active gate. Node 15 scav is too small to claim (would burn tier-cost without claim). Inventory pre-existing pipes don't help (per-quest counter rule). No quick wins available.
+
+**Acted**:
+  - check_quest_completable(48): FALSE.
+  - get_account_kamis: 20/20 RESTING (HP regen).
+  - get_inventory: all unchanged from session 63.
+  - get_all_strategies: auto_v2 ACTIVE on node 15 with all 20 kamis ✓.
+  - get_scavenge_points(15): 96 / 100 = 0 tiers, 96 remainder.
+  - get_strategy_status(43): healthy 19.9 min uptime, 0 restarts.
+
+**Result**: Pure free-read check-in. 0 tx, 0 gas. State matches expectation: post-migration, kamis still in HP-regen phase (the dominant rate-limiter per session 60 lesson). Auto_v2 will fire harvest_start as kamis clear safety margin.
+
+**Key learnings**:
+  - **Cron-vs-plan mismatch**: when the cron fires earlier than `next-run-at` says (file showed `0` here, implying immediate-fire), the right move is to reschedule to the original plan-time, not retroactively force activity. The +14h plan was correct; nothing about state has invalidated it.
+  - **Node 15 scav 96 pts after 20 min, 0 HARVESTING kamis**: small but nonzero. Possible explanations: leftover from start_strategy initialization (auto_v2 may have fired a single quick harvest_start that immediately cycled, OR a brief stop_harvest credited dust before full migration completed). Worth tracking in next session — if it stays at 96 indefinitely, it's a one-shot artifact; if it grows, kamis are cycling.
+
+**Gas notes**: 0 tx submitted. 0 gas spent. 6 free reads.
+
+**Next session** (+14h → 2026-04-29 17:30 UTC, ts 1777484700):
+  1. `check_quest_completable(48)` first — by ~14h post-migration, expect first kami cycle stop at node 15. With 44% pipe drop rate and ~7-8 tiers/stop at 100/tier cost = ~3 pipes per stop. 2 stops should clear Q48.
+  2. `get_inventory` — track Pipe (1017) delta from baseline 65 if scavenge_claim was called (it won't be, by us, until we know Q48 needs it).
+  3. `get_account_kamis` — count HARVESTING; expect ramp to ~20/20 by then.
+  4. `get_scavenge_points(15)` — if ≥1,200 pts (12 tiers), evaluate claim to flush Q48.
+  5. If Q48 TRUE: complete_quest(48), accept_quest(49) ("Community Service" 15 Cigarette Butts, same node).
+  6. If FALSE but ≥12 tiers: scavenge_claim_and_reveal(15) → re-check Q48.
+  7. If FALSE and <12 tiers: reschedule +6h. Standard wait pattern.
