@@ -135,6 +135,59 @@ Principle: a transaction receipt is not proof of end state. Read the state.
 - Perceive every kami you plan to include. Confirm each is RESTING and at the new node's room.
 - Any kami still placed at a prior node or still harvesting is a migration leak — resolve it (additional `stop_harvest`, travel, etc.) before calling `start_strategy`. Starting a strategy on a partially-prepared roster wastes gas on operator retries and leaves the deployment broken.
 
+## Level-up + skill allocation — every session, every RESTING kami with banked XP
+
+Kamis earn XP from harvesting (1 XP per MUSU/VIPP collected). XP banks indefinitely. Each level-up grants 1 SP. **Unlevel'd kamis are leaving sustain on the table** — every unspent SP is a missing chunk of strain reduction, intensity, or defense that would let your roster harvest longer per cycle and produce more MUSU per tx. Make level-ups and skill allocation a **standard part of every session**.
+
+### Routine
+
+During the perception phase (step 2 of the session protocol), as part of `get_account_kamis`/`get_kami_state_slim` reads, also note each kami's `level` and `experience`. Compute eligibility:
+
+- Eligible kami: state is **RESTING** (level-up requires RESTING) AND `experience >= levelCost(level)` where `levelCost = floor(40 * 1.259^(level-1))` (see `systems/leveling.md` for the table).
+- "Banked levels" for a kami: the largest `n` such that `experience >= sum(levelCost(level), levelCost(level+1), ..., levelCost(level+n-1))`. XP is consumed on level-up; surplus is retained.
+- Don't level RESTING kamis whose XP doesn't cover at least one level-up. Don't level HARVESTING kamis at all (they'll be eligible on the next natural cycle stop).
+
+Use the existing tools — they already enforce "no speculative tx":
+
+- `level_to(kami_id, target_level)` — levels a single kami, computes exact tx count from current level, stops on first failure (e.g. XP runs out).
+- `level_and_allocate_batch(targets=[{kami_id, target_level, skill_plan}, ...])` — workhorse: levels and allocates many kamis in one MCP round-trip. Per-kami failures don't abort the batch.
+- `allocate_skills(kami_id, skill_plan)` — when a kami already has unspent SP from prior levels.
+
+Read each kami's `level`, `experience`, and currently-allocated skills BEFORE submitting. Send only the exact tx count required. Spam-leveling 30 tx and watching 15 revert is the canonical "speculative tx" anti-pattern from the Gas efficiency section.
+
+### Default build: Guardian-leaning sustain (improves MUSU per tx)
+
+For the bpeon roster (current playstyle: long auto_v2 deployments on quest-targeted nodes), the goal is **stay on node longer per cycle** = more MUSU per harvest_start = more MUSU per tx. The skills that move that needle are in the **Guardian** and **Enlightened** trees — defense thresholds, strain reduction, intensity boost, rest recovery.
+
+Default per-kami SP plan, in priority order (skip tiers where the kami already has points):
+
+1. **Guardian tier 1** (no SP gate): `313` Patience (HIB +5 MUSU/hr) → `312` Toughness (SHS +10) → `311` Defensiveness (SYS +1). Max 5 each. Cap tree at 5 SP to unlock tier 2.
+2. **Guardian tier 2** (5 SP in Guardian): `321` Meticulous (DTR +5%) → `323` Armor (DTS +2%) → `322` Vigor (SHS +10). Max 5 each. Total 15 SP in tree to unlock tier 3.
+3. **Guardian tier 3** (15 SP, mutually exclusive — pick one): `332` Die Hard (SB −7.5%, strain reduction) is the sustain pick. The other two (`331` Anxiety, `333` Loyalty) are not strain-focused.
+4. **Enlightened tier 1** (no SP gate): `211` Self Care (RMB +5%) → `213` Good Constitution (HFB +6%) → `212` Cardio (SHS +10). Max 5 each.
+5. **Enlightened tier 2** (5 SP in Enlightened): `223` Concentration (SB −2.5%, more strain reduction) → `221` Focus (HBB +4%) → `222` Meditative Breathing (DTS +2%).
+6. **Enlightened tier 3** (15 SP, mutually exclusive): `232` Warmup Exercise (HIB +15 MUSU/hr) is the sustain meta pick — confirmed by kami-agent's archetype work (the `0/16/16/0` Guardian-only build).
+
+Read `catalogs/skills.csv` for the full table and `systems/leveling.md` for tier gates and SP economics. The reference meta build for sustain harvesters is `0/16/16/0` (Predator/Enlightened/Guardian/Harvester), reachable by ~level 33. Don't try to skip tiers — tier gates are total points in tree, not chronological.
+
+### Refining the plan with oracle (optional)
+
+If you want to verify the build matches the meta or check whether a different build fits a specific kami's base stats, query the oracle (per ADR-006, build/skill-point allocation is in scope). Examples:
+
+- `oracle_kami_summary(<kami_index>)` to see what your own kami has been doing recently.
+- `oracle_sql("SELECT base_health, base_power, base_violence, base_harmony, body_affinity, hand_affinity, level, total_health, total_power, total_violence, total_harmony, strain_boost, harvest_intensity_boost, harvest_bounty_boost, harvest_fertility_boost FROM kami_static WHERE account_name = 'bpeon'")` to see your roster's current build vs base potential.
+- Top sustain-harvester pattern: see `integration/oracle.md` § "Sustain-harvester scan" for the canonical query (orders by most-negative `strain_boost`).
+
+The Guardian-leaning default above is the safe baseline — only deviate from it on a per-kami basis if oracle evidence + base stats suggest a different archetype (e.g. `base_violence ≥ 23` → consider predator skills instead).
+
+### Hard rules
+
+1. **No speculative level-up tx.** Compute exact level count from banked XP, send only that many. Use `level_to` / `level_and_allocate_batch` — they enforce this.
+2. **Kami must be RESTING** for both level-up and skill upgrade. Don't pull a kami out of HARVESTING just to level it — wait for the natural cycle stop.
+3. **Don't drop any current quest priority for leveling.** Quest progression remains primary. Leveling fits in the cracks (kamis already RESTING during perception, between auto_v2 cycles, after migration teardown).
+4. **Document the level-ups in `decisions.md`**: which kamis, from→to, SP plan applied, gas. Same format as other actions.
+5. **Skill plan must respect tier gates** — lower tiers first, otherwise the tx reverts. The default plan above is already tier-ordered.
+
 ## Gas efficiency — CRITICAL
 
 Every transaction costs ETH. This is a fundamental constraint of the game and a core skill you must learn.
