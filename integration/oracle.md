@@ -102,7 +102,12 @@ Most queries start here. Key columns:
 - `system_id` — e.g. `system.harvest.start`
 - `from_addr` — operator signer wallet (NOT the kami's owning Account)
 - `kami_id` — VARCHAR decimal of uint256 entity ID, nullable
-- `target_kami_id` — for liquidations
+- `target_kami_id` — NULL on every row today (decoder gap). For
+  liquidations, resolve the victim by self-joining
+  `harvest_liquidate.harvest_id` to a `harvest_start` row and
+  reading its `kami_id` (the killer is on `kami_action.kami_id`
+  of the `harvest_liquidate` row itself). See "Liquidation
+  pairing" example below.
 - `node_id`, `harvest_id`
 - `amount` — VARCHAR decimal uint256. **Cast as `CAST(amount AS HUGEINT)`** — never `/ 1e18`. Generic field; meaning depends on action_type
 - `item_index`, `metadata_json`, `status`
@@ -275,41 +280,72 @@ Population: 72 skills, 4 trees × 18 each, 16 effect keys (full
 taxonomy from `kami_context/systems/leveling.md`). Most callers
 go through `kami_skills`.
 
-### `kami_current_location` — latest-known room (view)
+### `kami_current_location` — current node IF currently harvesting (view)
 
-A view (Session 14). For each kami, picks the most recent
-`harvest_start` action and resolves the destination room via
-`nodes_catalog`. **Not live truth** — staleness model differs
-from the snapshot views:
+A view (Session 14, corrected Session 14.5). Reflects the actual
+chain mechanic: **kamis don't move; operators do**. A kami is on
+a node iff its operator placed it there (`harvest_start`) and
+hasn't taken it off (`harvest_stop` / liquidation / death). A
+**resting** kami is "in the operator's pocket" at wherever the
+operator currently is — not on any node, so this view honestly
+returns NULL for `current_room_index` / `current_node_id` in that
+case.
 
-- `freshness_seconds` is `now() - since_ts` (latest
-  `harvest_start` block_timestamp), **not** `build_refreshed_ts`.
-- `is_stale = TRUE` when source action is older than **30
-  minutes** (snapshot views use 36h — different threshold
-  because location turns over faster than build).
-- **Move-attribution gap**: `move` actions on chain are
-  account-level (no `kami_id`), so a kami that walks to a new
-  room *without* harvesting won't update its location here until
-  the next `harvest_start`. If the agent needs the post-move
-  location before any harvest, verify against chain.
-
-Columns: `kami_id`, `kami_index`, `name`, `account_name`,
-`current_room_index`, `current_node_id`, `source_action_type`
-(always `harvest_start` today), `since_ts`, `freshness_seconds`,
-`is_stale`.
+Columns:
+- `kami_id`, `kami_index`, `name`, `account_name`
+- `currently_harvesting` (BOOLEAN) — TRUE iff the kami's latest
+  harvest-family action is a `harvest_start` with no
+  end-of-harvest event since. **The single source of truth —
+  guard every "is this kami on a node?" query with this.**
+- `current_node_id`, `current_room_index` — populated only when
+  `currently_harvesting = TRUE`; NULL otherwise.
+- `last_harvest_node_id`, `last_harvest_start_ts` — node from
+  the latest `harvest_start` regardless of current state.
+  Distinguishes cold-start kamis (NULL) from "previously
+  harvested, now resting" (populated, `currently_harvesting =
+  FALSE`).
+- `since_ts`, `freshness_seconds` — when the current state was
+  last signalled.
+- `is_stale` — TRUE iff `currently_harvesting AND
+  freshness_seconds > 1800` (30 min). NULL when not harvesting
+  (no signal to be stale about).
 
 ```sql
--- "Which of my fey roster is currently parked on node 86?"
-SELECT kami_index, current_node_id, since_ts,
-       freshness_seconds, is_stale
+-- "Which of my fey roster is currently harvesting on node 86?"
+SELECT kami_index, current_node_id, since_ts, is_stale
 FROM kami_current_location
 WHERE account_name = 'fey'
+  AND currently_harvesting        -- guard against NULL current_node_id
   AND current_node_id = 86;
 ```
 
-**Verify before destructive ops keyed on location** (move,
-liquidate, retire). A `harvest_start` we observed 5 hours ago is
-a strong prior but not proof the kami is still there.
+**Verify before destructive ops keyed on location.** A
+`harvest_start` we observed 5 hours ago is a strong prior, not
+proof the kami is still there.
+
+#### Known limitations
+
+- **die / revive aren't decoded.** A kami that died from a
+  non-liquidate cause (e.g. strain death) reads
+  `currently_harvesting = TRUE` until its next harvest action.
+  `is_stale` + Kamibots verification is the workaround.
+- **Window-edge over-claim.** A kami harvesting continuously
+  longer than the rolling 28d window has no `harvest_start` row
+  in scope, only `harvest_collect` rows; the view shows
+  `currently_harvesting = TRUE` but `current_node_id IS NULL`.
+  ~90 such kamis live as of 2026-04-29. Identify them with
+  `currently_harvesting AND current_node_id IS NULL` — they're
+  definitely on a node, just not knowable from oracle alone.
+
+#### Resting-kami physical location (deferred)
+
+For a resting kami, the physical room is the **operator's**
+current room — derivable by joining `kami_static.account_id`
+against the operator's latest `move` action (account-level, no
+kami_id on the row). Not bundled into this view (kept focused on
+the harvesting case); a future `account_current_location` view
+may surface it. Until then, the agent can join itself when
+needed.
 
 ### `nodes_catalog` — static node registry
 
