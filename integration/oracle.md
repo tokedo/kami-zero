@@ -91,7 +91,7 @@ liquidate) **always verify against live chain state via Kamibots
 before committing** — a row can carry an item that's been
 unequipped since the last sweep.
 
-Six tables and one view, all read-only:
+Eight tables and three views, all read-only:
 
 ### `kami_action` — decoded, one row per logical game action
 
@@ -136,9 +136,10 @@ daily by the populator:
   leaderboards and meta-clustering — never recompute from base + skill
   points locally; you'll diverge from in-game truth.
 - `skills_json` — JSON array `[{index, points}, ...]` of upgraded
-  skills and their current point investment. Skill → stat mapping is
-  not stored; cross-reference against the skill catalog if you need
-  to break a stat down by source.
+  skills and their current point investment. Use the `kami_skills`
+  view (below) for resolved per-skill effect / tree / tier details;
+  raw `skills_json` remains available for callers that want the
+  original chain payload.
 - `equipment_json` — JSON array of item indices currently equipped.
   Use the `kami_equipment` view (below) for slot-resolved access;
   raw `equipment_json` remains available for callers that want the
@@ -233,6 +234,93 @@ Mirror of `kami_context/catalogs/items.csv`. Re-loaded only when
 chain "For" value; NULL for non-equipment items like consumables
 and currency), `effect`, `description`, `loaded_ts`. Most callers
 go through `kami_equipment` rather than touching this directly.
+
+### `kami_skills` — per-skill effect details (view)
+
+A view (Session 14). One row per (kami, skill) per `skills_json`
+entry. Joins `kami_static.skills_json` against `skills_catalog`
+(mirror of `kami_context/catalogs/skills.csv`) so the agent
+doesn't re-derive "skill 212 = +10 HP / rank" inline.
+
+Columns: `kami_id`, `kami_index`, `name`, `account_name`,
+`skill_index`, `skill_name`, `tree` (Predator / Guardian /
+Harvester / Enlightened), `tier`, `points`, `effect` (skill key
+like `SHS`/`HFB`/`SB`), `value` (per-rank), `units`,
+`build_refreshed_ts`, `freshness_seconds`, `is_stale` (36h, same
+as `kami_equipment`).
+
+```sql
+-- Per-tree point totals for a kami
+SELECT tree, SUM(points) AS pts
+FROM kami_skills
+WHERE kami_index = 1186
+GROUP BY tree
+ORDER BY pts DESC;
+```
+
+Archetype classification (Guardian / Predator / Harvester /
+Hybrid) stays in agent code — oracle exposes the components
+(per-tree point sums via the GROUP BY above), not the label.
+Same for summed effect totals: `kami_static.total_health` and
+the Session 11 modifier columns are the canonical resolved
+totals; per-skill attribution lives in this view.
+
+### `skills_catalog` — static skill registry
+
+Mirror of `kami_context/catalogs/skills.csv`. Re-loaded only on
+`kami_context` re-vendor. Columns: `skill_index` (PK), `name`,
+`tree`, `tier`, `tree_req`, `max_rank`, `cost`, `effect`,
+`value`, `units`, `exclusion`, `description`, `loaded_ts`.
+Population: 72 skills, 4 trees × 18 each, 16 effect keys (full
+taxonomy from `kami_context/systems/leveling.md`). Most callers
+go through `kami_skills`.
+
+### `kami_current_location` — latest-known room (view)
+
+A view (Session 14). For each kami, picks the most recent
+`harvest_start` action and resolves the destination room via
+`nodes_catalog`. **Not live truth** — staleness model differs
+from the snapshot views:
+
+- `freshness_seconds` is `now() - since_ts` (latest
+  `harvest_start` block_timestamp), **not** `build_refreshed_ts`.
+- `is_stale = TRUE` when source action is older than **30
+  minutes** (snapshot views use 36h — different threshold
+  because location turns over faster than build).
+- **Move-attribution gap**: `move` actions on chain are
+  account-level (no `kami_id`), so a kami that walks to a new
+  room *without* harvesting won't update its location here until
+  the next `harvest_start`. If the agent needs the post-move
+  location before any harvest, verify against chain.
+
+Columns: `kami_id`, `kami_index`, `name`, `account_name`,
+`current_room_index`, `current_node_id`, `source_action_type`
+(always `harvest_start` today), `since_ts`, `freshness_seconds`,
+`is_stale`.
+
+```sql
+-- "Which of my fey roster is currently parked on node 86?"
+SELECT kami_index, current_node_id, since_ts,
+       freshness_seconds, is_stale
+FROM kami_current_location
+WHERE account_name = 'fey'
+  AND current_node_id = 86;
+```
+
+**Verify before destructive ops keyed on location** (move,
+liquidate, retire). A `harvest_start` we observed 5 hours ago is
+a strong prior but not proof the kami is still there.
+
+### `nodes_catalog` — static node registry
+
+Mirror of `kami_context/catalogs/nodes.csv`. Columns:
+`node_index` (PK), `name`, `status`, `drops`, `affinity`,
+`level_limit`, `yield_index`, `scav_cost`, `room_index`,
+`loaded_ts`. **For every in-game node, `room_index = node_index`
+(clean 1:1)**, verified across all 64 in-game nodes; the
+catalog stores `room_index` separately so the relationship is
+explicit and survives any future drift. Most callers go through
+`kami_current_location`.
 
 ### `raw_tx` — one row per tx touching Kamigotchi systems
 
