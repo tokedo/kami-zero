@@ -1847,3 +1847,42 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   5. If Q48 TRUE: complete_quest(48), accept_quest(49) ("Community Service" 15 Cigarette Butts, same node).
   6. If FALSE but ≥12 tiers: scavenge_claim_and_reveal(15) → re-check Q48.
   7. If FALSE and <12 tiers: reschedule +6h. Standard wait pattern.
+
+
+## 2026-04-29 03:53 UTC — session 65 (level-up bootstrap: 9 kamis +1 lvl + 1 SP into 313 Patience)
+
+**ETH balance**: not sampled.
+**Perceived**: Cron fired again early (~40 min post session 64; next-run-at was `0`). 20/20 RESTING (HP regen still ramping at node 15, no kami has cycled yet). Q48 FALSE. Node 15 scav 96/100 = 0 tiers (UNCHANGED from session 64 — confirms one-shot artifact, no leak). Auto_v2 healthy 39.5 min uptime, 0 restarts. Inventory unchanged from session 64 (MUSU 443,028, VIPP 49,744, Pipe 65 baseline).
+
+**Decided**:
+  - **Operationalize Priority 0 level-up routine.** All 20 RESTING — perfect window. `get_kamis_progress_batch` (the right tool, not `slim` which omits level/xp) returned current level + xp. Computed banked-level eligibility per kami via `levelCost(L) = floor(40 * 1.259^(L-1))`.
+  - 9 kamis had ≥1 banked level; 11 had insufficient XP for next level (skip). Total banked levels available: exactly 9 (one each — none had 2+).
+  - Skill plan per kami: **+1 SP into skill 313 (Patience, Guardian T1, +5 MUSU/hr HIB)**. Reason: it was the highest-priority empty/underfilled slot in every one of the 9 kamis. Each had Guardian T1 (311=5, 312=5) maxed but 313 at 0–4. Tier-gate trivial (T1, no SP gate).
+  - **No interruption to Q48 progression.** Auto_v2 keeps running; level-ups are a side-channel productivity win on the existing RESTING window.
+
+**Acted**:
+  - get_account_kamis: 20/20 RESTING.
+  - get_kamis_progress_batch (all 20): identified 9 with banked +1 level (1064, 2553, 6096, 10011, 12459, 13702, 13947, 14286, 14306).
+  - level_and_allocate_batch (9 targets, 1 level + 1 SP each): **9/9 ok**. Levels: 1064 34→35, 2553 37→38, 6096 37→38, 10011 34→35, 12459 34→35, 13702 33→34, 13947 33→34, 14286 32→33, 14306 33→34.
+  - get_kamis_progress_batch (verify, 9 kamis): all updated, skill 313 +1 each, unspent_points=0, XP residues exact match to predicted (e.g. 1064 89923 - 79966 = 9957 ✓).
+  - check_quest_completable(48): FALSE (expected — no scav claims this session).
+  - get_scavenge_points(15): 96 unchanged.
+
+**Result**: **Bootstrap complete. 9 SP added to roster's intensity-boost stack** (each Patience point = +5 MUSU/hr per kami). Cumulative effect: +45 MUSU/hr on the 9 kamis going forward whenever they harvest. Most importantly, the level-up routine is now part of standard session protocol — no further Priority-0 directive needed.
+
+**Key learnings**:
+  - **`get_kami_state_slim` does NOT return level/experience.** Only `get_kamis_progress_batch` (the workhorse for this exact use case) and `get_kami_state` (full) do. Future level-up perception should always go through `get_kamis_progress_batch` — slim is misleading here.
+  - **Roster shape post-bootstrap**: levels 33–38, all with 0 unspent points. Median ~35. Tier-3 Guardian sustain pick (332 Die Hard) NOT yet allocated on any kami — current T3 investments are 331 Anxiety (1 SP each on most). May be worth re-deciding T3 on future banked levels (or using respec potion later — bpeon has 1 in inventory).
+  - **Cron-early sessions can be productive when level-ups are pending.** Session 64's "no-op when cron-early" was correct THAT session because no level-up routine existed yet. Now with the bootstrap in place, cron-early on RESTING roster → run the level-up routine, never fully no-op.
+  - **9 levels available across 20 kamis** in a single bootstrap → significant accumulated XP debt from prior sessions. Going forward, per-session level-ups will be smaller (1–2 kamis at a time, after natural cycle stops), so the routine becomes a low-tx maintenance check.
+
+**Gas notes**: 18 tx (9 level + 9 skill_upgrade) via batch tool. All succeeded, 0 reverts. No speculative tx — exact level count computed from XP per kami before submission. Per-tx gas not surfaced by batch tool, but historical level/skill txs are ~150–300k each → estimated ~3–5M total. Justified: each +1 SP = +5 MUSU/hr forever; the 9-kami × +5 MUSU/hr at typical 12-18h cycles repays the tx cost within 2–3 cycles.
+
+**Next session** (+13.5h → 2026-04-29 17:30 UTC, ts 1777483800):
+  1. `check_quest_completable(48)` first — at ~14h post-mig, expect first kami cycle stop at node 15. With 44% pipe drop rate and ~7-8 tiers/stop = ~3 pipes/stop. 2 stops should clear Q48.
+  2. `get_inventory` — track Pipe (1017) delta from baseline 65 if scavenge_claim was called.
+  3. `get_account_kamis` + `get_kamis_progress_batch` — re-check level/XP on any cycled kamis. Standard level-up routine for any with banked levels.
+  4. `get_scavenge_points(15)` — if ≥1,200 pts (12 tiers), consider claim to flush Q48.
+  5. If Q48 TRUE: complete_quest(48), accept_quest(49) ("Community Service" 15 Cigarette Butts, same node). Continue grinding.
+  6. If FALSE but ≥12 tiers: scavenge_claim_and_reveal(15) → re-check Q48.
+  7. If FALSE and <12 tiers: reschedule +6h.
