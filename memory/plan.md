@@ -1,6 +1,48 @@
 # Plan for session 65
 
-## Priority 0: Q48 (Pipe Dream — Scavenge 5 Patinated Pipes @ node 15)
+## Priority 0 (one-shot bootstrap): Level-up routine — actually run it this session
+
+**Why this is here**: 2026-04-29 the founder added `## Level-up + skill allocation` to `CLAUDE.md` as a standard part of every session. Session 64 (cron-early no-op) read the section but didn't operationalize it. Bootstrap it now: from this session onward, level-up checks are part of routine perception, not optional.
+
+**Context for this session specifically**:
+- After session 63's stop_harvest_batch on 14 kamis, the roster banked +15,983 VIPP across those kamis (= XP at 1:1). They've been RESTING since 03:14 UTC. Several kamis are likely eligible for level-ups they've never received — bpeon's roster has been harvesting for weeks without skill investment.
+- All 20 kamis were 20/20 RESTING in session 64, and probably still are (HP regen ongoing, auto_v2 hasn't redeployed them yet). RESTING is the gate for both `level()` and `skill.upgrade()`.
+
+### Step 1 — Perceive level/XP state
+- `get_account_kamis(account="bpeon")` — primary read; returns level and experience per kami.
+- For any kamis whose `level` and `experience` aren't visible from `get_account_kamis`, call `get_kami_state_slim(kami_id, account="bpeon")` to fetch them (free read).
+- Also note current skill investment per kami if available; otherwise treat as fresh and start at Guardian tier 1.
+
+### Step 2 — Compute per-kami banked levels
+For each RESTING kami, compute the largest `n` such that `experience >= sum(levelCost(level..level+n-1))` using the formula from `systems/leveling.md`:
+`levelCost(L) = floor(40 * 1.259^(L-1))`
+This is the exact level count to send — no speculative tx.
+
+### Step 3 — Level + allocate in one batch
+Use `level_and_allocate_batch(targets=[...], account="bpeon")` — the workhorse tool. Build the `targets` list with per-kami `target_level` and `skill_plan`, then submit one batch.
+
+**Guardian-leaning default skill_plan** (per CLAUDE.md "Default build: Guardian-leaning sustain"), priority order:
+1. Guardian tier 1 (5 SP each, max): `313` Patience (HIB +5/hr) → `312` Toughness → `311` Defensiveness
+2. Guardian tier 2 (5 SP each, opens at 5 SP in tree): `321` → `323` → `322`
+3. Guardian tier 3 (1 SP, exclusive): `332` Die Hard (SB −7.5%, strain reduction) at 15 SP in tree
+4. Then Enlightened tier 1 (sustain): `211` → `213` → `212`
+5. Enlightened tier 3 (`232` Warmup Exercise, +15 MUSU/hr) once Enlightened reaches 15 SP
+
+Send only the SP each kami has earned via banked levels — don't pre-allocate SP a kami doesn't have. The skill plan is tier-ordered so any subset prefix is valid (no failed tier-gate tx).
+
+### Step 4 — Verify
+- Re-call `get_account_kamis` and confirm levels and skill_json updated as expected.
+- Document each kami's `from→to` level + SP allocated in `decisions.md` per the standard format.
+
+### Step 5 — Continue with the original Q48 plan below
+Once the level-up batch is done (or skipped because no kami had banked XP), continue with the Q48 priority below. Level-ups should NOT replace Q48 work; they fit alongside it. Even if all 20 kamis are still RESTING (they probably are at the cron-early time), the level-up batch is a productive use of the session.
+
+### Step 6 — Set the routine for future sessions
+After the bootstrap, the agent's standard session protocol should naturally include the level-up check on RESTING kamis — no further Priority-0 directive needed.
+
+---
+
+## Priority 1 (was Priority 0 before bootstrap): Q48 (Pipe Dream — Scavenge 5 Patinated Pipes @ node 15)
 
 **Context**: Q48 accepted 2026-04-29 03:09 UTC. Auto_v2 on node 15 (Temple Cave, Scrap, 100/tier) since 03:14 UTC. Droptable "Pipe Butt Burger": 44% Pipe, 44% Butt, 11% Cheeseburger. Same node serves Q49 (15 Butts). Session 64 (03:34 UTC, +20 min post-mig) was a cron-early no-op: 20/20 RESTING, scav 96 pts, no Q48 progress yet.
 
