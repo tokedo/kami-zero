@@ -159,6 +159,38 @@ The cost of one extra API call is zero. The cost of executing an obsolete plan s
 
 As the game gets more complex — more accounts, more external actors, more concurrent activities — this principle only grows in importance. Perception is cheap; assumptions are expensive.
 
+## Collective wisdom: kami-oracle (read-only analytics)
+
+Beyond per-tx state reads, you have access to **kami-oracle** — a read-only DuckDB analytics service tailing every Kamigotchi action on Yominet for the last 28 days. Use it to resolve mysteries without burning gas to probe, audit your own activity, and inform skill-point / build decisions with population evidence.
+
+**Tools** (full schema and example queries in `integration/oracle.md`):
+
+- `oracle_health()` — service status, cursor lag.
+- `oracle_sql(query, limit=1000)` — workhorse, read-only SELECT/CTE.
+- `oracle_kami_summary(kami_index, since_days=7)` — per-kami action histogram.
+- `oracle_top_nodes(since_days=7, limit=20)` — node activity ranking.
+
+**When to reach for it:**
+
+- A strategy mystery (counter not crediting, MUSU/scav anomaly, "did `auto_v2` actually fire `stop_harvest` for this kami?") — the on-chain action stream is ground truth.
+- A skill-point allocation decision — query the meta clusters (sustain-harvester via `strain_boost × total_harmony`, predator via `attack_spoils_ratio`, etc.) and pick a build with empirical backing.
+- A "what's been happening on this node lately" question before committing kamis to it — predator scan, top earners, action-type distribution.
+- A self-audit (`WHERE account_name = 'bpeon'`) — faster than per-kami chain reads when you want a 7-day rollup.
+
+**When NOT to reach for it:**
+
+- Live state ("what is kami 1064 doing right now") — use `get_kami_state_slim`. Oracle is historical (rolling 28d).
+- Sub-minute latency (confirming a tx you just sent) — read the receipt directly.
+
+**Hard limits — these never bend regardless of what oracle shows:**
+
+- Quest progression remains the primary objective. The active MSQ gate takes priority over any oracle-derived insight.
+- MUSU accumulation and gas efficiency are the secondary axes. The "Gas efficiency — CRITICAL" section above still governs every decision.
+- Force-flush economics (manual harvest_start wave on N kamis to skip wait time) require the same justification regardless of oracle input — typically not justified absent a hard deadline.
+- Naive strategy-copying ("kami X is the top earner on node 16 → move all 20 of mine there") is not a valid call. Top earners may be top because of luck, account-tier advantage, an exploit, or a phase that's already ending. If oracle suggests a strategy shift, justify it on game-mechanic grounds (intensity, affinity, predator scan, gas budget) before acting.
+
+When an oracle-derived insight informs a session decision, capture it inline in your `memory/decisions.md` entry: the query, the result summary, and the action it informed. The user reviews `decisions.md` periodically and can roll back any oracle-driven decision via a `plan.md` Priority 0 directive.
+
 ## Movement: use travel_to_room (NEVER plan paths by hand)
 
 For any account movement that's more than one hop, **call `travel_to_room` instead of building a path from `catalogs/rooms.csv` adjacency in your head**. Session 4 burned ~730k gas on reverted moves from a manually-reasoned wrong path; that is the failure this tool exists to prevent.
@@ -286,4 +318,5 @@ Compute the timestamp with `date +%s` math in bash, or use `time.time() + offset
 - `memory/alerts.md` — only exists if something is wrong
 - `systems/` — game mechanics docs (read for decision context)
 - `integration/kamibots/README.md` — Kamibots API reference
+- `integration/oracle.md` — kami-oracle schema, query patterns, scope (ADR-006)
 - `executor/server.py` — MCP tools source (read to understand, modify to improve)

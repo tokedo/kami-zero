@@ -3281,6 +3281,207 @@ def scavenge_claim_and_reveal(node_index: int, account: str = "main") -> dict:
 
 
 # ---------------------------------------------------------------------------
+# kami-oracle — read-only collective-wisdom analytics
+# ---------------------------------------------------------------------------
+#
+# Wraps https://136-112-224-147.sslip.io. Bearer token loaded from
+# ~/.blocklife-keys/.env as KAMI_ORACLE_TOKEN; the LLM never sees it.
+# The oracle is SELECT-only server-side (INSERT/UPDATE/DELETE/DDL -> 400)
+# and rate-limited at 60 req/min per token. See integration/oracle.md
+# for query patterns and schema.
+#
+# kami-zero scope (ADR-006): diagnostic, gas-efficiency analysis, and
+# build / skill-point allocation. Not naive strategy-copying. Quest
+# progression + MUSU + gas efficiency remain primary; oracle is
+# informational input, not a replacement for first-principles reasoning.
+
+_ORACLE_URL = os.environ.get("KAMI_ORACLE_URL", "https://136-112-224-147.sslip.io").rstrip("/")
+_ORACLE_TOKEN = os.environ.get("KAMI_ORACLE_TOKEN", "")
+
+
+def _oracle_headers() -> dict:
+    if not _ORACLE_TOKEN:
+        raise RuntimeError(
+            "KAMI_ORACLE_TOKEN missing from ~/.blocklife-keys/.env. "
+            "Pull with: gcloud compute ssh kami-oracle --zone=us-central1-a "
+            "--command='grep \"^KAMI_ORACLE_API_TOKEN=\" ~/kami-oracle/.env | cut -d= -f2-'"
+        )
+    return {"Authorization": f"Bearer {_ORACLE_TOKEN}"}
+
+
+@mcp.tool()
+async def oracle_health() -> dict:
+    """Oracle service health: cursor lag, row counts, schema version.
+
+    No auth required. Use this first if oracle queries start failing —
+    if last_block_timestamp is more than a few minutes stale, the
+    ingester is unhealthy and downstream queries will be missing tail data.
+    """
+    async with httpx.AsyncClient(timeout=10) as c:
+        r = await c.get(f"{_ORACLE_URL}/health")
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
+async def oracle_sql(query: str, limit: int = 1000) -> dict:
+    """Run an arbitrary read-only SQL query against the oracle DuckDB.
+
+    Tables: raw_tx, kami_action, kami_static, system_address_snapshot,
+    ingest_cursor. See integration/oracle.md for the schema cheat sheet,
+    MUSU-gross semantics, and example queries.
+
+    Allowed: SELECT, WITH, PRAGMA, SHOW, DESCRIBE, EXPLAIN, SUMMARIZE.
+    Rejected (server-side, returns 400): INSERT, UPDATE, DELETE, DROP,
+    CREATE, ATTACH, LOAD, INSTALL, COPY.
+
+    Caveats:
+      - amount is VARCHAR (uint256). Cast as CAST(amount AS HUGEINT) for
+        MUSU. NEVER divide by 1e18 — MUSU is an integer item-count.
+      - amount is gross pre-tax. Use for kami productivity rankings;
+        for net-of-tax operator economics, derive from harvest_start
+        metadata (taxAmt).
+      - amount IS NULL on real on-chain no-ops (harvest_stop ~17%,
+        harvest_liquidate ~13%, harvest_start 100% by design). Filter
+        with `amount IS NOT NULL` when summing MUSU.
+      - Rolling 28-day window; older rows pruned hourly. Window is
+        still filling — full 28d coverage by ~2026-05-24.
+
+    Args:
+        query: SQL string. Must be a read-only statement.
+        limit: Max rows returned (server caps at 10000).
+
+    Returns:
+        {"columns": [...], "rows": [[...], ...], "row_count": n,
+         "truncated": bool}
+    """
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.post(
+            f"{_ORACLE_URL}/sql",
+            headers=_oracle_headers(),
+            json={"q": query, "limit": limit},
+        )
+        if r.status_code == 400:
+            return {"error": "bad_query", "detail": r.text, "status": 400}
+        if r.status_code == 401:
+            return {"error": "auth_failed", "detail": "token rejected — see ADR-005 rotation procedure", "status": 401}
+        if r.status_code == 429:
+            return {"error": "rate_limited", "detail": "60 req/min per token; back off and retry", "status": 429}
+        r.raise_for_status()
+        return r.json()
+
+
+@mcp.tool()
+async def oracle_kami_summary(kami_index: int, since_days: int = 7) -> dict:
+    """Per-kami action_type histogram over the given window.
+
+    Convenient shortcut for "what has this kami been doing?"
+    For richer detail use oracle_sql with a kami_action query.
+
+    Args:
+        kami_index: Human-readable kami token index (e.g. 8664). Translated
+            internally to the uint256 kami_id via kami_static. The oracle
+            stores kami_id as a 70-digit decimal string of the uint256
+            entity ID — passing kami_index directly to /kami/{id}/summary
+            would silently return zero actions.
+        since_days: Window in days (max 28).
+
+    Returns:
+        On success:
+          {"kami_index": N, "kami_id": "...", "name": "...",
+           "account_name": "...", "since_days": D,
+           "total_actions": T, "actions": {action_type: count, ...}}
+        If the kami isn't in kami_static yet:
+          {"error": "kami_not_found", "kami_index": N, ...}
+    """
+    days = max(1, min(int(since_days), 28))
+    idx = int(kami_index)
+    query = (
+        "WITH k AS (SELECT kami_id, name, account_name "
+        f"FROM kami_static WHERE kami_index = {idx}) "
+        "SELECT k.kami_id, k.name, k.account_name, "
+        "       a.action_type, COUNT(*) AS n "
+        "FROM kami_action a JOIN k USING (kami_id) "
+        f"WHERE a.block_timestamp > now() - INTERVAL {days} DAY "
+        "GROUP BY 1, 2, 3, 4 ORDER BY n DESC"
+    )
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.post(
+            f"{_ORACLE_URL}/sql",
+            headers=_oracle_headers(),
+            json={"q": query, "limit": 100},
+        )
+        if r.status_code == 401:
+            return {"error": "auth_failed", "detail": "token rejected — see ADR-005 rotation", "status": 401}
+        if r.status_code == 429:
+            return {"error": "rate_limited", "status": 429}
+        r.raise_for_status()
+        rows = r.json().get("rows", [])
+
+    if rows:
+        kami_id, name, account = rows[0][0], rows[0][1], rows[0][2]
+        actions = {row[3]: row[4] for row in rows}
+        return {
+            "kami_index": idx,
+            "kami_id": kami_id,
+            "name": name,
+            "account_name": account,
+            "since_days": days,
+            "total_actions": sum(actions.values()),
+            "actions": actions,
+        }
+
+    # Empty result: distinguish "not in kami_static" from "no actions in window".
+    async with httpx.AsyncClient(timeout=10) as c:
+        r2 = await c.post(
+            f"{_ORACLE_URL}/sql",
+            headers=_oracle_headers(),
+            json={"q": f"SELECT kami_id, name, account_name FROM kami_static WHERE kami_index = {idx}", "limit": 1},
+        )
+        r2.raise_for_status()
+        meta = r2.json().get("rows", [])
+
+    if not meta:
+        return {
+            "error": "kami_not_found",
+            "detail": f"kami_index {idx} not present in kami_static (may not have been refreshed yet)",
+            "kami_index": idx,
+        }
+    kami_id, name, account = meta[0]
+    return {
+        "kami_index": idx,
+        "kami_id": kami_id,
+        "name": name,
+        "account_name": account,
+        "since_days": days,
+        "total_actions": 0,
+        "actions": {},
+    }
+
+
+@mcp.tool()
+async def oracle_top_nodes(since_days: int = 7, limit: int = 20) -> dict:
+    """Top harvest nodes by activity (visit count + unique kamis).
+
+    Useful for picking nodes: high traffic == competitive but proven;
+    low traffic == quieter but possibly suboptimal. Cross-reference with
+    oracle_sql for predator activity before committing kamis to a node.
+
+    Args:
+        since_days: Window (max 28).
+        limit: Max rows (server caps at 2000).
+    """
+    async with httpx.AsyncClient(timeout=30) as c:
+        r = await c.get(
+            f"{_ORACLE_URL}/nodes/top",
+            headers=_oracle_headers(),
+            params={"since_days": min(since_days, 28), "limit": min(limit, 2000)},
+        )
+        r.raise_for_status()
+        return r.json()
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
