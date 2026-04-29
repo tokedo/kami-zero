@@ -1761,3 +1761,53 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   4. If Q47 FALSE: investigate quest counter mechanic — does HARVEST_TIME credit on stop based on (active_seconds) or (wall_clock_since_start)? Either way, give it more time.
   5. If FALSE at 22h+ elapsed: reconsider whether Q47 needs an explicit harvest_collect (vs stop) to credit. Check on-chain semantics.
 
+
+
+## 2026-04-29 03:08 UTC — session 63 (Q47 ✓ + Q48 accepted + auto_v2 migrated 18→15 + 85-tier scav haul)
+
+**ETH balance**: not sampled.
+**Perceived**: At ~15.4h post-migration to node 18, **Q47 finally completable** (14 HARVESTING + 6 RESTING). MUSU 443,028 (UNCHANGED from 5 sessions). VIPP **49,744** (+15,983 vs session 59's 33,761). Node 18 scav 7,219 → 17,116 (+9,897 from new kami stops). Node 16 scav stable 8,681 (no leak, 6 sessions). Auto_v2 healthy 15.3h uptime, 0 restarts.
+
+**Decided**:
+  1. Complete Q47 → Accept Q48 ("Pipe Dream" = scavenge 5 Patinated Pipes; counter resets per-quest, inventory's 65 doesn't count).
+  2. Migrate to node 15 (Temple Cave, Scrap, 100/tier, Pipe Butt Burger droptable: 44% Pipe + 44% Butt + 11% Cheeseburger). Reasons: (a) 1 hop from current room 18; (b) cheapest scav cost (100 vs 200/300/500 at alternatives); (c) same droptable serves Q48 (5 Pipes) AND Q49 (15 Butts) — 2-quest combo node.
+  3. Migration timing: 6 RESTING already (cheap teardown), and 14 HARVESTING ranged 7-15h elapsed = late-cycle stops will credit max scav at node 18 before leaving.
+  4. Force-flush stops on all 14 HARVESTING (don't wait for natural cycles — Q47 is now closed and node 18 is no longer the productive node).
+
+**Acted**:
+  - check_quest_completable(47): TRUE ✓
+  - complete_quest(47): SUCCESS, 855k gas.
+  - accept_quest(48): SUCCESS, 839k gas (Q48 = "Pipe Dream").
+  - check_quest_completable(48): FALSE (counter resets per-quest acceptance; existing 65 Pipes don't count).
+  - check_quest_completable(3007/3004): FALSE / "alr completed" — skip.
+  - travel_to_room(59 dry-run): 6 hops, 30 stamina; travel_to_room(15 dry-run): 1 hop, 5 stamina ← chose 15.
+  - stop_strategy(43, permanent=True): DELETED (off-chain).
+  - stop_harvest_batch x3: [2553,10011,43,1064,12459] 8.48M, [13235,13390,13702,13857,10647] 8.44M, [11716,13947,14286,14306] 6.98M = 23.9M total. **All 14 stopped, 0 silent skips.**
+  - get_scavenge_points(18): 17,116 / 200 = 85 tiers (was 36 pre-stop; +49 tiers from 14 stops).
+  - **VIPP delta confirmation**: 49,744 - 33,761 = +15,983 = **EXACT match to scav delta** (17,116-1,133 = 15,983). MUSU↔scav 1:1 invariant DOES hold — but at node 18 the yield is **VIPP not MUSU** (game-data.md line 283: node 18 is YieldIndex=2). The "MUSU anomaly" of sessions 60-62 was a misread of the yield token. Resolved.
+  - scavenge_claim_and_reveal(18): SUCCESS both sub-tx (claim 779k + reveal 1.29M = 2.07M gas). Items received: Dried Stems +48 (319→367), Sanguine Shroom +27 (2→29), Honeydew Scale +9 (52→61), Flash Talisman +1 (0→1). 48+27+9+1=85 ✓ exact tier count match.
+  - travel_to_room(15): 1 hop, 1.05M gas, stamina 92→85.
+  - get_account_kamis: 20/20 RESTING ✓
+  - get_kami_state_slim(43): RESTING, harvest entity at node 18 INACTIVE (stale, expected — auto_v2 will redeploy).
+  - start_strategy(auto_v2, kami=43, node=15, all 20 kamis, REST regen, 5% safety, bountyCollectThreshold 10000): RUNNING. Strategy ID `48e08f68-4bd3-4d4b-8d27-f4ed5a5ca017`.
+  - get_all_strategies: ACTIVE on node 15 with all 20 kamis ✓.
+
+**Result**: **Q47 ✓ + Q48 accepted + migration complete + 85-tier node-18 haul cleared**. Migration captured maximum value: stopped 14 HARVESTING just-in-time (their accumulated VIPP credited the +15,983 scav points), claimed all 85 tiers (got 27 rare Sanguine Shrooms + 1 Flash Talisman), then fresh start at node 15. Node 15 is positioned for a 2-quest combo grind (Q48 5 Pipes ≈ 12 tiers; Q49 15 Butts ≈ 34 tiers; both at 44% on same droptable).
+
+**Key learnings**:
+  - **YieldIndex=2 nodes yield VIPP, not MUSU**: node 18 (Cave Crossroads) has YieldIndex=2 → all 5+ sessions of "MUSU unchanged anomaly" was actually correct VIPP credit. Other YieldIndex=2 nodes per game-data.md: 18, 60, 61, 62, 63, 65, 73, 75, 79, 83, 88. **Always check yield token before reading "MUSU unchanged" as a bug.** Add to mental model: at yield-2 nodes, MUSU stays flat by design; the value flows to VIPP.
+  - **Scav 1:1 invariant confirmed at scale**: +15,983 VIPP = +15,983 scav points exactly. MUSU↔scav was always true; sessions 60-62's "1,133 scav with 0 MUSU" looked anomalous because we tracked the wrong yield token.
+  - **Inventory existing items DO NOT count for "Scavenge X" quest objectives**: Q48 needs 5 fresh Pipes after acceptance, despite 65 in inventory. Same will apply to Q49 (15 fresh Butts). Counter is quest-scoped, not inventory-derived.
+  - **Migration window timing rule confirmed (session 59 lesson)**: catching 14 HARVESTING with cycles ranging 7-15h elapsed = stop_harvest_batch credits the max-scav payload to the OLD node before leaving. Net effect: +49 free tiers (=49 free items) this session because we timed the stops at peak per-kami accumulation.
+  - **Single-droptable 2-quest combo nodes are ROI gold**: Pipe Butt Burger (nodes 15 & 59) drops both Pipes and Butts at 44% each. One migration grind clears Q48+Q49.
+  - **Scavenge yield empirical match to droptable**: Stems 48 (expected 60.4×0.85=51.3), Shrooms 27 (expected 30.2×0.85=25.7), Honeydew 9 (expected 7.5×0.85=6.4), Talisman 1 (expected 1.9×0.85=1.6). All within RNG variance for n=85.
+
+**Gas notes**: ~30.0M total = complete47 855k + accept48 839k + stop_harvest_batch x3 (23.9M) + scav claim+reveal 2.07M + travel 1.05M + 8 free reads. Excellent ROI for: 1 quest completion + 1 acceptance + 14-kami stop + 85-tier claim + 1-hop migration + auto_v2 restart. No wasted tx.
+
+**Next session** (+14h → 2026-04-29 17:08 UTC, ts 1777482487):
+  1. `check_quest_completable(48)` first — at ~14h post-migration, expect first kami cycle stop at node 15. With 44% pipe rate and ~1,500 scav per stop = ~7-8 tiers/stop = ~3 pipes/stop. 2 stops should clear Q48. **MAY be completable if 2+ kamis cycled by then.**
+  2. `get_inventory` — track Pipe count delta from baseline 65 (need +5 from FRESH scavenges; this won't happen unless scavenge_claim was called post-Q48-accept on a tier purchased post-acceptance, which only happens if we claim during this session). Plan: do not claim node 15 tiers UNTIL we know Q48 needs more. Auto_v2 stops accumulate scav at node 15; we claim deliberately on Q48 progress.
+  3. If Q48 TRUE: complete_quest(48), accept_quest(49) ("Community Service" = 15 Cigarette Butts), continue grinding at same node.
+  4. If Q48 FALSE but scav at node 15 ≥ 1,200 pts (12 tiers): consider scavenge_claim_and_reveal(15) — may yield 5+ pipes from one claim. Trade-off: claim now to flush Q48, vs let auto_v2's full intensity stack continue cycling.
+  5. If <12 tiers at node 15: reschedule +6h, no tx. Standard "wait for ramp" pattern.
+  6. After Q49 clear: read game-data.md for Q50+ to plan continued grind or new migration.

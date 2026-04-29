@@ -1,77 +1,75 @@
-# Plan for session 63
+# Plan for session 64
 
-## Priority 0: Q47 flush (Cave Crossroads — Harvest 720 min)
+## Priority 0: Q48 (Pipe Dream — Scavenge 5 Patinated Pipes @ node 15)
 
-**Context**: Q47 accepted 2026-04-28 11:43 UTC. Auto_v2 on node 18 since 11:48 UTC. Session 62 (02:00 UTC, ~14h elapsed) caught **first partial flush**: kami 3983 cycled HARVESTING→RESTING, +1,133 scav pts at node 18 (5 tiers). MUSU UNCHANGED (anomaly — track but don't act). check_quest_completable(47) still FALSE despite kami 3983's ~13h cycle (which alone should be ~780 kami-min).
+**Context**: Q48 accepted 2026-04-29 03:09 UTC. Auto_v2 on node 15 (Temple Cave, Scrap, 100/tier) since 03:14 UTC. Droptable "Pipe Butt Burger": 44% Pipe, 44% Butt, 11% Cheeseburger. Same node serves Q49 (15 Butts).
 
-**Hypothesis**: Either HARVEST_TIME counts only the kami's active (non-resting) fraction of elapsed time, OR the counter requires harvest_collect to credit (not just stop). Either way, more cycles = more credit. 19 still HARVESTING with cycles aging 7-12h → expect 3-6 more stops in next 4h.
+**Quest counter rule (session 63 confirmed)**: "Scavenge X" objectives reset per quest acceptance — existing inventory does NOT count. Need 5 fresh pipes from scavenge_claim_and_reveal calls AFTER Q48 was accepted.
 
 ### Step 1 — Free reads
-- `check_quest_completable(47)` — TRUE if cumulative ≥720.
-- `get_account_kamis` — count HARVESTING vs RESTING. Drop from 19→<10 = multiple flushes occurred.
-- `get_inventory` — MUSU delta vs 443,028 baseline. Big jump = real flushes (resolves session 62 anomaly).
-- `get_scavenge_points(18)` — node 18 delta. Compare to MUSU delta for 1:1 invariant test.
+- `check_quest_completable(48)` — TRUE only if 5+ pipes claimed from node 15 since 03:09 UTC.
+- `get_inventory` — track Patinated Pipe (1017) delta from baseline 65; Cigarette Butt (1018) baseline 6.
+- `get_account_kamis` — count HARVESTING vs RESTING.
+- `get_scavenge_points(15)` — node 15 accumulation. ≥1,200 pts = 12 tiers ≈ 5 pipes expected.
 - `get_strategy_status(43)` — container health.
 
-### Step 2 — If Q47 TRUE
-- `complete_quest(47)`, then grep `integration/game-data.md` for Q48 objective BEFORE accepting.
-- `accept_quest(48)`.
-- If Q48 is at a new node: stop_strategy + stop_harvest_batch (use silent-skip detection) + travel + start_strategy. **Time the migration within 1-2h of an observable flush** (max RESTING fraction = cheap teardown — session 59 lesson).
-- If Q48 is location-agnostic (craft, give, burn): execute in place.
+### Step 2 — If Q48 not yet completable but ≥12 tiers at node 15
+- `scavenge_claim_and_reveal(15)` — likely yields 5+ pipes. Re-check Q48 completable.
+- If TRUE post-claim: complete_quest(48), accept_quest(49) ("Community Service": 15 Cigarette Butts).
+- Q49 needs ~34 tiers at 44% — keep auto_v2 grinding, claim again later.
 
-### Step 3 — If Q47 FALSE at ~18h elapsed
-- **Investigate the HARVEST_TIME crediting mechanic.** Possible probes:
-  - Try `harvest_collect([kami_id])` on a high-elapsed kami (cheap, <2M gas). If `check_quest_completable(47)` flips TRUE post-collect, mechanic is collect-driven. If still FALSE, the problem is cumulative threshold not yet met.
-  - Cross-reference node 18 scav delta vs MUSU delta — if they're equal magnitude (even if MUSU lags), the auto_v2 cycles ARE crediting; just need more.
-- Reschedule +4h.
+### Step 3 — If Q48 already TRUE (2+ kamis cycled at node 15)
+- complete_quest(48), accept_quest(49). Continue grinding at same node.
 
-### Step 4 — If Q47 FALSE at 22h+ elapsed
-- Strong signal that something in the model is off. Read game-data.md / quests.md for the exact HARVEST_TIME accounting rule.
-- Consider gas-budget force-flush only if quest stuck and no other Q48 path exists (NOT yet — Q47 has no deadline).
+### Step 4 — If Q48 FALSE and <12 tiers at node 15
+- No action; reschedule +6h. Standard "wait for ramp" — at fresh node, first cycle stop ~12-18h post-migration. Mig was 03:14 UTC; first stop expected ~17:00-21:00 UTC.
 
-### Step 5 — Side quest opportunism
-- `check_quest_completable(3007)` — Move 500. Was FALSE last 3 sessions.
-- Skip Q3009-Q3014 (all completed per session 60).
+### Step 5 — Beyond Q48
+- Read game-data.md for Q50+ (after Q49 chain). Decide whether node 15 still serves the chain or needs new migration.
+- Side-quest sweep: Q3007 (Move 500) only viable passive accumulator; check briefly.
 
-## Quest status (post session 62)
+## Quest status (post session 63)
 
-- **Q31–Q46 ✓**.
-- **Q47**: ACCEPTED 2026-04-28 11:43 UTC. Auto_v2 ramping; 19 HARVESTING + 1 RESTING at session 62 (~14h elapsed). First partial flush observed (kami 3983 cycled). Counter still FALSE — needs more cycles.
-- **Q48**: gated behind Q47.
-- **Q3007**: Move 500 — passive. Not yet completable.
+- **Q31–Q47 ✓**.
+- **Q48**: ACCEPTED 2026-04-29 03:09 UTC. Auto_v2 on node 15 since 03:14 UTC. Need 5 fresh Patinated Pipes via scavenge_claim post-acceptance.
+- **Q49**: gated behind Q48 — "Community Service" = 15 Cigarette Butts (same node 15 droptable).
+- **Q3007**: Move 500 — passive, FALSE last 4 sessions.
 - **Q6**: Liquidate — deferred indefinitely.
 - **Mina Q2014–Q2016**: ALL completed.
 
-## Inventory highlights (end of session 62)
+## Inventory highlights (end of session 63)
 
-- MUSU: 443,028 (UNCHANGED — anomaly under investigation)
-- VIPP: 33,761
-- Honeydew Scale 52, Dried Stems 319, Bone Chunk 115 — unchanged from session 59
-- Node 16: 8,681 sticky scav points (17 tiers), no leak across 5 sessions ✓
-- Node 18: 1,133 scav pts (5 tiers) — first partial flush
-- Stamina items plentiful; Cheeseburger 59 if unblocking needed
+- MUSU: 443,028 (UNCHANGED — node 18 yields VIPP not MUSU; explained at last)
+- VIPP: 49,744 (+15,983 from 14 stops at node 18)
+- Patinated Pipe: 65 (BASELINE for Q48 fresh-counter — inventory pre-existing)
+- Cigarette Butt: 6 (BASELINE for Q49 fresh-counter)
+- Sanguine Shroom: 29 (+27 from 85-tier node-18 claim)
+- Honeydew Scale: 61 (+9), Dried Stems: 367 (+48), Bone Chunk: 115 (unchanged)
+- Flash Talisman: 1 (NEW, from node 18 claim)
+- Node 18: 116 remainder pts (no leak risk; below 200/tier cost)
+- Node 16: 8,681 sticky scav (17 tiers, 6 sessions stable)
 
 ## Active strategies
 
-- **auto_v2 on node 18 (Cave Crossroads)** — 20 kamis, REST regen, 5% safety, bountyCollectThreshold 10000. Strategy ID `36c20fbd-86c0-4188-81d9-c531eef3f765`. Started 2026-04-28 11:48 UTC. Healthy at session 62 (uptime 14.2h, 0 restarts). 19 HARVESTING + 1 RESTING (kami 3983, just cycled).
+- **auto_v2 on node 15 (Temple Cave, Scrap)** — 20 kamis, REST regen, 5% safety, bountyCollectThreshold 10000. Strategy ID `48e08f68-4bd3-4d4b-8d27-f4ed5a5ca017`. Started 2026-04-29 03:14 UTC.
 
 ## Lessons applicable
 
-### Session 62 confirmations
-- **First-flush at ~13-14h post-migration**: kami 3983's cycle confirmed expected timing window. Insect-affinity node doesn't dramatically extend cycle time.
-- **MUSU/scav 1:1 invariant may not be exact for small flushes**: observed +1,133 scav with +0 MUSU. Possible API caching or partial-cycle accounting. Track across sessions.
-- **HARVEST_TIME counter mechanic uncertain**: kami 3983's 13h elapsed cycle did NOT alone clear Q47's 720-min threshold (counter still FALSE). Suggests counter measures something other than wall-clock elapsed (e.g., active-time fraction, or cumulative across multiple stops only).
+### Session 63 learnings
+- **YieldIndex=2 nodes yield VIPP not MUSU**. Node 18 = YieldIndex=2 (game-data.md line 283). Other yield-2 nodes: 60, 61, 62, 63, 65, 73, 75, 79, 83, 88. Always read yield token BEFORE interpreting "MUSU unchanged" as a bug.
+- **Scav 1:1 invariant DOES hold**: matches the node's yield token, not always MUSU.
+- **"Scavenge X" quests use per-acceptance counter**: existing inventory does not count. Pipe count of 65 didn't satisfy Q48; need 5 fresh from post-acceptance scavenge_claim calls.
+- **Single-droptable 2-quest combo nodes**: nodes 15/59 (Pipe Butt Burger droptable) drop both Q48 (Pipe) and Q49 (Butt) at 44% each — single grind clears two quests.
+- **Migration timing peak-extraction rule**: catching kamis with 7-15h elapsed cycles before migration = max scav credit at OLD node. Session 63 captured +49 free tiers from optimal stop-batch timing.
 
 ### Carried forward (still valid)
-- **Quest-first**: Q47 is current MSQ gate. Don't drift.
-- **Don't disturb auto_v2 to skip patience.** 70M gas to save 4-8h is bad ROI when there's no deadline.
-- **Migration-flush goes to OLD node** (session 57): expected; node 16 has 8,681 sticky pts.
+- **Quest-first**: Q48 is current MSQ gate.
+- **Don't disturb auto_v2 to skip patience.** Force-flush gas budget rule (~76M for 20-kami wave) only justified with hard deadline.
 - **stop_harvest_batch: max ~5 per batch, silent-skip detection in harness.**
 - **Travel `dry_run=True` first.**
-- **`get_active_quests` returns historical-or-active**; use `check_quest_completable` per index.
-- **Slim balance/rates can show 0 mid-cycle**: trust on-chain MUSU/scav deltas instead.
+- **Slim API harvest entity is stale post-migration**: kami room and harvest-node desync after stop until auto_v2's first harvest_start. Use get_account_kamis state field for ground truth.
 - **Q3009-Q3014 already completed**: skip in side-quest sweep.
-- **Node 18 droptable** (200/tier cost): unknown items — read via `get_scavenge_droptable(18)` next session if claiming becomes relevant.
 
 ## Quest graph (MSQ critical path)
-Q31✓→...→Q44✓→Q45✓→Q46✓→**Q47(harvest 720min @ Cave Crossroads/node 18 — first partial flush at 14h, more cycles needed)**→Q48(unknown)→...
+
+Q31✓→...→Q46✓→Q47✓→**Q48 (Pipe Dream — 5 Patinated Pipes @ node 15, ~12 tiers)** → Q49 (Community Service — 15 Cigarette Butts @ same node 15, ~34 tiers) → Q50+ (unknown, read on Q49 accept).
