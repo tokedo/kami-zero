@@ -1718,3 +1718,46 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   4. If Q47 NOT completable but partial flush observed: reschedule +4h.
   5. If still 20/20 HARVESTING with no MUSU change at 14h: investigate — maybe insect-affinity at node 18 stretches cycle time vs node 77's rate. Compare elapsed time deltas.
   6. Side-quest sweep: skip Q3009-Q3014 (already done); only Q3007 worth probing.
+
+
+## 2026-04-29 02:00 UTC — session 62 (Q47 first partial flush at ~14h, not completable yet, free reads only)
+
+**ETH balance**: not sampled.
+**Perceived**: At ~14h post-migration to node 18, **19/20 HARVESTING + 1 RESTING (kami 3983)** — confirms kami 3983 (which was at 6h49m elapsed last session) cycled through stop_harvest. node 18 scav points: 0 → 1,133 (+1,133 = 5 claimable tiers at 200/tier) — first flush evidence ✓. node 16 scav: 8,681 (UNCHANGED across 5 sessions — no-leak invariant holds). Auto_v2 healthy: 14.2h uptime, 0 restarts, 0.98% CPU, 45.2% mem. check_quest_completable(47) FALSE.
+
+**MUSU anomaly**: inventory MUSU 443,028 — UNCHANGED from session 61. But scav points at node 18 went 0 → 1,133. Per the auto_v2 model (founder review, session 58 correction), `stop_harvest` should credit MUSU and scav 1:1. Either:
+  1. The session 61 MUSU number recorded was already post-this-flush (i.e., the flush occurred BEFORE session 61, and I read the post-flush value as "unchanged" because session 60 already saw 443,028 — suggesting the +4,247 between sessions 59 (438,781) and 60 (443,028) WAS the kami-3983 first cycle, predating Q47-acceptance). But that timeline doesn't fit (Q47 was accepted 2026-04-28 11:43, kami 3983 confirmed HARVESTING in session 61 at 6h49m elapsed → session 60 at 1h47m elapsed, impossible to have flushed already).
+  2. The 1:1 invariant doesn't always hold — small partial flushes may credit scav without MUSU, OR auto_v2 batched MUSU into harvest entity without inventory-crediting yet. The 1,133-MUSU magnitude is small enough (1 cycle, ~14h, intensity-ramp at insect-affinity node) that on-chain dust + rounding could obscure it.
+  3. Or the slim/inventory API caching differs from on-chain truth at this tx age.
+
+**Decided**:
+  - **No transactions.** Anomaly is small and doesn't change the strategic picture: Q47 needs ≥720 cumulative kami-min, kami 3983's single ~14h cycle credits 720+ min — but check_quest_completable returned FALSE, so the on-chain HARVEST_TIME counter for Q47 didn't get the credit. Wait for more flushes.
+  - Trust the strategy. 19 still HARVESTING with cycles aging 7-12h; the next 4h should produce 3-5 more stops, each credit independent.
+  - Reschedule +4h to 06:00 UTC. Don't disrupt — full force-flush of 19 kamis would burn ~70M gas to skip ~4-8h of natural cycling.
+
+**Acted**:
+  - check_quest_completable(47): FALSE.
+  - get_account_kamis: 19 HARVESTING + 1 RESTING (kami 3983).
+  - get_inventory: MUSU 443,028 (UNCHANGED), Honeydew 52, Stems 319, Bones 115 (all unchanged from session 61).
+  - get_all_strategies: auto_v2 ACTIVE on node 18, all 20 kamis configured.
+  - get_strategy_status(43): healthy, uptime 51.1M ms (~14.2h), 0 restarts.
+  - get_scavenge_points(18): 1,133 / 200 cost = 5 tiers, 133 remainder.
+  - get_scavenge_points(16): 8,681 / 500 cost = 17 tiers (UNCHANGED, no leak ✓).
+
+**Result**: Pure check-in. First-flush partial evidence at node 18 (kami 3983 cycled). Q47 still gated — needs more cumulative HARVEST_TIME credits from additional cycles.
+
+**Key learnings**:
+  - **First-flush observation: kami 3983 cycled at ~14h post-migration** (6h49m last session + 6h14m this session = 13h elapsed before stop). Confirms session 61 cycle-time prediction was directionally right; insect-affinity at node 18 doesn't dramatically stretch cycle vs node 77's 18.75h baseline.
+  - **MUSU/scav 1:1 invariant may not be exact for small/partial flushes** — observed +1,133 scav with +0 MUSU. Possible causes: API caching, on-chain dust, or partial cycle accounting. Worth tracking across more sessions before treating as a bug.
+  - **HARVEST_TIME counter requires per-kami stop**, not aggregate session metric: kami 3983's single 13h cycle = 780 min on its own, which would clear Q47's 720 threshold by itself. The fact that check_quest_completable(47) returned FALSE suggests the on-chain quest counter increments differently (maybe per-stop, additive over Q47-acceptance window only) — and possibly that the kami's effective harvested time was less than wall-clock elapsed (e.g., only counts active-not-resting fraction).
+  - **No-leak invariant at node 16 holds across 5 sessions**: 57, 58, 59, 60, 61, 62 all observe 8,681 pts. Migration teardown was the one-time event.
+
+**Gas notes**: 0 tx submitted. 0 gas spent.
+
+**Next session** (+4h → 2026-04-29 06:00 UTC, ts 1777442419):
+  1. `check_quest_completable(47)` first — by ~18h post-migration, expect 4-6 additional kami stops; one cycle alone should clear 720 if HARVEST_TIME counts wall-clock elapsed during HARVESTING.
+  2. Compare scav point delta at node 18 vs MUSU delta to test the 1:1 invariant on a larger flush.
+  3. If Q47 TRUE: complete_quest(47), accept_quest(48). Q48 grep `integration/game-data.md` for objective.
+  4. If Q47 FALSE: investigate quest counter mechanic — does HARVEST_TIME credit on stop based on (active_seconds) or (wall_clock_since_start)? Either way, give it more time.
+  5. If FALSE at 22h+ elapsed: reconsider whether Q47 needs an explicit harvest_collect (vs stop) to credit. Check on-chain semantics.
+
