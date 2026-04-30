@@ -457,6 +457,61 @@ def _get_item_name(index: int) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Quest catalog (catalogs/quests/quests.csv + objectives.csv)
+# These are documentation/expectation, NOT chain ground-truth. Keep that
+# distinction visible in any tool that surfaces them.
+# ---------------------------------------------------------------------------
+
+_QUEST_CATALOG: dict[int, dict] = {}
+_OBJECTIVES_BY_DESC: dict[str, dict] = {}
+
+
+def _strip_bom_keys(row: dict) -> dict:
+    """Strip UTF-8 BOM from any header key (objectives.csv has BOM)."""
+    return {(k.lstrip("\ufeff") if isinstance(k, str) else k): v for k, v in row.items()}
+
+
+def _load_quest_catalog() -> None:
+    if _QUEST_CATALOG and _OBJECTIVES_BY_DESC:
+        return
+    quests_csv = _REPO / "catalogs" / "quests" / "quests.csv"
+    objectives_csv = _REPO / "catalogs" / "quests" / "objectives.csv"
+    if quests_csv.exists():
+        with open(quests_csv, encoding="utf-8-sig") as f:
+            for raw in csv.DictReader(f):
+                row = _strip_bom_keys(raw)
+                try:
+                    idx = int(row.get("Index") or 0)
+                except (TypeError, ValueError):
+                    continue
+                if not idx:
+                    continue
+                _QUEST_CATALOG[idx] = row
+    if objectives_csv.exists():
+        with open(objectives_csv, encoding="utf-8-sig") as f:
+            for raw in csv.DictReader(f):
+                row = _strip_bom_keys(raw)
+                desc = (row.get("Description") or "").strip()
+                if desc:
+                    _OBJECTIVES_BY_DESC[desc] = row
+
+
+_load_quest_catalog()
+
+
+def _classify_revert(reason: str | None) -> str:
+    """Classify a quest-complete revert reason into a coarse category."""
+    if not reason:
+        return "none"
+    lo = reason.lower()
+    if "objs not met" in lo or "objectives not met" in lo:
+        return "objs_not_met"
+    if "not active" in lo:
+        return "not_active"
+    return "other"
+
+
+# ---------------------------------------------------------------------------
 # Kamiden gRPC-Web helpers (trade data from the indexer)
 # ---------------------------------------------------------------------------
 
@@ -2780,12 +2835,22 @@ _ABI_QUEST_DROP = _ABI_QUEST_COMPLETE  # same signature
 
 @mcp.tool()
 def get_active_quests(account: str = "main") -> dict:
-    """Enumerate all active quests for the account by reading on-chain state.
+    """Enumerate quests owned by the account and flag which are completed.
 
-    Returns quest entity IDs and, where possible, matched quest indices.
+    "Owned" = `component.id.quest.owns` lists the quest entity for this account.
+    Owned quests include both truly-active (accepted but not completed) and
+    completed ones; the chain keeps the entity around. `completed` is read via
+    `component.is.complete.has(qid)`.
 
     Args:
         account: Account label.
+
+    Returns:
+        owned_count, completed_count, truly_active_count, plus per-quest
+        dicts with {entity_id, quest_index?, completed}. `active_quest_count`
+        kept as a back-compat alias for `owned_count` — deprecated; future
+        callers should read `truly_active_count` if they want only the
+        in-progress quests.
     """
     acc_id = _account_entity_id(account)
 
@@ -2795,22 +2860,37 @@ def get_active_quests(account: str = "main") -> dict:
     )
     quest_eids = owns_comp.functions.getEntitiesWithValue(acc_id).call()
 
-    # Pre-compute entity IDs for known quest indices to reverse-map
+    is_complete_addr = _resolve_component("component.is.complete")
+    is_complete = w3.eth.contract(
+        address=is_complete_addr, abi=_BOOL_COMPONENT_ABI
+    )
+
     known_indices = list(range(1, 109)) + list(range(2001, 2017)) + list(range(3001, 3025))
     eid_to_index = {}
     for idx in known_indices:
         eid_to_index[_quest_entity_id(idx, acc_id)] = idx
 
     quests = []
+    completed_count = 0
     for eid in quest_eids:
-        q: dict = {"entity_id": hex(eid)}
+        try:
+            done = bool(is_complete.functions.has(eid).call())
+        except Exception:
+            done = False
+        if done:
+            completed_count += 1
+        q: dict = {"entity_id": hex(eid), "completed": done}
         if eid in eid_to_index:
             q["quest_index"] = eid_to_index[eid]
         quests.append(q)
 
+    owned = len(quests)
     return {
         "account": account,
-        "active_quest_count": len(quests),
+        "owned_count": owned,
+        "completed_count": completed_count,
+        "truly_active_count": owned - completed_count,
+        "active_quest_count": owned,  # back-compat alias; prefer owned_count
         "quests": quests,
     }
 
@@ -2917,6 +2997,150 @@ def check_quest_completable(quest_index: int, account: str = "main") -> dict:
             "completable": False,
             "reason": str(e),
         }
+
+
+@mcp.tool()
+def quest_state(quest_index: int, account: str = "main") -> dict:
+    """Discriminated read of a quest's on-chain state for the account.
+
+    Replaces the older `get_quest_status` (which read only `component.state`)
+    and disambiguates `check_quest_completable` (which conflates "not
+    accepted" with "objectives not met"). Free — no gas.
+
+    Returns:
+      quest_index, entity_id, owned, completed, completable_now,
+      revert_kind ("none"|"objs_not_met"|"not_active"|"other"),
+      revert_reason, state ("not_accepted"|"active_blocked"|"active_ready"|"completed").
+
+    Args:
+        quest_index: Quest index.
+        account: Account label.
+    """
+    acc_id = _account_entity_id(account)
+    q_id = _quest_entity_id(quest_index, acc_id)
+
+    owns_addr = _resolve_component("component.id.quest.owns")
+    owns = w3.eth.contract(address=owns_addr, abi=_ID_COMPONENT_ABI)
+    is_complete_addr = _resolve_component("component.is.complete")
+    is_complete = w3.eth.contract(address=is_complete_addr, abi=_BOOL_COMPONENT_ABI)
+
+    try:
+        owned_owner = owns.functions.safeGet(q_id).call()
+        owned = owned_owner == acc_id
+    except Exception:
+        owned = False
+
+    try:
+        completed = bool(is_complete.functions.has(q_id).call())
+    except Exception:
+        completed = False
+
+    completable_now = False
+    revert_reason: str | None = None
+    if owned and not completed:
+        addr = _resolve_system("system.quest.complete")
+        contract = w3.eth.contract(address=addr, abi=_ABI_QUEST_COMPLETE)
+        acct = _get_account(account)
+        try:
+            contract.functions.executeTyped(q_id).call(
+                {"from": acct.operator_addr}
+            )
+            completable_now = True
+        except Exception as e:
+            revert_reason = str(e)
+
+    revert_kind = _classify_revert(revert_reason)
+
+    if completed:
+        state = "completed"
+    elif not owned:
+        state = "not_accepted"
+        # If the quest isn't owned, the staticCall would have reverted with
+        # "not active" — surface that for clarity even though we skipped it.
+        if revert_kind == "none":
+            revert_kind = "not_active"
+    elif completable_now:
+        state = "active_ready"
+    else:
+        state = "active_blocked"
+
+    return {
+        "quest_index": quest_index,
+        "entity_id": hex(q_id),
+        "owned": owned,
+        "completed": completed,
+        "completable_now": completable_now,
+        "revert_kind": revert_kind,
+        "revert_reason": revert_reason,
+        "state": state,
+    }
+
+
+@mcp.tool()
+def get_expected_objective(quest_index: int) -> dict:
+    """Return the catalog-expected objectives for a quest (NOT chain truth).
+
+    Reads `catalogs/quests/quests.csv` + `objectives.csv`. Use this BEFORE
+    spending gas on hypothesis-testing a stuck quest: it tells you what the
+    catalog *expects* the objective to be, which you can then compare to
+    the on-chain `complete()` revert (via `quest_state`).
+
+    Returns objectives as a list of {description, type, delta_type, operator,
+    index, value}; if the catalog row or any objective description is
+    missing, returns the partial result with a `note`.
+
+    Args:
+        quest_index: Quest index.
+    """
+    _load_quest_catalog()
+    quest = _QUEST_CATALOG.get(quest_index)
+    if not quest:
+        return {
+            "quest_index": quest_index,
+            "title": None,
+            "objectives": [],
+            "rewards": "",
+            "note": "no row in catalogs/quests/quests.csv",
+        }
+
+    obj_text = (quest.get("Objectives") or "").strip()
+    objectives: list[dict] = []
+    notes: list[str] = []
+    if obj_text:
+        # Objectives field is comma- or newline-separated free text
+        # matching `Description` rows in objectives.csv.
+        parts = [p.strip() for chunk in obj_text.split("\n") for p in chunk.split(",") if p.strip()]
+        for desc in parts:
+            row = _OBJECTIVES_BY_DESC.get(desc)
+            if not row:
+                notes.append(f"no objective row for: {desc!r}")
+                continue
+            try:
+                idx = int(row.get("Index")) if row.get("Index") not in (None, "") else None
+            except (TypeError, ValueError):
+                idx = None
+            try:
+                val = int(row.get("Value")) if row.get("Value") not in (None, "") else None
+            except (TypeError, ValueError):
+                val = None
+            objectives.append({
+                "description": desc,
+                "type": row.get("Type") or "",
+                "delta_type": row.get("DeltaType") or "",
+                "operator": row.get("Operator") or "",
+                "index": idx,
+                "value": val,
+            })
+
+    out = {
+        "quest_index": quest_index,
+        "title": quest.get("Title") or "",
+        "objectives": objectives,
+        "rewards": quest.get("Rewards") or "",
+    }
+    if notes:
+        out["note"] = "; ".join(notes)
+    return out
 
 
 @mcp.tool()

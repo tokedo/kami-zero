@@ -354,6 +354,24 @@ Compute the timestamp with `date +%s` math in bash, or use `time.time() + offset
 - **Commit**: abc1234
 ```
 
+## Quest debugging discipline
+
+When a quest's `complete()` staticCall reverts and you suspect the objective type, before spending gas on hypothesis tests:
+
+1. Call `get_expected_objective(idx)` — see what the catalog says the objective is.
+2. Call `quest_state(idx)` — confirm `state == "active_blocked"` and `revert_kind == "objs_not_met"`.
+3. If the catalog-expected objective appears already-satisfied per current state (e.g. inventory delta exceeds the target since acceptance) but chain still says objs not met, **escalate to `memory/alerts.md` with the discrepancy. Do not test alternate hypotheses with gas.** This is a registry-vs-catalog drift class of bug — only the founder or the game team can resolve it.
+4. Only proceed with empirical hypothesis testing when the catalog is silent or the catalog-expected objective is genuinely unverifiable from local state.
+
+## Force-flush gas budgeting
+
+`stop_harvest_batch` cost scales with how long the affected harvests have been accumulating. Empirical (session 69 lesson):
+
+- Harvests <2h old: ~1–1.5M gas per 5-kami batch
+- Harvests >6h old: ~8–9M gas per 5-kami batch (5–6× the naive estimate)
+
+When planning to force-flush kamis whose harvests are >6h old, **budget ≥10M gas per 5-kami batch**. Do not include "force-flush 5 kamis" in any plan with a budget under 12M gas total — you'll burn through the budget on a single batch.
+
 ## Safety
 
 - If something looks deeply wrong (unexpected deaths, inventory missing, keys broken, API errors you don't understand), **STOP**. Write to `memory/alerts.md` with details, commit, and end the session. Don't attempt recovery.
