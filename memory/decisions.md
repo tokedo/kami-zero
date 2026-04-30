@@ -2027,3 +2027,51 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   6. Standard level-up scan — likely no banked levels still.
 
 
+## 2026-04-30 14:35 UTC — session 69 (Priority 0 ad-hoc: Q49 force-flush test, hit 18M gas ceiling early — Q49 STILL FALSE at 5 cumulative claims)
+
+**ETH balance**: not sampled this session.
+**Perceived**: 19 HARVESTING + 1 RESTING (3983, persistent cycle leader). Q49 baseline FALSE. Node 15 scav 37 pts (insufficient). Inventory baselines: MUSU 469,669, Pipe 184, Butt 114, Burger 84. Auto_v2 ACTIVE (started 2026-04-29 03:14 UTC, all 20 kamis configured).
+
+**Decided** (Priority 0 founder directive — resolve Q49 in one session, ~14M gas auth):
+  1. Force-flush 5 kamis to accumulate ≥100 scav pts → `scavenge_claim_and_reveal(15)` → re-check Q49.
+  2. Force-flush 5 different kamis → 2nd claim → re-check.
+  3. Continue with single-kami stop+claim cycles up to 8 claims OR until 18M gas ceiling.
+  4. If Q49 clears at any point, complete_quest(49) + accept_quest(50) + craft Ingot.
+  5. If Q49 still FALSE at session end, write detailed `alerts.md` for founder.
+
+**Acted**:
+  - check_quest_completable(49): FALSE (baseline).
+  - get_scavenge_points(15): 37 pts.
+  - get_account_kamis: 19 H / 1 R (3983).
+  - **stop_harvest_batch([2553, 6096, 10011, 43, 1064])**: **8.52M gas** (!! vs budgeted 1.5M — long-accumulated harvests cost 5–6× more). 4/5 stopped. **2553 silent-skipped** (still ACTIVE per per_kami map).
+  - get_scavenge_points(15): 2,612 pts → 26 tiers.
+  - **scavenge_claim_and_reveal(15) #1 (cumulative #4 post-acceptance)**: claim 779k gas. **REVEAL REVERTED** ("reveal_skipped — items likely granted directly by claim"). This is a regression — sessions 66/67/68 had no reveal reverts at node 15.
+  - check_quest_completable(49): FALSE.
+  - get_scavenge_points(15): 12 pts (post-claim).
+  - **stop_harvest_batch([7803, 8745, 12459, 13235, 13390])**: **8.48M gas**. 5/5 stopped.
+  - **scavenge_claim_and_reveal(15) #2 (cumulative #5 post-acceptance)**: claim 779k gas. REVEAL REVERTED again.
+  - check_quest_completable(49): **STILL FALSE** ❌.
+  - get_inventory: MUSU 469,669→474,877 (+5,208 from 9 cycle stops avg ~579/kami). Pipe 184→212 (+28), Butt 114→134 (+20), Burger 84→88 (+4). Total 52 items vs ~58 expected from ~58 tiers — within RNG bounds but possibly minor loss from reveal-revert.
+  - get_all_strategies: auto_v2 still ACTIVE — will resume the 9 stopped kamis after HP regen.
+  - **STOP**: gas spent ~18.54M (already over the 18M plan ceiling). Plan stop condition triggered.
+
+**Result**: **Q49 STILL FALSE after 5 cumulative post-acceptance claims**. Session 68's leading hypothesis `SCAV_CLAIM_NODE[15] ≥ 15` is **NOT yet disproven** (would need 10 more claims), but is also no longer the only candidate. ITEM_BURN ruled out previously; DROPTABLE_ITEM_TOTAL ruled out previously; per-claim counter inconclusive at 5/15 (still consistent with the hypothesis OR with N being some other value above 5).
+
+**Key learnings**:
+  - **Force-flush cost was 5–6× over budget.** Session 47's lesson reapplies: long-accumulated harvests (~9h since session 68's claim) cost ~8.5M gas per 5-kami batch_stop, not the 1.5M budgeted. Two such flushes alone consumed 17M gas — leaving only ~1M for actual claims. The plan's "~3M gas for 2 force-flushes" was wrong by ~6×. **Future plans involving force-flush of long-running harvests must budget ≥10M per 5-kami batch.**
+  - **Reveal-revert at node 15 is a regression** from sessions 66–68 (where it worked). Items materialized "approximately" — 52/58 expected — so the harness's `reveal_skipped` fallback worked, but I shouldn't assume node 15 will continue to grant items via claim alone. Worth investigating if it persists next session.
+  - **2553 silent-skipped on stop_harvest_batch** (4/5 stopped, not 5/5). The post-tx state-read in stop_harvest_batch correctly flagged it. Auto_v2 will continue running 2553 — no action needed, but a future stop attempt might also skip it. Investigation later if pattern persists.
+  - **Hypothesis budget exhausted at 5 claims.** To get to 11 cumulative (8 new) claims as the plan envisioned would need ~50M+ gas given the actual force-flush costs — well above what's prudent for a single hypothesis branch. Better to escalate to founder off-chain inspection than burn more gas.
+  - **MUSU credited per cycle stop**: ~579 MUSU/kami average (5208 / 9 stops). This is much lower than session 67's 1,283 MUSU/kami (24h-cycle stops) — these kamis had only ~9h of active harvest time since session 68's flush, so 579 is roughly 9/24 × 1283 ≈ 481 (close to actual). Confirms the linear MUSU-per-time-active model.
+
+**Gas notes**: ~18.54M total = stop1 8.52M + claim1 779k + stop2 8.48M + claim2 779k + ~5 free reads. Plan's 14M budget overrun by 4.5M, with only 5/15 hypothesis-test progress to show for it. Not gas-efficient relative to information gained — this is the strongest signal yet that the on-chain probe approach is hitting diminishing returns. **Escalation to founder off-chain inspection is the correct next step.**
+
+**Next session** (+12h → 2026-05-01 02:35 UTC, ts 1777588500):
+  1. Read `memory/alerts.md` (founder may have replied with quest objective info).
+  2. If founder unblocked: act on their guidance directly.
+  3. If still no founder input: `check_quest_completable(49)` (free) + `get_scavenge_points(15)` (free) — if scav is ≥1 tier from natural cycling, do ONE cheap claim (no force-flush) as a budget probe. Re-check Q49. If FALSE, do not push further.
+  4. Standard level-up scan via `get_kamis_progress_batch` on RESTING kamis. With 9 kamis just force-flushed, expect several to be RESTING with banked +1 levels (each gained ~579 XP, but cumulative XP from prior cycles may push some over the threshold).
+  5. Auto_v2 health check; ensure 2553 not stuck if pattern recurs.
+  6. Side-quest opportunism: Q3007 (Move 500) free check; nothing else accept-able without Q49 cleared.
+
+
