@@ -125,6 +125,22 @@ Format:
 - **How to use**: Call `stop_harvest_batch([kid1, kid2, ...])` as before. Inspect `result["per_kami"]` to find any kami with `stopped: false` and retry just those. `result["failed_count"]` is the quick health-check.
 - **Lesson**: Any function using `executeBatchedAllowFailure` (or any other revert-swallowing batch primitive) MUST verify the resulting state. Silent-skip as a UX feature is fine, but undetected silent-skip is a 18-hour bug. Apply this pattern to other `*_batch` tools too.
 
+## 2026-04-30 — Tier-1 quest tooling: quest_state + get_expected_objective + get_active_quests fix
+- **What**: Three additions, one fix.
+  1. `quest_state(quest_index, account)` — discriminated read returning `state` ∈ {`not_accepted`, `active_blocked`, `active_ready`, `completed`} plus `revert_kind` ∈ {`none`, `objs_not_met`, `not_active`, `other`} plus raw `revert_reason`. Uses `component.id.quest.owns.safeGet`, `component.is.complete.has`, and the `system.quest.complete` staticCall. Replaces the stale-string-only `get_quest_status`.
+  2. `get_expected_objective(quest_index)` — reads `catalogs/quests/quests.csv` + `objectives.csv` (loaded at module init), returns the catalog-expected objective list ({description, type, delta_type, operator, index, value}) plus title and rewards. Surfaces the catalog as a *hypothesis*, not chain truth — explicitly so a future agent can compare and detect drift.
+  3. `get_active_quests` now reads `component.is.complete.has(qid)` for each owned quest and returns `owned_count`, `completed_count`, `truly_active_count`, with per-quest `completed: bool`. `active_quest_count` kept as a back-compat alias (== `owned_count`); future callers should prefer `truly_active_count`.
+  4. `_classify_revert(reason)` helper for substring → category mapping (used by `quest_state` and reusable by future quest tools).
+- **Why**: Q49 has been blocked for 4 sessions. Gas-based hypothesis testing was costing ~2-18M gas per session with no progress. The new tools shift Q49 (and any future stuck quest) from "burn gas to probe objective type" to "compare catalog vs chain in zero gas — if catalog-expected objective is already-satisfied per local state but chain disagrees, escalate". Founder authored the plan; implementation matches plan verbatim.
+- **Files**: `executor/server.py` (catalog loader + 2 new tools + 1 rewritten tool), `executor/tests/test_quest_state.py`, `executor/tests/test_expected_objective.py`, `CLAUDE.md` (added "Quest debugging discipline" + "Force-flush gas budgeting" sections).
+- **How to use**:
+  - `quest_state(49, "bpeon")` → state="active_blocked", revert_kind="objs_not_met" (Q49 baseline this session).
+  - `get_expected_objective(49)` → DROPTABLE_ITEM_TOTAL[1018]≥15.
+  - Compare: catalog says ≥15 butts; inventory has 134 butts; chain still rejects → escalation territory per the new CLAUDE.md discipline rule.
+  - **MCP server must be restarted to expose the new tools.** Until restart, reach them via direct python: `executor/.venv/bin/python -c "import sys; sys.path.insert(0,'.'); import server; print(server.quest_state(49,'bpeon'))"` (already used this session for Priority 0b verification).
+- **Tests**: `cd executor && .venv/bin/python -m unittest tests.test_quest_state tests.test_expected_objective` — 6/6 pass against bpeon's known Q48/49/50 state.
+- **Commit**: b22935c
+
 ## 2026-04-30 — KNOWN-BROKEN: component.id.parent does not resolve on this World
 
 - **What**: Documented dead-end (NOT a code change). `component.id.parent` (keccak hash `0xbca01f994221da3049c3ee687ab5c6a1ebf40f2011941d5581d9cd500fdf2cd0`, present in `integration/ids/components.json`) is **not registered in the deployed World contract**. `_resolve_component('component.id.parent')` in `executor/server.py` raises "Component not found on-chain". Tried alternative names: `component.parent`, `component.parent.id`, `component.id.holder`, `component.id.from`, `component.id.target`. Of these only `holder`, `from`, `target` resolve, but none of them link objective entities → quest entities (verified by reverse-lookup attempts using `getEntitiesWithValue`).

@@ -1,5 +1,18 @@
 # Alerts
 
+### 2026-04-30 15:25 UTC update (session 70) — drift now confirmed structurally, no gas spent
+
+Tier-1 harness mods shipped this session (commit `b22935c`). Used the new tools to confirm the Q49 mystery is exactly the catalog-vs-chain drift class:
+
+- `quest_state(49, "bpeon")` → `state="active_blocked"`, `revert_kind="objs_not_met"`, raw revert: `quest objs not met: Reverted`
+- `get_expected_objective(49)` → catalog says **DROPTABLE_ITEM_TOTAL[1018] ≥ 15**
+- Inventory: **134 Cigarette Butts (1018)** — catalog target met ~9× over.
+- Chain disagrees → registry-vs-catalog drift, not an empirical-testing problem.
+
+Per the new CLAUDE.md "Quest debugging discipline" rule (added this session), this is escalation territory. **No more gas testing.** Awaiting founder / Kami-team off-chain inspection of the Q49 objective component(s) on-chain.
+
+Cheap probe NOT done this session: node 15 scav at 45/100 pts (0 claimable tiers); plan threshold for cheap claim was ≥1 tier.
+
 ### 2026-04-30 ~14:35 UTC — Q49 BLOCKADE persistent, multi-session gas drain (ACTIVE)
 
 Quest 49 ("Community Service") **cannot be cleared empirically** after 5 cumulative `scavenge_claim` transactions at node 15 since acceptance. Three objective-type hypotheses ruled out:

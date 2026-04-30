@@ -2027,6 +2027,68 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   6. Standard level-up scan — likely no banked levels still.
 
 
+## 2026-04-30 15:14 UTC — session 70 (Tier-1 harness mods shipped + Q49 drift confirmed structurally — zero on-chain tx)
+
+**ETH balance**: not sampled.
+**Perceived**: 11 RESTING / 9 HARVESTING (the 9 force-flushed kamis from session 69 are now RESTING). Auto_v2 ACTIVE 36h uptime, 0 restarts, 1.20% CPU. Q49 still FALSE ("objs not met"). Node 15 scav: 45/100 pts → 0 claimable tiers (below the cheap-probe threshold of ≥1 tier). Inventory unchanged from session 69 close: MUSU 474,877, VIPP 49,744, Pipe 212, Butt 134, Burger 88. cron fired ~25 min late vs `next-run-at=0` (session 69 had set it to 0 to chain immediately).
+
+**Decided** (founder-authored Tier-1 plan, executed verbatim):
+  - **Priority 0a — ship Tier-1 harness mods** (no gas). Three new tools + one fix + CLAUDE.md additions + tests.
+  - **Priority 0b — Q49 status check via new tools** (no gas hypothesis testing). Use `quest_state(49)` + `get_expected_objective(49)` to confirm the registry-vs-catalog drift structurally. Skip the cheap-claim probe because scav is below 1 tier (45 < 100).
+  - **Priority 1 — level-up routine**. Batch-check the 11 RESTING kamis. None had banked levels; skip.
+  - **Priority 2 — auto_v2 health check**. Healthy.
+  - **Priority 3 — Q3007 passive check**. Still FALSE (passive Move 500 accumulating); no action needed.
+
+**Acted (harness, no gas)**:
+  - Implemented `quest_state(quest_index, account)` MCP tool + `_classify_revert` helper. Uses `component.id.quest.owns.safeGet`, `component.is.complete.has`, and the `system.quest.complete` staticCall. Returns `state` ∈ {not_accepted, active_blocked, active_ready, completed} + `revert_kind` ∈ {none, objs_not_met, not_active, other} + raw revert.
+  - Implemented `get_expected_objective(quest_index)` MCP tool + module-init catalog loader (`_load_quest_catalog` for both `catalogs/quests/quests.csv` and `objectives.csv`, with BOM-stripping). Returns the catalog-expected objective list; explicitly framed as "what the catalog says to expect", not chain truth.
+  - Rewrote `get_active_quests` to mark per-quest `completed: bool` via `component.is.complete.has(qid)` and return `owned_count` / `completed_count` / `truly_active_count`. Kept `active_quest_count` as back-compat alias.
+  - Added 6 unittest smoke tests across `tests/test_quest_state.py` and `tests/test_expected_objective.py`. **All 6 pass.**
+  - Appended "Quest debugging discipline" + "Force-flush gas budgeting" sections to `CLAUDE.md`.
+  - Committed as `b22935c` (`harness: quest_state + get_expected_objective + get_active_quests fix`).
+
+**Acted (Priority 0b verification, no gas)**:
+  - Direct `python` invocation of the new tools (MCP server started before my edits, so it doesn't have them in this session):
+    - `quest_state(48, "bpeon")` → `state="completed"` ✓
+    - `quest_state(49, "bpeon")` → `state="active_blocked"`, `revert_kind="objs_not_met"`, revert reason: `quest objs not met: Reverted` ✓
+    - `quest_state(50, "bpeon")` → `state="not_accepted"`, `revert_kind="not_active"` ✓ (Q50 gated behind Q49 as expected)
+    - `get_expected_objective(49)` → catalog says **DROPTABLE_ITEM_TOTAL[1018] ≥ 15**.
+  - **Drift confirmed structurally**: catalog target = 15 butts; inventory has 134 butts (~9×); chain still says objs not met. Per the new CLAUDE.md "Quest debugging discipline" rule, this is escalation territory — alerts.md updated.
+  - `get_active_quests("bpeon")`: 76 owned, 73 completed, 3 truly-active. The 3 truly-active are presumably Q49 + Q3007 (Move 500) + one residual side quest.
+
+**Acted (Priority 1, no gas)**:
+  - `get_kamis_progress_batch([2553, 6096, 10011, 43, 1064, 7803, 8745, 12459, 13235, 13390, 3983])` → no kami had ≥1 banked level.
+    - Highest XP residue was kami 43 "Zephyr" at L37, xp 139,934 — needs ~159k for L38. Closest to next-level but not yet there.
+    - All 9 kamis force-flushed last session credited only ~579 XP each; needed levels are 60-200k+ XP away.
+  - **Skip level-up routine.** Will revisit next session — kamis still HARVESTING (13702, 13857, 3874, 7722, 10647, 11716, 13947, 14286, 14306) will likely cycle into RESTING with banked XP from the longer harvest window.
+
+**Acted (Priority 2, no gas)**:
+  - `get_strategy_status(43)`: healthy, 36h uptime since 2026-04-29 03:14 UTC, 0 restarts, 1.20% CPU, 47% mem (well within 128M limit). Auto_v2 still configured for all 20 kamis at node 15. **No intervention needed**; let it keep grinding.
+
+**Acted (Priority 3, no gas)**:
+  - `check_quest_completable(3007)`: FALSE (passive Move 500 still accumulating). No action.
+
+**Result**: **Zero on-chain tx this session.** Three new MCP tools shipped + tested; CLAUDE.md updated; Q49 drift confirmed structurally via the new tools and escalated in `alerts.md`. The catalog says DROPTABLE_ITEM_TOTAL[1018]≥15, the inventory exceeds that ~9×, and the chain still rejects — the new "Quest debugging discipline" rule says: stop, escalate, don't waste gas. **Q49 BLOCKADE remains active awaiting founder off-chain inspection.**
+
+**Key learnings**:
+  - **The new `get_expected_objective` tool collapses the Q49 mystery from 5+ sessions of empirical hypothesis testing (~25M+ gas) to a single zero-gas catalog read.** The catalog has been right next to us the whole time. ITEM_BURN and DROPTABLE_ITEM_TOTAL hypotheses tested in sessions 67/68 could have been ruled in vs out by reading the catalog first. **For all future stuck quests: catalog read FIRST, then on-chain probe second (and only when the catalog is silent).** This is now codified in CLAUDE.md.
+  - **MCP server reload latency**: MCP server is launched once per cron invocation (or once at boot) and inherits whatever code was in `server.py` at start time. New tools added mid-session require restart to be reachable via the MCP transport. Workaround: call them via `executor/.venv/bin/python -c "import server; ..."` from Bash. The next cron-fired session will pick up the new tools cleanly. (This pattern is already documented in past improvements.md entries; reaffirmed this session.)
+  - **`get_active_quests` "active" was a misnomer** — it counted owned-and-complete + owned-and-active alike. Now returns three explicit counts. The 76→73→3 split reveals that 73 of bpeon's 76 owned quest entities are completed (most of the early MSQ chain through Q48 + Mina chain through Q2016 + many side quests), and only 3 are actually in-progress.
+  - **Catalog parsing**: `objectives.csv` has a UTF-8 BOM in its first column header (`\ufeff.`); used `encoding="utf-8-sig"` plus an explicit `_strip_bom_keys` helper to handle both BOM forms. `quests.csv`'s `Objectives` field is comma-separated free text matching `Description` rows in `objectives.csv`. Q52 is the first quest with multiple objectives, and the parser correctly splits on both newlines and commas; if a description doesn't match a row, it goes into the `note` field rather than erroring.
+  - **No level-ups this session despite 9 force-flushed kamis being RESTING** — confirms session 69's analysis that ~579 XP/cycle is far below the ~60-200k XP gap to next level for L33-38 kamis. Level-ups will trickle in over many natural cycles, not bunch up.
+  - **No Q49 gas spend**: **the discipline rule held on its first application**. Total session gas: 0 ETH. Total session value: three new tools + Q49 drift confirmed structurally + 6 passing tests + CLAUDE.md governance. Highest-ROI session in the 70-session run.
+
+**Gas notes**: Zero on-chain tx. All actions were either harness edits, free reads (`get_account_kamis`, `get_inventory`, `get_all_strategies`, `get_scavenge_points`, `check_quest_completable`, `get_kamis_progress_batch`, `get_strategy_status`), or direct python catalog reads.
+
+**Next session** (+12h → 2026-05-01 03:14 UTC, ts 1777605240):
+  1. Read `memory/alerts.md` first — founder may have replied with off-chain Q49 objective inspection results.
+  2. If founder unblocked: act on guidance. Possible outcomes: drop Q49 + re-accept (registry redeploy), or skip Q49 entirely if structurally broken.
+  3. If still no founder input: `quest_state(49, "bpeon")` (free, via the now-restarted MCP server) — confirm still `active_blocked`. `get_scavenge_points(15)` — if ≥1 tier (≥100 pts) from natural cycling, do ONE cheap `scavenge_claim_and_reveal(15)` as a budget-conservative probe. **No force-flushing.** No more empirical hypothesis testing on Q49 — the discipline rule is in force.
+  4. Standard level-up routine via `get_kamis_progress_batch` on all RESTING kamis. The 9 currently HARVESTING (longer cycle since session 69's flush) may cycle to RESTING with enough XP for some banked levels by then.
+  5. Side-quest opportunism: Q3007 (Move 500) free check; nothing else accept-able while Q49 holds.
+  6. Auto_v2 health: ensure still ACTIVE on node 15. With 36h uptime and 0 restarts, very unlikely to need intervention.
+
+
 ## 2026-04-30 14:35 UTC — session 69 (Priority 0 ad-hoc: Q49 force-flush test, hit 18M gas ceiling early — Q49 STILL FALSE at 5 cumulative claims)
 
 **ETH balance**: not sampled this session.
