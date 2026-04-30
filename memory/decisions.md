@@ -1932,3 +1932,47 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   5. If Q49 FALSE but ≥20 tiers at node 15: scavenge_claim_and_reveal(15).
   6. Standard level-up routine: `get_kamis_progress_batch(<all 20>)` for any RESTING with banked levels. Expect 5-10 cycled kamis by then.
   7. Side-quest check Q3007 (Move 500) — passive, low priority.
+
+
+## 2026-04-30 03:45 UTC — session 67 (244-tier flush at node 15: +112 Pipes / +109 Butts / +23 Burgers — Q49 ANOMALOUSLY STILL FALSE)
+
+**ETH balance**: not sampled.
+**Perceived**: ~24.5h post-migration to node 15. **19/20 RESTING + 1 HARVESTING (kami 3983)** — opposite of session 66 (overnight cycle wave). Node 15 scav: **24,404 / 100 cost = 244 claimable tiers** — massive accumulation. MUSU 444,149 → 468,536 (+24,387 — exact 1:1 match to scav delta 24,404-1,217+1,121 ≈ 24,308, dust within rounding). VIPP unchanged 49,744. Auto_v2 healthy 24.5h uptime, 0 restarts, 2.87% CPU. Inventory baselines: Pipe 71, Butt 11.
+
+**Decided**:
+  1. Execute Plan Step 2 with the 244-tier load: scavenge_claim_and_reveal(15) — 244 @ 44%/44%/11% expects ~107 pipes / 107 butts / 27 burgers; well over Q49's 15-butt threshold.
+  2. Complete Q49 → accept Q50 ("You Smelt It…" = Craft 1 Ingot) — pivot away from scav grind toward crafting chain.
+  3. Skip level-ups: per-kami XP gain ~1,200 (single cycle each), all kamis far below next-level cost (e.g., 10647 needs 79.8k for L34→35, has 60.1k). No banked levels available.
+
+**Acted**:
+  - check_quest_completable(49): FALSE (pre-claim, expected).
+  - get_account_kamis: 19 RESTING + 1 HARVESTING (3983).
+  - get_inventory: MUSU 468,536 (+24,387). Butt 11, Pipe 71, Burger 60 (baselines).
+  - get_scavenge_points(15): 24,404 / 100 = 244 tiers, remainder 4.
+  - get_kamis_progress_batch(all 20): no kami has banked levels. XP delta per kami ~1,200 from one cycle. Confirms 1 XP per MUSU collected.
+  - get_strategy_status(43): healthy 24.5h uptime, 0 restarts.
+  - get_all_strategies: auto_v2 ACTIVE on node 15 with all 20 kamis ✓.
+  - **scavenge_claim_and_reveal(15)**: claim 779k + reveal 1.17M = 1.95M gas. **Yielded +112 Pipes (71→183), +109 Butts (11→120), +23 Burgers (60→83)**. Total 244 ✓ exact. Distribution 45.9%/44.7%/9.4% vs expected 44/44/11 — within RNG.
+  - check_quest_completable(49): **STILL FALSE** ❌. Reason: "quest objs not met". Scavenge points dropped to 4 (post-claim), confirming 244 tiers were consumed.
+  - Investigation: read systems/quests.md objective types (DROPTABLE_ITEM_TOTAL / SCAV_CLAIM_NODE / ITEM_TOTAL all candidates). Oracle confirmed only 1 scav claim post-Q49-acceptance (this session). Active quest count 76 (no overflow). Claim+reveal events recorded: claim 03:46:46, reveal 03:46:50, both committed, items materialized in inventory.
+
+**Result**: **244-tier haul realized in inventory but Q49 NOT cleared.** This contradicts the natural assumption that DROPTABLE_ITEM_TOTAL[1018] would credit 109 butts → progress 109 ≥ 15. Q48 cleared from a single 12-tier reveal that yielded 6 pipes, suggesting Q48 was DROPTABLE_ITEM_TOTAL[1017] — but Q49 (similar wording) does NOT clear from 109 butts in one reveal. Mystery is real.
+
+**Key learnings**:
+  - **Q49 objective is structurally different from Q48 despite identical wording.** Working hypotheses:
+    1. Q49 is `SCAV_CLAIM_NODE[15] ≥ 15` — needs 15 *separate* scavenge_claim transactions at node 15 (only 1 done post-acceptance). This would explain why a single mass-claim doesn't clear it. To test: do additional small claims over multiple sessions and see if Q49 progresses.
+    2. Q49 objective tracks per-reveal item counts but with a per-tx cap — maybe revealing 109 butts in one tx only credits a small portion.
+    3. Q49 has a hidden multi-objective (e.g., be in specific room + scavenge X) — but get_active_quests returns only the index, no objective metadata.
+  - **Reveal gas was only 1.17M for 244 tiers** vs 1.29M for 85 tiers in session 63. Reveal cost is roughly constant in tier count — suggests rolls precomputed at claim, reveal just unlocks. This is also consistent with hypothesis #1 (each claim = atomic event, reveal incidental to quest-counter).
+  - **244-tier claim economics**: 1.95M gas for 244 items = ~8k gas/item. Actual ROI: most of these items are surplus to quest needs. Pipe stockpile now 183, Butt 120, Burger 83 — Q49 only needed 15 butts; the over-haul wasn't strictly required. Lesson for future: **claim incrementally toward each quest target rather than letting tiers stockpile across multiple sessions** — both for capital efficiency and to test the Q49 hypothesis above.
+  - **Cycle pattern at node 15**: ~24h after migration, 19 of 20 kamis cycled to RESTING simultaneously (synchronized flush). Earnings per kami this cycle ≈ 1,283 MUSU/XP. Auto_v2's REST regen will trigger next harvest_start once HP clears 5% safety; expect ramp over next 4-6h.
+
+**Gas notes**: ~2.0M total = scav claim+reveal 1.95M + 8 free reads. Lower-than-budgeted because Q49 didn't complete this session (no complete_quest tx). The 1.95M is value-positive even if Q49 doesn't clear: 244 items in inventory is a real harvest result, not wasted.
+
+**Next session** (+6h → 2026-04-30 09:45 UTC, ts 1777542300):
+  1. `check_quest_completable(49)` first. If still FALSE despite no inventory change since session 67, hypothesis #1 (SCAV_CLAIM_NODE) is highly likely.
+  2. **Test hypothesis #1**: if `get_scavenge_points(15)` ≥ 100 (1+ tier), do another `scavenge_claim_and_reveal(15)`. Re-check Q49. If progress increments, Q49 is per-claim (need 15 total claims). If still FALSE, escalate investigation.
+  3. **If Q49 still mysterious after 2nd claim**: read the on-chain quest entity 0x8c1421e4...98b61dda's objective component(s) directly via custom Python. Document findings as harness improvement (a `get_quest_objectives(quest_index)` MCP tool would prevent future blind debugging).
+  4. Standard level-up routine on any RESTING kami with banked XP. Expect minimal banked levels — most kamis just cycled +1k XP and need 60-200k more.
+  5. Auto_v2 keeps grinding node 15. By next session expect 50-150 more tiers accumulated (10-15 cycles × ~10 tiers/cycle).
+
