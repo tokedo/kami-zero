@@ -1,77 +1,157 @@
 # Plan for session 70
 
-## Priority 0 — Read alerts.md FIRST
+## Priority 0a — Ship Tier-1 harness mods (founder-authorized, no gas)
 
-`memory/alerts.md` has an ACTIVE Q49 BLOCKADE alert raised in session 69 with a request for founder off-chain quest-registry inspection. If the founder has responded (via a Priority 0 directive in this plan, or by editing alerts.md, or by providing direct guidance), follow that. If no founder response yet, follow Priority 1 below.
+Three small additions, one bug fix, two CLAUDE.md edits. Commit under prefix `harness:` separately from any session-action commit. All work in `executor/server.py` unless noted.
 
-## Priority 1 — Cheap Q49 probe + level-up routine, NO force-flushing
+### Mod 1 — `quest_state(quest_index, account="main")` MCP tool
 
-**Hard rule**: do NOT force-flush kamis this session. Session 69 demonstrated `stop_harvest_batch` of 5 long-accumulated kamis costs ~8.5M gas (not the 1.5M budgeted), making continued hypothesis-testing on Q49 prohibitively expensive. Wait for founder input on Q49's actual objective.
+Discriminated read replacing the broken `get_quest_status` and disambiguating `check_quest_completable`. Returns:
 
-### Routine (free reads + opportunistic cheap actions only)
+```python
+{
+  "quest_index": int,
+  "entity_id": str,            # 0x-prefixed hex
+  "owned": bool,                # qid in component.id.quest.owns for account
+  "completed": bool,            # component.is.complete.has(qid)
+  "completable_now": bool,      # complete() staticCall succeeds
+  "revert_kind": str,           # "none" | "objs_not_met" | "not_active" | "other"
+  "revert_reason": str | None,  # raw revert string if revert_kind != "none"
+  "state": str,                 # "not_accepted" | "active_blocked" | "active_ready" | "completed"
+}
+```
 
-1. `check_quest_completable(49)` — free baseline. Q49 expected FALSE.
-2. `get_scavenge_points(15)` — free. If ≥100 (1+ tier from natural cycling), do ONE `scavenge_claim_and_reveal(15)` (~1.76M gas) as a low-cost data point. Re-check Q49. Stop after one claim regardless.
-3. `get_account_kamis` — count states. Expect ramp post-session-69 force-flush. 9 kamis (43, 1064, 6096, 7803, 8745, 10011, 12459, 13235, 13390) were force-flushed and should now be RESTING/HARVESTING under auto_v2.
-4. `get_kamis_progress_batch(<all 20>)` — note level + XP. With 9 freshly-flushed kamis having banked +579 XP each (avg) plus pre-existing residue from prior cycles, **expect multiple kamis with banked +1 level**.
-5. `level_and_allocate_batch` for any RESTING kami with ≥1 banked level. Default skill plan: Guardian-leaning sustain (see CLAUDE.md). For most current kamis at L33–38, the next priority is finishing **313 Patience** (Guardian T1, +5 MUSU/hr per pt, max 5) for any kami below 5 SP there, then moving to T2 (321/322/323) once T1 sums to 5.
-6. Auto_v2 health check: `get_all_strategies` + `get_strategy_status(43)`. Verify still ACTIVE and 2553 (silent-skip from session 69) not stuck. If 2553 has been ACTIVE for >24h with no progress, may need a single `stop_harvest_batch([2553])` to cycle it.
-7. Side-quest passive checks (free): no work on Q3007/Q6 — leaf quests, deferred.
+State derivation:
+- `completed=True` → `"completed"`
+- `owned=False` and `completed=False` → `"not_accepted"`
+- `owned=True` and `completable_now=True` → `"active_ready"`
+- `owned=True` and `completable_now=False` → `"active_blocked"`
 
-### Stop condition
+`revert_kind` parsing: substring match on revert reason — `"objs not met"` → `"objs_not_met"`, `"not active"` → `"not_active"`, else `"other"`.
 
-- After completing the routine above, schedule next session +12h (or +6h if Q49 cleared via cheap claim).
-- Do NOT escalate Q49 hypothesis testing this session. Wait for founder input.
+### Mod 2 — Fix `get_active_quests`
 
-## Priority 2 — If reveal-revert recurs at node 15
+Currently returns all owned quests including completed ones (so e.g. Q48 still shows in the list weeks after completion). Fix:
 
-Session 69 had reveal reverts on both claims at node 15 — a regression from sessions 66/67/68. If the cheap claim (Priority 1 step 2) also reveal-reverts, this confirms a node-15-specific pattern. Note in decisions.md but no action — items continue to materialize via claim-direct grant.
+- Keep returning all owned entity IDs (preserves diagnostic value), but
+- For each quest, also call `component.is.complete.has(qid)` and include `completed: bool` per quest
+- Add summary fields: `owned_count`, `completed_count`, `truly_active_count`
+- Rename misleading `active_quest_count` → keep as alias if other code reads it, but ensure documentation reflects that it's owned, not truly-active.
 
-## Inventory snapshot (end of session 69)
+### Mod 3 — `get_expected_objective(quest_index)` MCP tool
 
-- MUSU: **474,877** (+5,208 from 9 force-flush cycle stops)
-- VIPP: 49,744 (unchanged)
-- **Patinated Pipe: 212** (+28 from 2 claims; Q48 long-cleared, durable buffer)
-- **Cigarette Butt: 134** (+20; Q49 demands 15 fresh — supply not the issue)
-- Cheeseburger: 88 (+4)
-- Sanguine Shroom: 29, Honeydew Scale: 61, Dried Stems: 367, Bone Chunk: 115, Scrap Metal: 71
-- Maple-Flavor Ghost Gum: 1057, Ice Cream: 78, Better Ice Cream: 10, Rock Candyfloss: 63
-- Pine Pollen: 500, Essence of Daffodil: 300, Black Poppy Extract: 450, Sanguineous Powder: 125
-- Holy Dust: 4, Resin Tincture: 375, Resin: 25
-- Booster Pack: 13, Spell Cards: misc
-- Flash Talisman: 1, Respec Potion: 1, Hostility Potion: 1, Bless Potion: 1, Grace Potion: 1, XP Potion: 1
-- Essence of Hearing: 2, Ashlar: 1, Timber: 1
-- Key Items: Sextant, KW Maps, Unmarked Data Chip
-- Node 15: 12 pts remainder (post-claim)
+Reads the quest catalog files at `~/kami-zero/catalogs/quests/quests.csv` and `objectives.csv` (founder-provisioned). Returns:
 
-## Active strategies
+```python
+{
+  "quest_index": int,
+  "title": str,
+  "objectives": [
+    {
+      "description": str,
+      "type": str,         # e.g. "DROPTABLE_ITEM_TOTAL"
+      "delta_type": str,   # "INC" | "CURRENT" | "BOOLEAN" | "DECREASE"
+      "operator": str,     # "MIN" | etc
+      "index": int | None,
+      "value": int,
+    },
+    ...
+  ],
+  "rewards": str,          # raw text, leave parsing for later
+}
+```
 
-- **auto_v2 on node 15 (Temple Cave, Scrap)** — 20 kamis, REST regen, 5% safety, bountyCollectThreshold 10000. Strategy ID `48e08f68-4bd3-4d4b-8d27-f4ed5a5ca017`. Started 2026-04-29 03:14 UTC. ~35h uptime as of session 69.
+Implementation notes:
+- Load both CSVs once at module import (small, ~few KB).
+- Match by `Index` column in `quests.csv`. Pull `Objectives` text.
+- Split `Objectives` text on lines / clear delimiters if multiple; lookup each in `objectives.csv` by `Description` exact match.
+- If a quest has no row in `quests.csv` or no objective match in `objectives.csv`, return `objectives: []` and a `note` field rather than erroring — the catalog may not always be in sync with chain.
+- This tool reads the catalog as documentation, NOT as ground truth. Treat output as "what the catalog says to expect" — chain may differ.
+
+### Mod 4 — Tests
+
+Add minimal smoke tests in `executor/tests/`:
+- `test_quest_state.py`: assertions against bpeon's known state — Q48 state="completed", Q49 state="active_blocked" with revert_kind="objs_not_met", Q50 state="not_accepted" with revert_kind="not_active".
+- `test_expected_objective.py`: Q49 returns objective with `type="DROPTABLE_ITEM_TOTAL"`, `index=1018`, `value=15`. Q48 returns `index=1017, value=5`.
+
+### Mod 5 — CLAUDE.md additions
+
+Append two short sections to `CLAUDE.md` (at the kami-zero repo root, not blocklife-ai):
+
+**Section: "Quest debugging discipline"** (place after existing Movement/Quests section if present, else at end):
+
+> When a quest's `complete()` staticCall reverts and you suspect the objective type, before spending gas on hypothesis tests:
+>
+> 1. Call `get_expected_objective(idx)` — see what the catalog says the objective is.
+> 2. Call `quest_state(idx)` — confirm `state == "active_blocked"` and `revert_kind == "objs_not_met"`.
+> 3. If the catalog-expected objective appears already-satisfied per current state (e.g. inventory delta exceeds the target since acceptance) but chain still says objs not met, **escalate to `memory/alerts.md` with the discrepancy. Do not test alternate hypotheses with gas.** This is a registry-vs-catalog drift class of bug — only the founder or the game team can resolve it.
+> 4. Only proceed with empirical hypothesis testing when the catalog is silent or the catalog-expected objective is genuinely unverifiable from local state.
+
+**Section: "Force-flush gas budgeting"**:
+
+> `stop_harvest_batch` cost scales with how long the affected harvests have been accumulating. Empirical (session 69 lesson):
+>
+> - Harvests <2h old: ~1–1.5M gas per 5-kami batch
+> - Harvests >6h old: ~8–9M gas per 5-kami batch (5–6× the naive estimate)
+>
+> When planning to force-flush kamis whose harvests are >6h old, **budget ≥10M gas per 5-kami batch**. Do not include "force-flush 5 kamis" in any plan with a budget under 12M gas total — you'll burn through the budget on a single batch.
+
+## Priority 0b — Q49 status check (no gas hypothesis testing)
+
+Once Tier-1 mods are shipped (or in parallel during reads):
+
+1. Read `memory/alerts.md` — Q49 BLOCKADE flag is ACTIVE awaiting founder/Kami-team off-chain investigation.
+2. `quest_state(49)` — should return `state="active_blocked"`, `revert_kind="objs_not_met"`. Record in decisions.md.
+3. `get_expected_objective(49)` — should return `DROPTABLE_ITEM_TOTAL[1018]≥15`. Confirms the new tool works AND surfaces the catalog-vs-chain discrepancy structurally.
+4. `get_scavenge_points(15)` — if ≥100 (1+ tier from natural cycling, NO force-flush), do ONE `scavenge_claim_and_reveal(15)` (~1.76M gas) as a low-cost data point. Re-check Q49 via `quest_state(49)`. Stop after one claim regardless.
+5. **Do NOT force-flush. Do NOT test alternate hypotheses.** The discipline rule from CLAUDE.md applies: catalog-expected objective is already-satisfied per inventory but chain disagrees → escalation territory, not gas territory.
+
+## Priority 1 — Level-up routine (standard, no special handling)
+
+`get_account_kamis` + `get_kamis_progress_batch([all 20])`. With session-69's force-flush of 9 kamis having added ~579 XP each on top of pre-existing residue, expect multiple kamis with banked +1 levels.
+
+`level_and_allocate_batch` for any RESTING kami with ≥1 banked level. Default skill plan: Guardian-leaning sustain (see CLAUDE.md). Priority for current L33–38 roster: finish 313 Patience to 5 SP for any kami below; then 321/322/323 (T2 Guardian) once T1 sums to 5.
+
+## Priority 2 — Auto_v2 health
+
+`get_all_strategies` + `get_strategy_status(43)`. Verify still ACTIVE. If kami 2553 (silent-skipped on session 69's stop_harvest_batch) has been ACTIVE >24h with no progress, optional single-kami `stop_harvest_batch([2553])` to cycle it. Otherwise leave alone.
+
+## Priority 3 — Side-quest passive checks (free reads only)
+
+Q3007 (Move 500) — passive accumulator; check briefly. Nothing else accept-able without Q49 cleared.
+
+## Stop conditions
+
+- Tier-1 mods shipped + tested + committed (priority 0a complete) → proceed to 0b/1/2/3.
+- If Tier-1 mod implementation hits an unexpected blocker (e.g., `is.complete.has` ABI shape doesn't match what server.py uses), document the blocker in `decisions.md` and `improvements.md` and ship whatever subset works. Do NOT block the rest of the session on full Tier-1 completion.
+- Cheap claim done (priority 0b step 4) — at most one. No force-flush regardless of gas headroom.
+
+## Commit discipline
+
+- Harness changes (Mod 1–4 and the CSV-loading): one commit, prefix `harness:`, message describing the three new tools + the get_active_quests fix.
+- CLAUDE.md additions (Mod 5): can go in the same harness commit, or a separate commit prefixed `docs:`. Either is fine.
+- Session memory (decisions.md, plan.md, alerts.md, next-run-at): standard `session:` commit at end.
+
+## Reschedule
+
+- If Q49 cleared via cheap claim (unlikely): +6h.
+- Otherwise: +12h. Continue waiting on founder/Kami-team off-chain Q49 investigation.
+
+## Inventory snapshot (end of session 69, for context)
+
+- MUSU: 474,877. VIPP: 49,744.
+- Patinated Pipe: 212. Cigarette Butt: 134. Cheeseburger: 88.
+- Sanguine Shroom 29, Honeydew Scale 61, Dried Stems 367, Bone Chunk 115, Scrap Metal 71.
+- Essence of Hearing × 2, Ashlar × 1 (pre-stocked for Q51, Q52 once Q49 unblocks).
+- Node 15: 12 pts remainder.
 
 ## Quest status
 
-- **Q1–Q48 ✓**.
-- **Q49 (Community Service)**: ACCEPTED 2026-04-29 17:31 UTC. **5 cumulative scavenge claims post-acceptance, STILL FALSE**. Hypotheses ruled out: DROPTABLE_ITEM_TOTAL[1018]≥15, ITEM_BURN[1018]≥15, SCAV_CLAIM_NODE[15]≥5. Live: SCAV_CLAIM_NODE[15]≥N for N≥6 (possibly 15). **BLOCKED — awaiting founder off-chain inspection.**
-- **Q50 (You Smelt It…)**: gated behind Q49. Objective: Craft 1 Ingot.
-- **Q3007 (Move 500)**: passive accumulator; FALSE. Deferred.
-- **Q6 (Liquidate)**: deferred.
-- **Mina Q2014–Q2016**: ALL completed.
+- Q1–Q48 ✓.
+- Q49: ACCEPTED 2026-04-29 17:31 UTC, state="active_blocked", catalog-expected `DROPTABLE_ITEM_TOTAL[1018]≥15`, 5 cumulative claims post-acceptance + ~129 fresh butts in inventory + 15 burned, all hypothesis tests inconclusive. **AWAITING FOUNDER / KAMI-TEAM OFF-CHAIN INVESTIGATION.**
+- Q50 (You Smelt It…): not accepted, gated behind Q49.
+- Mina Q2014–Q2016: complete.
 
-## Carried-forward rules (still valid)
+## Quest graph
 
-- Quest-first: Q49 is the active MSQ gate (currently blocked, awaiting founder).
-- Don't disturb auto_v2 for hypothesis testing — gas was 5–6× budget on long-accumulated harvests.
-- **NEW: budget force-flush at ≥10M gas per 5-kami batch when harvests are >6h accumulated.** Plan accordingly.
-- YieldIndex=2 nodes yield VIPP; node 15 is YieldIndex=1 (MUSU).
-- Scav 1:1 invariant: scav points ≈ MUSU/VIPP credited per cycle.
-- Inventory existing items DO NOT count for "Scavenge X" objectives (snapshot at acceptance).
-- stop_harvest_batch: max ~5 per batch, silent-skip detection in harness.
-- Travel `dry_run=True` first for any multi-hop move.
-- `get_kami_state_slim` omits level/experience — use `get_kamis_progress_batch`.
-- `component.id.parent` is known-broken on this World; do NOT re-investigate.
-
-## Quest graph (MSQ critical path)
-
-Q31✓→…→Q47✓→Q48✓→**Q49 [BLOCKED — awaiting founder objective inspection]** → Q50 (Craft 1 Ingot) → Q51 (Give 1 Essence of Hearing — already have 2!) → Q52 (Move to Cave Crossroads, Give 1 Ashlar — have 1!) → …
-
-Note: Inventory already has Essence of Hearing × 2 and Ashlar × 1 — multiple downstream quests pre-stocked. Once Q49 unblocks, Q50–Q52 should clear quickly.
+Q47✓ → Q48✓ → **Q49 [BLOCKED, awaiting external investigation]** → Q50 → Q51 (Essence of Hearing × 1, have 2) → Q52 (Ashlar × 1, have 1) → …
