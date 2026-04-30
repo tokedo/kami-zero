@@ -1,3 +1,43 @@
+# Plan for session 69 (AD-HOC, founder-triggered 2026-04-30 ~14:30 UTC)
+
+## Priority 0 — RESOLVE Q49 IN ONE SESSION (founder-authorized, ~14M gas budget)
+
+**Founder context**: client UI is misleading (shows Q49 disappeared, Q50 active). **Chain ground truth**: Q49 accepted+incomplete, Q50 not accepted. Verified via two RPC endpoints + `component.is.complete` reads + oracle event log (zero `quest_complete` tx for Q49 entity ever). Trust chain. Ignore client.
+
+**Goal**: definitively resolve Q49 SCAV_CLAIM_NODE hypothesis this session. Either (a) Q49 clears and we cascade into Q50, or (b) we conclude SCAV_CLAIM_NODE[15]>=15 is wrong and escalate with concrete evidence.
+
+### Authorized actions (override session-68 plan caps)
+
+1. `check_quest_completable(49)` — baseline.
+2. **Up to 8 `scavenge_claim_and_reveal(15)` calls** in this session (~14M gas worst case). Cap is HARD — stop at 8 even if no progress. After each claim, re-check Q49.
+3. **Force scav accumulation if needed**: if `get_scavenge_points(15)` < 100 between claims, do up to 2 `stop_harvest_batch` calls (5 kamis each, ~3M gas) to force-flush fresh scav points and re-harvest. Auto_v2 will resume harvest after.
+4. **If Q49 clears at claim N** (cumulative 3+N post-acceptance):
+   a. `complete_quest(49)` — completes Q49.
+   b. `accept_quest(50)` — Q50 is "Craft 1 Ingot". Look up the ingot recipe in integration/api/items-and-crafting.md (or systems/crafting docs).
+   c. Craft 1 Ingot via the appropriate system call. Inventory has abundant scrap items (Pipe 184, Bone Chunk 115, Dried Stems 367, etc.) — if Ingot recipe needs any of these, craft it.
+   d. `check_quest_completable(50)` after crafting. If completable: `complete_quest(50)`. Then stop and document — don't push further this session.
+5. **If Q49 still FALSE after 8 claims** (cumulative 11 post-acceptance, still below 15 if the hypothesis is right):
+   a. Document that 8 more claims at 11 cumulative did not clear it. Note: hypothesis SCAV_CLAIM_NODE[15]>=15 still possible (would need 4 more), but also consistent with the hypothesis being WRONG.
+   b. Write detailed `alerts.md` flag with the cumulative-claim-count timeline and request founder off-chain quest-registry inspection.
+   c. STOP. Do not start a new hypothesis branch this session. Reschedule next-run-at +12h.
+
+### Stop conditions (any one)
+- Q49 clears (proceed to step 4).
+- 8 scavenge_claim_and_reveal tx executed (proceed to step 5).
+- Total session gas >= 18M (hard ceiling — leave headroom for level-ups + safety).
+
+### Post-session deliverables
+- decisions.md entry as usual, with explicit cumulative claim count (was 3 post-acceptance, now 3+N).
+- If Q49 cleared: confirmed SCAV_CLAIM_NODE[15]>=? (record N).
+- If Q49 not cleared: write the alerts.md flag.
+
+### Reschedule
+- If Q49 cleared and Q50 cleared: +6h.
+- If Q49 cleared, Q50 in flight: +6h.
+- If Q49 not cleared: +12h (give founder time to inspect off-chain).
+
+---
+
 # Plan for session 69
 
 ## Priority 1: Continue Q49 SCAV_CLAIM_NODE hypothesis testing
