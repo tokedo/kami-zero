@@ -1976,3 +1976,54 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   4. Standard level-up routine on any RESTING kami with banked XP. Expect minimal banked levels — most kamis just cycled +1k XP and need 60-200k more.
   5. Auto_v2 keeps grinding node 15. By next session expect 50-150 more tiers accumulated (10-15 cycles × ~10 tiers/cycle).
 
+
+## 2026-04-30 10:15 UTC — session 68 (Q49 hypothesis testing: ITEM_BURN ruled out, SCAV_CLAIM_NODE remaining lead)
+
+**ETH balance**: not sampled this session.
+**Perceived**: 19 HARVESTING + 1 RESTING (auto_v2 mid-ramp post-flush). Node 15 scav 1,137 pts = 11 tiers. Q49 still FALSE on perception. Inventory baselines unchanged from session 67 close: Pipe 183, Butt 120, Burger 83. Strategy 43 healthy, ~30h uptime, 0 restarts.
+
+**Decided**:
+  1. **Empirical objective-type triage** (cheap, ordered by gas cost):
+     - Burn 1 Cigarette Butt → re-check Q49. If TRUE: ITEM_BURN[1018]≥1 (single-burn quest). If FALSE: not a 1-burn objective.
+     - Burn 14 more (total 15 burned) → re-check Q49. If TRUE: ITEM_BURN[1018]≥15. If FALSE: ITEM_BURN ruled out.
+     - Do one small scavenge_claim_and_reveal(15) (11 tiers banked) → re-check. If TRUE on the *2nd* claim post-acceptance: SCAV_CLAIM_NODE highly likely.
+  2. Skip on-chain objective read attempt — `component.id.parent` not resolvable via World registry (its keccak hash exists in `integration/ids/components.json` but `world.components()` returns no entry; tried alternatives: `component.parent`, `component.parent.id`, `component.id.from`, `component.id.target`, `component.id.holder` — only holder resolves but doesn't link objectives→quest).
+  3. Skip leveling — no kami has banked XP for L→L+1.
+
+**Acted**:
+  - check_quest_completable(49): FALSE (baseline, "quest objs not met: Reverted").
+  - get_inventory: Butt 120 baseline.
+  - **burn_items(1018, 1, "bpeon")**: ~404k gas. Inventory: Butt 120→119 ✓.
+  - check_quest_completable(49): FALSE.
+  - **burn_items(1018, 14, "bpeon")**: ~403k gas. Inventory: Butt 119→105 ✓ (15 burned cumulatively).
+  - check_quest_completable(49): FALSE → **ITEM_BURN[1018] ≥ 15 hypothesis DISPROVEN**.
+  - get_scavenge_points(15): 1,137 pts → 11 tiers.
+  - **scavenge_claim_and_reveal(15)**: claim 779k + reveal 979k = 1.76M gas. Yielded +1 Pipe (183→184), +9 Butts (105→114), +1 Burger (83→84). Total 11 ✓.
+  - check_quest_completable(49): **STILL FALSE** ❌ after 3rd post-acceptance claim. Hypothesis SCAV_CLAIM_NODE[15]≥15 still consistent — would require ≥15 separate claim tx (currently at 3 across sessions 66/67/68).
+  - get_scavenge_points(15): 37 pts (post-claim, 0 tiers).
+  - get_account_kamis: confirmed room=15 for kami 3983 (and roster) — ROOM check trivially satisfied.
+
+**Result**: Q49 remains BLOCKED. Two hypotheses ruled out empirically:
+  - DROPTABLE_ITEM_TOTAL[1018]≥15 — 109 butts scavenged post-acceptance over sessions 66-68, FALSE throughout.
+  - ITEM_BURN[1018]≥15 — 15 butts burned this session, FALSE throughout.
+  
+  Remaining lead: **SCAV_CLAIM_NODE[15]≥N** (N likely 15) — would require 12+ more claim transactions to test fully. Each claim costs ~1.76M gas (claim+reveal). Total worst-case to clear: ~21M gas if N=15 — non-trivial but tractable over a few sessions.
+
+**Key learnings**:
+  - **`component.id.parent` is not on-chain at this World instance** even though its hash is in `integration/ids/components.json`. The `_resolve_component` helper in `executor/server.py` raises "Component not found on-chain" for it. Future attempts to read objective→quest linkage via this component will fail. Candidates that DO resolve: `component.id.holder`, `component.id.from`, `component.id.target` — but none expose objective-parent semantics. **Direct objective-config read is blocked until either (a) the missing component is registered, or (b) a different traversal path is discovered.** This is the reason hypothesis testing has to proceed empirically.
+  - **debug_traceCall not available on this RPC endpoint** ("method does not exist") — can't trace which specific objective `staticCall` reverts on.
+  - **ITEM_BURN ruled out for "Scavenge X"-worded quests.** Q49's "Scavenge 15 Cigarette Butts" wording does NOT correspond to ITEM_BURN[1018]≥15. This is a useful negative result: future "Scavenge X" quests are unlikely to be burn-based.
+  - **Most likely Q49 objective**: `SCAV_CLAIM_NODE[15]≥15` — 15 separate scavenge_claim transactions at node 15 since acceptance. Currently 3 done. To reach 15 within one session would cost ~21M gas at ~1.76M/claim — better to do them incrementally as scav points accumulate naturally to ≥1 tier (cheapest small claims).
+  - **Small claims have proportionally higher gas overhead per item but identical absolute claim+reveal cost** (~1.76M regardless of tier count). For SCAV_CLAIM_NODE-type quests, this is acceptable — counter increments per tx, not per item.
+
+**Gas notes**: ~2.57M total = burn(1) 404k + burn(14) 403k + scav 1.76M + ~10 free reads. Hypothesis-testing burn cost (~807k) is a real cost, but it produced two definitive negative results that constrain the search space. Scav 1.76M was value-positive on its own (+9 butts, +1 pipe, +1 burger). No wasted tx in the gas-efficiency sense — every tx tested a hypothesis or yielded inventory.
+
+**Next session** (+6h → 2026-04-30 16:15 UTC, ts 1777565700):
+  1. `check_quest_completable(49)` (free) — sanity baseline.
+  2. `get_scavenge_points(15)` — if ≥100 (1+ tier), do small `scavenge_claim_and_reveal(15)` to increment claim counter. After this it'd be 4 claims done. Test Q49 again.
+  3. Repeat steps 1-2 as scav points accumulate. Cap at 3 claims per session (~5.3M gas) so we don't burn the budget on a single hypothesis. After 3 claims test → if Q49 still FALSE, document and consider escalating to user (manual on-chain investigation needed; this is now a multi-session blocker).
+  4. Auto_v2 keeps running on node 15 — same droptable serves Q49 hypothesis testing AND continued MUSU income.
+  5. **Harness improvement candidate**: implement `get_quest_objectives(quest_index)` MCP tool (or similar) once a working component-traversal path is found. Document failed `component.id.parent` lookup in `memory/improvements.md` as known-broken so future sessions don't redo this dead-end.
+  6. Standard level-up scan — likely no banked levels still.
+
+

@@ -124,3 +124,12 @@ Format:
 - **Files**: `executor/server.py` — extended `stop_harvest_batch` body, kept signature unchanged.
 - **How to use**: Call `stop_harvest_batch([kid1, kid2, ...])` as before. Inspect `result["per_kami"]` to find any kami with `stopped: false` and retry just those. `result["failed_count"]` is the quick health-check.
 - **Lesson**: Any function using `executeBatchedAllowFailure` (or any other revert-swallowing batch primitive) MUST verify the resulting state. Silent-skip as a UX feature is fine, but undetected silent-skip is a 18-hour bug. Apply this pattern to other `*_batch` tools too.
+
+## 2026-04-30 — KNOWN-BROKEN: component.id.parent does not resolve on this World
+
+- **What**: Documented dead-end (NOT a code change). `component.id.parent` (keccak hash `0xbca01f994221da3049c3ee687ab5c6a1ebf40f2011941d5581d9cd500fdf2cd0`, present in `integration/ids/components.json`) is **not registered in the deployed World contract**. `_resolve_component('component.id.parent')` in `executor/server.py` raises "Component not found on-chain". Tried alternative names: `component.parent`, `component.parent.id`, `component.id.holder`, `component.id.from`, `component.id.target`. Of these only `holder`, `from`, `target` resolve, but none of them link objective entities → quest entities (verified by reverse-lookup attempts using `getEntitiesWithValue`).
+- **Why**: This blocks reading on-chain quest objective configuration. Session 68 needed to inspect Q49's objective type/target/handler to disambiguate between SCAV_CLAIM_NODE / DROPTABLE_ITEM_TOTAL / ITEM_BURN / ITEM_TOTAL. Forced to fall back on empirical hypothesis testing (burn 15 butts, observe Q49 state — gas cost ~807k just to disprove ITEM_BURN).
+- **Status**: Unsolved. Possible causes: (a) the parent component was never deployed at this World instance even though it's in the upstream IDs file; (b) parent linkage uses a different convention here (maybe the registry encodes objective-parent via a string-typed component or via a different naming scheme).
+- **Files**: None changed. This is a research note.
+- **DO NOT REPEAT**: Future sessions: do not re-spawn the parent-component lookup. If you need objective-config, either (1) try the off-chain indexer (if any becomes available), (2) read open-source MUD system code to find the correct creation pattern, or (3) keep using empirical probes as in session 68.
+- **`debug_traceCall` is also unavailable** on the RPC endpoint — can't trace the staticCall revert path.
