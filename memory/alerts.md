@@ -1,5 +1,15 @@
 # Alerts
 
+### 2026-05-01 03:18 UTC update (session 71) — Q49 still blocked after 6th cumulative claim (cheap probe)
+
+Plan-endorsed cheap probe this session: scav points had naturally accumulated to **14,599 = 145 tiers** since session 70 (no force-flush). Did ONE `scavenge_claim_and_reveal(15)` per the discipline rule — 1.87M gas, +70 Pipes, +63 Butts, +12 Burgers (145 items total, correct).
+
+- `quest_state(49, "bpeon")` post-claim → still `state="active_blocked"`, `revert_kind="objs_not_met"`, raw revert: `quest objs not met: Reverted`.
+- Inventory now: **Cigarette Butt 197** (catalog target: ≥15). Drift now ~13× over target.
+- 6 cumulative post-acceptance claims at node 15 still hasn't moved the needle. Reinforces the structural drift conclusion.
+
+Discipline rule still in force: no more force-flush, no more hypothesis testing. Awaiting founder off-chain Q49 inspection. Schedule: +12h.
+
 ### 2026-04-30 15:25 UTC update (session 70) — drift now confirmed structurally, no gas spent
 
 Tier-1 harness mods shipped this session (commit `b22935c`). Used the new tools to confirm the Q49 mystery is exactly the catalog-vs-chain drift class:
