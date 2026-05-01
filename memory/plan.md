@@ -1,107 +1,50 @@
-# kami-zero session 74 prompt — transfer prep: force-stop in-flight harvests (founder-authored)
+# Plan for session 75
 
-This is a complete replacement for `memory/plan.md` on the VM. After founder review, push to `~/kami-zero/memory/plan.md` and commit.
+## Context
 
----
+Session 74 force-stopped all 17 in-flight harvests (29.55M gas, zero silent-skips). Roster is **20/20 RESTING** and transferable. `ideas_to_founder.md` item 2 is **READY for founder action — Standing**. kami-zero is in PREDATOR mode (CLAUDE.md), quests paused, auto_v2 halted since session 73.
 
-## ⚠️ Single-purpose session
+The next session is gated on whether the founder has executed the predator team transfer. Cron may fire before the founder wakes kami-zero manually — handle both cases.
 
-Session 73 halted the auto_v2 strategy but left 17 kamis HARVESTING (per the prompt's "no force-flush" rule, which was wrong for this context). Founder is now ready to transfer kamis between accounts, and **transfer requires the kami to be RESTING** — not in-flight on a node. So this session does one thing: force-stop the 17 HARVESTING kamis so all 20 are at the operator and transferable.
+## Priority 0 — Read founder signals first
 
-**Predator doctrine and hard rules from CLAUDE.md still apply** — but this session's gas spend is a one-time transfer-prep cost authorized by the founder, NOT a violation of "no force-flush in predator mode" (that rule is about hunt-loop discipline, not transfer logistics).
+1. `cat memory/alerts.md` — any new founder reply on Q49 or anything else?
+2. `cat ideas_to_founder.md` — has item 2 been Resolved (transfer done) or status updated?
+3. `mcp__kamigotchi__get_account_kamis("bpeon")` — does the roster look the same as session 74's snapshot, or has the founder swapped kamis?
 
-After this session: report back to founder via `decisions.md` with the post-state. Schedule a long delay; founder will wake kami-zero when the transfer is complete and predators are loaded.
+## Priority 1 — Branch on transfer status
 
----
+### Branch A: Transfer landed (new predator roster present)
 
-## Priority 0 — Force-stop in-flight harvests, batched
+Doctrine first: **data work, not movement**. Do NOT move or strike on first sight.
 
-Target kamis (17 HARVESTING per session 73 baseline):
+1. Per-kami base-stat read: `get_kami_state` (full, not slim) on each new kami. Capture base_violence, base_power, body_affinity, hand_affinity, current room, level, equipment.
+2. Oracle scan: `oracle_kami_summary(kami_index)` for each new kami over 7d if any history exists, plus `oracle_top_nodes(7d, 20)` for current node activity.
+3. Cross-reference against `predator/guild-no-touch.csv` — confirm no new kami's owner is on the no-touch list (would be weird but worth a check).
+4. Draft initial hunt plan in `predator/learnings.md`: candidate nodes, candidate target clusters, counter-predator awareness for those nodes. **No tx this session unless plan is in writing first.**
+5. Skip on-chain liquidation tx until session 76 — first tx happens only after the plan is reviewed (founder approves or kami-zero re-reads the doctrine).
 
-```
-43, 1064, 2553, 6096, 7803,
-8745, 10011, 10647, 11716, 12459,
-13235, 13390, 13702, 13857, 13947,
-14286, 14306
-```
+### Branch B: Transfer not yet landed
 
-Already RESTING (do NOT touch): `3874, 3983, 7722`.
+Do not idle. Invest the session in mechanics homework:
 
-**Batching**: per session 69's empirical lesson, gas scales with batch size and harvest age. Use **batches of 5** (final batch of 2). Four batches total:
+1. Inspect `executor/server.py` for any system-resolution path that exposes `system.harvest.liquidate`. Document the ABI sig (params, return) in `predator/mechanics.md`. If the system isn't pre-registered in executor, derive its ID from `integration/ids/systems.json` and confirm via `_resolve_system`.
+2. Map the harvest entity → kami_id and harvest entity → node_id traversal so `harvest_liquidate` oracle rows can be enriched. Pick 2–3 sample harvest IDs from oracle's `kami_action` table and verify the chain reads.
+3. If oracle window has grown, retry `kami_static` lookup for the 38 unresolved guild-no-touch handles. Update `guild-no-touch.csv` and refresh the `Updated:` line.
+4. Cap recon at ~30 min. Quality over completeness.
 
-| Batch | Kami IDs |
-|-------|---------|
-| 1 | 43, 1064, 2553, 6096, 7803 |
-| 2 | 8745, 10011, 10647, 11716, 12459 |
-| 3 | 13235, 13390, 13702, 13857, 13947 |
-| 4 | 14286, 14306 |
+## Priority 2 — Hard rules (non-negotiable)
 
-Procedure:
+- **No on-chain hunt tx** until: (a) transfer landed, (b) `predator/learnings.md` has a written plan, (c) `predator/guild-no-touch.csv` `Updated:` line is ≤7 days old.
+- **No quest progression** — paused indefinitely.
+- **No auto_v2 relaunch** — strategy stays halted.
+- **Counter-predator math required before every strike** — never freelance.
 
-1. Pre-state read: `get_account_kamis("bpeon")` once. Confirm 17 H / 3 R matches expectation. If a kami already moved to RESTING since session 73 (HP-decay cycling), drop it from the batch list.
-2. For each batch in order: `stop_harvest_batch([kami_ids], "bpeon")`. Log return value, gas used, and any silent-skips to `decisions.md` immediately after the batch.
-3. After all four batches, run `get_account_kamis("bpeon")` once more. Expected: 0 HARVESTING / 20 RESTING. If any kami is still HARVESTING (silent-skip per session 69's kami 2553 anomaly), retry that kami solo: `stop_harvest_batch([id], "bpeon")`.
-4. If a solo retry also silent-skips, log the kami ID + symptoms to `memory/alerts.md` and continue. Do NOT block the session on a single stuck kami — founder will handle.
+## Active strategies
+- None. (Auto_v2 halted session 73, all 20 kamis RESTING since session 74.)
 
-**Gas expectation** (sanity bounds, not budget caps):
-- Best case (most harvests <2h old after the 60h auto_v2 cycle): ~5–7M gas total.
-- Worst case (some kamis untouched by auto_v2 for >6h): up to ~25–35M gas total.
-- Anything north of 40M is anomalous — pause batches, log to alerts.md, escalate to founder.
-
----
-
-## Priority 1 — Update predator/metrics.md row
-
-Append a row reflecting this session even though no obols/musu earned. The metrics file is the long-term feedback loop; transfer-prep gas counts.
-
-```
-session, started_at, ended_at, gas_spent_gwei, obols_earned, musu_earned,
-kamis_liquidated, items_consumed, nodes_visited, claude_tokens_used,
-notes
-```
-
-For session 74, fill values; leave `claude_tokens_used` blank if harness doesn't expose it. Note column: `transfer-prep stop_harvest_batch ×N kamis; one-time cost authorized by founder, not a doctrine violation`.
-
----
-
-## Priority 2 — Update decisions.md and ideas_to_founder.md
-
-`decisions.md`: standard session entry. Pre-state, per-batch gas, post-state, silent-skip count, total gas.
-
-`ideas_to_founder.md`: mark item 2 (predator team transfer) as **READY** — all 20 kamis at operator, awaiting founder action. Move item 2 from "Pending" to "Standing" with a status line: `READY for founder action — all 20 kamis at operator and transferable as of <timestamp>`.
-
----
-
-## Stop conditions
-
-- All 20 kamis RESTING → end session.
-- Any silent-skip after a solo retry → log to alerts.md, continue. End session anyway.
-- Total gas >40M → pause and log; founder will decide whether to continue.
-- **No other actions this session.** No leveling, no oracle queries, no doctrine refinement, no Q49 probes. Pure transfer prep.
-
----
+## Active quests
+- All paused. Q49 escalation in `memory/alerts.md` still open (founder territory).
 
 ## Reschedule
-
-`+72h` (3 days). Founder will manually wake kami-zero when the transfer is complete and predators are loaded. If kami-zero wakes naturally before that, the next session reads `ideas_to_founder.md` first to check if transfer status changed.
-
----
-
-## Commit discipline
-
-Single commit, prefix `session:`, message:
-```
-session: 74 — force-stop in-flight harvests for transfer prep
-
-All 17 HARVESTING kamis stopped via stop_harvest_batch (batches of 5).
-Total gas: <X> M. Final state: 20/20 RESTING. Predator team transfer
-unblocked; ideas_to_founder.md item 2 marked READY.
-```
-
----
-
-## What is NOT in scope this session
-
-- Any movement, leveling, quest action, oracle deep-dive, doctrine refinement.
-- `force_harvest_start` or any node-side action — transfer requires kamis at the operator, NOT at a node.
-- Item feeding to recover HP — kamis can transfer at any HP level. Healing happens post-transfer or pre-hunt.
+- Default `+72h` from session 74 (set in `memory/next-run-at`). Founder will likely wake kami-zero manually before then.

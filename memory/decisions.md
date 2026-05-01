@@ -2287,3 +2287,27 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   3. If still waiting: do not idle — invest the session in deepening `predator/mechanics.md`. Specifically: (a) read `executor/server.py` `_resolve_system("system.harvest.liquidate")` to get the ABI for the liquidation call; (b) inspect a few kamis' harvest entities on-chain to confirm `harvest_id → kami_id → node_id` traversal; (c) verify what `amount` represents in `harvest_liquidate` rows (compare attacker MUSU/obol balance change before/after via past sessions if visible). Cap at ~30 min of recon — quality over completeness.
   4. If oracle window has grown new account_names by then, retry `kami_static` lookup for the 38 unresolved handles. Update `guild-no-touch.csv`.
   5. **No on-chain tx until predator transfer lands.** Hard rule.
+
+
+## 2026-05-01 23:15 UTC — session 74 (transfer prep: force-stop in-flight harvests — 29.55M gas)
+
+**ETH balance**: not sampled.
+**Perceived (pre-stop)**: 17 HARVESTING / 3 RESTING — exact match to plan baseline. RESTING: 3874, 3983, 7722. HARVESTING: 43, 1064, 2553, 6096, 7803, 8745, 10011, 10647, 11716, 12459, 13235, 13390, 13702, 13857, 13947, 14286, 14306. `get_all_strategies("bpeon")`: empty (auto_v2 stayed halted from session 73). No drift since session 73 baseline.
+
+**Decided**: Execute plan verbatim — four `stop_harvest_batch` calls (5/5/5/2), single-purpose session, no other actions.
+
+**Acted** (all four batches succeeded on first attempt; zero silent-skips):
+  - Batch 1 `stop_harvest_batch([43, 1064, 2553, 6096, 7803])`: tx `0x0e2649a3…`, block 28283705, **8.50M gas**, 5/5 INACTIVE.
+  - Batch 2 `stop_harvest_batch([8745, 10011, 10647, 11716, 12459])`: tx `0xdb9bddf8…`, block 28283716, **8.49M gas**, 5/5 INACTIVE.
+  - Batch 3 `stop_harvest_batch([13235, 13390, 13702, 13857, 13947])`: tx `0x555e1075…`, block 28283723, **8.47M gas**, 5/5 INACTIVE.
+  - Batch 4 `stop_harvest_batch([14286, 14306])`: tx `0x041a1de7…`, block 28283728, **4.09M gas**, 2/2 INACTIVE.
+  - Post-state `get_account_kamis("bpeon")`: **20/20 RESTING** ✓.
+
+**Result**: All 17 in-flight harvests cleanly stopped. Predator team transfer is unblocked — every kami is RESTING and transferable. No silent-skips, no solo retries needed. `ideas_to_founder.md` item 2 promoted from Pending → Standing with READY status as of 2026-05-01 23:15 UTC.
+
+**Gas notes**: **29.55M gas total** (8.50 + 8.49 + 8.47 + 4.09M). Per-5-kami cost ~8.5M lands inside the plan's 5–7M best / 25–35M worst range and well below the 40M anomaly threshold. Roughly 1.7M gas per kami, consistent with mid-age (~24h) harvest accumulators per session 69's empirical curve. Zero wasted tx.
+
+**Per-batch silent-skip detection**: 0 across all four batches (the session 56 improvement to `stop_harvest_batch` returned `failed_count: 0` and per-kami `harvest_state: INACTIVE` for every entry). The 17/17 first-pass success matches the post-fix expectation — sessions 46/47-class silent failures did not recur.
+
+**Next session** (+72h → 2026-05-04 23:15 UTC, ts 1777936528): founder will likely wake kami-zero manually before this; if cron fires first, read `memory/alerts.md` + `ideas_to_founder.md` and `get_account_kamis("bpeon")` to determine whether the transfer landed. If new predator roster present: doctrine says **data work, not movement** — base-stat reads, oracle scan, draft hunt plan in `predator/learnings.md`, no on-chain tx until plan is in writing. If transfer not landed: deepen `predator/mechanics.md` (harvest.liquidate ABI, harvest→kami/node traversal) per session 73 carryover.
+
