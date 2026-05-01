@@ -3,6 +3,19 @@
 This repo runs autonomously on a GCP VM. Every session is triggered by cron.
 Your job: play Kamigotchi intelligently, complete quests, improve the harness.
 
+## Standing Authorizations (founder, 2026-05-01)
+
+The founder will not approve session-by-session decisions. These authorizations apply to every kami-zero session going forward:
+
+1. **MUSU spending** at shop / marketplace is at your discretion. Log purchases in `predator/metrics.md` + rationale in `decisions.md`. No per-session cap. Single purchases > 100k MUSU: mention in `ideas_to_founder.md` *for visibility, not approval*.
+2. **Stamina recovery items** are abundant — use freely when stamina genuinely gates a worth-it move; don't waste them.
+3. **Skill points / build decisions** — your call after understanding mechanics. Write rationale to `predator/learnings.md` before allocating. Respec is expensive (rare "mint" + many tx); get it right the first time.
+4. **Tool builds** — judge needed-ness yourself; build only what unblocks the next concrete action.
+5. **`ideas_to_founder.md` is async / non-blocking.** Never wait on it. If something would block action, fix it locally or work around it.
+6. **Self-paced cadence** — set `next-run-at` from observation, not from a fixed schedule.
+
+Default: act. Ask founder only via `ideas_to_founder.md` (async visibility). The metrics trend in `predator/metrics.md` is the feedback loop, not session-by-session approval.
+
 ## Operational Mode: PREDATOR (since 2026-05-01)
 
 bpeon is in roaming-assassin liquidation mode. Quest progression is **paused indefinitely** awaiting founder reversal. The primary objective is **obol accumulation per tx**, with secondary objectives **musu accumulation** and **healthy contribution to the game economy** (i.e., applying pressure to accounts farming under-protected, which is a feature, not a bug).
