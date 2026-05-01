@@ -136,6 +136,7 @@ The server runs as a stdio MCP server, launched by Claude Code:
 | `level_up_kami(kami_id, account)` | Level up if XP sufficient |
 | `equip_item(kami_id, item_index, account)` | Equip item to kami |
 | `unequip_item(kami_id, slot_type, account)` | Unequip from slot |
+| `upgrade_skill(kami_id, skill_index, account)` | Spend 1 SP on a skill |
 | `use_account_item(item_id, account, amount)` | Use consumable on account (stamina restores, etc.) |
 | `burn_items(item_indices, amounts, account)` | Burn/destroy items (for quest turn-ins) |
 
@@ -160,6 +161,9 @@ The server runs as a stdio MCP server, launched by Claude Code:
 | `scavenge_claim_and_reveal(node_index, account)` | Combined claim + wait + reveal |
 
 ### Batch / composite tools
+
+Prefer these over firing N parallel single-kami calls — one MCP round-trip,
+one compact result, per-item failure isolation, nonce-retry built in.
 
 | Tool | Description |
 |---|---|
