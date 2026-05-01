@@ -1168,8 +1168,15 @@ async def get_kamis_progress_batch(
             return {"index": kid, "error": str(exc)}
         stats = data.get("stats", {}) or {}
         health = stats.get("health", {}) or {}
+        harmony = stats.get("harmony", {}) or {}
+        violence = stats.get("violence", {}) or {}
+        power = stats.get("power", {}) or {}
+        slots = stats.get("slots", {}) or {}
         progress = data.get("progress", {}) or {}
         skills = data.get("skills", {}) or {}
+        traits = data.get("traits", {}) or {}
+        body = traits.get("body", {}) or {}
+        hand = traits.get("hand", {}) or {}
         return {
             "index": kid,
             "name": data.get("name"),
@@ -1179,6 +1186,15 @@ async def get_kamis_progress_batch(
             "unspent_points": skills.get("points"),
             "hp_base": health.get("base"),
             "hp_total": health.get("total"),
+            "harmony_base": harmony.get("base"),
+            "violence_base": violence.get("base"),
+            "power_base": power.get("base"),
+            "slots_base": slots.get("base"),
+            "slots_total": slots.get("total"),
+            "body_name": body.get("name"),
+            "body_affinity": body.get("affinity"),
+            "hand_name": hand.get("name"),
+            "hand_affinity": hand.get("affinity"),
             "investments": [
                 {"index": inv.get("index"), "points": inv.get("points")}
                 for inv in (skills.get("investments") or [])
