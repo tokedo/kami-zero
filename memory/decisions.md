@@ -2183,3 +2183,49 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   6. Side-quest: Q3007 (Move 500) free check; nothing else accept-able while Q49 holds.
 
 
+
+
+## 2026-05-01 15:31 UTC — session 72 (Q49 hold pattern: 7th cumulative claim, STILL BLOCKED — 1.87M gas)
+
+**ETH balance**: not sampled.
+**Perceived**: 10 RESTING / 10 HARVESTING (RESTING set: 2553, 6096, 10011, 43, 1064, 7803, 8745, 12459, 13235, 13390 — exactly the previously-HARVESTING set from session 71's session-start, confirming roughly daily natural cycle). Auto_v2 ACTIVE 60h uptime, 0 restarts, 12.54% CPU, 46% mem ✓. Q49 still `active_blocked / objs_not_met`. Node 15 scav: **14,302 pts = 143 tiers** (+143 since session 71 end, ~12h natural accumulation, ~1,191 pts/hr — matches the ~1,200/hr rate noted last session). MUSU 489,431 → **503,634** (+14,203 from natural cycling). VIPP 49,744 unchanged. No alerts.md founder reply yet.
+
+**Decided** (plan-endorsed Priority 1 hold pattern):
+  1. Scav was 143 tiers ≥ plan's "≥1 tier" threshold → do ONE `scavenge_claim_and_reveal(15)`. **Stop after one claim regardless** (discipline rule).
+  2. Skip Priority 2 level-up if no banked levels — batch-check first, decide after.
+  3. Skip Priority 3 auto_v2 intervention (60h healthy).
+  4. Skip Q3007 (still passively accumulating).
+
+**Acted**:
+  - `quest_state(49, "bpeon")`: state="active_blocked", revert_kind="objs_not_met" (baseline).
+  - `get_scavenge_points(15)`: 14,302 / 100 = 143 tiers.
+  - `get_inventory("bpeon")`: Pipe 282, Butt 197, Burger 100 (baselines).
+  - `get_account_kamis("bpeon")`: 10 H / 10 R.
+  - `get_all_strategies("bpeon")`: auto_v2 ACTIVE on all 20 kamis ✓.
+  - `get_strategy_status(43)`: healthy, 60h uptime, 0 restarts, 12.54% CPU, 46% mem. ✓
+  - `check_quest_completable(3007)`: FALSE (still passive). No action.
+  - `get_tier("bpeon")`: GUILD, 21 max, 20 used, 1 remaining ✓.
+  - **`scavenge_claim_and_reveal(15)`**: claim 779k + reveal 1.09M = **1.87M gas**. 143 tiers consumed cleanly.
+  - `get_kamis_progress_batch([2553, 6096, 10011, 43, 1064, 7803, 8745, 12459, 13235, 13390])` (parallel with claim): no kami has banked levels. Closest: **43 "Zephyr"** L37, **141,302 XP** (needs 159,364 for L38, ~18k short — basically same as session 71). 7803 L37 94,106 XP (~65k short). 8745 L37 102,302 XP (~57k short). The rest L34-38 well short.
+  - **Notable**: 2553 and 6096 are now L38 (were L37 last session). They leveled between sessions 71 and 72 — possibly via auto_v2/Kamibots auto-leveling, or the Kamibots strategy includes a leveling step I haven't traced. No SP allocation occurred for these new levels per the investments tally (`unspent_points: 0` and existing investments sum to ~37 SP for L38 = expected SP-per-level book-keeping). **Investigation candidate** for future session if pattern repeats.
+  - **`quest_state(49, "bpeon")` post-claim**: STILL `state="active_blocked"`, `revert_kind="objs_not_met"` ❌
+  - `get_inventory("bpeon")` post-claim: Pipe 282→**340** (+58), Butt 197→**266** (+69), Burger 100→**116** (+16). Total 143 ✓ exact. Distribution 40.6/48.3/11.2 vs expected 44/44/11 — within RNG bounds.
+  - `get_scavenge_points(15)`: 14,302 → 2 pts (143 tiers consumed correctly, 2 remainder preserved).
+
+**Result**: Q49 BLOCKADE persists at the **7th cumulative post-acceptance claim**. Inventory now has **266 Cigarette Butts** vs catalog target ≥15 (~17.7× over). Reveal worked correctly (no `reveal_skipped` regression). Discipline rule held: single cheap probe, no force-flush, no hypothesis testing. Founder escalation in `alerts.md` updated.
+
+**Key learnings**:
+  - **Auto-leveling pattern**: 2553 + 6096 leveled L37→L38 between sessions 71/72 *outside* of any explicit `level_up` tx I issued. Investigation candidate; may be Kamibots auto_v2 doing something useful, or another mechanism. Not a blocker — XP burn is already counted, and investments stay safe (`unspent_points: 0`).
+  - **Natural scav rate confirmed**: 14,302 pts in ~12h ≈ 1,192 pts/hr/account. Stable across sessions 70→71→72 (24h: 14,599 / 12h: 14,302). Future cron schedules can rely on ~1 tier per minute of harvest at node 15.
+  - **143 tiers / 1.87M gas = 13.1 µgas per tier** — good economy at this batch size. Sublinear reveal cost stays consistent.
+  - **No banked level-ups for the 6th consecutive session** despite consistent ~579 XP/short cycle and ~1,283 XP/long cycle. The XP gap from L34-38 to next-level (60-200k) is too wide to fill in 1-2 cycles. Will need patient accumulation across many sessions.
+
+**Gas notes**: ~1.87M total = scav claim+reveal 1.87M + ~10 free reads. Value-positive: 143 items materialized + Q49 datapoint #7 confirmed.
+
+**Next session** (+12h → 2026-05-02 03:31 UTC, ts 1777692707):
+  1. Read `memory/alerts.md` first — founder may have replied with off-chain Q49 inspection.
+  2. If founder unblocked: act on guidance directly.
+  3. If still no founder input: same hold pattern — `quest_state(49)` + `get_scavenge_points(15)`. If ≥1 tier from natural cycling, ONE cheap claim. **Same discipline rule.**
+  4. Standard level-up routine: Zephyr (43) at 141k XP needs ~18k more for L38 — likely banks within 1-2 cycles. Will be the first kami to level up in 6+ sessions.
+  5. Auto_v2 health: 72h+ uptime, almost certainly still healthy.
+  6. Side-quest: Q3007 (Move 500) free check; nothing else accept-able while Q49 holds.
