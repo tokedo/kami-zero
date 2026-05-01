@@ -141,7 +141,51 @@ Format:
 - **Tests**: `cd executor && .venv/bin/python -m unittest tests.test_quest_state tests.test_expected_objective` — 6/6 pass against bpeon's known Q48/49/50 state.
 - **Commit**: b22935c
 
-## 2026-04-30 — KNOWN-BROKEN: component.id.parent does not resolve on this World
+## 2026-05-01 — Predator-mode tooling gaps (session 73) — proposal-only
+
+This is a tooling inventory for the new PREDATOR chapter. **No code changes this session** — just an audit of what's missing and what building each gap would require. Founder reviews and authorizes builds in a future session prompt.
+
+Audit basis: read of `executor/server.py` MCP tool surface. Existing tools relevant to predator mode are read-only:
+- `get_killer_ranking` — top predators by kill count (cached 1h, kamibots playwright endpoint)
+- `get_all_kamis` — full population with violence/attack bonuses/equipment for threat modeling
+- `get_nodes` — all nodes with kami counts
+- `get_kami_state_slim` / `get_kami_state` — per-kami HP/stats/skills
+- `oracle_sql` — historical action stream including `harvest_liquidate` rows (mentioned in oracle_sql docstring as ~13% no-op; the action exists)
+- `oracle_kami_summary` — per-kami action histogram
+- `oracle_top_nodes` — node activity ranking
+
+### Gap 1 — `liquidate(target_kami_id, attacker_kami_id)` MCP tool: NOT PRESENT
+- **Closest primitive**: none. No `attack`, `kill`, `liquidate`, or `combat` symbol anywhere in `executor/server.py`. The action *exists on-chain* — oracle records it as `harvest_liquidate` action_type — so a system call must exist (probably `system.harvest.liquidate` or `system.kami.attack`; needs lookup against `integration/ids/systems.json`).
+- **Building it requires**: (a) discover the system ID + ABI for the on-chain call (signature, params: attacker_kami_entity_id + target_kami_entity_id at minimum, possibly node_id, possibly more), (b) gas tuning — probably similar order to `harvest_stop` (1.5–4M); the in-flight harvest accumulator settlement is the gas-heavy part, (c) returns a structured result: tx hash, gas used, obols gained, musu gained (if any), counter-strike damage taken (if any), target's post-tx state.
+- **Pre-req before build**: fill in `predator/mechanics.md` with the system-name discovery + a successful staticCall against a sandbox target. Doctrine ("data work, not movement") implies we should not ship this tool before we understand the formula it embodies.
+
+### Gap 2 — `scan_node_for_targets(node_index)` read tool: NOT PRESENT but COMPOSABLE
+- **Closest primitive**: `get_nodes` lists per-node kami counts but not identities. `get_all_kamis` returns the full population including current room/node. Cross-join is doable.
+- **Composable from**: `get_all_kamis` (filter by `node_index` and `state == "HARVESTING"`) + `get_kami_state_slim(kami_id)` per candidate (HP/level/owner) + `oracle_sql` (recent kill counts on node, target's recent activity for "starving" detection — H2 in `predator/targeting.md`) + `predator/guild-no-touch.csv` filter.
+- **Building it as a single tool would**: avoid the fan-out cost in main-context tokens, return a ranked list `[{kami_id, kami_index, owner_handle, owner_account_id, hp_pct, level, on_node_minutes, last_owner_action_at, in_guild_no_touch}]`. The ranking is doctrine-laden (which targets are "good"?), so possibly leave ranking to the agent and just return the enriched list.
+- **Pre-req before build**: doctrine maturity — once `predator/targeting.md` heuristics are verified, hard-code the safe filters (drop guild members, drop high-counter-attack threats) and let scoring be data-side.
+
+### Gap 3 — `predict_strike(attacker_kami_id, target_kami_id)` predicate: NOT PRESENT
+- **Closest primitive**: none. Counter-predator math — "will our HP after the kill stay above their liquidation threshold for our weakest kami on the node?" — has no harness support today.
+- **Building it requires**: the obol/damage/HP-cost formula from `predator/mechanics.md`, plus `get_kami_state_slim` reads of attacker + target + "weakest other kami of ours on node". Pure read-side, no tx.
+- **Pre-req before build**: `predator/mechanics.md` must contain the verified formula. Until then, this predicate is unbuildable.
+
+### Gap 4 — Guild-roster gate: NOT PRESENT (load-bearing safety)
+- **Current state**: `predator/guild-no-touch.csv` exists (founder-shipped, 82 handles, account_ids being resolved this session in P5b). Nothing in `executor/server.py` reads it.
+- **Proposed minimum**: a small helper `predator_safety.is_target_protected(account_id, handle, csv_path="predator/guild-no-touch.csv")` that loads the CSV (with mtime cache), checks the file's `Updated:` line is ≤ 7 days old (hard-fail if stale → "deny all"), matches by `account_id` if non-empty else by handle, returns `(blocked: bool, reason: str)`.
+- **Wired into**: any future `liquidate(...)` tool — call `is_target_protected` first, abort if `blocked`. Also expose as a standalone tool so the agent can pre-filter scan results.
+- **Hard rule per CLAUDE.md**: file missing or stale → deny-all. The wrapper must enforce this — not the agent. This is the bright line; encoding it in code (not memory) is mandatory before the first liquidation tx ever fires.
+
+### Other observations
+- `harvest_liquidate` appears in oracle action-type vocabulary, but no oracle helper enriches it (no view, no per-event helper). `get_killer_ranking` is the only existing predator-flavored read and it's a cached aggregate, not raw events. → P3 in `ideas_to_founder.md` (oracle predator views) is the right home for that ask, not the executor.
+- `get_guild_members(account)` exists — returns the kamibots-API `friendAccountNames` so guild-mates don't attack each other. **This is a different list** from the founder-curated `guild-no-touch.csv` (which encompasses the broader GUILD-tier alliance, not just the same-account-cluster). Both lists need to filter targets; `is_target_protected` should check both.
+- No "obol balance" read exists. `get_inventory` may already include obol if it's an item. Check before building anything obol-specific. (Inventory-fetch attempt deferred to a non-prep session.)
+
+### What this session does NOT do
+- Build any of the above. Founder authorizes builds in a future session prompt.
+- Touch `harvest_liquidate` or any predator tx — no on-chain action this session.
+
+
 
 - **What**: Documented dead-end (NOT a code change). `component.id.parent` (keccak hash `0xbca01f994221da3049c3ee687ab5c6a1ebf40f2011941d5581d9cd500fdf2cd0`, present in `integration/ids/components.json`) is **not registered in the deployed World contract**. `_resolve_component('component.id.parent')` in `executor/server.py` raises "Component not found on-chain". Tried alternative names: `component.parent`, `component.parent.id`, `component.id.holder`, `component.id.from`, `component.id.target`. Of these only `holder`, `from`, `target` resolve, but none of them link objective entities → quest entities (verified by reverse-lookup attempts using `getEntitiesWithValue`).
 - **Why**: This blocks reading on-chain quest objective configuration. Session 68 needed to inspect Q49's objective type/target/handler to disambiguate between SCAV_CLAIM_NODE / DROPTABLE_ITEM_TOTAL / ITEM_BURN / ITEM_TOTAL. Forced to fall back on empirical hypothesis testing (burn 15 butts, observe Q49 state — gas cost ~807k just to disprove ITEM_BURN).

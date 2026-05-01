@@ -2229,3 +2229,61 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
   4. Standard level-up routine: Zephyr (43) at 141k XP needs ~18k more for L38 — likely banks within 1-2 cycles. Will be the first kami to level up in 6+ sessions.
   5. Auto_v2 health: 72h+ uptime, almost certainly still healthy.
   6. Side-quest: Q3007 (Move 500) free check; nothing else accept-able while Q49 holds.
+
+
+## 2026-05-01 22:48 UTC — session 73 (chapter pivot to PREDATOR — prep only, zero on-chain tx)
+
+**ETH balance**: not sampled this session (no tx).
+**Perceived (pre-pivot baseline)**:
+  - `get_all_strategies("bpeon")`: 1 ACTIVE — auto_v2 (id 48e08f68…, kami_indices[0]=43), 20 kamis configured at the strategy level, started 2026-04-29 03:14 UTC, vm_ip 137.184.149.248. Config: REST regen, 5% safety margin, autoCollect, reviveOnDeath true, bountyCollectThreshold 10000 across all 20 kamis.
+  - `get_account_kamis("bpeon")`: 17 HARVESTING / 3 RESTING. RESTING set: 3874, 3983, 7722. HARVESTING set: 43, 1064, 2553, 6096, 7803, 8745, 10011, 10647, 11716, 12459, 13235, 13390, 13702, 13857, 13947, 14286, 14306.
+  - `get_tier("bpeon")`: GUILD, 21 max / 20 used / 1 remaining (pre-stop).
+  - `get_inventory("bpeon")`: MUSU 507,785, VIPP 49,744, plus full larder + materials. Predator-relevant: Hostility Potion ×1 (item 11410), Flash Talisman ×1 (11412), Respec Potion ×1 (11403). Restoratives: Ghost Gum 1,057, Cheeseburger 116, Ice Cream 78, Rock Candyfloss 63.
+  - `oracle_health()`: ok, lag 9.6s, 567,372 actions in 28d window, registry 35 systems / 41 addresses.
+  - `oracle_top_nodes(7d, 20)`: node 86 dominant (76,741 starts, 9.4× #2). Top 5: 86 / 73 / 16 / 60 / 9.
+
+**Decided** (founder-authored plan in `memory/plan.md` — executed verbatim):
+  - All five priorities + P5b. **No on-chain tx by design.**
+  - Skip force-flush, leave in-flight harvests sitting (kamis will be transferred or re-tasked by founder).
+
+**Acted**:
+  - **P0 (kamibots-side stop)**: `stop_strategy(kami_id=43, permanent=True, account="bpeon")` → `{"status": "DELETED"}`. Verified: `get_all_strategies` empty; `get_tier` `usedSlots=0`. Done.
+  - **P1 (CLAUDE.md doctrine)**: Inserted blocks A (operational mode banner), B (predator doctrine), C (predator hard rules), D (self-diagnostics) at top of `CLAUDE.md`, above quest sections. Demoted three quest-era sections to PAUSED reference: "Primary objective: Quest completion", "Default harvest strategy: Auto_v2", "Level-up + skill allocation".
+  - **P2 (predator/ scaffold)**: Created `predator/README.md`, `mechanics.md`, `targeting.md`, `counter-predator.md`, `learnings.md`, `metrics.md`. Did NOT create `guild-no-touch.csv` (founder-shipped).
+  - **P3 (ideas_to_founder.md)**: Created at repo root with seed 3-item Pending list (guild roster delivered/IDs to resolve, predator team transfer blocker, oracle predator views ask).
+  - **P4 (tooling gap audit, no build)**: Inventoried `executor/server.py`, identified 4 gaps (liquidate tool, scan-node-targets tool, predict-strike predicate, guild-roster gate). Documented in `memory/improvements.md` with build prerequisites for each.
+  - **P5 (read-only baseline)**:
+    - Oracle schema captured: 11 tables (kami_action, kami_static, kami_current_location, kami_equipment, kami_skills, items_catalog, nodes_catalog, skills_catalog, raw_tx, system_address_snapshot, ingest_cursor).
+    - `harvest_liquidate` row shape probed: `kami_id` = attacker, `harvest_id` = target's harvest (NOT target kami directly), `target_kami_id` and `node_id` are NULL in oracle (would require harvest→kami/node join on-chain), `amount` = integer (sample 606/851/970, plausibly obol yield, **unverified**), all 1,676 events route through `system.harvest.liquidate`.
+    - Top liquidation node breakdown was attempted but `node_id` is unpopulated for liquidations — query returned NULL bucket only. Captured to `predator/mechanics.md` as a known-unknown.
+    - Pre-transfer roster snapshot saved (above).
+  - **P5b (handle resolution)**: `oracle_sql` against `kami_static` resolved **44 of 82** handles to account_ids. Below the plan's "good first pass" target of 70 — root cause is that `kami_static` only indexes accounts with at least one indexed kami, so guild members without kamis don't surface. LOWER() retry confirmed `0xAsimov` is genuinely a separate account (no kamis indexed) from `0xasimov` (resolved). Wrote IDs back to `predator/guild-no-touch.csv` preserving the header block; appended `# Resolved 44/82 IDs in session 73 (2026-05-01)` footer. 38 unresolved handles logged to `predator/learnings.md`.
+
+**Result**: All 5 priorities + P5b complete. Zero on-chain tx (per plan). Auto_v2 halted; in-flight harvests will resolve passively. Doctrine, hard rules, knowledge base, founder-asks file, and tooling-gap inventory all in place. Predator chapter is structurally ready; unblocked only by founder's predator-team transfer (item 2 in `ideas_to_founder.md`).
+
+**Per-priority summary for founder**:
+  - P0 done (Y) — auto_v2 stopped, slots freed, 17 H / 3 R kamis still in-place.
+  - P1 done (Y) — blocks A–D appended top-of-file; quest sections marked PAUSED.
+  - P2 done (Y) — 6 files created; `guild-no-touch.csv` left untouched as instructed.
+  - P3 done (Y) — `ideas_to_founder.md` seeded with 3 Pending items.
+  - P4 done (Y) — 4 gaps + observations logged in `memory/improvements.md`. Headline build sequence: mechanics.md → predict_strike → liquidate → scan_node_for_targets, with guild-roster gate wrapping the chain.
+  - P5/P5b done (Y/partial) — baseline captured; **44/82 handles resolved**, 38 require non-oracle resolution path or wait for oracle window growth.
+
+**Active strategies count after halt**: **0**. Confirmed by both `get_all_strategies` (empty list) and `get_tier` (0/21 used).
+
+**Tooling gaps identified**: 4 — see `memory/improvements.md` "Predator-mode tooling gaps (session 73)".
+
+**Blocking the predator transfer**: nothing on kami-zero's side; awaiting founder action (item 2 in `ideas_to_founder.md`).
+
+**Other founder asks beyond the two known blockers**:
+  - Oracle predator views (item 3 in `ideas_to_founder.md`) would shorten target-finding queries — non-blocking but would 10× recon throughput.
+  - 38-handle long tail in `guild-no-touch.csv` cannot be resolved via current oracle path (no kamis indexed). Founder may need to fall back on direct on-chain reads or pull from kamibots once a roster endpoint exists.
+
+**Gas notes**: 0 ETH spent. 0 tx submitted. All actions were either kamibots-API control plane (`stop_strategy`), local file writes, or oracle/kamibots reads.
+
+**Next session** (+24h → 2026-05-02 22:48 UTC, ts 1777762091):
+  1. Read `memory/alerts.md` and `ideas_to_founder.md` first — founder may have replied or signaled the predator transfer.
+  2. If predator transfer is complete: confirm new roster via `get_account_kamis`, run base-stat read, draft initial hunt plan in `predator/learnings.md` BEFORE any move/strike. Doctrine: data work, not movement.
+  3. If still waiting: do not idle — invest the session in deepening `predator/mechanics.md`. Specifically: (a) read `executor/server.py` `_resolve_system("system.harvest.liquidate")` to get the ABI for the liquidation call; (b) inspect a few kamis' harvest entities on-chain to confirm `harvest_id → kami_id → node_id` traversal; (c) verify what `amount` represents in `harvest_liquidate` rows (compare attacker MUSU/obol balance change before/after via past sessions if visible). Cap at ~30 min of recon — quality over completeness.
+  4. If oracle window has grown new account_names by then, retry `kami_static` lookup for the 38 unresolved handles. Update `guild-no-touch.csv`.
+  5. **No on-chain tx until predator transfer lands.** Hard rule.
