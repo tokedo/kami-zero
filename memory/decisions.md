@@ -2311,3 +2311,70 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
 
 **Next session** (+72h → 2026-05-04 23:15 UTC, ts 1777936528): founder will likely wake kami-zero manually before this; if cron fires first, read `memory/alerts.md` + `ideas_to_founder.md` and `get_account_kamis("bpeon")` to determine whether the transfer landed. If new predator roster present: doctrine says **data work, not movement** — base-stat reads, oracle scan, draft hunt plan in `predator/learnings.md`, no on-chain tx until plan is in writing. If transfer not landed: deepen `predator/mechanics.md` (harvest.liquidate ABI, harvest→kami/node traversal) per session 73 carryover.
 
+
+
+## 2026-05-01 23:49 UTC — session 75 (learning window — predator transfer landed; characterized roster, deepened mechanics, wrote first hunt plan; zero on-chain tx)
+
+**ETH balance**: not sampled (no tx).
+
+**Perceived (transfer landing)**:
+  - `get_account_kamis("bpeon")`: **6 kamis, all RESTING** — 12649, 6058, 12225, 15540, 10705, 11224. None of the previous bpeon roster present (full swap).
+  - All 6 kamis at node **86** (Guardian Skull, EERIE-INSECT). All `harvest.state == INACTIVE` (correctly stopped pre-transfer in session 74). All on **per-kami transfer cooldown until 1777681676 ≈ 2026-05-02 00:08 UTC** (~19 min from session start).
+  - Owner per oracle `kami_static`: cpeon (kami-agent). bpeon now operates them via the operator wallet.
+  - `get_inventory("bpeon")`: **MUSU 518,699** (+10,914 from session 74's 507,785 — the 500k starting capital must have been MUSU already in cpeon's inventory at transfer time + small accrual). New item drops worth noting:
+    - Pom-Pom Fruit Candy ×1000 (item 11303), Gakki Cookie Sticks ×500 (11304) — likely high-quality stamina/HP foods.
+    - **Rock Candyfloss 463** (was 63 — abundant stamina recovery).
+    - Better Ice Cream ×10, Ice Cream ×78.
+    - Booster Pack ×13 (lootbox).
+    - Red Ribbon Gummy ×99 (REVIVE).
+    - Spell cards: Cultivation I/II/III, Paeon's Field of Flowers, Melkarth's Heroic Awakening, Neith's River of Life — TBD function.
+    - Holy Dust ×4, Grace Potion ×1, Bless Potion ×1, XP Potion ×1, Hostility Potion ×1, Flash Talisman ×1, Respec Potion ×1.
+  - `oracle_health()`: ok, lag 5s, 569,190 actions in 28d, registry 35 systems / 41 addresses.
+  - 0 unexpected kamis, 0 missing kamis from the transfer (no anomaly).
+
+**Decided** (plan-endorsed, founder-authored P0–P5):
+  - P0 read transfer landing. Done — 6 kamis confirmed.
+  - P1 update CLAUDE.md (Block E Standing Authorizations) and `ideas_to_founder.md` (async-only preamble + restructure). Done.
+  - P1 cont. update `predator/metrics.md` columns to add `musu_spent` and `musu_balance_end`. Backfilled session 73/74 with empty cells. Done.
+  - P2 deepen mechanics.md across the 5 carryover questions. Done — used GDD `systems/liquidation.md` as the canonical source plus oracle reads to derive the spoils-amount answer.
+  - P3 roster characterization: per-kami brief + spearhead identification + affinity coverage. Done in `predator/learnings.md`.
+  - P4 first hunt plan: target node, attacker pick, trigger condition, bail-out rules. Done in `predator/learnings.md`.
+  - P5 schedule: 1777687500 = 2026-05-02 01:25 UTC (~1h 36min from session start). Cooldown ends ~00:08 UTC; this gives 77 min of fresh-prey accumulation buffer past cooldown end. Reasoning: cluster (node 86) is concrete + already alive; spec says re-wake shortly after cooldown when both conditions hold.
+
+**Acted**:
+  - `get_account_kamis("bpeon")` ×1, `get_inventory("bpeon")` ×1, `oracle_health()` ×1, `get_kami_state_slim` ×6 (one per kami).
+  - `oracle_sql` ×4: PRAGMA table_info('kami_static'), PRAGMA table_info('kami_action'), per-kami stats join, top-15 liquidators 7d.
+  - File edits (no tx): rewrote `predator/mechanics.md`, `predator/learnings.md` (append + new sections), `predator/metrics.md` (column update + session 75 row), `ideas_to_founder.md` (restructure + Standing item 2 promoted), `CLAUDE.md` (Block E inserted above Operational Mode).
+  - Wrote `memory/plan.md` for session 76 (execute first hunt or revise).
+  - Wrote `memory/next-run-at` = 1777687500.
+
+**Result**: All 6 priorities + restructure + Block E complete. **Zero on-chain tx by design.** Predator chapter is structurally and tactically ready for session 76's first strike.
+
+**Roster summary for founder**:
+  - Spearheads: **12649** (L56, V34, NORMAL hand, spoils 0.20, cooldown −150) and **11224** (L48, V36, EERIE hand, 3 unspent SP, deferred).
+  - Tank-strikers: 10705 (L46, V32, INSECT), 6058 (L46, V31, SCRAP), 15540 (L46, V31, NORMAL, H21), 12225 (L45, V30, NORMAL).
+  - Affinity coverage: EERIE / SCRAP / INSECT / 3× NORMAL hands. Bodies all NORMAL (no defensive penalty anywhere).
+  - All on node 86 already → first hunt requires zero movement.
+
+**Mechanics resolved this session** (5/5 P2 carryovers):
+  - ✓ ABI: `system.harvest.liquidate.executeTyped(uint256 victimHarvestID, uint256 killerKamiID)`, gas limit 7,500,000.
+  - ✓ Traversal: `harvest_id = keccak256("harvest", kamiEntityId)` (existing executor helper `_harvest_entity_id`).
+  - ✓ `amount` in oracle = MUSU spoils stolen per strike (not obol; obol is 1 fixed/kill). Confirmed: top-15 7d liquidators show ~671 MUSU/kill avg — consistent with spoils interpretation.
+  - ✓ Threshold formula derived (Gaussian CDF of V:H ratio + affinity efficacy + flat shift × victim maxHP).
+  - ✓ Attacker stat → payout: Power and ATK_SPOILS_RATIO (Predator skills) increase spoils %; obol fixed at 1/kill.
+  - Open: cooldown duration in seconds (formula not in GDD); `amount` variance per strike. Both deferable to first-hunt empirical observation.
+
+**First-hunt plan TL;DR**:
+  - **Node**: 86 (already there; 9.4× more harvest activity than #2).
+  - **Lead**: 12649. Switch to 11224 if target H ≥ 18.
+  - **Trigger**: ≥ 5 non-guild HARVESTING kamis on node 86, ≥ 3 with V:H ≤ 2, no top-15 7d-liquidator currently HARVESTING on the node.
+  - **Bail-out**: liquidate tool not built (almost certainly the case; session 76 first action) → build it before strike. Tool spec in `memory/plan.md` P1.
+  - **Estimated yield/strike**: 1 obol + ~671 MUSU spoils (mean of top-15 7d). Gas ~7.5M/strike.
+  - **Items**: Hostility Potion (×1) on first strike to characterize buff. Grace Potion (×1) reserve for HP reset post-recoil.
+
+**`next-run-at`**: 1777687500 = 2026-05-02 01:25 UTC. Rationale: cooldown ends ~00:08 UTC; +77 min after = fresh prey on node 86 + buffer to build the liquidate tool before striking.
+
+**Anomalies**: none. `alerts.md` unchanged.
+
+**Gas notes**: 0 ETH spent. 0 tx submitted. Session entirely file-writes + free reads, per founder plan.
+
