@@ -497,3 +497,129 @@ strain on the 8 buja723 / 7 wiuuuu candidates close to strike time.
 - Cooldown duration empirical.
 - 11224's 3 unspent SP — still deferred (founder rule).
 - REVIVE-type item mechanism (Red Ribbon Gummy, Melkarth Spell Card).
+
+---
+
+## Session 80 — 2026-05-02 (15:30 → 17:30 UTC)
+
+### Doctrine pivot from founder
+
+Session 80 plan opens with three corrections:
+1. **READ canonical docs FIRST** (`systems/liquidation.md`,
+   `harvesting.md`, `state-reading.md`) before deriving anything
+   empirically. The kill-threshold formula is canonical. Empirical
+   work belongs only where docs are silent.
+2. **Hunt by CURRENT HP, not base stats.** Founder direct quote:
+   *"we should look for any kamis (outside of guild) that have low
+   HP left — ideally below liquidation threshold so we pop on the
+   node and take them down."* Sessions 76–79 targeted full-HP farmers
+   at the threshold edge — that math fails. The new doctrine is
+   opportunistic: scan for already-strained victims, strike before
+   they cycle off.
+3. **Aggressive cadence.** When a hunt is live, re-wake in 10–30 min,
+   not 3–4h. Cron `*/5` tick is now active for 2026-05-02.
+
+Plan A/B (cluster moves to nodes 60 and 62) from session 79 are
+**cancelled** — they target full-HP farmers, opposite of the new
+doctrine.
+
+### What was tried (and failed)
+
+- Built oracle scanner for low-projected-HP HARVESTING farmers on
+  open-tier nodes. Top candidates surfaced: theplux node-9 cluster
+  (8 candidates, "latest=harvest_start") and rtvvvvv node-86
+  farmers (15538 / 8761 / 10775 at 525 min).
+- **theplux cluster was 7-of-8 LISTED, not HARVESTING.** Oracle has
+  **no listing-event row** in the action stream — `latest=harvest_start`
+  remains literally true even after the kami is mass-listed. Live
+  spot-check is now mandatory for any oracle-driven HARVESTING claim.
+  This is a bigger gap than it sounds: most farmer-style accounts
+  list periodically; the false-positive rate on oracle-only filtering
+  is high.
+- Travel 30→86 (17.9M gas, 17 hops, 3 ice creams) to attack the
+  rtvvvvv farmers on node 86 with 11224 already there.
+- Strike 15538 (rtvvvvv, V13/H25 def_shift 0.10, HP 180 maxHP, 525min):
+  - 1st attempt — REVERTED 0.28M gas. **Cooldown not yet cleared**
+    (cooldown 1777728922; strike at 1777728890 = 32s gap). Early-revert
+    path: small gas cost, state-eligibility check fails before the
+    threshold compute.
+  - 2nd attempt (after wait) — REVERTED 2.68M gas. **Deep threshold
+    revert.** Threshold compute (additive form): 0.643 + 0.28 − 0.20
+    = 0.723; 0.723 × 180 = 130. Revert means current HP > 130 even
+    at 525 min strain.
+- Pivot to 8761 (V13/H23 def_shift 0.10, HP 190, 525min HARVESTING
+  per scan): pre-flight live re-check showed 8761 had **cycled to
+  RESTING with bounty 0** — owner auto-stopped within ~10 minutes
+  of scanner output. No strike possible.
+- harvest_stop(11224) — 2.43M gas, 11224 → RESTING. Removes lone
+  striker from cross-node hit-and-run risk (12649 was killed by Nova
+  Heat in this exact pattern session 79).
+
+### Key findings (session 80)
+
+1. **Strain rate ≤ 0.072 HP/min on H25+ skill-boosted farmers.** My
+   session-79 estimate of 0.082 HP/min was too aggressive. Fits with
+   H25 baseline + strainBoost ≈ −0.125 from skill investments. Updates
+   the projection model in `mechanics.md` — for any target with
+   Guardian/Enlightened SP, use 0.072 as the upper bound on strain HP
+   loss per minute, not the H-only formula. Concretely: 525 min
+   harvest at 0.072/min = 37.8 HP lost; HP 180 → 142 sync. Threshold
+   130 means even that is not killable.
+2. **Listing has no oracle action-row.** `kami_marketplace.list`
+   transactions don't show in the action stream. Oracle's
+   `latest_action = 'harvest_start'` will remain true even months
+   after a kami is listed. **Cluster scans must be live-spot-checked
+   for state == 'HARVESTING' AND bounty > 0**, not just trusted from
+   oracle.
+3. **Target churn outpaces scan→strike loop on auto-managed farms.**
+   8761 went RESTING within ~10 minutes of being scanned. The
+   current-HP doctrine assumes the target is still HARVESTING when
+   we strike; this can't be assumed. Two mitigations:
+   - **Tighter loop**: scan + immediate strike on the same kami,
+     <60s between read and tx submission.
+   - **Stateless approach**: pre-strike read, accept early-revert
+     (0.28M gas) when target moved between read and tx confirm.
+4. **Liquidate gas signature distinguishes revert paths.**
+   - **0.28M gas** = early revert (cooldown, state ineligibility,
+     wrong-node, victim already dead).
+   - **2.68M gas** = deep revert ("kami lacks violence (weak)" —
+     threshold compute, the kami HP > kill threshold).
+   Useful for triage without log inspection.
+5. **Three reverts on rtvvvvv farms across sessions 76/78/80**
+   (3764, 13253, 15538) — all H≥20 with def_shift 0.10–0.20. **rtvvvvv
+   builds farmers too well.** Stop trying. Add to a soft do-not-target
+   list at the targeting layer.
+
+### What was actually executed
+
+5 tx total this session:
+- Travel 30→86 (17 hops, 17.9M gas, 3 ice creams).
+- feed_kami(11224, Cheeseburger) — 1.26M gas, HP 107 → 140.
+- harvest_start([11224], 86) — 1.23M gas.
+- liquidate(15538, 11224) ×2 — 0.28M + 2.68M = 2.96M gas, both
+  REVERTED.
+- harvest_stop([11224]) — 2.43M gas, 11224 → RESTING.
+
+Total ~42M gas. 0 kills. 0 obols. 0 MUSU.
+
+### State left at session end
+
+- bpeon at room 86. 11224 RESTING (sync HP unverified post-stop, but
+  140 minus minimal new strain).
+- 6058, 10705, 12225, 15540 RESTING node 86 (assumed; not refetched
+  this session).
+- 12649 still DEAD.
+- 1 Cheeseburger + 3 Ice Creams consumed (78 → 75 ice cream remaining;
+  Cheeseburger inventory unverified).
+- New doctrine state in `mechanics.md` (strain rate cap, listing-event
+  oracle gap), `targeting.md` (rtvvvvv soft do-not-target).
+
+### Doctrine still untested
+
+- Recoil HP cost on a successful strike — 80 sessions, 0 kills.
+- 11224's 3 unspent SP — still deferred (founder rule, no kill yet).
+- The current-HP doctrine itself — has not produced a kill (one
+  cluster was mass-listed, the other had targets with >threshold HP
+  even at 525min; 1 of 2 in the strict sense was a target-availability
+  failure, not a doctrine failure).
+- REVIVE-type item mechanism (Red Ribbon Gummy, Melkarth Spell Card).

@@ -2502,3 +2502,50 @@ Both findings written into `predator/mechanics.md`. Soft-target filter v2 + clus
 **Anomalies**: none. `alerts.md` unchanged.
 
 **Next session**: **Plan A — node 62 cluster move with 6058 (SCRAP-hand)**. buja723's 8 INSECT-soft fits 6058's affinity matchup, low-V/low-H/HP 110–160 means kill_zone ~95–125 (well above typical mid-strain HP). Pre-flight: live counter-predator scan on node 62, live HP/strain on all 8 buja723 candidates, then commit ~26M gas for travel + ≥2 strikes. Plan B (fallback): node 60 wiuuuu cluster with 11224. Schedule +3.5h to allow 11224 full heal during rest cycle.
+
+---
+
+## 2026-05-02 17:30 UTC — session 80
+
+**ETH balance**: not pulled. Session gas spent ~42M.
+
+**Founder doctrine corrections received** (memory/plan.md, session 80 P0–P5):
+1. **READ systems/liquidation.md, harvesting.md, state-reading.md FIRST** — stop deriving mechanics empirically when canonical docs exist.
+2. **Hunt by CURRENT HP, not base stats**. Direct quote: *"we should look for any kamis (outside of guild) that have low HP left — ideally below liquidation threshold so we pop on the node and take them down."* Session 79 cluster moves to nodes 60/62 CANCELLED.
+3. **Aggressive cadence** — re-wake 10–30 min during active hunting; cron `*/5` tick is live.
+
+**Perceived (start)**:
+- Bpeon at room 30 (Scrapyard Entrance, Level Limit 15). 11224 RESTING node 86 sync HP 107/140, cooldown clear, 3 SP unspent.
+- Roster 5 alive (12649 still DEAD; no Onyx Shards).
+- 78 Ice Cream, 1 Cheeseburger, 99 Red Ribbon Gummy.
+
+**Decided**:
+- Read all three systems/*.md first (P0). Validated additive empirical formula is consistent with canonical multiplicative form when efficacy ≈ 1.0.
+- Build oracle scanner for low-projected-HP HARVESTING targets on open-tier nodes. Scan flagged a node-9 cluster (theplux 7 candidates) and node-86 farmers (15538, 8761, 10775).
+- Travel 30→86 (17 hops, 17.9M gas, 3 Ice Creams) — chose node 86 because 11224 already on it and 3 live HARVESTING farmers showed there.
+- Heal 11224 (Cheeseburger, +HP 33) and harvest_start node 86 to put attacker on the same node as targets.
+- Strike 15538 (rtvvvvv, V13/H25, def_shift 0.10, HP 180 maxHP, 525min HARVESTING).
+
+**Acted**:
+- Travel 30→86: success, 17.9M gas, 3 Ice Creams, ended at room 86 stamina 1.
+- Live spot-check theplux node-9 cluster: 7 of 8 candidates LISTED (mass-listing, not HARVESTING). 1 RESTING. Cluster dead. Pivot validated by live read.
+- feed_kami(11224, Cheeseburger): 1.26M gas, HP 107→140.
+- harvest_start([11224], node=86): 1.23M gas, HARVESTING ACTIVE.
+- liquidate(15538, 11224): **REVERTED 0.28M gas** — early-revert path (cooldown 1777728922 not cleared at strike at 1777728890; ~32s gap).
+- Wait, retry liquidate(15538, 11224): **REVERTED 2.68M gas** — deep "kami lacks violence (weak)". Current HP > kill threshold even at 525min strain.
+- Pivot to 8761 (V13/H23, def_shift 0.10, HP 190, 525min). Live re-check before strike: **8761 cycled to RESTING, bounty 0** — owner auto-stopped within minutes. No strike possible.
+- harvest_stop([11224]): 2.43M gas, 11224 → RESTING node 86. Removes lone striker from cross-node hit-and-run risk.
+
+**Result**: 0 kills, 0 obols, 0 MUSU. ~42M gas spent. Two reverted strikes on 15538 (one cooldown, one threshold). Doctrine pivot validated by execution shape but not by yield.
+
+**Key findings (session 80)**:
+1. **Strain rate < 0.072 HP/min on H25+ skill-boosted farmers**. My 0.082 HP/min projection was too aggressive. 15538 at 525min should have been at HP ≈ 142, but threshold compute (0.643 + 0.28 − 0.20) × 180 = 130 means current HP > 130 (deep revert). Actual strain rate must be ≤ 0.072 HP/min (fits H25 + strainBoost −0.125 from skill investments). Update mechanics.md.
+2. **Listing event has no oracle action-row**. theplux had 7 of 8 candidates LISTED but oracle latest_action=harvest_start. **Listing is a market-side state change with no action-stream emission** — `latest=harvest_start` is NOT a HARVESTING signal. Live-spot-check is mandatory.
+3. **Target churn faster than scan-strike loop on node 86**. 8761 went RESTING within ~10 min of scanner output. The current-HP doctrine assumes target stays HARVESTING during the 1–3 min between scan and strike; this doesn't hold on auto-managed farms. Need either (a) shorter scan→strike interval, or (b) statelessness — scan + strike in one round-trip with refresh between, accept reverts when target moves.
+4. **Liquidate gas signature distinguishes revert paths**. 0.28M gas = early revert (cooldown / state ineligibility). 2.68M gas = deep revert (threshold not met). Useful for triage without log inspection.
+
+**Gas notes**: 17.9M gas for travel was unrecoverable. Two strike reverts cost 2.96M combined. Healing + harvest_start was on-doctrine prep cost. Stop on 11224 was insurance against cross-node hit-and-run (12649's killer pattern). Total session gas under 50M stop-condition cap by ~8M. No speculative tx.
+
+**Anomalies**: none. `alerts.md` unchanged.
+
+**Next session**: Re-prioritize. Three reverted strikes across sessions 76–80 on rtvvvvv farms (3764, 13253, 15538) at high-strain HP, plus session 79 def_ratio findings + session 80 strain rate finding, all point to: **rtvvvvv farms are too well-built for our strikers regardless of strain duration**. Stop trying. Pivot the new "current-HP" doctrine to nodes/owners where Guardian skill investment is empirically lower. Use oracle to filter `def_threshold_ratio + def_threshold_shift + skill 312/322 SP` to find soft farmers with low HP. Schedule +30–45 min (aggressive cadence per session 80 plan) to re-wake during this hunt window with 11224 still healing.
