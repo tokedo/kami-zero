@@ -1,83 +1,89 @@
-# Plan for session 77 — re-strike on strain-decayed node 86 prey
+# Plan for session 78 — affinity hunt with 11224 on node 86
 
-Context: session 76 built and end-to-end tested the `liquidate` tool but the first strike reverted with `kami lacks violence (weak)` — V34/H21 vs full-HP target sat ~1% above the kill threshold. We're now camped on node 86 (account at room 86), 12649 HARVESTING, 3764 still HARVESTING. Strain decay over 60+ minutes should drop 3764's HP enough to clear the threshold.
+Context: session 77 confirmed the empirical kill formula (`threshold_ratio = animosity + atk_shift − def_shift`, additive, no atk_ratio multiplier) but failed to land a strike — node 86 is Guardian-saturated (every harvester at H ≤ 18 carries def_shift ≥ 0.10). 12649's Hostility Potion buff (+0.03 shift) wasn't enough to overcome that. The remaining lever we haven't tested is **affinity multiplier** — 11224's EERIE hand vs a SCRAP-body target.
 
-**Read at start**: `predator/mechanics.md` § "Empirical: revert messages observed (session 76)" + § "Practical pre-flight checklist", `predator/learnings.md` § "Session 76 — first hunt", `memory/decisions.md` last entry.
+**Read at start**: `predator/mechanics.md` § "Empirical formula refinement (session 77)" + § "Practical pre-flight checklist", `predator/learnings.md` § "Session 77", `memory/decisions.md` last entry.
 
-## Priority 1 — Pre-flight: confirm strain decay landed us in the kill zone
+## Priority 1 — Pre-flight: pick the SCRAP-body target
 
-1. `get_kami_state_slim(3764)` — read `health.sync` (CURRENT HP, not max).
-   - If `sync < 198` → green light, threshold cleared.
-   - If `sync ≥ 198` → either wait longer OR pivot to a different target.
-2. `get_kami_state_slim(12649)` — confirm still HARVESTING node 86, HP healthy, not on cooldown.
-3. Re-derive the threshold quickly:
-   - `combatRatio = ln(34 / target_H)`; `animosity ≈ GaussianCDF(combatRatio)`
-   - `threshold ≈ animosity × 1.0 (NORMAL/NORMAL) + 0.30 (12649 atk_shift) − target_def_shift_normalized`
-   - `kill_zone = threshold × max_HP`. If `current_HP < kill_zone` → fire.
-4. Re-check guild gate freshness: `predator/guild-no-touch.csv` `# Updated:` line must be ≤ 7 days old (currently 2026-05-01, fresh through 2026-05-08).
+1. `oracle_sql("SELECT s.kami_index, s.name, s.account_name, s.account_id, s.body_affinity, s.hand_affinity, s.total_health, s.total_violence, s.total_harmony, s.total_power, s.harvest_intensity_boost, s.attack_threshold_shift FROM kami_static s WHERE s.last_action_node_index = 86 AND s.last_action_type = 'HARVEST_START' AND s.body_affinity = 'SCRAP' ORDER BY s.total_harmony ASC LIMIT 20")` — find SCRAP-body active harvesters on node 86 ranked by lowest H (easiest threshold).
+2. For top 3-5 candidates, `get_kami_state_slim(<idx>)` to verify still HARVESTING node 86, get current HP, check def_shift (`bonuses.defense.threshold.shift`).
+3. Filter against `predator/guild-no-touch.csv` (account_id then handle).
+4. Compute kill_zone for each: `animosity = GaussianCDF(ln(36/H_target))`; `threshold_ratio = animosity + 11224.atk_shift − target.def_shift + AFFINITY_BONUS_UNKNOWN`. Pick the candidate with the largest `kill_zone − current_HP` margin (most slack for affinity-bonus uncertainty).
+5. If no SCRAP-body candidate exists on node 86, fall back to Option B (cluster move) — see Priority 4.
 
-## Priority 2 — First successful strike
+## Priority 2 — Deploy 11224 + strike
 
-1. **Pop Hostility Potion (item 11410) on 12649 BEFORE the strike** — read 12649's `bonuses.attack` block via slim, fire `use_account_item(11410)`, re-read slim. **Capture the delta** — this is the only single-shot consumable for the test, and the strike is the ideal context to characterize it.
-   - Note: session 76 found Hostility Potion is kami-targeted not account-targeted; check if `use_account_item` actually applies to 12649. If it reverts as "not for ACCOUNT", skip — the bonus may need a kami-targeted variant we haven't built. **Do not build a new tool just for this single test.** Strike anyway, characterize the potion later.
-2. `liquidate(target_kami_id=3764, attacker_kami_id=12649, account="bpeon", target_account_id="538526038351110879045229412559851121974983005580", target_handle="rtvvvvv")`.
-3. Verify: `get_inventory("bpeon")` for obol delta (item 1015 should appear or +1). `get_kami_state_slim(12649)` for HP/strain post-recoil.
+1. Verify 11224 is RESTING and at room 86 (account already there). If RESTING but room mismatches, that's a state bug — investigate before moving.
+2. `harvest_start(11224, node_index=86)` — ~1.5M gas. Read 11224 slim post-start to capture baseline `attack.threshold.shift` and confirm HARVESTING.
+3. `liquidate(target_kami_id=<chosen>, attacker_kami_id=11224, account="bpeon", target_account_id="<...>", target_handle="<...>")` — ~7.5M gas if it lands or ~2.7M if it reverts.
+4. Verify: `get_inventory("bpeon")` for obol delta. `get_kami_state_slim(11224)` for HP/strain post-recoil — **this is the first real recoil reading we'd get**.
 
-## Priority 3 — Chain a second strike if conditions hold
+## Priority 3 — Chain only if (a) the strike landed AND (b) 11224 HP ≥ 60% AND (c) no cooldown
 
-If kill 1 succeeds AND 12649 is still HARVESTING with HP ≥ 60% AND not on cooldown:
-
-1. Pick the next-best low-H target from node 86 oracle scan. rtvvvvv has multiple farmers; 15440 (V16/H18/HP190, def_shift 100) and others may now be in strain-decay zone too. Re-run the oracle active-harvest scan filtered by `account_id != bpeon` and current strain decay estimates.
-2. Strike. Verify obol +1, MUSU spoils.
-
-If 12649 cooldown blocks re-strike, consider deploying 11224 to node 86:
-- Travel cost 0 (account already at room 86).
-- 11224 still RESTING — `harvest_start(11224, node_index=86)`.
-- Then `liquidate` with 11224 (V36, EERIE hand → bonus vs SCRAP-body targets).
+If chain conditions hold, pick next-best SCRAP-body candidate from the oracle scan; same flow.
 
 **Bail-out conditions** (do NOT chain):
-- 12649 HP < 50% after first strike (recoil was higher than expected — characterize before chaining).
-- A top-15 7d-liquidator appeared on node 86 (counter-predator scan).
-- Gas spent > 25M total this session without a clean read on yields.
+- 11224 HP < 60% (recoil heavy — characterize before risking another).
+- Cooldown active on 11224.
+- Any top-15 7d-liquidator appeared HARVESTING on node 86 (counter-predator scan).
+- Total session gas > 20M without a clean read on yields.
 
-## Priority 4 — Allocate 11224's 3 SP IFF 11224 actually struck this session
+## Priority 4 — Fallback: Option B (cluster scan elsewhere)
 
-Same founder rule: only allocate after observing in real hunt. If 11224 strikes:
-- Note recoil HP cost vs 12649's strike on a comparable target.
-- Tentative plan (refine per observation):
-  - 113 Mercenary 4→5 (+1 SP)
-  - 132 Vampire 1 OR 133 Bandit 1 (tier 3 entry — Vampire if recoil is severe, Bandit if MUSU spoils dominate yields).
-- Write the rationale to `predator/learnings.md` BEFORE allocating.
+If Priority 1 finds zero SCRAP-body harvesters on node 86, use oracle to find another node with **multiple zero-defender harvesters** (def_shift = 0 OR ≤ 0.05) and at least 1 SCRAP-body if we want to keep affinity in play:
 
-If 11224 doesn't strike → 3 SP stay unspent. Document the deferral in learnings.md.
+```
+SELECT a.node_index, COUNT(*) AS targets,
+       SUM(CASE WHEN s.body_affinity='SCRAP' THEN 1 ELSE 0 END) AS scrap_targets
+FROM kami_action a
+JOIN kami_static s ON s.kami_index = a.kami_index
+WHERE a.action_type = 'HARVEST_START'
+  AND a.block_timestamp > now() - interval 24 hour
+  AND s.attack_threshold_shift <= 0.05
+  AND s.account_name != 'bpeon'
+GROUP BY a.node_index
+HAVING targets >= 3
+ORDER BY scrap_targets DESC, targets DESC
+LIMIT 10;
+```
 
-## Priority 5 — Metrics + commit
+For any candidate node: write the cluster math to `decisions.md` BEFORE traveling (per doctrine — no cross-region travel without justification). Travel cost dominates: 6+ hops = ~6M gas. Need ≥ 3 strike opportunities to amortize.
 
-Append session 77 row to `predator/metrics.md`:
+## Priority 5 — Allocate 11224's 3 SP IFF 11224 strikes successfully
+
+Founder rule: only allocate after observing in real hunt.
+- Note recoil HP cost vs the 12649 baseline (no successful strike yet — this would be our first datapoint).
+- Tentative tier 3 entry: `132 Vampire 1` if recoil ≥ 30% (HP-restore-on-kill priority), else `133 Bandit 1` if MUSU spoils dominate observed yield.
+- Write rationale to `predator/learnings.md` BEFORE allocating.
+
+If 11224 doesn't strike → 3 SP stay unspent. Document deferral.
+
+## Priority 6 — Metrics + commit
+
+Append session 78 row to `predator/metrics.md`:
 - gas_spent (sum of all on-chain tx)
-- musu_spent / musu_balance_end
-- obols_earned (count of successful liquidations)
-- musu_earned (spoils credited via harvest bounty pickup)
-- kamis_liquidated
-- items_consumed (Hostility:1 if it fired)
-- nodes_visited (just 86 unless something forced movement)
+- musu_balance_end / obols_earned / musu_earned
+- kamis_liquidated (per kill: target_idx)
+- items_consumed (none expected — Hostility Potion already burned)
+- nodes_visited (86 only unless Option B fires)
 
-Commit discipline (separate commits):
-- `predator: session 77 hunt result` (mechanics/learnings/metrics)
-- `session: 77 — first successful liquidation` (or `0 kills, strain still pending` if we waited)
+Commit discipline:
+- `predator: session 78 hunt result` (mechanics/learnings/metrics)
+- `session: 78 — <one-line outcome>`
 
-## Priority 6 — Next session schedule
+## Priority 7 — Next session schedule
 
 Set `next-run-at` based on outcome:
-- 1+ kill: short re-wake (45-90 min) — repeat-strike before prey scatters.
-- 0 kills with valid recon (3764 HP still > threshold): 2-3h to let strain decay further.
-- Tool blew up unexpectedly: write to `alerts.md`, longer wake (12h) for founder visibility.
+- 1+ kill: short re-wake (45-90 min) — repeat-strike before prey scatters or before cooldown locks us out.
+- 0 kills, affinity hypothesis disproven: 4-6h, then plan a cluster move (Option B).
+- Tool/gas anomaly: write to `alerts.md`, longer wake (12h) for founder visibility.
 
 ## Read at start
 
 - `memory/alerts.md` — founder may have replied
 - `ideas_to_founder.md` — async items
 - `predator/README.md` — doctrine refresher
-- `predator/mechanics.md` — kill formula reference + § "Empirical: revert messages observed (session 76)" + § "Practical pre-flight checklist"
-- `predator/learnings.md` — § "Session 76 — first hunt"
+- `predator/mechanics.md` — § "Empirical formula refinement (session 77)" + § "Practical pre-flight checklist"
+- `predator/learnings.md` — § "Session 77"
 - `predator/guild-no-touch.csv` — verify `# Updated:` line ≤ 7 days old before any strike

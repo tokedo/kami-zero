@@ -2409,3 +2409,34 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
 **Anomalies**: none worth alerting. The "session 75 plan said kamis are at node 86" → "kamis are at node 86 but account is at room 15" mismatch is doctrine drift, not a system anomaly. Captured as a lesson in learnings.md.
 
 **Next session**: re-strike 3764 after ~30–60 min strain decay, then chain on remaining rtvvvvv farmers if 12649 is still healthy. Fire Hostility Potion at first successful strike. Scheduled +60 min.
+
+
+---
+
+## 2026-05-02 04:15 UTC — session 77
+
+**ETH balance** (operator 0x86aDb...): 0.0594 → 0.0593 ETH (−0.0001). Yominet gas effectively flat despite 7.81M gas burn.
+
+**Perceived**: bpeon at room 86. 12649 HARVESTING node 86 (HP healthy, full); 3764 (rtvvvvv, V13/H21/HP200, def_shift 0) still HARVESTING node 86 with HP at 198/200 (decayed ~2 over 60 min, not the >2 we needed to clear the strict-`<` kill gate). Counter-predator gate clear: top-15 7d liquidators on the node = Aaron's 14430 only, RESTING. Hostility Potion (11410) ×1 in inventory.
+
+**Decided**:
+  - Pop Hostility Potion on 12649 first to characterize the buff in slim — only single-shot consumable, ideal context.
+  - Strike 3764 anyway (border-case animosity may benefit from the shift bump even if HP hasn't fully decayed).
+  - On revert, pivot to one second target (lowest-H non-rtvvvvv on the node) before bailing for the session.
+
+**Acted**:
+  - feed_kami(12649, 11410) — Hostility Potion applied. 2.42M gas. Slim diff: `bonuses.attack.threshold.shift` 0.27 → 0.30 (+0.03), persists across reads.
+  - liquidate(target=3764, attacker=12649, …): tx REVERTED, 2.68M gas. Same root cause as session 76 — animosity ~0.99, threshold sits within strain-decay distance of current HP but did not clear the strict `<` gate even with the +0.03 shift.
+  - liquidate(target=14296, attacker=12649, …) — pivoted to tom's 14296 (V14/H18, def_shift 0.10): REVERTED, 2.71M gas. Confirms the Guardian-saturation problem on node 86 — every harvester at H ≤ 18 carries def_shift ≥ 0.10 that eats the +0.03 atk shift bonus.
+
+**Result**: 0 kills, 0 obols, 0 MUSU spoils, 7.81M gas spent, 1 Hostility Potion consumed (now 0 in inventory).
+
+**Net positive**: kill formula nailed empirically — additive form `threshold_ratio = animosity + atk_shift − def_shift`, no atk_ratio multiplier (verified across two reverts). Hostility Potion's +0.03 slim bump does NOT propagate to the kill gate at the magnitude shown — provisional null verdict (mechanics.md). Strain decay rates measured: ~0.082 HP/min for HARVESTING attacker 12649; ~0.032 HP/min for target 14296. Node 86 characterized as Guardian-saturated — only 3764 (rtvvvvv) is a true zero-defender, and even that one needs more decay than 60 min provides.
+
+**Inventory delta**: MUSU 518684 → 518684 (flat). Items: Hostility Potion ×1 → 0.
+
+**Gas notes**: 7.81M total. Hostility feed 2.42M (test cost — would not repeat without a fresh potion + a successful strike to compare against). Two reverts at 2.68M + 2.71M (~equal to a kill cost; not "cheap" — strict-`<` failures still execute the full check). Per-tx breakdown in `predator/metrics.md` row 77.
+
+**Anomalies**: none. `alerts.md` unchanged.
+
+**Next session**: pivot to **Option A — affinity hunt**. Deploy 11224 (V36/EERIE-hand) on node 86 against a SCRAP-body target (EERIE > SCRAP affinity bonus, multiplier value still empirical). Marginal cost: 1.5M gas harvest_start + 7.5M strike. Tests whether affinity multiplier closes the additive-shift gap. If 11224 lands, we have a working hunt loop on this node. Scheduled +3.5h to allow further strain decay on 3764 in case Option A pivot fails and we want to re-test the rtvvvvv farms.
