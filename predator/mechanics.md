@@ -217,3 +217,42 @@ observed delta on a controlled hit.
   bounty-rich targets. Sample a few more rows next session to estimate.
 - Whether liquidator's account receives the obol immediately or claims it
   later (worth confirming via `get_inventory` delta after first kill).
+
+## Empirical: revert messages observed (session 76)
+
+- `revert: kami lacks violence (weak)` — fired when target's CURRENT HP
+  exceeds the computed kill threshold. Empirical case: attacker 12649
+  (V34, atk_threshold_shift 0.30) vs target 3764 (H21, def_shift 0,
+  max_HP 200, full HP at strike). The contract's kill check is **strict
+  `current_HP < threshold`**, not `≤`. Threshold ≈ (animosity × efficacy
+  + shift) × max_HP; with our numbers threshold ≈ 0.99 × 200 = 198, so
+  full-HP (200) target was 1% above the bar — deny.
+- **Practical implication**: at full HP, with NORMAL/NORMAL affinity and
+  zero defender shift, V34 cannot one-shot a target with H ≥ ~21. Either
+  wait for strain to decay target HP a few percent, OR pick lower-H
+  targets (H ≤ 17 with zero def_shift = comfortable kill at full HP for
+  V34 spearhead). On node 86, almost all H ≤ 17 prey carry def_shift
+  ≥ 100, which pushes the threshold back below 1.0. Net: node 86 is a
+  Guardian-defender-heavy node. Spearheads need either **strain wait**
+  on bigger H targets OR an **affinity bonus** (10705 INSECT-hand vs
+  EERIE body, 6058 SCRAP-hand vs INSECT body, 11224 EERIE-hand vs SCRAP)
+  to clear shift_diff > 0.
+- A revert costs ~2.7M gas (vs 7.5M ceiling for a successful strike).
+  Failure is cheap-ish but not free; budget reverts at ~1/3 of a kill cost.
+- Reverts do NOT consume cooldown nor break the harvest. Re-strike
+  available immediately after target HP decays.
+
+## Practical pre-flight checklist (do BEFORE every strike)
+
+1. Pull `get_kami_state_slim(target)` and check `health.sync` (current HP,
+   not max).
+2. Compute approximate threshold:
+   `threshold ≈ GaussianCDF(ln(V_atk / H_vic)) × (1 + atk_shift − def_shift) × max_HP`.
+   (Affinity efficacy adjusts the multiplier inside the parens; NORMAL/NORMAL
+   = 1.0 baseline. EERIE→SCRAP / SCRAP→INSECT / INSECT→EERIE add a positive
+   nudge; the reverse three subtract.)
+3. **If threshold ≤ current_HP, skip — the strike will revert**. Pick
+   another target or wait.
+4. As a quick rule-of-thumb for our V34 spearhead (12649) at full-HP
+   targets: clean kills require either H ≤ ~16 with def_shift ≤ 80, OR
+   matching affinity to lift efficacy.

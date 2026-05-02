@@ -171,3 +171,82 @@ file with: actual targets seen, who we hit (or didn't), gas spent vs
 yield, recoil HP cost, whether Hostility Potion fired and what it changed.
 The First Hunt Plan above gets superseded by version 2 in session 76's
 end-of-session update.
+
+---
+
+## Session 76 — first hunt: tool built, strike reverted (no kill)
+
+**Outcome**: 0 kills, 0 obols, 10.57M gas burned. Liquidate tool built and
+end-to-end-tested (the revert proves the contract path is correct; failure
+is on game-state semantics, not encoding).
+
+### What happened, in order
+
+1. **Built liquidate MCP tool** — `liquidate(target_kami_id, attacker_kami_id,
+   account, target_account_id?, target_handle?)`. ABI: `system.harvest.
+   liquidate.executeTyped(uint256 victimHarvestID, uint256 killerKamiID)`.
+   Gas limit 7.5M. Wired the **guild-no-touch gate** as in-code hard rule:
+   loads `predator/guild-no-touch.csv`, parses `# Updated: YYYY-MM-DD`,
+   denies all if missing or > 7 days old, matches by account_id else handle
+   (case-insensitive). Verified gate blocks bpeon, tokedo, 0xAsimov,
+   lookinrare and passes unknown. (See harness commit + `improvements.md`.)
+
+2. **Recon error in plan**: session 75 plan assumed all 6 predators on
+   bpeon were *at* node 86. They were not — bpeon's account room was 15
+   (Pinkdrop Park), and the kamis followed the account. Per-kami transfer
+   cooldown ended ~00:08 UTC; movement burned 6.34M gas (7 hops, ~900k/hop)
+   to get bpeon from room 15 → room 86. **Lesson**: `get_account_kamis`
+   tells you which node a kami's *intended* node is, but the *account*
+   room is what gates `start_strategy` / liquidate. Read the account room
+   first.
+
+3. **Started 12649 harvesting on node 86** (1.5M gas). Required for the
+   "both kamis HARVESTING on same node" liquidation eligibility rule.
+
+4. **Picked target 3764 (rtvvvvv)**: V13/H21/HP200, NORMAL/NORMAL,
+   zero defense skills, 0 attack/defense bonus shift. Thought to be
+   ideal sandbox target — low recoil, clean threshold zone.
+
+5. **Strike reverted** with `revert: kami lacks violence (weak)`. 2.7M
+   gas. Root cause: kill threshold formula floors out at ~0.99 × max_HP
+   when V/H = 1.6× and shift_diff = 0.30. Strict `current_HP < threshold`
+   denies at full HP. See `mechanics.md` § "Empirical: revert messages
+   observed (session 76)".
+
+### Strain-decay path forward
+
+3764 is still HARVESTING on node 86, accumulating strain. In ~30–60 min
+its current HP will drop a few % below max — re-strike will land. 12649
+still HARVESTING on node 86 (no cooldown burn from the revert). Recoil
+cost on the eventual kill stays low because attacker strain barely
+accumulates at this cadence.
+
+### Roster-wide implication for node 86
+
+Node 86 is **Guardian-defender-heavy**: scanned the active-harvester
+population, minimum H is 17 (23savage 325) and **all sub-H18 candidates
+carry def_shift ≥ 100**. That neutralizes our 12649's +0.30 atk_shift
+nearly to zero. For full-HP one-shots without strain wait we need either
+- An **affinity-bonus** path: 10705 (INSECT hand) vs EERIE-body targets,
+  6058 (SCRAP hand) vs INSECT-body targets, 11224 (EERIE hand) vs
+  SCRAP-body targets, OR
+- A **lower-V target** (rtvvvvv/POWELL-tier farmers — currently 3764 is
+  the cleanest) waited on for strain decay.
+
+The cluster math hasn't changed — node 86 is still the right node to
+camp. We just need to operate in the strain-wait band, not the
+one-shot-fresh-target band, on H ≥ 18 targets.
+
+### What did NOT get tested
+- Hostility Potion (item 11410) — wasn't fired this session because the
+  strike never landed; potion is single-use and we want it under
+  conditions that produce a clean delta read.
+- Recoil HP cost — also requires a successful strike.
+- Cooldown duration — requires back-to-back successful strikes.
+
+These move to session 77.
+
+### 11224's 3 SP — DO NOT ALLOCATE this session
+Founder rule: only after observing 11224 in real hunts. Session 76
+produced no kills. **3 SP stay unspent.** Allocation deferred to a
+session in which 11224 actually strikes.
