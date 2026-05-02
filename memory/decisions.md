@@ -2462,3 +2462,43 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
 **Gas notes**: All tx accounted. Guild block was free (no tx submitted) — validation that the gate's pre-tx check works as designed. Single revert at GDD-spec 7.5M ceiling but actual gas consumed 2.68M (consistent with sessions 76/77 revert costs).
 **Anomalies**: none. `alerts.md` unchanged. Session 77 conclusion that Hostility doesn't propagate may have been incomplete (data point sat in margin-of-error band) — but not retesting now since we're pivoting off node 86.
 **Next session**: Cluster move evaluation (plan.md Priority 1 — node 25 with 10705 INSECT-hand for the EERIE-body cluster). If node 25 non-guild cluster ≥ 5, plan + execute the move. Fallback to node 88 (11224 SCRAP-prey). If both disappoint, retreat to strain-wait kills on 11332/13253 at node 86. Scheduled +4h (allows further prey HP decay if we end up staying).
+
+---
+
+## 2026-05-02 11:55 UTC — session 79
+
+**ETH balance**: not pulled (single-stop session, gas ~2.43M total).
+
+**Perceived**:
+- **12649 DEAD**. Liquidated by Nova Heat 10943 (Assassins) at 2026-05-02T07:38:47Z, 4 minutes after 10943 arrived on node 86. Cross-node hit-and-run pattern. Roster 6 → 5.
+- 11224 HARVESTING node 86, sync HP 140/140 (just-restarted ~1.7h ago, no strain), V36/H11 — sole healthy striker.
+- Other predators: 6058, 10705, 12225, 15540 — RESTING node 86 (per session 78 brief, not refetched).
+- Inventory: 0 Onyx Shards (revive blocked), 99 Red Ribbon Gummy + 1 Melkarth Spell Card (REVIVE-type, mechanism unverified), 78 Ice Cream (ample for travel).
+
+**Decided**:
+- **Abort node 25 cluster move**: 100% jun (guild) per oracle scan. Plan Priority 1 dead.
+- **Abort node 88 fallback**: 100% KCS/dmi (guild). Plan Priority 2 dead.
+- **Abort node 73 secondary fallback**: oracle returned 12 POWELL+Yeahta non-guild softs, but live spot-check of 16292/15102/16764 revealed **full Guardian tier-2 build (def_ratio = 0.25)** — `kami_static.build_refreshed_ts` was 19h stale. Move would have been a 25-hop / ~25M-gas trip into a cluster equivalent in defense to node 86. **Caught by live spot-check, never executed.**
+- **Abort strain-wait fallback on 11332 / 13253**: live perception showed both have def_ratio (0.45 and 0.50). Kill_zones drop to ~104 / ~90; sync HP 200 / 196 — not crackable by strain wait this lifetime.
+- **Stop 11224 only**: remove sole healthy striker from a node where a cross-node hit-and-run predator already killed one of ours. Don't repeat the 12649 mistake.
+- **Defer revive of 12649** until Onyx Shards on hand or REVIVE-item mechanism understood.
+- **Defer 11224 SP** (3 unspent) — founder rule still in force (no allocation until 11224 produces a kill).
+- **Schedule +3–4h**: gives 11224 time to fully heal during rest, preserves option for buja723 (node 62) cluster move next session.
+
+**Acted**:
+  - `harvest_stop([11224])` — success, 2.43M gas (tx 0x7912b7...). 11224 → RESTING node 86, sync HP 107/140 (76%, strain caught up post-stop).
+  - Refined oracle cluster scan with `def_shift = 0 AND def_ratio = 0` filter — found 19 candidate nodes; cross-checked guild list and live-verified 4 candidates.
+  - Live spot-checks: 757 (buja723) def_ratio 0 ✓, 1451 (wiuuuu) def_ratio 0 ✓, 16292/15102/16764 (POWELL) def_ratio 0.25 ✗ (oracle stale).
+  - Travel dry-runs from node 86: 60 = 25 hops/125 stam/3 ice cream; 62 = 26 hops/130 stam/4 ice cream — both feasible.
+
+**Result**: 0 kills, 0 obols, 0 MUSU earned. 2.43M gas spent. **Two key mechanics findings logged**:
+1. **Hidden defense source**: skills 323 (Armor) + 341 grant `def.threshold.ratio = 0.05 × SP_each`, capped at 0.50. Multiplicative reduction on kill threshold. Empirically explains session 78's 13253 revert at HP 0.97. Catalog text "DTS +2%" for skill 323 is misleading — observed effect is on the *ratio* field, not the *shift*.
+2. **Oracle staleness**: `kami_static.build_refreshed_ts` lags real chain by ~24h. POWELL went 1 SP → 26 SP Guardian in 19h, oracle missed it. **Doctrine update**: cluster scans require live spot-check on 1–2 candidates before any cross-region move.
+
+Both findings written into `predator/mechanics.md`. Soft-target filter v2 + cluster intel into `predator/targeting.md`. Session entry into `predator/learnings.md`.
+
+**Gas notes**: Single tx (2.43M for harvest_stop after ~1.7h harvest accumulation — consistent with CLAUDE.md gas budget table for short-duration stops). Zero speculative tx. Live perception caught the false-positive cluster before any travel was committed (saved estimated 25M+ gas).
+
+**Anomalies**: none. `alerts.md` unchanged.
+
+**Next session**: **Plan A — node 62 cluster move with 6058 (SCRAP-hand)**. buja723's 8 INSECT-soft fits 6058's affinity matchup, low-V/low-H/HP 110–160 means kill_zone ~95–125 (well above typical mid-strain HP). Pre-flight: live counter-predator scan on node 62, live HP/strain on all 8 buja723 candidates, then commit ~26M gas for travel + ≥2 strikes. Plan B (fallback): node 60 wiuuuu cluster with 11224. Schedule +3.5h to allow 11224 full heal during rest cycle.
