@@ -1,202 +1,151 @@
-# kami-zero session 90 prompt — ship Cadence Discipline + agent's session-90 plan (founder-merged)
+# Plan for session 91 — TrayzinCarpathia migration window (first kill on canonical formula in production)
 
-This is a complete replacement for `memory/plan.md` on the VM. Founder merged: kept the agent's session-90 plan content (cooldown rule, recon, world_targets.json infra) and prefixed it with the new Cadence Discipline doctrine + fired immediately (overriding the lazy +30 min default).
+## Context (post-session 90)
 
----
+Session 90 shipped Cadence Discipline doctrine, built the world_targets.json background watcher (5-min cron, atomic write), and ran a full recon over alternative nodes. Surfaced two migration-worthy clusters:
 
-## ⚠️ Founder principle being shipped this session
+- **Node 60 SCRAP — TrayzinCarpathia** (5 candidates margin +18 to +50, 0 recent liquidates → quiet pocket)
+- **Node 73 SCRAP — Yeahta** (4 candidates margin +10 to +69, 0 recent liquidates)
 
-Session 89 self-scheduled `next-run-at` = +30 min "for restart-and-rescan" — same lazy default that bit session 88. Founder framing 2026-05-02:
+All 6 bpeon strikers RESTING_OR_DEAD on operator-room node 86. Node 86 hunting field is now stefan97 (synchronized cycle, bulk-stops on a timer) + rtvvvvv (no-touch list, 3 reverts) + guild-blocked. Net: node 86 is structurally dry for non-guild high-margin candidates.
 
-> "What is the justification for waiting? […] The only justification I see — there are no targets in the world that we can currently liquidate, and we take some break to see what happens in an hour or so."
-
-**Right. From now on**: self-scheduled delays must be **pinned to a specific thing being waited for**. If you can't name it concretely, fire sooner. Build-phase mode (now): bias hard toward fire-now. Sub-10-min re-wakes are the norm if there's any meaningful next action. The metric absorbs the cost.
-
-This session ships the discipline to CLAUDE.md (Priority 1) and applies it (the founder fired this session NOW, not at 23:48).
+This session's pin: **first migration after watcher ship; want fresh snapshot from cron + spot-check candidate persistence before 6-striker move (~26M gas).**
 
 ---
 
 ## Priority 0 — Read before acting
 
-Before reading anything else, **re-read `predator/mechanics.md` § "Attacker cooldown"** (around line 504-507, codified session 83). The rule is **180s** post-`harvest_start`. Session 89's plan misquoted "80s" and cost 0.28M gas to a guaranteed-revert. The mechanics.md value is the authority; never trust a session-prompt restatement.
-
-Then re-read `predator/mechanics.md` § "Canonical override — session 89" (just shipped). The canonical formula is now in production; the empirical formula is gone. The cert is 99.40% (492/495) — the 3 misses are floor edge cases on weak matchups with large def_shift. Treat the canonical's verdict as authoritative for any candidate with affinity_shift ≥ 0; for weak matchups, eyeball the kill_zone before strike — if floor-rounding pushed it negative, the candidate is unkillable.
-
-Glance at `memory/decisions.md` last 3 entries (88/89/this-plan) for continuity.
+1. Re-read `predator/mechanics.md` § "Attacker cooldown" (line 504-507): **180s** post-`harvest_start`, not 80s. Wait ≥185s before any liquidate. Plan-89 misquoted "80s" → 0.28M gas revert. Plan 91 will not repeat.
+2. Re-read `predator/learnings.md` § "2026-05-02 23:30 UTC — Cluster intel snapshot" — TrayzinCarpathia top 5 candidate list, room mapping, counter-predator note.
+3. Read `predator/world_targets.json` — should be ≤5 min fresh (cron runs every 5 min). If `generated_at` > 10 min ago, run `python3 predator/scripts/refresh_world_targets.py` inline.
 
 ---
 
-## Priority 1 — Ship Cadence Discipline block to CLAUDE.md
+## Priority 1 — Verify cluster persistence (free reads only)
 
-Insert as a new top-of-file block, immediately after Block G "System Thinking":
+**Before any tx**, confirm the TrayzinCarpathia cluster is still hot:
 
-> ## Cadence Discipline — fire now unless pinned wait
->
-> When you set `next-run-at`, the delay must be **pinned to a specific thing you're waiting for**. If you can't name it concretely, fire sooner.
->
-> ### Acceptable reasons to wait (with concrete pinning)
-> - **Strain-wait**: re-wake at the precise time a target's projected HP crosses kill-zone — timestamp computable, ±5 min buffer.
-> - **Strike cooldown**: after a successful strike, our kami's ~3 min game-mechanic cooldown.
-> - **Counter-predator cooling**: a *named* threat just attacked our node; wait the named time, not "a while".
-> - **Truly empty world**: thorough scan returned zero non-guild HARVESTING candidates within travel-economic range. Re-scan in 10–20 min.
-> - **Owner restart wave**: e.g. stefan97 bulk-stopped 10 kamis; their pools start at 0 — wait 30–60 min for pool to accumulate, then re-scan.
->
-> ### Unacceptable reasons (call these out and reject)
-> - "+30 min, restart-and-rescan" with no concrete reason.
-> - "Rescan in N min by default" — defaults should be short (5–10 min) when there's any next action.
-> - "Might be more interesting later" — speculation.
-> - "I built infrastructure, let it run a while" — infrastructure runs in background; sessions don't have to wait for it.
-> - "Founder might want to review" — founder reads async.
->
-> ### Build-phase mode (now, until further notice)
-> Bias hard toward fire-now. Sub-10-min re-wakes are normal if there's any meaningful next action. The metric in `predator/metrics.md` absorbs the cost.
->
-> ### End-of-session discipline check
-> Before writing `next-run-at`, ask explicitly: *"My re-wake is X minutes from now. What specifically am I waiting for?"* If you can't name it in one concrete sentence, halve the delay or fire now.
->
-> ### Forward direction (eventual, not now)
-> Once formulas + infrastructure are stable and the system mostly executes patterns rather than discovers them, you may propose self-tiered model usage in `ideas_to_founder.md` — Sonnet for routine scans/watchers, Opus for strategic review of metrics + doctrine + infrastructure builds. Founder approves async.
-
-Commit with prefix `pivot:` and a one-liner: `pivot: cadence discipline — fire now unless pinned wait (founder principle)`.
+1. Read `predator/world_targets.json`. Locate node 60 in `by_node`.
+2. If killable_count ≥ 3 with margin ≥ +18 on node 60: proceed to P2.
+3. If killable_count < 3 OR top margin dropped below +15: candidates may have stopped/fed. Spot-check directly via oracle (use `/tmp/recon90.py` re-run pattern). If still soft, proceed to P2 with adjusted target list. If gone, fall through to P5 (alternative pivot).
 
 ---
 
-## Priority 2 — Cooldown-timing rule, codified per-session
+## Priority 2 — Counter-predator scan on node 60
 
-**Codify the rule directly here every session until it stops biting**:
+**Critical pre-deploy check**. Hunt the hunters.
 
-```
-After harvest_start(striker, node), the attacker cooldown is ~180 seconds.
-Wait at minimum 185 seconds (5s buffer) before any liquidate call.
-DO NOT trust prompt-quoted shorter intervals; mechanics.md is authoritative.
+```sql
+-- Find any kami currently HARVESTING on node 60 with attack stats that could threaten our deployed strikers.
+WITH harvesters AS (
+  SELECT kami_id FROM kami_action a
+  WHERE a.action_type='harvest_start' AND a.node_id='60'
+    AND a.block_timestamp >= NOW() - INTERVAL 24 HOUR
+    AND NOT EXISTS (SELECT 1 FROM kami_action b
+                    WHERE b.kami_id=a.kami_id
+                      AND b.block_timestamp > a.block_timestamp
+                      AND b.action_type IN ('harvest_stop','harvest_liquidate'))
+)
+SELECT ks.kami_index, ks.account_name, ks.total_violence, ks.attack_threshold_shift,
+       ks.attack_threshold_ratio, ks.hand_affinity, ks.body_affinity, ks.level
+FROM harvesters h
+JOIN kami_static ks ON ks.kami_id=h.kami_id
+WHERE ks.total_violence >= 28
+ORDER BY ks.total_violence DESC, ks.attack_threshold_shift DESC LIMIT 30;
 ```
 
-This is the second time the 180s rule has been misread (sessions 80, 89). Cost so far: ~0.6M gas across two reverts. If session 90 has any strike attempt, the deployment loop is:
-1. Read mechanics.md cooldown rule (literally — check it's still 180s).
-2. `harvest_start(striker, node)` — record timestamp T0.
-3. While `now() − T0 < 185s`, do nothing on the strike side. Use the wait window for: re-reading target state mid-wait, scratch notes, checking other roster members.
-4. At T0+185s, **re-scan target**: still HARVESTING, no `feed` since `harvest_start`, no `harvest_stop`. If any flip, abort and `harvest_stop(striker)`.
-5. `liquidate(target, striker)` — only after the above gate passes.
+**Decision**:
+- If ≤1 V≥30 attacker present and they're guild-blocked: proceed to P3.
+- If multiple high-V non-guild attackers: counter-counter math. Our weakest deployed striker's HP after a kill must clear the highest-V counter-predator's kill_zone for our roster.
+- If unclear: pivot to node 73 (Yeahta cluster) and re-run counter-predator scan there.
+
+Document the counter-predator finding in `decisions.md` before any tx.
 
 ---
 
-## Priority 3 — Re-scan node 86 + assess stefan97 bulk-restart timing
+## Priority 3 — Migration sequence (TrayzinCarpathia node 60)
 
-Stefan97 bulk-stopped 10 kamis between 23:13:23 and 23:14:55 UTC on 2026-05-02. Prior session 86 prep notes recorded stefan97 as a synchronized-cycle archetype (full restart waves on a multi-hour rhythm). At fire-now from session 89 (~23:25 UTC), the restart wave is unlikely to have begun — pools will still be tiny on whatever stefan97 has restarted.
+**Total estimated gas: ~26M**. Hard rule: if any step reverts unexpectedly, STOP and post-mortem.
 
-**Process**:
-1. Run `/tmp/scan89.py` (renamed/reused from session 89 — it has the canonical formula path baked in already; if it's gone from `/tmp/`, regenerate from the session 89 decision-log description).
-2. Filter results: non-guild, no-feed-since-start, elapsed ≥ 60s, margin ≥ +5 HP across any of our 6 strikers.
-3. **Owner-aware filter**: drop rtvvvvv (no-touch, session 80 rule). Eye stefan97 candidates with caution — if all top results are stefan97, that's the bulk-restart wave and they'll just bulk-stop again before strike. Wait one more cycle.
+### Step 3.1 — Tear down node 86 deployments (all kamis RESTING)
 
-If the scan returns **a clean non-stefan97 non-rtvvvvv candidate ≥ +5 HP margin**: deploy striker per Priority 2 rules, single attempt.
+All bpeon predators are believed RESTING_OR_DEAD per session 88/89 logs. **Verify via on-chain reads first** (oracle could be stale on this — staleness escape hatch warrants chain reads here):
 
-If the scan returns **only stefan97**: defer briefly (re-wake 30–60 min, named pinning: "stefan97 cycle restart") and write a short note in `predator/learnings.md` about stefan97's cycle.
+- For each striker [12649, 11224, 10705, 6058, 15540, 12225]: `get_kami_state` (chain) — confirm RESTING (not HARVESTING).
+- If any HARVESTING: `stop_harvest_batch([list])` — verify state RESTING after.
+- If any DEAD: revive sequence (TBD — first session this triggers, document the discovery).
 
-If the scan returns **0 candidates**: see Priority 4.
+### Step 3.2 — Travel 86→60
 
----
+`travel_to_room(target_room=60, account="bpeon", dry_run=True)` first. Inspect path, stamina cost, item inserts. If reachable on stamina: execute. If `reached_target=False`: append "accumulate SP+ items" to next plan and pivot to closer node (Yeahta room 73 — check rooms.csv adjacency).
 
-## Priority 4 — Reconnaissance scan of alternative nodes (no movement, no tx)
+### Step 3.3 — Deploy strikers on node 60
 
-When node 86 is quiet, the next leverage is **knowing where the targets live**, not migrating speculatively. Spend ≤10 minutes on an oracle scan of:
-- Node 25 (Iron Pier, last session 78/79 read = ~49 zero-def EERIE-body kamis, but 100% jun-guild)
-- Node 60 (last session 79 = wiuuuu cluster, 7 SCRAP-soft)
-- Node 62 (last session 79 = buja723 cluster, 8 INSECT-soft)
-- Node 73 (last session 79 = oracle build_refreshed_ts staleness — POWELL has full Guardian build now)
+For each striker, `harvest_start([striker_idx], node_index=60)`. Record T0 timestamp per kami. Default gas limit (3M per harvest_start; tested OK for new-node starts).
 
-For each: count current HARVESTING population, count non-guild population, count def_shift=0/def_ratio=0 population, scan for top-margin candidates killable by our best striker.
+### Step 3.4 — Wait 185s (cooldown)
 
-**Output**: a short table in `predator/learnings.md` § "Roster brief" → new sub-section "Cluster intel snapshot 2026-05-02 23:25 UTC". Reading-only, no movement, no tx. Cluster math gates any actual migration: single-node target counts must justify gas to migrate; migration cost on bpeon's roster is ~10–20M gas (full team move sequence per CLAUDE.md "Predator deployment").
+While waiting:
+- Re-read `world_targets.json` (cron should refresh during this wait).
+- Verify TrayzinCarpathia candidates still HARVESTING + no feed.
+- Run a fresh counter-predator scan — has anyone deployed on node 60 in response to our move?
 
----
+### Step 3.5 — First strike
 
-## Priority 5 — Build `predator/world_targets.json` background watcher (System Thinking unlock)
+`liquidate(target_kami_index=6023, attacker_kami_index=6058)` (or whichever striker `world_targets.json` paired against 6023).
 
-Per System Thinking doctrine in CLAUDE.md (just shipped session 89), the highest-leverage infrastructure-build identified is a **background world-targets refresher**. Spec:
+Note: 6058 (V31, SCRAP-handed) was paired against TrayzinCarpathia SCRAP-body candidates per the recon. Watcher's `striker_idx` field is authoritative — read from JSON, not from this plan's restatement.
 
-```
-Cron: */5 * * * *  (every 5 min)
-Script: predator/scripts/refresh_world_targets.py
-Output: predator/world_targets.json (atomic write)
-Schema:
-  {
-    "generated_at": "2026-05-02T23:25:00Z",
-    "candidates": [
-      {
-        "v_idx": 4795, "owner": "stefan97", "node": 86,
-        "elapsed_h": 1.4, "proj_hp": 85.2,
-        "best_striker": 12649, "kill_zone": 109, "margin": 23.8,
-        "guild_blocked": false, "no_touch_owner": false,
-        "fresh_feed_since_start": false
-      },
-      ...
-    ]
-  }
-```
+### Step 3.6 — Chain or stop
 
-Sessions read `predator/world_targets.json` at the top of perception phase instead of running a fresh scan — saves ~30–60s and lets the agent see **trends** (candidates killable across multiple snapshots vs. flash-killable just-restarted).
-
-**Decision gate for session 90**: build it iff (a) Priorities 1+2+3 finish in under 30 minutes, (b) the canonical formula doesn't surface a structural issue, (c) you have ≥45 minutes of remaining session budget. Otherwise, document the design in `predator/infrastructure.md` (create the file) and ship in session 91.
-
-**If you build it**:
-- Use `urllib.request` (httpx not available system-wide — confirmed session 89).
-- Reuse `executor/oracle_state.py` patterns where possible.
-- Read guild blacklist, no-touch owner list, current striker stats from canonical sources.
-- Atomic write (`.tmp` → rename) so partial reads never see truncated JSON.
-- Document the cron entry in `predator/infrastructure.md` with the exact crontab line, script path, failure mode (oracle-down → must not corrupt JSON).
-- Test manually once before adding cron. Verify well-formed JSON + expected fields.
-- Add entry to `memory/improvements.md` titled "world_targets.json background refresher" with the cron line.
-
-This is the first concrete System Thinking build. **Do it if you have time.**
+- **On kill**: log gas + obol + recoil HP. Re-run scan via `world_targets.json` (cron should refresh between cooldowns). If next candidate clean and striker HP > kill_zone-of-defenders: chain. Otherwise stop, log session.
+- **On revert ≥ +5 HP margin**: structural surprise per session 89 stop condition. Halt, post-mortem, do NOT re-attempt.
+- **On 2 reverts in a row**: end session.
 
 ---
 
-## Priority 6 — Strike if all gates clear
+## Priority 4 — Hard limits
 
-If Priority 3 surfaced a clean candidate and 180s cooldown has been honored, single strike. Hard rules unchanged: heal-event guard, counter-predator scan, predator co-location, ≥+5 HP margin, no rtvvvvv, no guild.
-
-**On revert**: post-mortem before re-attempting. Canonical is now ground-truth; deep-revert with margin ≥+5 HP is a structural surprise (oracle staleness, on-chain divergence, target-feed between scan and strike, etc.). Document and stop hunting that target until root cause identified.
-
-**On kill**: log predicted vs actual margin, gas (success cost ~3M for first kill on node 86 expected), obol earned, recoil HP. Then re-scan immediately on same node — chain on cluster.
+- **Total gas budget cap**: 40M for this session (migration ~26M + ~3M per kill × max 5 kills = ~41M ceiling). If approaching, stop after current chain.
+- **Counter-counter math** before every strike, not just the first.
+- **Heal-event guard** before every strike — re-read `n_feeds_after_start` on the actual target via fresh oracle query.
+- **No tx if striker HP < 80% max_hp** — leave a buffer for recoil + counter-predator strike.
 
 ---
 
-## Stop conditions
+## Priority 5 — Alternative pivots (if P3 stalls)
 
-- First kill on canonical formula → log post-mortem on predicted vs actual margin. Re-wake 5–15 min, named pinning: "chain on cluster after first kill".
-- 2 reverts in a row despite passing all gates → stop, log, post-mortem.
-- Total gas > 12M without a kill → end session, post-mortem.
-- World targets watcher built and tested → log to improvements.md, re-wake 10 min to verify the JSON is being refreshed by cron.
+Order by likelihood of yielding kills:
+
+1. **Yeahta node 73** (SCRAP, room 73): 4 candidates +10 to +69. Need to check room 60→73 distance + stamina. If 1-2 hops away from node 60, after node 60 chain dies, hop and continue.
+2. **Re-scan node 86**: stefan97 may have restarted by now (~1.5-2h after the bulk-stop). If wave landed, candidates with elapsed >60 min → re-evaluate margin.
+3. **Defer to next session (+30 min)**: if both alternative clusters are dry too, re-wake with named pin "stefan97 cycle restart catch — pools should be margin-positive by then."
+
+---
+
+## Priority 6 — Post-session updates
+
+- Append `predator/metrics.md` row (session 91, gas, obols, kills).
+- If first kill landed: update `predator/learnings.md` with predicted-vs-actual margin (canonical formula validation).
+- If counter-predator math killed any of our strikers: log to `predator/counter-predator.md`.
+- If world_targets.json watcher misbehaved: fix in `predator/scripts/refresh_world_targets.py`, document in `improvements.md`.
 
 ---
 
 ## Self-schedule (apply Cadence Discipline)
 
-End-of-session: write `next-run-at` with named pinning. If your candidate pin is fuzzy, fire sooner. Examples:
-- *"Stefan97 bulk-restart wave — pools begin growing at ~24:30 UTC, I'll wake at 24:45 to catch the first margin-positive candidates."* ✓
-- *"world_targets.json watcher just deployed — wake in 10 min to verify refresh."* ✓
-- *"+30 min default for rescan."* ✗ — halve to 10 min, or wake immediately if any concrete next action exists.
+Two regimes:
+- **First-kill landed**: re-wake +5-15 min, named pin: "chain on TrayzinCarpathia/Yeahta cluster after first kill — striker cooldown completes at T+185s".
+- **Migration completed without kill (revert or churn)**: re-wake +20 min, named pin: "candidate restart wave on node 60 — TrayzinCarpathia owner pattern unknown, observe one cycle".
+- **Migration aborted / didn't fire**: re-wake +5 min, named pin: "world_targets.json fresh snapshot + retry P2 with relaxed counter-predator gate".
 
-If you genuinely need > 30 min: name the pin in one sentence in `decisions.md`. Founder will see it and either accept or correct.
+If genuine no-action state (e.g., counter-predators saturate node 60 AND node 73 AND node 86 still dry): re-wake +30 min with named pin "stefan97 cycle restart catch on node 86 — bulk-restart wave from 23:14 UTC due in this window."
 
 ---
 
 ## Out of scope
 
-- Force-flush, quest progression, kamibots state reads (forbidden).
-- 11224 SP allocation (still gated on first kill).
-- Modifying kami-oracle code (route oracle gaps via `ideas_to_founder.md`).
-
----
-
-## Communication back to founder
-
-End-of-session in `decisions.md`:
-- Cadence Discipline block landed in CLAUDE.md: Y/N.
-- Cooldown rule re-codified: Y/N.
-- Re-scan outcome (candidate / stefan97-only / 0 candidates).
-- Recon scan of alternative nodes: brief table.
-- world_targets.json watcher built: Y/N (if N, design doc in `infrastructure.md`).
-- First kill: Y/N. If Y, predicted margin vs actual.
-- `next-run-at` and the **named pin** (one concrete sentence).
+- Force-flush, quest progression, kamibots state reads.
+- 11224 SP allocation (gated on first kill).
+- Modifying `executor/oracle_state.py` or `executor/hp_projection.py` (canonical formulas are stable).
+- Modifying kami-oracle code (route via `ideas_to_founder.md`).

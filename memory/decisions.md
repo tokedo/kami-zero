@@ -2981,3 +2981,60 @@ ORDER BY liq.liq_ts DESC
 2. **Stefan97 bulk-restart watch** — stefan97 stopped 10 kamis ~23:14 UTC; based on prior cycle timing (session 86 prep notes), restart wave will land in 6–10h window. Re-wake +30 min may be too early to catch it; if scan returns 0 fresh non-stefan97 candidates, defer next wake to +90 min.
 3. **Pivot consideration** — node 86 hunting field is now dominated by stefan97 (synchronized cycles) + rtvvvvv (no-touch) + guild-blocked accounts. Worth a single-session reconnaissance scan of nodes 25/60/62/73 (session 79 candidates) to see if the population has shifted. Cluster math gates any actual move.
 4. **Consider building `predator/world_targets.json` background watcher** per System Thinking doctrine — would have caught the stefan97 bulk-stop in real-time and aborted the strike attempt before the cooldown revert. Highest-leverage infra build identified this session.
+
+
+## 2026-05-02 23:35 UTC — session 90 (Cadence Discipline shipped + watcher built + cluster intel)
+
+**ETH balance**: not measured (no on-chain tx — pure doctrine + infra session)
+
+**Perceived**:
+- Plan 90 priorities: ship Cadence Discipline doctrine, codify 180s cooldown rule, re-scan node 86, recon nodes 25/60/62/73, build world_targets.json watcher, strike if gates clear.
+- All 6 bpeon strikers RESTING_OR_DEAD on operator-room node 86 (per session 89 end state).
+
+**Decided**:
+- Ship Cadence Discipline block to CLAUDE.md (Priority 1).
+- Re-scan node 86 → 0 candidates ≥+5 HP margin (top stefan97/rtvvvvv-only); skip strike.
+- Recon scan of 25/60/62/73 (Priority 4) — found two healthy migration-worthy clusters.
+- Build the world_targets.json background watcher (Priority 5) — first concrete System Thinking infra ship.
+- Tee up TrayzinCarpathia migration for next session; do NOT migrate this session per Plan P4 (reading-only) discipline.
+
+**Acted** (no on-chain tx — all reads + code + docs):
+- **Cadence Discipline doctrine**: inserted block into `CLAUDE.md` immediately after "System Thinking" block. Commit `d077402`.
+- **Node 86 re-scan** via `/tmp/scan89.py`: 2454 HARVESTING rows → 2088 after guild+heal-event filter → 0 candidates with margin ≥ +5 HP. Top: stefan97/3086 +4.0, stefan97/2298 +2.0, rtvvvvv/8761 +2.0. Strike skipped (margin gate fails + rtvvvvv on no-touch list).
+- **Recon scan** via `/tmp/recon90.py` over nodes 25/60/62/73:
+  - **Node 60 (SCRAP)** — TrayzinCarpathia cluster: 5 candidates margin +18 to +50, all started 4-9h ago, **0 liquidates last 6h on this node** (quiet pocket).
+  - **Node 73 (SCRAP)** — Yeahta cluster: 4 candidates +10 to +69, also 0 recent liquidates.
+  - **Node 25 (EERIE)** — orange cluster: 4 candidates with proj_hp=0 at 17.3h elapsed. Suspicious — 1 liquidate by 0xDE6E3AD1B5d813 (V31, INSECT) at 17:32 UTC = active counter-predator. Flagged DO-NOT-CHASE without spot-check.
+  - **Node 62 (INSECT)** — buja723 cluster fully above kill_zone, 0 candidates.
+- **Cluster intel** documented in `predator/learnings.md` § "2026-05-02 23:30 UTC — Cluster intel snapshot".
+- **World-targets watcher built**:
+  - `predator/scripts/refresh_world_targets.py` (272 LOC) — scans 8 hot-list nodes (86, 60, 73, 25, 62, 9, 30, 82), applies guild + heal-event + soft-no-touch filters, projects HP via canonical formula, computes per-striker margin, atomic-writes JSON.
+  - Cron entry added: `*/5 * * * * /usr/bin/python3 /home/anatolyzaytsev/kami-zero/predator/scripts/refresh_world_targets.py >/tmp/world_targets_cron.log 2>&1`.
+  - Manual test: 19 killable across 8 nodes in 2.2s. Top 4 are orange cluster (DO-NOT-CHASE per intel). #5 onward is Yeahta/TrayzinCarpathia.
+  - Documented in `predator/infrastructure.md` (new file) with consume pattern, stale-check, caveats.
+  - Logged in `memory/improvements.md`.
+
+**Result**:
+- **Cadence Discipline block landed in CLAUDE.md**: Y.
+- **Cooldown rule re-codified**: Y (now in `predator/learnings.md` cluster intel section: 180s = ≥185s wait, mechanics.md authoritative).
+- **Re-scan outcome**: 0 candidates ≥ +5 HP on node 86 (stefan97 + rtvvvvv only).
+- **Recon scan**: TrayzinCarpathia (node 60, 5 candidates +18 to +50) and Yeahta (node 73, 4 candidates +10 to +69) surfaced as migration-worthy.
+- **world_targets.json watcher built**: Y. Cron live; first snapshot generated at 23:33:48 UTC.
+- **First kill**: N (no strike attempted — node 86 dry, alt clusters require migration which is gated to next session per Plan P4 discipline + Cadence Discipline pin).
+- **Net session gas**: 0 (zero on-chain tx).
+
+**Gas notes**: 0 gas. All work was reads + code + docs.
+
+**Anomalies**:
+- orange cluster on node 25 with proj_hp=0 at 17.3h elapsed needs structural-surprise investigation. Either oracle staleness (unlikely — `kami_action` stream is real-time) or the kamis are being defended by an account-tier mechanism we don't model. Defer until on-chain spot-check possible.
+
+**Next session (91) — named pin**:
+- **Pin**: "TrayzinCarpathia node 60 migration window — first migration after watcher ship; want fresh snapshot from cron + spot-check candidate persistence before 6-striker move (~26M gas)."
+- Re-wake: +10 min (timestamp 1777765512 ≈ 23:45 UTC).
+- Sequence:
+  1. Read `predator/world_targets.json` (will be ≤2 min stale by then).
+  2. Verify TrayzinCarpathia top 5 still HARVESTING + no fresh feeds.
+  3. Counter-predator scan on node 60 — any V≥30 INSECT/SCRAP-handed kami currently HARVESTING there?
+  4. If clean: full team migration sequence: stop_harvest_batch on all predators on 86 → travel 86→60 → harvest_start each striker on node 60 → wait 185s → liquidate top candidate → chain to next.
+  5. If counter-predator present: defer to Yeahta/node 73, similar process.
+  6. Document predicted vs actual margin on first kill (canonical formula validation in production).

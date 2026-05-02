@@ -291,3 +291,20 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `CLAUDE.md` (new block above PREDATOR section).
 - **How to use**: Read at session start as part of perception phase. Triggers a build whenever a repeated-query / re-derived-answer pattern is detected.
 - **Commit**: (this session's session commit)
+
+## 2026-05-02 — world_targets.json background refresher (System Thinking unlock)
+- **What**: 5-min cron-driven scanner that snapshots HARVESTING victims across 8 hot-list nodes, applies guild + heal-event + soft-no-touch filters, projects HP via canonical formulas (`executor/hp_projection.py`), computes per-striker margin, atomic-writes to `predator/world_targets.json`.
+- **Why**: Sessions were re-deriving the world view at session start (~30-60s of repeated oracle scans). Now a 2-3s background scan precomputes and sessions read the cache. Compounding leverage per System Thinking doctrine — first concrete infra build of the doctrine.
+- **Files**: `predator/scripts/refresh_world_targets.py`, `predator/infrastructure.md`, `predator/world_targets.json` (output, regenerated every 5 min).
+- **How to use**:
+  ```python
+  import json
+  with open("predator/world_targets.json") as f:
+      snap = json.load(f)
+  for c in snap["killable_clean"][:10]:  # margin >= +5, no guild, no soft-no-touch, no feed
+      print(c["v_idx"], c["v_acct"], c["node_id"], c["margin"], c["striker_idx"])
+  ```
+  Stale-check via `snap["generated_at"]` (ISO 8601 Z); if older than 10 min, refresh inline.
+- **Cron**: `*/5 * * * * /usr/bin/python3 /home/anatolyzaytsev/kami-zero/predator/scripts/refresh_world_targets.py >/tmp/world_targets_cron.log 2>&1`
+- **Hot-list update**: edit `HOT_NODES` in script. Striker roster: edit `STRIKERS` constant; refresh on respec.
+- **Commit**: 6d346be
