@@ -1,74 +1,136 @@
-# Plan for session 81
+# kami-zero session 81 prompt — revive + co-location doctrine + continued hunt (founder-authored)
 
-## Context carrying over from session 80
+This is a complete replacement for `memory/plan.md` on the VM. After founder review, push to `~/kami-zero/memory/plan.md` and commit.
 
-Session 80 executed the founder's doctrine corrections (read `systems/*.md`, hunt by current HP, aggressive cadence) but landed 0 kills in 5 tx / ~42M gas. The doctrine itself is not yet falsified — both attempted clusters had structural issues that don't refute the heuristic:
+---
 
-- **theplux node-9 cluster**: 7 of 8 candidates were LISTED (mass-listed for sale), not HARVESTING. Oracle has no listing-event action-row, so `latest=harvest_start` mis-flagged them. **Doctrine update**: any oracle scan must be live-filtered for `state == 'HARVESTING' AND bounty > 0`.
-- **rtvvvvv node-86 farmers (15538/8761/10775)**: 15538 deep-reverted (HP > threshold even at 525min). 8761 cycled to RESTING within ~10min of scanner output. **Doctrine update**: H25+ skill-boosted farmers strain at ≤0.072 HP/min — much slower than the H-only formula projects. Use that as upper bound when target has Guardian/Enlightened SP.
-- **rtvvvvv soft-stop**: 3 reverts across sessions 76/78/80 on this owner's roster. Stop hunting them.
+## ⚠️ Two additions from founder, on top of your own session 80 plan
 
-11224 is RESTING node 86, sync HP ~140, cooldown clear.
+Your session 81 plan was good (live-gate, low-Harmony long-runners, owner blacklist, pre-flight checklist). It's preserved below as Priorities 2–5. Founder added two corrections that should go ahead of the hunt:
 
-## Priority 1 — First kill on the new doctrine
+### Addition A — Revive 12649 with Red Ribbon Gummy. ONE FREE TX.
 
-**Scan**: oracle for HARVESTING kamis on open-tier nodes with **long harvest duration AND low Harmony** (H<20 = strain rate ~0.10–0.15 HP/min, much higher than H25 farmers). Long-running low-H kamis are the prime current-HP-doctrine targets.
+You said in session 79 that revive was blocked because "no Onyx Shards." Wrong — that's only the heavyweight `system.kami.onyx.revive` path. The catalog has TWO additional revive items already in your inventory:
 
-Pre-flight checklist before any strike:
-1. Live `get_kami_state_slim(target)`: confirm `harvest.state == 'ACTIVE' AND harvest.balance > 0` (ACTIVE harvest with bounty — guards listing false-positive).
-2. Read `bonuses.defense.threshold.shift` and `.ratio` live (oracle staleness on builds > 24h).
-3. Compute kill threshold using the canonical formula from `systems/liquidation.md`:
-   - animosity = GaussianCDF(ln(V_atk / H_vic)) × KAMI_LIQ_ANIMOSITY[2] / 1e(18+prec−6)
-   - efficacy = KAMI_LIQ_THRESHOLD[2] + affinityShift + atkRatio − defRatio
-   - shift = (atkShift − defShift)
-   - threshold_HP = (animosity × efficacy + shift) × maxHP / precision
-4. Project current HP using strain formula. Use **0.072 HP/min cap for H≥25 with skill SP**, and the H-formula (~0.10–0.15) for unboosted low-H targets.
-5. Strike only when projected_HP < threshold_HP with **margin ≥ 15 HP** (buffer for projection error).
+| Item | Index | Cost | Effect |
+|---|---|---|---|
+| Red Ribbon Gummy | 11001 | 1 ribbon (you have **99**) | RESTING, **+10 HP** — via `feed_kami` / `system.item.use` |
+| Melkarth's Heroic Awakening Spell Card | 11002 | 1 card (you have **1**) | RESTING, **+50 HP** — via `feed_kami` / `system.item.use` |
 
-**Owner blacklist** (3+ reverts → stop targeting): rtvvvvv. Add to `predator/targeting.md`.
+The use mechanism is **the same primitive you already used** for Cheeseburger (heal in session 80) and Hostility Potion (in session 77): `feed_kami(item_index, target_kami_id)`. There's nothing to "verify" — the catalog row IS the spec (`Type=Revive`, `effect=STATE-RESTING,HP+10`).
 
-If 11224 is the right striker (V36, EERIE-hand), hunt SCRAP-body targets for the affinity bonus. Otherwise pick the kami whose V/affinity matchup gives the highest threshold.
+Operating rule going forward: if `catalogs/items.csv` has the effect string for an item, that's authoritative. Don't defer with "mechanism unverified." The catalog *is* the documentation.
 
-## Priority 2 — Tighten scan→strike loop
+### Addition B — Predator co-location with operator (doctrine, not a hard rule)
 
-Target churn observed at ~10 min on auto-managed farms. Mitigations:
-- **Inline pre-strike re-read**: in the same MCP round-trip as the liquidate call, do a slim read of the target. If state/balance changed, abort the strike (saves the 0.28M early-revert gas).
-- Or: accept early-revert as a 0.28M cost of doing business; budget 2–3 0.28M reverts per session as expected churn cost.
+The liquidation system requires `attacker.account.room == target.node.room`. There is essentially no scenario where leaving a predator on a node and moving the operator elsewhere is correct — predators aren't deploy-and-forget like harvesters or guardians. They need the operator co-located to act.
 
-If a `liquidate_with_precheck` tool would save gas systematically, document and build per `harness:` discipline.
+This may already be why session 80 burned 17.9M gas on the 30→86 travel: at some point the operator drifted from room 86 while predators stayed at node 86, and you had to pay to reunite them.
+
+Going forward: when the operator moves, **all predators move with it** — `harvest_stop` everyone first, travel together, `harvest_start` together at destination. If a session ends with the operator-room ≠ kami-node for any predator, log it to `alerts.md` and reunite next session before any strike attempt.
+
+---
+
+## Priority 0 — Revive 12649 (1 tx, ~1.5M gas)
+
+`feed_kami(item_index=11001, target_kami_id=12649)` — Red Ribbon Gummy → 12649 RESTING at 10 HP.
+
+Optional follow-ups same session if you want 12649 in fighting shape:
+- `feed_kami(11002, 12649)` (Melkarth Spell Card) → +50 HP → ~60 HP total. Spell card is rare (you have 1) — use it for the spearhead.
+- A few more Cheeseburgers / ribbons as needed to hit ~80% of max HP (270) before next active deploy.
+
+After: snapshot inventory and roster state to `decisions.md`. Roster is now 6/6 again (if you used Melkarth, mention the inventory delta).
+
+---
+
+## Priority 1 — CLAUDE.md doctrine updates
+
+Two small additions to the existing CLAUDE.md (these were carried from session 80 P2 — fold them in this time, don't defer further):
+
+### 1a. Block F (Knowledge Sources) — top of file, above Standing Authorizations
+
+Per session 80 plan. Add the canonical-doc pointer block exactly as session 80 prompt described, with one extra entry: **`catalogs/items.csv` — authoritative for item effects. The Type column and the effect string are the spec. No "mechanism unverified" defers.**
+
+### 1b. Predator Doctrine — add a "Predator deployment" thought-block
+
+Append to the existing Predator Doctrine section:
+
+> **Predator deployment.** Predators are not deploy-and-forget. Liquidation requires `operator.room == target.node.room` — a predator HARVESTING on node X while the operator is at room Y can never fire `liquidate`. When the operator moves, **all predators move with it**. Standard sequence: `harvest_stop` every predator → travel → `harvest_start` at destination. If a session ends with operator-room ≠ any predator's node, that's an anomaly — log to `alerts.md` and reunite next session before any strike. There are no realistic scenarios where partial-team moves are correct.
+
+### 1c. Update targeting heuristic and cadence per session 80 plan
+
+Same as session 80 P2 carryover — current-HP doctrine, cadence norms 10–30 min active. Lock these in if not already done.
+
+---
+
+## Priority 2 — Continue the hunt (your session 80 plan, lightly amended)
+
+Hunt low-Harmony long-runners with the live-gate per your session 80 plan. Pre-flight checklist, owner blacklist, threshold compute — all unchanged.
+
+**Two small amendments based on session 80 findings:**
+
+- **Strain rate is empirically ≤ 0.072 HP/min on H≥25 skill-boosted farmers**. Use this in projection. Update `predator/mechanics.md` "Empirical layer" section with the H-tier strain rate table.
+- **Listing has no oracle action-row.** Live `state==HARVESTING AND balance>0` is mandatory. This is now in `predator/learnings.md`; keep it operational.
+- **Target churn ~10 min on auto-managed farms.** Inline pre-strike re-read is cheaper (~0.28M for early-revert) than blind strike (2.68M for deep revert). For a target that passed the pre-flight scanner ≥3 min ago, do the slim re-read in the same MCP round-trip as the liquidate call.
+
+**Owner blacklist update:** rtvvvvv (3 reverts: 3764, 13253, 15538). If founder later confirms that rtvvvvv farms have *un*usually high Guardian SP investment as a known build, blacklist might extend to other farms with similar shape.
+
+**Where to hunt:** since operator is now at room 86 (post session 80) and 11224 + the rest of the predator team are at node 86, default to scanning node 86 first. Don't move the operator unless cluster math at a different node decisively justifies the travel cost (session 80's 17.9M-gas reminder).
+
+---
 
 ## Priority 3 — Reconcile predator/mechanics.md (carried from session 80 P1)
 
-Did NOT happen in session 80 (chased the kill instead). Do this **only after Priority 1 has been attempted** — don't write docs as a procrastination move when the hunt is live. If a strike lands, mechanics work waits.
+Same as before — replace empirical-derived sections with cross-references to `systems/liquidation.md`. Add the new H-tier strain rate empirical row. Do this only after Priority 0–2 attempts.
 
-The reconciliation: replace empirical sections with cross-references to `systems/liquidation.md`. Keep agent-discovered gotchas (oracle staleness, listing-event gap, strain rate cap on H25+ skill-boosted) as a clearly-marked "Empirical layer on top of canonical mechanics" section.
+---
 
-## Priority 4 — Update CLAUDE.md doctrine (carried from session 80 P2)
+## Priority 4 — Roster state-of-the-team check
 
-Block F (Knowledge Sources) + targeting heuristic + cadence norms — all unchanged from session 80 plan. Defer until after a kill if hunting is productive.
+After revive, take stock of the 6-kami roster:
+- 12649 (Spearhead-A, V34/H20/HP270) — revived, healing
+- 11224 (V36, EERIE-hand, 3 SP unspent) — currently RESTING node 86 ~140 HP
+- 6058 (SCRAP-hand)
+- 10705 (INSECT-hand)
+- 12225, 15540
+
+For 11224's 3 unspent SP: still deferred until you've seen the kami in a successful strike. After your first kill — and only after — write a rationale in `predator/learnings.md` and allocate.
+
+For team composition: note which affinity matchups each kami is best for. The targeting heuristic should pair the right striker to each candidate.
+
+---
 
 ## Priority 5 — Self-schedule
 
-After this session: re-wake 30–45 min if 11224 is healing. If 11224 is healthy at session start and a candidate is already identified, re-wake 15 min after.
+Cadence per CLAUDE.md norms. After a kill: 15 min re-wake (chain on the same cluster). After a no-kill but live targets identified for next session: 20–30 min. Genuinely quiet (no soft targets after a thorough scan): 45–60 min, not more.
 
-## Stop conditions (unchanged from session 80)
+If you find yourself wanting > 60 min, write the reasoning in `decisions.md` first.
 
-- First kill → scan and chain on same node.
-- 3 consecutive deep-reverts despite passing pre-flight → stop, log, re-read `systems/harvesting.md` strain section.
-- Roster ≤3 healthy strikers → defensive mode.
+---
+
+## Stop conditions
+
+- First kill → scan and chain on same node. Don't leave a hot zone.
+- 3 consecutive deep-reverts despite passing pre-flight → stop, re-read `systems/harvesting.md` strain section, log post-mortem.
+- Roster ≤3 healthy strikers → defensive mode (you should be at 6 after Priority 0).
 - Total gas > 50M without a kill → end session, post-mortem.
 
-## Active state
-
-- **Account**: bpeon, room 86 (Guardian Skull, EERIE/INSECT).
-- **Roster (5 alive)**: 11224 (V36 EERIE-hand, RESTING ~140 HP, 3 SP unspent), 6058 (SCRAP-hand), 10705 (INSECT-hand), 12225, 15540 — last 4 RESTING node 86 per session 78/79 brief, refetch at session start.
-- **12649 DEAD** (revive deferred — no Onyx Shards).
-- **Inventory**: ~75 Ice Cream, Cheeseburger count unverified, 99 Red Ribbon Gummy.
-- **Soft-stop owners**: rtvvvvv (3 reverts).
+---
 
 ## Out of scope
 
-- 11224 SP allocation (no kill yet).
+- 11224 SP allocation (still gated on first kill).
 - Quest progression (paused).
-- 12649 revive (defer).
-- Cluster moves to nodes 60/62 (cancelled session 80).
+- Cluster moves to nodes 60/62 (cancelled session 80, do not revisit unless you've re-scanned and the math now decisively justifies travel).
+- Any operator move > 1 hop without `harvest_stop` on every predator first (per Predator deployment doctrine).
+
+---
+
+## Communication back to founder
+
+End-of-session in `decisions.md`:
+- Did first kill land? Y/N.
+- 12649 revive status (Y, +HP delta, used items).
+- Total gas, total tx.
+- Cadence chosen, why.
+- Roster co-location at session end (operator-room and each predator's node — they should match).
