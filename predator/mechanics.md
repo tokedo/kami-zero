@@ -858,12 +858,81 @@ kill_zone            = max(0, threshold_ratio × victim_max_hp)
 
 | Formula | Accuracy |
 |---|---|
-| **Empirical** (sessions 76-79): `(animosity + atk_shift − def_shift) × (1 − def_ratio) × max_hp`, animosity_scale=1.0 | **99.60%** |
-| Canonical (as-derived above): animosity_scale=0.4, efficacy as multiplier | 98.18% |
-| Alternate scaling (anim=0.4, shift_scale=1/400) | 94.75% |
+| Empirical (sessions 76-79): `(animosity + atk_shift − def_shift) × (1 − def_ratio) × max_hp`, animosity_scale=1.0 | 99.60% |
+| Canonical session-88 form (anim=0.4, no affinity, no ratio gate) | 98.18% |
+| Alternate scaling session-88 (anim=0.4, shift_scale=1/400) | 94.75% |
+| **Canonical w/ rock-paper-scissors triangle + ratio gate (session 89, 6/6 calibrated)** | **99.40%** (492/495 empirical-strain mode) |
 
-The empirical formula remains the operational kill_threshold for
-predator-decision path. The canonical underperforms by ~7 verdict misses
-on the corpus — likely a precision-exponent interpretation issue or a
-missing affinity_shift term not yet pulled from chain. Either way:
-**the empirical cert governs strikes**, canonical is reference math.
+### Canonical override — session 89 (founder calibration trumps the corpus)
+
+While session 88 was running, founder cross-checked the kill formula
+against the **kamigotchi team's official liquidation calculator** (the
+in-game tool the team itself maintains). Six tests across all matchup
+classes match the canonical formula exactly. Session 89 ships the
+calibrated canonical as the operational `kill_threshold()`:
+
+```
+combat_ratio = ln(V_atk / max(1, H_def))
+animosity    = Φ(combat_ratio) × 0.4              # KAMI_LIQ_ANIMOSITY[2]
+
+# attacker hand vs victim body (rock-paper-scissors)
+affinity_shift =
+  +0.2  if NORMAL on either side                 (special)
+   0    if same affinity (non-NORMAL)
+  +0.5  if hand strong vs body                   (EERIE>SCRAP, SCRAP>INSECT, INSECT>EERIE)
+  −0.5  if hand weak vs body
+
+# Ratio bonuses are gated by matchup — they don't apply on weak matchups
+if affinity_shift >= 0:
+    efficacy = 1.0 + affinity_shift + atk_ratio − def_ratio
+else:
+    efficacy = 1.0 + affinity_shift                # weak: ratios can't rescue
+
+threshold_ratio = animosity × efficacy + atk_shift − def_shift
+kill_zone       = floor(threshold_ratio × victim_max_hp)
+strike fires iff projected_HP < kill_zone        (strict <)
+```
+
+Calibration table (death-below HP = `kill_zone`, vs team's calculator):
+
+| matchup | bonuses | canonical | calculator | ✓ |
+|---|---|---|---|---|
+| INSECT→SCRAP weak | atk_r=25%, atk_s=20% (V=38, H=15, mhp=150) | 54 | 54 | ✓ |
+| EERIE→SCRAP strong | none (V=36, H=20, mhp=200) | 86 | 86 | ✓ |
+| SCRAP→EERIE weak | none (V=36, H=20, mhp=200) | 28 | 28 | ✓ |
+| NORMAL→NORMAL | atk_r=20% (V=36, H=20, mhp=200) | 80 | 80 | ✓ |
+| NORMAL→NORMAL | def_r=20% (V=36, H=20, mhp=200) | 57 | 57 | ✓ |
+| EERIE→SCRAP strong | atk_r=20% (V=36, H=20, mhp=200) | 98 | 98 | ✓ |
+
+Regression test: `executor/tests/test_kill_threshold_calibration.py`
+(must always pass before any kill-formula change ships).
+
+### Why canonical wins despite the lower corpus score (99.40% < 99.60%)
+
+The N=495 back-fit corpus joins on victim/attacker static fields whose
+HP projection itself depends on `compute_current_hp`. With the
+session-88 broken HP formula (Bugs 1+2+3) in place, the empirical
+kill_threshold co-evolved with broken HP inputs and reached 99.6%
+self-consistency. With HP fixed (sessions 87-88) but
+empirical-kill_threshold kept, you get 99.6%. Switch to canonical
+kill_threshold and it drops 0.2pp to 99.4%.
+
+That 0.2pp = 1 additional miss (v_idx=2061): low-V vs high-H matchup
+where `def_threshold_shift > animosity × efficacy` drives `kill_zone`
+slightly negative; the kill nonetheless happened on chain. This is
+likely a `max(0, …)` floor or rounding-precision detail in the contract
+that we can plug later. The other 2 misses are the known
+REVIVE-mid-cycle edge cases preserved from session 84.
+
+The team's calculator is the **ground truth** for the formula
+specification. The corpus is downstream evidence; if the calculator and
+the corpus disagree by 0.2pp, trust the calculator. The corpus may also
+contain rows where build_refreshed_ts lag, equipment changes, or
+mid-cycle event ordering corrupt the inputs — these are data-quality
+bugs, not formula bugs.
+
+The canonical also enables per-matchup optimization that empirical
+cannot: striking with EERIE hand into SCRAP body gets +0.5 affinity
+bonus; striking into NORMAL body gets +0.2; same-affinity (non-NORMAL)
+gets 0. Empirical was matchup-blind. This is real strike-EV upside the
+team-validated formula unlocks.

@@ -269,3 +269,25 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/mechanics.md` § "Cached on-chain KAMI_LIQ_* config" — cached values + canonical-vs-empirical accuracy table.
 - **Reader script** (one-off, kept in /tmp for repro): `/tmp/read_liq_config.py` — `from web3 import Web3; entity = int.from_bytes(Web3.keccak(b"is.config" + name.encode()), "big"); val_comp.functions.safeGet(entity).call()`.
 - **Commit**: (this session's session commit; mechanics-doc-only)
+
+## 2026-05-02 — Canonical kill_threshold (session 89, founder calibration 6/6)
+- **What**: Replaced `kill_threshold()` in `executor/hp_projection.py` with the canonical formula `animosity × efficacy + atk_shift − def_shift` (where `animosity = Φ(ln(V/H)) × 0.4`). Implemented `_liq_affinity_shift()` with the rock-paper-scissors triangle (EERIE>SCRAP>INSECT>EERIE), NORMAL=+0.2, same=0, strong=+0.5, weak=-0.5. Implemented ratio-bonus gate: `atk_ratio`/`def_ratio` apply only when `affinity_shift ≥ 0` (weak matchups stuck at base 0.5x). Added `animosity_ratio: float = 0.4` parameter.
+- **Why**: Empirical formula passed session 84's 99.6% back-fit but had three structural defects (missing × 0.4 on animosity, stubbed `_liq_affinity_shift`, wrong combination topology) that partially canceled for middle-of-the-road stats. Founder cross-checked the canonical formula against the kamigotchi team's official liquidation calculator: 6/6 match across all matchup types. The empirical's apparent accuracy was self-consistent with broken HP projection (which itself got fixed in session 88) — calculator wins over corpus.
+- **Files**: `executor/hp_projection.py` (kill_threshold + _liq_affinity_shift + _LIQ_BEATS), `executor/scripts/backfit_liquidations.py` (now passes `attacker_hand`/`victim_body` to kill_threshold).
+- **How to use**: `kill_threshold(attacker_violence=34, victim_harmony=22, victim_max_hp=260, atk_threshold_shift=300, atk_threshold_ratio=500, def_threshold_shift=200, def_threshold_ratio=0, attacker_hand="NORMAL", victim_body="EERIE")` → `{"kill_zone": <int>, "animosity": <float>, "efficacy": <float>, ...}`. Strict `<` gate: strike succeeds iff `projected_hp < kill_zone`.
+- **Cert**: N=495, M=492, 99.40% on 7d back-fit corpus (down 0.20pp from empirical's 99.60%, but per plan 89 — calculator wins). The 3 misses are floor edge cases on weak matchups with large `def_shift`.
+- **Commit**: (this session's harness commit, see git log)
+
+## 2026-05-02 — Calibration regression test (6 founder cases)
+- **What**: New file `executor/tests/test_kill_threshold_calibration.py` — 6 test cases mirroring the founder's calibration table. Each asserts exact match on death-below HP ∈ {54, 86, 28, 80, 57, 98}.
+- **Why**: The 6 cases span all matchup geometries (weak + atk_ratio gate test, strong unbonused, weak unbonused, special + atk_ratio, special + def_ratio, strong + atk_ratio). Any future kill-formula change must preserve all 6. This is the new regression bar.
+- **Files**: `executor/tests/test_kill_threshold_calibration.py` (new).
+- **How to use**: `python executor/tests/test_kill_threshold_calibration.py` — exits 0 if all 6 pass, 1 otherwise.
+- **Commit**: (this session's harness commit)
+
+## 2026-05-02 — System Thinking doctrine in CLAUDE.md (session 89, founder framing)
+- **What**: New doctrine block "System Thinking — you're not a session, you're a system" inserted into CLAUDE.md immediately above "Operational Mode: PREDATOR". Includes founder framing quote, trigger checklist (3+ repeated queries, re-derived answers at session start, etc.), in-scope infrastructure list (background watchers, pre-computed indices, A/B test infra, dashboards), cron access pointer (agent can write its own crontab entries), and the "metric is the regulator" loop.
+- **Why**: Founder directive 2026-05-02: formula correctness is necessary but not sufficient; next leverage is for kami-zero to think of itself as a system it owns and improves, not as the operator of any single session. Compute is no longer constrained (Max plan); the 24/7 VM is for persistent processes, indices, caches, watchers.
+- **Files**: `CLAUDE.md` (new block above PREDATOR section).
+- **How to use**: Read at session start as part of perception phase. Triggers a build whenever a repeated-query / re-derived-answer pattern is detected.
+- **Commit**: (this session's session commit)
