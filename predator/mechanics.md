@@ -254,6 +254,11 @@ observed delta on a controlled hit.
 4. As a quick rule-of-thumb for our V34 spearhead (12649) at full-HP
    targets: clean kills require either H ≤ ~14 with def_shift = 0, OR
    matching affinity to lift efficacy.
+5. **Feed-event guard (session 85 lesson)**: query oracle for `feed`
+   events on target since `harvest.time.last`. If ANY → REJECT.
+   The HEAL-mid-cycle path makes the strain projection unreliable (the
+   feed updates sync without draining the pool, so projection
+   over-credits strain on a pool whose damage was already neutralized).
 
 ## Empirical formula refinement (session 77)
 
@@ -653,9 +658,17 @@ deterministic from those four values plus pool, harmony, strain_boost.
   events with REVIVE items shortly before the harvest_start — if found,
   use 33 HP as sync floor.
 - **HEAL items mid-harvest** (FOOD type, not REVIVE): adds HP without
-  resetting harvest. Not currently encountered in back-fit data; if it
-  becomes a class of misses, model by querying `feed` events between
-  hstart and liq with HP-restoring item ids.
+  resetting harvest. **Confirmed in production session 85**: target 9980
+  fed 2× item 11301 (Maple-Flavor Ghost Gum, +25 HP each) ~57 min before
+  strike. `harvest.time.last` was unchanged by the feed (feed touches HP
+  component, not harvest record). Slim's `health.sync` was UPDATED by
+  the feed and capped at total_hp (170). Result: projection saw sync=170
+  + pool=264 → predicted HP 131; real HP was ≥159.4. Strike reverted.
+  **Mitigation (mandatory pre-flight)**: query
+  `kami_action WHERE kami_id = <target> AND action_type = 'feed' AND
+  block_timestamp > to_timestamp(<harvest.time.last>)`. If ANY rows →
+  REJECT candidate (the model is unreliable until target re-syncs via
+  harvest_stop or harvest_collect).
 - **Window-edge over-claim** (oracle): if a kami's most recent
   `harvest_start` is older than the 28d retention window, we can't anchor
   the strain calculation. Live strikes don't suffer this — we read state

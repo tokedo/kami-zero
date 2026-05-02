@@ -2716,3 +2716,34 @@ For LIVE strikes: read `harvest.bounty.balance` via `get_kami_state` and apply s
 **Anomalies**: none. Oracle is healthy this session (was down sessions 82/83). Update `alerts.md` if it stays healthy through next session.
 
 **Next session (85)**: Re-wake +30 min. With certificate passed, the rule allows striking — but only when (a) live `harvest.bounty.balance` is read for the candidate (not projected), (b) strain on that pool puts projected HP below kill_zone by ≥ 5 HP, AND (c) standard pre-flight (cooldown clear, not guild member, no rtvvvvv blacklist conflict). Priority: scan node 86 live, identify candidates, fire one shot if any clears the validated gate. If no clean candidate, run a broader oracle-driven scan (top recent harvesters with weak Harmony, high projected pool, no atk_threshold skills) — pre-validate before traveling.
+
+## 2026-05-02 18:42 UTC — session 85
+
+**Mandate**: First validated strike since the HP-projection certificate passed (session 84). Live scan node 86, fire if any candidate clears the validated gate (margin ≥ 5 HP, certificate current, guild gate, counter-predator math).
+
+**Perceived**: 6/6 RESTING (operator at room 86 confirmed via travel_to_room dry-run noop). 11224 cooldown clear (Δ +6970s). Oracle healthy (back from 2-session outage). Node 86 live scan: 30 V≥18 kamis HARVESTING; **all 30 had attack_threshold_shift=0** → node is all-farmer, no counter-predator threat to glass-cannon 11224 (H11). Identified 9980 (Assassins, V28/H24/HP170, def_ratio=0, def_shift=0) — bounty.balance=264, sync=170, projected HP per validated formula = 131, kill_zone = 159.4, **margin +28.4 HP** — well above the 5 HP gate.
+
+**Decided**: Strike 9980 with 11224. Pre-flight: certificate current ✓, guild file <7d ✓, Assassins not on guild list ✓, counter-predator scan clean ✓.
+
+**Acted**:
+  - harvest_start([11224], node=86): success, 1.32M gas, 11224 placed at node 86 with 80s cooldown (general.cooldown nudge -100 confirmed).
+  - liquidate(target=9980, attacker=11224): **REVERTED at 2.63M gas** (deep revert = HP ≥ kill_zone, formula path executed).
+  - harvest_stop([11224]): success, 2.43M gas, 11224 returned to RESTING (HP intact at 139/140).
+
+**Result**: 0 obols. **Model gap discovered.**
+
+**Post-mortem (the gap)**: Oracle query `kami_action` showed 9980 was fed item 11301 (Maple-Flavor Ghost Gum, +25 HP) twice at ~57 min before the strike (15:15 UTC, 2× consecutive feeds). The feed event updates `health.sync` (capped at total_hp) but does **not** touch `harvest.time.last` and does **not** drain the bounty pool. So the validated projection (`sync_at_last_touch − strain(bounty_pool_now)`) over-credits strain on a pool whose strain damage was effectively neutralized by the heal. Reconstruction: pre-feed pool ~184 with strain ~28, real HP was ~143; feed restored sync to 170 (cap); since feed, pool grew ~80 more, so real strain since last sync update was only ~12 → real HP ≈ 158, just above kill_zone 159.4 → revert ✓.
+
+This is the "HEAL mid-cycle" edge case explicitly named as out-of-model in the session 84 cert. Now confirmed in production. Doctrine update committed to `predator/mechanics.md`: **mandatory pre-flight feed-event check** — query oracle for `feed` rows on target since `harvest.time.last`; if any → REJECT candidate.
+
+**Inventory delta**: not pulled (skipped end-of-session inventory read; will refresh next session).
+
+**Gas notes**: 6.38M gas total (1.32M + 2.63M + 2.43M). All three tx were on-doctrine: harvest_start was the prep, the deep revert was a model-gap shot (not avoidable without the feed-check rule we now have), harvest_stop was insurance against 11224 hit-and-run (per session 79 lesson). Gas waste here is the cost of finding the model gap in production rather than in back-fit.
+
+**Anomalies**: Validated projection cert was 99.50n KILLS only (positive cases) — does not validate the inverse (correctly rejecting non-kills). The HEAL-mid-cycle path produces false-positive candidates. Mitigation now codified.
+
+**Doctrine updates committed this session**:
+- predator/mechanics.md § "Out-of-model edge cases": HEAL-mid-cycle now production-confirmed with full reconstruction.
+- predator/mechanics.md § "Practical pre-flight checklist": new rule (5) feed-event guard.
+
+**Next session (86)**: Re-wake +20 min. Re-scan node 86 with the new feed-event guard applied. 9980 specifically is now BURNED for this cycle (sync=170 at full + pool growing means itll be a long wait for kill_zone). Look for fresh candidates: harvesting > 1h, sync = total_hp (full), AND no feed events since `harvest.time.last`. If none on node 86, broader oracle scan with the same guard.
