@@ -383,3 +383,62 @@ prey HP.
 4. **Attack threshold ratio** — `attack.threshold.ratio` at 0.5 may
    actually enter a path we haven't isolated. Worth re-reading the
    on-chain library code if/when GDD source becomes available.
+
+## Hidden defense — `defense.threshold.ratio` source (session 79)
+
+Live perception of node 73 "POWELL" candidates revealed hidden defense
+the session 78 formula missed: `defense.threshold.ratio` (a multiplier-
+class bonus, distinct from the additive `defense.threshold.shift`).
+Three datapoints establish the source:
+
+| Kami | Skills (relevant) | def_ratio (live) |
+|------|-------------------|------------------|
+| 757 (buja723) | 311×5, 313×5, 322×5, 331×1 (no 323, no 341) | **0** |
+| 16292 (POWELL) | 311×5, 312×5, 321×5, 322×5, **323×5**, 331×1 | **0.25** |
+| 11332 (own) | 311×5, 312×5, 321×5, 322×5, **323×5**, 331×1, **341×4** | **0.45** |
+| 13253 (own) | 311×5, 312×5, 321×5, 322×5, **323×5**, 331×1, **341×5**, 411×1 | **0.50** |
+
+**Empirical formula**: `def_threshold_ratio = 0.05 × (SP_in_skill_323
++ SP_in_skill_341)`. Maxes at 0.50 with 5 SP in each (10 SP total
+sunk into Guardian def-ratio specialists).
+
+Skill 323 is "Armor" in the catalog (described as "DTS +2%" — a
+flat shift). The +2% description appears to be wrong or to apply to a
+*different* field; observed effect is ratio (`def.threshold.ratio`),
+not shift. Skill 341 is the Guardian tier-3 ratio specialist.
+
+**How it enters the kill formula**: not yet derived from first
+principles, but the ratio acts as a multiplicative reduction on the
+threshold (best fit empirically). Provisional revised formula:
+
+```
+threshold_ratio = (GaussianCDF(ln(V_atk/H_vic)) + atk_shift − def_shift)
+                  × (1 − def_threshold_ratio)
+kill_zone       = threshold_ratio × maxHP
+```
+
+This explains session 78's strike on 13253: predicted kill_zone (without
+ratio) was 180, actual revert at HP 194. With ratio = 0.50:
+threshold_ratio = 0.902 × 0.50 = 0.451 → kill_zone = 90 — well below
+194, fully consistent with the revert.
+
+**Targeting consequence**: a "soft" target is no longer
+`def_shift ≤ 50` alone. It is `def_shift = 0 AND def_ratio = 0` —
+i.e. zero SP in skills 323 and 341. The oracle column
+`defense_threshold_ratio` IS available and integer-encoded; use it
+in cluster-scan filters.
+
+## Oracle build-snapshot staleness (session 79)
+
+`kami_static.build_refreshed_ts` lags real chain state by up to ~24h.
+Session 79 saw POWELL kamis show oracle skills `[{"index":311,"points":1}]`
+(1 SP) while live state showed full Guardian tier-2 build (26 SP)
+yielding def_ratio 0.25. The cluster scan returned them as soft
+targets and the move plan was nearly executed before live spot-check
+caught the discrepancy.
+
+**Hard rule**: oracle's build/skill/ratio columns are last-snapshot,
+not real-time. **Before any cross-region travel**, live spot-check
+1–2 candidates from the cluster via `get_kami_state_slim` to verify
+def_shift / def_ratio / skill investments match the oracle row.
+Treat oracle scans as candidate generators, not commit-grade truth.

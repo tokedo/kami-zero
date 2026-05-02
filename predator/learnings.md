@@ -404,3 +404,96 @@ If the next session decides to leave node 86 for cluster-move target,
 the migration teardown is: stop both 11224 + 12649 harvests + all
 bpeon kamis on node 86 → travel → harvest_start at new node. Gas
 estimate ~12–15M for the move + new starts (per session 76 reference).
+
+## Session 79 — first kill in our roster, but on us
+
+**Headline**: 12649 (Spearhead-A, V34/H20/HP270, our top striker) was
+**liquidated by Nova Heat 10943** (Assassins guild, V36/H10) at
+2026-05-02T07:38:47Z. Hit-and-run: 10943 started a harvest on node 86
+at 07:37:20, killed 12649 within 2 min, and stopped its own harvest at
+07:41:06 — a 4-minute window. By 11:56 UTC (session 79 wake) the
+attacker was long gone from node 86. Cross-node hit-and-run is an
+attack pattern we hadn't budgeted for.
+
+Roster: **6 → 5**. No revive this session — `revive_kami` requires
+33 Onyx Shards (inventory has 0). Red Ribbon Gummy (99 in stock) and
+Melkarth Spell Card (1) are listed as type=REVIVE but the use mechanism
+is unverified; deferred to a session with research bandwidth.
+
+### Plan vs reality
+
+Session 79's plan was to evaluate a node 25 cluster move (49 zero-def
+EERIE-body candidates from session 78 oracle scan). The plan died at
+multiple stages:
+
+1. **Node 25 cluster — 100% guild-protected**. All 49 candidates owned
+   by `jun` (account_id 451845...723) — guild deny-listed. Cluster DEAD.
+2. **Node 88 fallback — 100% guild-protected**. KCS + dmi own all 8
+   non-bpeon zero-def SCRAP candidates. DEAD.
+3. **Node 73 false cluster**. Refined oracle scan (`def_shift = 0 AND
+   def_ratio = 0`, the v2 filter) returned 12 POWELL+Yeahta candidates
+   on node 73. **Live spot-check killed the plan**: POWELL kamis show
+   in oracle as `[{"index":311,"points":1}]` (1 SP) but live state
+   carries full Guardian tier-2 build (26 SP) yielding def_ratio = 0.25.
+   `kami_static.build_refreshed_ts` was 19h stale — the kamis leveled
+   up between snapshot and now. **The move was almost executed.**
+4. **Strain-wait fallback on node 86 (Priority 3)**: 11332 has def_ratio
+   0.45 (5 SP in 323 + 4 SP in 341), 13253 has def_ratio 0.50. Live
+   sync HP 200/210 and 196/200 respectively, both well above the
+   ratio-adjusted kill_zone (~104, ~90). Strain wait won't crack them
+   in this lifetime.
+
+### What did get learned (high value)
+
+1. **Hidden defense source identified**: skills 323 (Armor) + 341
+   together produce `defense.threshold.ratio = 0.05 × (SP_323 +
+   SP_341)`. Maxes at 0.50. This is the multiplicative defense the
+   session 78 strike on 13253 hit (predicted kill at 0.97×maxHP, real
+   kill_zone with ratio = 0.45×maxHP). See `mechanics.md` § "Hidden
+   defense — `defense.threshold.ratio` source".
+2. **Oracle build-snapshot staleness**: `build_refreshed_ts` lags by
+   up to ~24h. Cluster scans must always be live-confirmed by spot-check
+   on 1–2 candidates before a move. Adding to doctrine.
+3. **Soft-target filter v2**: `def_shift = 0 AND def_ratio = 0` (the
+   v1 filter `def_shift ≤ 50` returned false positives on Guardian-
+   ratio targets).
+4. **Two viable session-80 clusters identified and live-confirmed**:
+   - **Node 60** (wiuuuu cluster, 7 SCRAP-soft non-guild) for 11224
+     (EERIE-hand). 11224 V36 vs typical wiuuuu V14/H24/HP180 — kill_zone
+     ~169, full-HP target sits 11 above; needs ~3h strain wait.
+   - **Node 62** (buja723 cluster, 8 INSECT-soft non-guild) for 6058
+     (SCRAP-hand). buja723 typical V14/H23/HP110–160 — kill_zone
+     ~105, well below typical mid-strain HP. **Best near-term
+     execution candidate.**
+5. **Travel cost from node 86**: 86→60 = 25 hops/125 stam/3 ice cream;
+   86→62 = 26 hops/130 stam/4 ice cream. Inventory has 78 ice cream
+   so neither limits. Gas budget: ~25–26M for move alone; cluster math
+   needs ≥3 kills (≥22.5M kill gas) plus obol/spoils to amortize.
+
+### What was actually executed
+
+Single tx: `harvest_stop(11224)` at 11:55 UTC. 2.43M gas. **Why**:
+12649's hit-and-run killer (Nova Heat) showed cross-node attack
+pattern; leaving 11224 (sole healthy striker, V36) HARVESTING on
+node 86 with no defender presence is an open invitation. Session
+ended with 11224 RESTING node 86 (sync HP 107/140 = 76%, strain caught
+up post-stop). No travel — cluster was confirmed but cost (25–26M)
+demands fuller pre-flight: counter-predator scan on 60 + 62, live
+strain on the 8 buja723 / 7 wiuuuu candidates close to strike time.
+
+### State left at session end
+
+- bpeon at room 86. 11224 RESTING (76% HP, no cooldown).
+- 6058, 10705, 12225, 15540 RESTING node 86 (per session 78 brief —
+  not re-checked).
+- 12649 DEAD (entity persists; revive deferred until Onyx Shards or
+  REVIVE-item mechanism understood).
+- New doctrine in `mechanics.md` (def_ratio formula, oracle staleness)
+  and `targeting.md` (soft-filter v2, cluster intel).
+
+### What did NOT get tested (still)
+
+- Recoil HP cost on a successful strike — 79 sessions, 0 kills by us.
+- Cooldown duration empirical.
+- 11224's 3 unspent SP — still deferred (founder rule).
+- REVIVE-type item mechanism (Red Ribbon Gummy, Melkarth Spell Card).
