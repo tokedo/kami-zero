@@ -1,79 +1,197 @@
-# Plan for session 88
+# kami-zero session 88 prompt — fix two specific formula bugs in hp_projection.py (founder cross-check)
 
-## Standing context
+This is a complete replacement for `memory/plan.md` on the VM. Push to `~/kami-zero/memory/plan.md`, commit, fire.
 
-- **Data plane**: oracle-only (CLAUDE.md top-of-file rule, founder mandate 2026-05-02). Use `executor/oracle_state.py` (`oracle_kami_state`, `reconstruct_bounty_pool`, `resolve_target_owner`) for every state read in the predator path. Kamibots is forbidden for world-state reads.
-- **HP-projection cert (re-validated session 87)**: N=495, M=493, **99.6%** on 7d window 2026-04-25→2026-05-02 via oracle-only inputs. Cert recorded in `predator/mechanics.md` § "Validated HP projection — Session 87 re-validation".
-- **Cross-check passed**: kami 16479 oracle path → proj_HP=29 at ×1.4 calibration (matches founder client exactly), proj_HP=15 at ×1.5 default (conservative). Both verdicts STRIKE; 16479 itself is GUILD-BLOCKED via caw-caw on no-touch list, so it can't be the actual target.
-- **No on-chain tx in session 87** — pure refactor + validation. Strike gate now structurally unblocked.
+---
 
-## Priority 1 — Live targeting via the new oracle-only path
+## ⚠️ Founder cross-checked the formula against in-game client truth — found two bugs
 
-The strike contemplated by session 87's plan is now structurally available. Run the oracle-only scanner on currently-HARVESTING non-guild kamis. For each candidate:
+While session 87 was running, founder + assistant ran a 5-kami cross-check using in-game client snapshots from Geometric Cliffs (node 82). The session 87 work was good (oracle-only data plane, ×1.4 calibration approximates 16479's right answer), but **the calibration multiplier is a fudge factor masking two structural bugs in `executor/hp_projection.py`**. With both fixed, the formula matches client within 0–1 HP across all 5 kamis, mean error 0.11%. **Remove the calibration multiplier this session — replace with the rigorous fixes.**
 
-1. `oracle_kami_state(kami_index)` — full state read.
-2. Reject if `n_feeds_since_start > 0` (heal-event guard, session 85 rule).
-3. `compute_current_hp(...)` with the KamiState fields — projected_hp.
-4. `kill_threshold(...)` for the chosen attacker — kill_zone.
-5. Reject if `kill_zone − projected_hp < 5` (HP margin gate).
-6. Counter-predator scan on the candidate's node: oracle SQL for recent `harvest_liquidate` events targeting your kamis on that node + check no other predator with V≥30 has a clear shot at your striker.
-7. Co-location: if operator-room ≠ candidate's node room, compute travel cost; reject if cluster math doesn't justify (one distant target rarely does).
+The cross-check evidence (all on node 82, body=SCRAP, eff varies):
 
-**Candidates carried over from session 87 prep** (still need fresh state-read at session 88 wake):
+| kami | hand | eff (correct) | client pool | client HP | elapsed |
+|------|------|---------------|-------------|-----------|---------|
+| 16479 | EERIE | 1550 | 1674 | 29/220 | 18.81h |
+| 12386 | INSECT | 1550 | 1289 | 89/260 | 15.16h |
+| 12293 | NORMAL | 1650 | 881 | 166/280 | 12.41h |
+| 12728 | EERIE | 1550 (+ib_total=45) | 482 | 184/240 | 5.66h |
+| 15042 | NORMAL | 1650 | 1424 | 55/240 | 15.94h |
 
-- **Node 9 cluster**: BandG, theplux, kaviar — ~14 kamis with `fed_since_start=null` (no feed events in oracle), elapsed ~9 days at session 87 prep time. Likely heavily strained. Watch for window-edge over-claim (oracle 28d retention cuts off the harvest_start anchor).
-- **Kami 6661 (alivebatman, node 30)**: V=16, H=17, max_hp=90 — glass cannon. No feeds. Low margin but achievable.
-- **Avoid**: kami 13071 Ironwrench at node 72 (atk_threshold_shift=260, counter-predator threat). Caw-caw cluster at node 82 (GUILD-BLOCKED).
+## Bug 1 — `harvest_efficacy()` uses LIQUIDATION's affinity rule (rock-paper-scissors triangle)
 
-If the scan returns no clean candidate, that's a finding — document and reschedule.
+`executor/hp_projection.py::harvest_efficacy()` currently uses `_AFFINITY_BEATS` / `_is_strong` / `_is_weak` based on the rock-paper-scissors triangle (`EERIE > SCRAP > INSECT > EERIE`). That's the rule for **liquidation kill_threshold efficacy** (per `systems/liquidation.md`).
 
-## Priority 2 — If first kill lands, chain on the cluster
+For **harvesting**, per `systems/harvesting.md` and `kamigotchi-gdd/mechanics/economy/harvesting.md`, the rule is much simpler:
 
-After a successful strike, re-run the same scan on the node where the kill happened. Long-runner clusters tend to have multiple soft targets; the second strike costs less gas (same room, no travel, attacker still placed).
+| Trait | Node | Effect |
+|---|---|---|
+| Same affinity | — | **Strong** (+650 body / +350 hand) |
+| Different non-NORMAL | Different non-NORMAL | **Weak** (−250 body / −100 hand) |
+| NORMAL on either side | — | Neutral (0) |
 
-Single-attempt rule per the founder mandate: log everything (gas, obol delta, before/after pool, projected vs actual HP). Update `predator/metrics.md`.
+There is no "strong against by triangle" in harvesting. Same = strong; different non-NORMAL = weak; NORMAL = neutral.
 
-## Priority 3 — Migrate the Class A call sites in `executor/server.py` (refactor)
+**Effect of bug**: kami 16479 has hand=EERIE, node=SCRAP. Triangle says EERIE > SCRAP → +350. Harvest rule says EERIE ≠ SCRAP both non-NORMAL → −100. The bug *over*-credits efficacy by +450 (1550 → 2000), causing ~30% pool over-projection.
 
-13 kamibots `_api_get` call sites in the predator-decision path are still live (audit table in `memory/improvements.md` § "Kamibots state-read audit (session 87)"). Sequence:
+**Fix**: rewrite `harvest_efficacy()` to drop the triangle. Body/hand component:
 
-1. Rewrite `liquidate()` pre-flight — replace `_api_get_kami` owner lookup with `oracle_state.resolve_target_owner`.
-2. Rewrite `get_kami_state` → thin wrapper over `oracle_state.oracle_kami_state` for predator callers; keep raw kamibots version under `_legacy_get_kami_state_kamibots` for kami-agent control plane.
-3. Add a server-level guard: any tool decorated `@predator_only` rejects internal `_api_get*` calls in its call graph (mypy / runtime assertion).
+```python
+def _component(trait_aff, node_aff, strong_bonus, weak_penalty):
+    if trait_aff == "NORMAL" or node_aff == "NORMAL":
+        return 0
+    if trait_aff == node_aff:
+        return strong_bonus       # +650 body / +350 hand
+    return weak_penalty           # -250 body / -100 hand
 
-This is refactor-only; tests = the same back-fit cert plus a smoke test of `liquidate()` against a known-killable target on testnet (or zero-tx via `staticCall`).
+def harvest_efficacy(body_aff, hand_aff, node_affs):
+    if not node_affs:
+        return 1000
+    body_aff = (body_aff or "").upper()
+    hand_aff = (hand_aff or "").upper()
+    nodes = [(a or "").upper() for a in node_affs]
+    if len(nodes) == 1:
+        nodes = [nodes[0], nodes[0]]
+    best = 1000
+    for body_node in nodes:
+        for hand_node in nodes:
+            cand = 1000 + _component(body_aff, body_node, 650, -250) \
+                       + _component(hand_aff, hand_node, 350, -100)
+            if cand > best:
+                best = cand
+    return best
+```
 
-If session 88 lands a kill in P1, do P3 *after*; do not delay the strike for refactor work.
+Drop the now-unused `_AFFINITY_BEATS`, `_is_strong`, `_is_weak` functions.
 
-## Priority 4 — Document next batch of oracle gaps if any surface
+## Bug 2 — `projected_bounty()` uses time-integrated Intensity; contract uses END-RATE × Duration
 
-`ideas_to_founder.md` § 4 lists 5 known gaps from session 87. If P1's scan surfaces anything new (e.g., a bonus `oracle_kami_state` doesn't reflect that biases a verdict), add to that section.
+`projected_bounty()` integrates Intensity over `[0, T]` (uses `(V*5 + T/120)` for the time-average). The contract uses **end-of-period rate × Duration** (snapshot semantics).
 
-## Active strategies / state
+Verify against `systems/harvesting.md` worked example (P=10, V=10, neutral, 1h, 60min):
+- Doc takes Intensity at **minute 60** (end-of-period): `1e6 × (10×5 + 60) × 10 / (480 × 3600) = 636` (intermediate)
+- Bounty = (4167 + 636) × 3600 × 1000 / 1e9 ≈ 17 Musu ✓
 
-- bpeon: 6-kami predator roster (12649, 6058, 12225, 15540, 10705, 11224). 11224 has 3 unspent SP — allocation deferred until first observed kill.
-- No active auto_v2 (predator mode; quest-paused).
-- Operator location: last known room per session 86 was 86 (node 86 for stefan97 attempt). Re-check at session 88 wake.
+Time-integration gives ~16.7 — close for short 1h windows, but diverges sharply for long windows because Intensity grows linearly with `minutesElapsed`. For 16479's 18.8h: time-integrated underestimates pool by ~33%.
+
+**Fix** in the HARVESTING branch of `compute_current_hp` (and the projection-mode pool fallback):
+
+```python
+# End-of-period intensity rate × duration (snapshot semantics)
+M = harvest_elapsed / 60.0
+Fert_intermediate = power * 1500 * efficacy / 3600.0
+ib_total = 10 + intensity_boost_pct  # config_boost(10) + bonus
+Int_end_intermediate = 1e6 * (violence * 5 + M) * ib_total / (480.0 * 3600.0)
+bnt_boost = 1000 + bounty_boost  # (×1000 prec; bonus_x1k additive)
+pool = (Fert_intermediate + Int_end_intermediate) * harvest_elapsed * bnt_boost / 1e9
+```
+
+Apply the same correction to `projected_bounty()` if it's used elsewhere; otherwise inline in `compute_current_hp`.
+
+## Hard rules for this session
+
+- **No `liquidate` tx until** the two fixes are shipped, the back-fit re-validated, and at least one fresh live cross-check against an in-game-client-observable target matches within ≤2 HP.
+- **Remove the ×1.4 (or whatever) calibration multiplier shipped in session 87.** Calibration multipliers paper over structural errors; the two fixes are the structural correction.
+- All standing doctrine still applies (oracle-only data plane, guild gate, no force-flush in hunt mode, predator co-location, heal-event guard, etc.).
+
+---
+
+## Priority 0 — Re-read the relevant docs (fresh eyes)
+
+End-to-end, with the bug findings in mind:
+
+1. **`systems/harvesting.md`** — Affinity & Efficacy section. Note the "Same as node = Strong, Different non-NORMAL = Weak" rule (no triangle). Bounty formula worked example uses end-of-period Intensity.
+2. **`systems/liquidation.md`** — Threshold Efficacy section. THIS uses the triangle (attacker hand vs victim body); confirm you keep the triangle in `kill_threshold()`, but NOT in `harvest_efficacy()`.
+3. **`kamigotchi-gdd/mechanics/economy/harvesting.md`** — `LibAffinity.sol:82–90` source ref, table at line 195 confirms `Same/Different non-NORMAL/NORMAL` rule.
+
+After reading, reconfirm in your own words why the two bugs are real before writing the fix.
+
+---
+
+## Priority 1 — Ship the two fixes
+
+In `executor/hp_projection.py`:
+
+1. Rewrite `harvest_efficacy()` per Bug 1 fix above. Add a code comment pointing to `systems/harvesting.md` § "Affinity & Efficacy" and explicitly noting *"NOT the liquidation triangle — that lives in kill_threshold()."*
+2. In `compute_current_hp()` HARVESTING branch (and any helper that projects pool from elapsed time), replace time-integrated Intensity with end-of-period × Duration per Bug 2 fix above. Add a code comment with the systems/harvesting.md worked-example reference.
+3. Drop `_AFFINITY_BEATS`, `_is_strong`, `_is_weak` from this module if they're no longer referenced. They belong in `kill_threshold()` if anywhere.
+4. Search for any session-87 calibration multiplier (e.g., `×1.4`, `* 1.5`, `STRAIN_MULT`, `POOL_CALIBRATION`) introduced as a fudge. Remove. The fixes make the multiplier unnecessary.
+
+Commit `harness:` prefix with a clear message.
+
+---
+
+## Priority 2 — Re-validate the back-fit cert
+
+Run `executor/scripts/backfit_liquidations.py` (or the oracle-only equivalent shipped in session 87) on the corrected formula. Sample size N ≥ 200, ideally the same N=495 corpus session 87 used so you can compare apples-to-apples.
+
+**Expected**: cert holds at ≥99.5%, possibly improves slightly. The bugs primarily affect *forward projection* on long-runner kamis; the empirical mode (collect-anchored, short windows) was already strong. Document the new cert (N, M, %) in `predator/mechanics.md`.
+
+If accuracy *drops* below 99%, the fixes have a regression — investigate before continuing.
+
+---
+
+## Priority 3 — Cross-check on the 5 calibration kamis
+
+For each of `[16479, 12386, 12293, 12728, 15042]`, run the corrected `compute_current_hp` and compare to the founder's client-truth table above. Expected: all 5 within 0–1 HP. Log the table to `predator/learnings.md` § "Session 88 cross-check".
+
+If 16479 doesn't come out at 29 ± 1 HP, the fix is incomplete — re-investigate before targeting live.
+
+---
+
+## Priority 4 — Live-target cross-check
+
+The 5 calibration kamis are guild-blocked (`caw-caw` and other founder accounts on the no-touch list — confirmed in session 87). Pick **one or two non-guild HARVESTING kamis from the broader oracle scan** and run the new projection. If you can observe their HP / pool through any reliable means (oracle's reconstructed values, on-chain reads), confirm match within ≤2 HP.
+
+If oracle's reconstruction matches your formula prediction for non-calibration kamis, the fix generalizes.
+
+---
+
+## Priority 5 — Hunt with the corrected formula
+
+Now run the full predator pipeline:
+
+1. `oracle_kami_state` (the new primitive from session 87) for all currently HARVESTING non-guild kamis.
+2. Apply corrected `compute_current_hp` to each.
+3. Filter to: `projected_HP + 5 ≤ kill_zone(our_striker, target)` AND no `feed_kami` event since `harvest.time.last` AND counter-predator scan clear AND co-location feasible.
+4. Pick the highest-margin candidate, fire one strike. Single attempt.
+
+If the strike connects: log, scan immediately for next candidate on the same node, chain.
+
+If revert: this is critical signal — the formula said killable and chain disagreed. Pull the target's full state and figure out what's still missing.
+
+---
+
+## Priority 6 — Self-schedule
+
+- First kill landed → 15 min re-wake, chain.
+- Migration done, no kill yet → 25–35 min re-wake.
+- Cert validation incomplete → 30–60 min re-wake to continue.
+
+---
 
 ## Stop conditions
 
-- One kill landed → chain on cluster, then end session, +15 min re-wake.
-- Migration partial / no candidate cleared → end, +20–30 min re-wake.
-- Gas budget > 15M without a kill → post-mortem in decisions.md, +30–60 min re-wake.
-- Genuinely quiet world (no soft targets after thorough scan) → +60–90 min re-wake.
+- First kill + post-mortem of the corrected formula's accuracy at the kill point (predicted vs actual margin) → end session, log.
+- 3 consecutive deep-reverts despite passing the corrected pre-flight → stop, log, post-mortem (the fix is incomplete).
+- Total gas > 20M without a kill → end session, post-mortem.
 
-## Out of scope for session 88
+---
 
-- Quest progression (paused).
-- Cross-region travel for a single target.
-- Auto_v2 launches on bpeon.
-- Force-flush.
-- 11224 SP allocation (still gated on first observed kill + per-kami learning entry).
+## Out of scope
 
-## Communication back to founder (end-of-session 88)
+- Force-flush, quest progression, kamibots state reads (forbidden), 11224 SP allocation (still gated on first kill).
+- Modifying kami-oracle code (route oracle gaps via `ideas_to_founder.md` per session 87).
 
-In `decisions.md` session 88:
-- First kill: Y/N. If Y: target, projected HP, actual HP, kill_zone, margin, obol delta, gas.
-- New oracle gaps surfaced (count + headlines).
-- Class A migration progress (count migrated).
+---
+
+## Communication back to founder
+
+End-of-session in `decisions.md`:
+- Bug 1 fix shipped: Y/N (confirm `_AFFINITY_BEATS` removed from harvest path).
+- Bug 2 fix shipped: Y/N (confirm end-rate × Duration replaces time-integration).
+- Calibration multiplier removed: Y/N.
+- Re-validated cert: N, M, %.
+- 5-kami cross-check: pass/fail per kami (within 0–1 HP).
+- First kill: Y/N. If Y, predicted margin vs actual outcome.
 - `next-run-at` and rationale.
