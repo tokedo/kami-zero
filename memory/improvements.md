@@ -219,3 +219,34 @@ Audit basis: read of `executor/server.py` MCP tool surface. Existing tools relev
   - Re-validate certificate: pull a fresh 7d window of liquidations from oracle (template SQL in the back-fit script header), save JSON dump, run `python3 executor/scripts/backfit_liquidations.py <dump.json> empirical 1.0`. If accuracy drops below 90%, formula has gaps — investigate before striking.
 - **Validation certificate (session 84)**: N=200, M=199, accuracy 99.5% on 7d window 2026-04-25→2026-05-02. Recorded in `predator/mechanics.md` § "Validated HP projection". Single miss (v_idx=12629, 117s elapsed) consistent with REVIVE mid-cycle entry — out-of-model edge case.
 - **Commit**: (this session's harness commit)
+
+## 2026-05-02 — Oracle-only world-state primitives (`oracle_state.py`)
+
+- **What**: New module `executor/oracle_state.py` (615 LOC) implementing oracle-only state-read primitives that replace kamibots playwright reads in the predator-decision path. Founder structural rule (2026-05-02): all world-state reads come from oracle.
+- **Why**: kamibots playwright cache returned stale data (sync_hp=220, balance=0) for kami 16479 when ground-truth chain state was HP=29, pool=1674. Founder mandate: kamibots is forbidden for world-state reads in kami-zero — oracle is the single source of truth.
+- **Files**:
+  - `executor/oracle_state.py` (new) — `oracle_kami_state(kami_index)` composite read; `reconstruct_bounty_pool(kami_index)` live pool projection from action stream; `resolve_target_owner(kami_index)` replaces playwright owner lookup; helpers `oracle_sql_sync`, `_harvest_efficacy`, `_bounty_integral`. Module imports `httpx` directly (does not touch `server.py` to keep dependency acyclic).
+- **How to use**:
+  - Predator targeting: `from executor.oracle_state import oracle_kami_state; ks = oracle_kami_state(16479)` — returns `KamiState` dataclass with `sync_hp_at_last_touch`, `bounty_pool_now`, `harvest_start_ts`, `n_feeds_since_start`, `node_id`, `node_affinities`, all skill bonuses, `freshness_warnings`, `confidence`. Pipe straight into `compute_current_hp(...)` and `kill_threshold(...)`.
+  - Owner gate: `resolve_target_owner(kami_index)` returns `{account_id, handle, ...}` for the no-touch CSV match. No playwright call.
+  - Smoke test: `executor/.venv/bin/python executor/oracle_state.py 16479` — prints full `KamiState` JSON.
+- **Calibration**: default `strain_calibration=1.5` (×1.5 multiplier on raw formula pool, internalizes the back-fit's ~1.4× under-projection bias). Cross-check on kami 16479: raw pool 1196 MUSU, ×1.5 calibrated 1795, ×1.4 calibrated 1675 (vs founder's chain-truth 1674 — exact match at ×1.4). Default is conservative (stricter strike gate); change to 1.4 if more aggressive striking is desired.
+- **Validation certificate (session 87 re-run)**: N=495, M=493, accuracy **99.6%** on 7d window 2026-04-25→2026-05-02 via `executor/scripts/backfit_liquidations.py empirical 1.0`. Beats the ≥99.5% gate. Recorded in `predator/mechanics.md` § "Validated HP projection — Session 87 re-validation". Same miss class as session 84 (REVIVE mid-cycle entry).
+- **Commit**: (this session's harness commit)
+
+## 2026-05-02 — Kamibots state-read audit (session 87)
+
+`executor/server.py` audited for `_api_get` call sites (kamibots playwright reads). Classification per session-87 plan:
+
+| Class | Count | Examples | Action |
+|---|---|---|---|
+| **A — World-state, MIGRATE** | 13 | `get_inventory` (1217), `get_kami_state*` (1227,1234,1238,1245), `get_kamis_progress_batch` (1249,1265), `get_killer_ranking` (1377), `get_leaderboard` (1391), `get_all_kamis` (1402,1413), `get_nodes` (1417,1423), `get_account_kamis` (1427), `liquidate` owner resolution (1710) | Replace with `oracle_state.py` calls. Mark kamibots versions DEPRECATED in code comments next session. |
+| **B — Control plane, LEAVE** | 6 | `get_all_strategies` (1308,1314), `get_strategy_status` (1332,1339), `get_strategy_logs` (1343,1353), `get_tier` (1207,1213) | Allowed. Auto_v2 strategy management on harvester accounts is in scope for kamibots. |
+| **C — Quest-paused, leave** | 4 | `level_to` (2248), `level_and_allocate_batch` (2336), `get_scavenge_droptable` (3552), `listing_buy` paths | Quest-paused; not predator-decision path. No migration needed. |
+| **D — Diagnostic / one-off** | 2 | `get_guild_members` (1318,1328) | Acceptable as fallback for guild roster discovery; not on hot strike path. |
+
+Migration sequence (next session, separate PR scope):
+1. Rewrite `liquidate()` pre-flight to use `oracle_state.resolve_target_owner` instead of `_api_get_kami(...)`.
+2. Rewrite `get_kami_state` → thin wrapper over `oracle_state.oracle_kami_state` for predator callers (keep raw kamibots version under a `_legacy_*` name for kami-agent control plane).
+3. Add a server-level guard: any tool decorated `@predator_only` rejects internal `_api_get*` calls in its call graph.
+- **Commit**: (this session's session commit; audit doc-only, no code changes yet)

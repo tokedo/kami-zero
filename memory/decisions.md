@@ -2790,3 +2790,107 @@ This is the "HEAL mid-cycle" edge case explicitly named as out-of-model in the s
 - memory/plan.md (session 87): tightened pre-flight ordering — re-spot-check target HARVESTING + no-feed within seconds before `harvest_start`, not after.
 
 **Next session (87)**: Re-wake +25 min. Re-scan node 86. stefan97/15906 just stopped HARVESTING; will likely restart within 15-30 min — re-evaluate as soft target on next harvest_start. dias-10020 and aaron-10896 still HARVESTING — pull body/hand affinity from oracle and recompute kill_zone with their def_threshold_ratio bonuses (0.25 and 0.50 respectively) before considering. If def_ratio empirically reduces kill_zone as the formula `(1 - def_ratio)` suggests, both may be killable with the right efficacy — but **need empirical validation first** (back-fit 7d for kills with def_ratio>0; 0 such cases in cert means the multiplicative form is unproven). Without that validation, treat any def_ratio>0 candidate as out-of-cert and skip.
+
+## 2026-05-02 19:50 UTC — session 87
+
+**Mandate**: Founder structural rule (2026-05-02): eliminate kamibots from world-state reads. Build oracle-only primitives, re-validate the back-fit cert on the new path, cross-check against kami 16479 (founder's smoking gun). No `liquidate` tx until both gates clear.
+
+**ETH balance**: not pulled (no on-chain tx this session — pure refactor + validation).
+
+**Perceived**:
+  - Session 86 ended with stefan97 mid-cycle abort (-3.66M gas, 0 obols).
+  - Founder cross-check on 16479: kamibots returned `harvest.balance=0, sync_hp=220` (stale by hours); chain-truth was HP=29/220, pool=1674. Cert math is perfect; data plane was lying.
+  - Oracle healthy. Guild file dated 2026-05-01 (within 7d).
+
+**Decided**:
+  - Ship `executor/oracle_state.py` with three primitives: `oracle_kami_state`, `reconstruct_bounty_pool`, `resolve_target_owner`. Pure HTTP to oracle, no dependency on `server.py`.
+  - Validate by (a) cross-checking against 16479 (must hit ~29 HP), (b) re-running the back-fit cert on a fresh 7d corpus pulled via oracle SQL (must hit ≥99.5%).
+  - Audit `executor/server.py` for kamibots state-read call sites; classify each (A/B/C/D).
+  - Defer live strikes — too much migration work to also chase a strike this session.
+
+**Acted** (no on-chain tx — all reads + code):
+  - `oracle_state.py` written (615 LOC). Smoke test on kami 16479 returned: state=HARVESTING, sync_hp=220, max_hp=220, harvest_start_ts=1777681476 (08:24:36 UTC), node_id=82, body_aff=SCRAP, hand_aff=EERIE, V=18, P=11, H=30, strain_boost=-125, defense_threshold_shift=180. Raw pool 1196.4 MUSU; ×1.5 calibrated 1794.6 MUSU.
+  - **Cross-check** via `compute_current_hp`:
+    - With chain-truth pool 1674 → strain=191, proj_HP=29 (matches founder client exactly).
+    - With raw pool 1196.4 → strain=137, proj_HP=83 (under-projects by 54 HP).
+    - With ×1.5 calibration (1795) → strain=205, proj_HP=15 (over-projects by 14 HP — conservative; would still strike).
+    - With ×1.4 calibration (1675) → strain=191, proj_HP=29 (matches founder client exactly).
+    - **Decision**: keep ×1.5 default in `oracle_state.py` (conservative; strikes only when very confident). Document ×1.4 as the chain-truth-matching value for sessions where a more-aggressive gate is wanted.
+  - **Back-fit re-validation** on new oracle path:
+    - Pulled 7d corpus via oracle SQL (corpus query saved in `/tmp/backfit_corpus_v4.json`; full SQL in this entry below). Joins liq → harvest_start (most-recent before liq_ts via ROW_NUMBER) → harvest_collect → kami_static victim/attacker → nodes_catalog. Avoided two pitfalls: amount is MUSU directly (NOT /1e18; oracle.md MUSU-gross caveat), and `harvest_liquidate.node_id` is NULL so we source it from `harvest_start.node_id`.
+    - Filter `liq_musu > 0` (same convention as session 84 cert) drops 65 / 560 rows where `harvest_liquidate.amount` is NULL. Remaining: **N=495** kills.
+    - `executor/scripts/backfit_liquidations.py empirical 1.0` → **M=493 / 495 = 99.6%**. Beats the ≥99.5% gate.
+    - 2 misses are short-elapsed REVIVE-mid-cycle (v_idx=12629, 117s; v_idx=15273, 3235s) — same edge class session 84 documented.
+  - **Audit** of `executor/server.py` for `_api_get` state-read call sites. Classification table written to `memory/improvements.md` § "Kamibots state-read audit (session 87)". Headline: 13 Class A (migrate), 6 Class B (control plane, leave), 4 Class C (quest-paused, leave), 2 Class D (diagnostic).
+  - **Doctrine ship**:
+    - `CLAUDE.md`: new top-of-file block "Data Plane: Oracle-Only (founder, 2026-05-02)" above Knowledge Sources. New Predator Hard Rule #8: kamibots-API state reads forbidden in any predator-decision path.
+    - `predator/mechanics.md` § "Validated HP projection": new sub-section "Session 87 re-validation (oracle-only data plane)" with N=495, M=493, 99.6%. Session 84 baseline preserved as historical reference.
+    - `ideas_to_founder.md`: 5 oracle gaps documented (item 4): NULL liq amounts (~14% of rows), NULL `node_id`/`target_kami_id` on liquidate rows, kami_static 28d window, equipment-effect parsing missing, build_refreshed_ts staleness.
+  - **No live targeting** this session — deferred to session 88. The smoking-gun candidate (kami 16479) is GUILD-BLOCKED via caw-caw on the no-touch list (account_id 957571661958334956812342265635935296772395813843), so the strike contemplated by P6 is structurally unavailable. Broader non-guild scan from session 86 prep (node 9 BandG/theplux/kaviar cluster, node 30 alivebatman) deferred to next session under the new oracle-only scanner.
+
+**Result**:
+  - Migration shipped. Cert re-validated at 99.6% (≥99.5% gate). Cross-check on 16479: oracle path produces HP=29 (matches founder client exactly at ×1.4 calibration; conservative HP=15 at ×1.5 default — both well below kill_zone for any predator-class striker, both produce STRIKE verdict).
+  - Strike gate now structurally unblocked for next session: oracle-only data plane in place, certificate current.
+  - 0 obols, 0 gas, 0 kills this session — entirely a doctrine-shipping session.
+
+**Gas notes**: 0 gas. No on-chain tx submitted. All work was reads + code + docs.
+
+**Anomalies**:
+  - The `harvest_liquidate.amount IS NULL` rate (~14%) wasn't documented before. May indicate a class of liquidates oracle isn't fully indexing (REVIVE-related? 0-pool kills?). Documented in `ideas_to_founder.md` 4a.
+  - Initial corpus query had two bugs: (1) `/1e18` on amount (oracle stores MUSU directly for these rows), (2) sourced `node_id` from liquidate row instead of harvest_start. Both corrected; saved query template in this entry's appendix for future cert refreshes.
+
+**Calibration choice**: ×1.5 is the safe-side default in `oracle_state.py`. ×1.4 matches chain-truth on 16479 exactly. Both produce the same kill/no-kill verdict for a 16479-class target (proj_HP=15 or 29; kill_zone=160 vs typical V=44 striker → margin 130+ HP). Future tuning is fine; the gate is the 5 HP margin, not the calibration value.
+
+**Corpus query** (for cert refreshes; oracle SQL):
+```sql
+WITH liq AS (
+  SELECT a.id AS liq_id, a.block_timestamp AS liq_ts, a.kami_id AS attacker_kami_id,
+         a.harvest_id, TRY_CAST(a.amount AS HUGEINT) AS liq_musu
+  FROM kami_action a
+  WHERE a.action_type='harvest_liquidate'
+    AND a.block_timestamp >= NOW() - INTERVAL 7 DAY
+),
+hs_ranked AS (
+  SELECT h.harvest_id, h.kami_id AS victim_kami_id, h.block_timestamp AS start_ts, h.node_id,
+         ROW_NUMBER() OVER (PARTITION BY h.harvest_id ORDER BY h.block_timestamp DESC) AS rn,
+         liq.liq_id, liq.liq_ts
+  FROM kami_action h JOIN liq ON h.harvest_id=liq.harvest_id AND h.block_timestamp<=liq.liq_ts
+  WHERE h.action_type='harvest_start'
+),
+hs AS (SELECT * FROM hs_ranked WHERE rn=1),
+collects AS (
+  SELECT c.harvest_id, h.victim_kami_id, COUNT(*) AS n_collects,
+         SUM(TRY_CAST(c.amount AS HUGEINT)) AS sum_collected
+  FROM kami_action c JOIN hs h ON c.harvest_id=h.harvest_id AND c.kami_id=h.victim_kami_id
+  WHERE c.action_type='harvest_collect'
+    AND c.block_timestamp BETWEEN h.start_ts AND h.liq_ts
+  GROUP BY c.harvest_id, h.victim_kami_id
+)
+SELECT liq.liq_id,
+  CAST(EXTRACT(EPOCH FROM (liq.liq_ts - hs.start_ts)) AS INTEGER) AS elapsed_sec,
+  COALESCE(liq.liq_musu, 0) AS liq_musu,
+  COALESCE(collects.n_collects, 0) AS n_collects,
+  COALESCE(collects.sum_collected, 0) AS sum_collected,
+  v.kami_index AS v_idx, v.account_name AS v_acct, v.level AS v_level,
+  v.base_health AS v_base_hp, v.total_health AS v_total_hp,
+  v.total_power AS v_power, v.total_violence AS v_violence, v.total_harmony AS v_harmony,
+  v.body_affinity AS v_body_aff, v.hand_affinity AS v_hand_aff,
+  v.strain_boost AS v_sb, v.harvest_intensity_boost AS v_hib,
+  v.harvest_fertility_boost AS v_hfb, v.harvest_bounty_boost AS v_hbb,
+  v.defense_threshold_shift AS v_dts, v.defense_threshold_ratio AS v_dtr,
+  atk.kami_index AS a_idx, atk.account_name AS a_acct, atk.level AS a_level,
+  atk.total_violence AS a_violence, atk.total_harmony AS a_harmony,
+  atk.body_affinity AS a_body_aff, atk.hand_affinity AS a_hand_aff,
+  atk.attack_threshold_shift AS a_ats, atk.attack_threshold_ratio AS a_atr,
+  n.affinity AS node_affinity, hs.node_id AS node_id
+FROM liq
+JOIN hs ON hs.harvest_id=liq.harvest_id AND hs.liq_id=liq.liq_id
+LEFT JOIN collects ON collects.harvest_id=liq.harvest_id AND collects.victim_kami_id=hs.victim_kami_id
+LEFT JOIN kami_static v ON v.kami_id=hs.victim_kami_id
+LEFT JOIN kami_static atk ON atk.kami_id=liq.attacker_kami_id
+LEFT JOIN nodes_catalog n ON n.node_index=hs.node_id
+WHERE v.kami_index IS NOT NULL AND atk.kami_index IS NOT NULL
+ORDER BY liq.liq_ts DESC
+```
+
+**Next session (88)**: Re-wake +30 min. Resume with the strike attempt — oracle scanner over all currently-HARVESTING non-guild kamis, apply heal-event guard (no `feed` since `harvest_start`), counter-predator scan, ≥5 HP margin gate. Candidates from session-86 prep: node 9 cluster (BandG/theplux/kaviar — ~14 kamis, no feed events), kami 6661 alivebatman (V=16/H=17 glass cannon, no feeds). Avoid node 72 Ironwrench (atk_threshold_shift=260). Single strike if any candidate clears all gates with margin ≥ 5 HP at ×1.5 calibration. Caw-caw farms (node 82 etc.) remain GUILD-BLOCKED.
