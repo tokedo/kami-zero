@@ -442,3 +442,56 @@ not real-time. **Before any cross-region travel**, live spot-check
 1–2 candidates from the cluster via `get_kami_state_slim` to verify
 def_shift / def_ratio / skill investments match the oracle row.
 Treat oracle scans as candidate generators, not commit-grade truth.
+
+## Strain-rate empirical row (session 80 refinement)
+
+For Guardian-built farmers (skill 232 Warmup Exercise + 232/331/etc with
+`strain_boost = −0.125`), measured strain on node 86:
+
+| Harmony tier | strain_boost | strain rate (HP/min) | Notes |
+|---|---|---|---|
+| H ≥ 25 | −0.125 | **≤ 0.072** | session 80: 15538 H25 at 525min did not bleed below threshold |
+| H ≈ 19–20 | −0.125 | **~0.077–0.083** | session 81/82: 7884 H19, 15327 H20 — margin still positive at 552 min |
+| H ≈ 18 (no boost) | 0 | ~0.032 (target 14296, session 77) | strainBoost matters more than raw H here |
+| Attacker H = 0–11 | 0 | ~0.082 (12649) | bleed rate unrelated to harmony when low |
+
+**Operating rule**: a Guardian-built H ≥ 19 farmer at full HP that needs
+~10–15% HP decay to be killable will take **~7–9 hours** of uninterrupted
+harvest. Strain-wait beyond 9 hours has diminishing return: target's
+intensity ramp slows past the open-tier ceiling, and owner auto-stop
+risk grows. Re-scan cadence at +60–90 min during strain-wait windows is
+correct; tighter intervals waste cron ticks.
+
+## REVIVE-type item gating (session 81)
+
+`catalogs/items.csv` `Type=Revive` items (e.g. 11001 Red Ribbon Gummy
++10 HP, 11002 Melkarth Spell Card +50 HP) carry an implicit
+`target.state == DEAD` requirement that does NOT appear in the bare
+effect string. Mechanism:
+
+- Fire on a DEAD kami → kami transitions DEAD → RESTING with the
+  declared HP heal. Same `feed_kami` / `system.item.use` primitive as
+  FOOD-type heals.
+- Fire on a RESTING kami → simulation reverts at `eth_estimateGas`
+  with `Item: requirements not met`. No gas consumed.
+
+**Practical**: stack one revive then top off with FOOD heals
+(Cheeseburger 11302 +33 HP, Hostility/Grace, etc.) — chaining REVIVE
+items on the same kami fails after the first one lands. Save the
+rare 11002 Melkarth card for the next death event, not for HP top-off.
+
+## Liquidate revert gas signatures (session 80)
+
+Useful for triage without log inspection:
+
+- **~0.28M gas** = early-revert path: cooldown not cleared, attacker
+  state ineligible, target moved off node, etc. Transaction sim
+  passed, on-chain pre-check failed.
+- **~2.68M gas** = deep revert: threshold not met
+  (`current_HP ≥ kill_zone`). The full kill-formula path executed
+  before failing.
+
+If a revert costs 0.28M, retry after the listed pre-check resolves
+(usually <60s for cooldown). If it costs 2.68M, the strike math is
+wrong — re-derive threshold; do NOT retry without HP-decay or formula
+correction.

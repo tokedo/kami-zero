@@ -2592,3 +2592,36 @@ Both findings written into `predator/mechanics.md`. Soft-target filter v2 + clus
 **Mechanics finding** (logged to CLAUDE.md Knowledge Sources block; will append to predator/mechanics.md next session): REVIVE-type items (`Type=Revive` in catalog) carry implicit `target.state==DEAD` requirement. Once a kami transitions to RESTING via any revive, subsequent REVIVE-type items revert at simulation with `Item: requirements not met`. To top off HP after a revive, use FOOD-type heals (Cheeseburger, etc.).
 
 **Next session (82)**: re-wake +35 min for fresh scan of node 86. Three rtvvvvv non-guild candidates (4618, 7884, 15327) project to revert today; +35 min adds ~2.6 HP strain at 0.075 HP/min, not enough to flip any. Real opportunity is target-churn driven: a buzz/fey-fey kami cycling RESTING→HARVESTING with high prior strain, or a predator from another faction killing a target and creating an opening. If all three rtvvvvv candidates project crackable next session (margin ≤ 0), fire on the closest first. If still all margin > 0 and no fresh non-guild candidates emerge, schedule +90 min and use the gap for predator/mechanics.md reconciliation (P3 carried forward).
+
+---
+
+## 2026-05-02 15:40 UTC — session 82
+
+**ETH balance**: not pulled (zero-tx session).
+
+**Perceived**:
+- Roster 6/6 RESTING node 86. 11224 sync 139/140 cooldown clear (1777729276 vs latest block ~1777733332 = +67 min margin), 3 SP unspent (founder rule: hold until first kill).
+- 7884 (rtvvvvv) HARVESTING node 86 since 1777700167 = ~552 min running. V14/H19, def_shift 0.20, def_ratio 0, HP 190. strain_boost −0.125, intensity_boost +20.
+- 15327 (rtvvvvv) HARVESTING node 86 since 1777700484 = ~547 min running. V15/H20, def_shift 0.20, def_ratio 0, HP 180. Same skill build.
+- 4618 (rtvvvvv) cycled to RESTING (last action 1777733332, sync 88/230) — out of pool until next harvest_start.
+- Inventory unchanged (MUSU 518869, RRG 298, Melkarth 1, Cheeseburger 114, IceCream 75).
+
+**Decided**:
+- Re-derive strain margin against canonical formula: at H19 + strainBoost −0.125, strain_per_musu = 6.5×0.875/(19+20) ≈ 0.146 HP/musu. Without precise musu/min on node 86 (oracle down), use empirical band 0.077–0.083 HP/min. 7884 at 552 min projects strain 42–46 HP → current ~144–148 → margin +4 to +8 against kill_HP 140. 15327 at 547 min projects strain ~41 HP → current ~139 → margin +9 against kill_HP 130. **All margins still positive — strict `<` gate denies.**
+- **NO STRIKE.** Plan rule (margin negative required) holds. Two projected reverts at 2.68M each = ~5.4M gas saved.
+- Oracle SQL + health endpoints failing this session — broader-cohort scan (P2) skipped. Cannot identify fresh non-rtvvvvv non-guild candidates this session. Doctrine still allows the wait.
+- Carried-forward P3 reconciliation work executed: appended to `predator/mechanics.md` — strain-rate empirical row (H≥25/H19-20/H18-noboost/attacker), REVIVE-type implicit DEAD requirement, liquidate revert gas-signature triage (0.28M early / 2.68M deep).
+- 11224 SP still gated (no kill yet).
+
+**Acted**:
+- 4 `get_kami_state_slim` reads (11224, 7884, 15327, 4618), 1 `get_account_kamis`, 1 `get_inventory` — all free.
+- 4 oracle calls failed (service unhealthy). No retries beyond 1 health check + 1 trivial SELECT.
+- `predator/mechanics.md` reconciliation appended (strain-rate row, REVIVE gating, revert gas-signature triage).
+
+**Result**: 0 kills, 0 obols, 0 MUSU. **0 gas spent** (no on-chain tx). Roster fully co-located. Productive output = mechanics.md reconciliation that survives this context window. Two findings now in canonical form for future sessions.
+
+**Gas notes**: Zero-tx session. Decision-not-to-strike preserved ~5.4M gas. The current-HP doctrine is doing what it's supposed to do: skip projected reverts, accept slow tempo when no margin-negative target exists.
+
+**Anomalies**: Oracle service failing to respond. Logged as transient — only failure point this session. If oracle stays down through session 83, escalate to `alerts.md`.
+
+**Next session (83)**: Re-wake +60 min. By then 7884 will be at ~612 min (additional ~5 HP strain → margin ~+0 to +3, possibly flipped). 15327 at ~607 min (~4 HP additional → margin ~+5). If 7884 margin flips negative, fire 11224 first; if margin still positive but ≤ +3, accept the marginal-revert risk for one strike (gas: 2.68M downside vs ~250 obol + spoils upside on a real kill against a high-bounty 9.5h-running rtvvvvv). If oracle back, run broader scan for fresh non-guild candidates. If oracle stays down AND margins still positive, schedule +90 min and use the gap for predator/targeting.md update with current rtvvvvv-stop rule.

@@ -1,52 +1,56 @@
-# Plan for session 82
+# Plan for session 83
 
-Predator mode. Founder doctrine corrections (Block F + current-HP + co-location + cadence) now codified in CLAUDE.md.
+Predator mode. Strain-wait on rtvvvvv farms 7884/15327 — margin closes ~+5 HP per session at 0.077–0.083 HP/min. Oracle was unhealthy in session 82; expect it back.
 
-## Priority 1 — Live re-scan node 86, fire if any rtvvvvv non-guild candidate flipped
+## Priority 1 — Live re-scan node 86 + fire if any rtvvvvv candidate flipped margin-negative
 
-Repeat session 81's scan + spot-check loop on the three known marginal candidates:
+Re-perceive both surviving candidates:
 
-| idx  | owner    | V/H    | def_shift | def_ratio | base_HP | margin@s81 |
-|------|----------|--------|-----------|-----------|---------|------------|
-| 7884 | rtvvvvv  | 14/19  | 0.20      | 0         | 190     | +11        |
-| 15327| rtvvvvv  | 15/20  | 0.20      | 0         | 180     | +11        |
-| 4618 | rtvvvvv  | 13/26  | 0.10      | 0         | 230     | +13        |
+| idx  | owner    | V/H    | def_shift | def_ratio | base_HP | margin@s82 | est. margin@s83 (+60min) |
+|------|----------|--------|-----------|-----------|---------|------------|--------------------------|
+| 7884 | rtvvvvv  | 14/19  | 0.20      | 0         | 190     | +4 to +8   | **+0 to +3** (closest to flip) |
+| 15327| rtvvvvv  | 15/20  | 0.20      | 0         | 180     | +9         | +5 |
 
-For each, live `get_kami_state_slim` to confirm still HARVESTING + read current sync HP.
+Strike rule: if `current_HP < threshold_ratio × max_HP × (1 − def_ratio)`, fire 11224 (V36, atk_shift 0.28, EERIE-hand, cooldown clear).
 
-**Strike rule:** if `current_HP < threshold_ratio × max_HP × (1 − def_ratio)` (margin negative), fire with 11224 attacker. Co-located at node 86 already. Use 7884 first (smallest base HP, simplest revert path if wrong).
+**Tactical exception** allowed this session: if 7884 margin ≤ +3, accept the marginal revert risk and fire one strike. EV math: P(kill) × (~obol + 9.5h-bounty spoils) − P(revert) × 2.68M gas. At margin +3, P(kill) is non-trivial (strain rate uncertainty band overlaps 0); 9.5h-running rtvvvvv farm bounty is high. Single shot only — do NOT chain on revert.
 
-**Cooldown re-check** before firing: 11224's cooldown was clear at session 81 close; verify still clear (op time 1777729276, ~13:41 UTC — should be far past by session 82).
+If both margins still > +3, no strike. Schedule +90 min and continue strain-wait.
 
-## Priority 2 — Refresh non-guild candidate pool
+4618 cycled to RESTING in s82 — re-check; if HARVESTING again with fresh start, it's a long-tail candidate (max HP 230, slowest to crack).
 
-The session 81 scan was filtered to `def_ratio=0` for the strict-zero-defense bucket. Re-run with broader filter: `def_ratio ≤ 0.10 AND def_shift ≤ 0.15` to catch farmers who skipped the Armor tree entirely. Cross-reference guild csv. If 5+ new non-guild candidates appear, spot-check them in priority order of `(strain_minutes × HP_base) / threshold_ratio` (largest first = most strain biting hardest).
+## Priority 2 — Broader cluster scan if oracle back
 
-## Priority 3 — Predator/mechanics.md reconciliation (carried from session 80 P1, deferred again)
+Re-run session 81/82 plan P2 oracle filter: `defense_threshold_ratio ≤ 10 AND defense_threshold_shift ≤ 15` (note INTEGER scale: 10 = 0.10, 15 = 0.15). Cross-reference `predator/guild-no-touch.csv`. If 5+ new non-rtvvvvv non-guild candidates appear with projected current_HP below kill_zone, spot-check live and fire on the closest.
 
-Replace empirical-derived sections in `predator/mechanics.md` with cross-references to `systems/liquidation.md` + `systems/harvesting.md`. Add the H-tier strain rate empirical row (≤0.072 HP/min for H≥25 skill-boosted; ≈0.075 for H~20). Add the REVIVE-type item finding from session 81. Do this only if Priority 1–2 produce no action.
+If oracle still down → escalate to `memory/alerts.md` and skip P2.
+
+## Priority 3 — predator/targeting.md update with rtvvvvv stop rule
+
+Sessions 76/78/80 reverted 3 strikes against rtvvvvv farms. Session 82 doctrine update should be reflected in `predator/targeting.md`: rtvvvvv farms are the worst-case strain-wait targets — strain rate ≤0.083 HP/min on H19+, def_shift 0.20, multi-hour wait per kill window. Keep them in candidate pool only when no fresh non-rtvvvvv softs exist.
 
 ## Priority 4 — 11224 SP allocation (still gated)
 
-3 SP unspent. Founder rule: hold until first kill. Do not allocate this session.
+3 SP unspent. Founder rule: hold until first kill. Do not allocate.
 
 ## Priority 5 — Self-schedule
 
-- After kill: 15 min re-wake (chain on same node).
-- After live targets confirmed but margin still positive: 35–45 min.
-- After full scan with no live non-guild candidates and no revert opportunities: 60–90 min, log reasoning.
+- After kill: +15 min (chain on same node; 11224 cooldown ~3 min, target churn fast).
+- After live margin-positive re-check, no strike: +90 min (continue strain-wait).
+- If oracle alerts (still down): +90 min and document.
 
 ## Out of scope
 
-- Cluster moves (node 60/62/25/88 all dead per session 78–80).
+- Cluster moves (no fresh data; oracle down).
 - Quest progression (paused).
 - Operator move > 1 hop without `harvest_stop` on every predator first.
-- Striking rtvvvvv farms at margin > +5 HP without a fresh strain-rate measurement that justifies the gas burn.
+- Striking 15327 or 4618 without an oracle-derived softer alternative — both are ≥+5 margin or RESTING.
+- Striking ANY rtvvvvv farm at margin > +3 HP this session.
 
-## Roster (session 81 close)
+## Roster (session 82 close)
 
-- 12649 (V34/H12, HP 170, sync 10/170 RESTING node 86) — revived, needs ~3 cheeseburgers to fight-shape if redeployed.
-- 11224 (V36/H11, HP 140, sync 139/140 RESTING node 86) — primary striker, 3 SP unspent.
+- 12649 (V34/H12, HP 170, sync ~10/170 RESTING node 86) — revived, ~3 cheeseburgers to fight-shape if redeployed.
+- 11224 (V36/H11, HP 140, sync 139/140 RESTING node 86) — primary striker, cooldown clear, 3 SP unspent.
 - 6058 (SCRAP-hand) RESTING node 86.
 - 12225, 15540, 10705 (INSECT-hand) RESTING node 86.
 
@@ -55,7 +59,7 @@ Operator room 86. All 6 co-located.
 ## Knowledge sources to consult before any cross-cutting change
 
 - `systems/liquidation.md` for kill formula
-- `systems/harvesting.md` for strain mechanics
-- `catalogs/items.csv` for item effects (no "mechanism unverified" defers)
-- `predator/mechanics.md` for empirical refinements
+- `systems/harvesting.md` for strain mechanics (strain scales with bounty earned, not raw time)
+- `catalogs/items.csv` for item effects (REVIVE items have implicit DEAD-target requirement)
+- `predator/mechanics.md` for empirical refinements (strain-rate row, revert gas-signature triage, hidden defense)
 - `predator/targeting.md` for current scan filters and owner blacklist evidence
