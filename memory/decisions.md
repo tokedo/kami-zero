@@ -2440,3 +2440,25 @@ Confirms auto_v2 staggered the starts as kamis regen'd to ≥95% HP. Range 2-7h 
 **Anomalies**: none. `alerts.md` unchanged.
 
 **Next session**: pivot to **Option A — affinity hunt**. Deploy 11224 (V36/EERIE-hand) on node 86 against a SCRAP-body target (EERIE > SCRAP affinity bonus, multiplier value still empirical). Marginal cost: 1.5M gas harvest_start + 7.5M strike. Tests whether affinity multiplier closes the additive-shift gap. If 11224 lands, we have a working hunt loop on this node. Scheduled +3.5h to allow further strain decay on 3764 in case Option A pivot fails and we want to re-test the rtvvvvv farms.
+
+---
+
+## 2026-05-02 07:30 UTC — session 78
+
+**ETH balance**: not pulled this session (oracle/MCP read). Gas spent ~5.33M; running tally pre-session was on bpeon owner wallet — fine.
+**Perceived**: 11224 RESTING 90/140 HP (cooldown clear, 3 SP unspent), 12649 still HARVESTING node 86 from session 77 with Hostility shift 0.33 persisting (96% HP, cooldown clear). Other 4 predators RESTING. Account at room 86.
+**Decided**:
+  - Execute plan Priority 1: SCRAP-body target on node 86, 11224 (EERIE-hand) attacker — test affinity hypothesis.
+  - First-pick `12433 topobadger` (H20, def_shift 0, HP 220/220) — guild gate blocked it (validated end-to-end).
+  - Pivot to non-guild SCRAP candidate `13253 tom` (V15/H20, def_shift 0.10, HP 194/200).
+  - Heal 11224 with Cheeseburger before harvest_start to keep recoil low if strike lands.
+**Acted**:
+  - feed_kami(11224, Cheeseburger 11302): success, 1.26M gas, HP 90 → 140.
+  - harvest_start(11224, node_index=86): success, 1.39M gas. State HARVESTING confirmed via slim (atk_shift 0.28, strain 0).
+  - liquidate(target=12433, attacker=11224): **BLOCKED** by in-code gate ("target account_id matches guild member 'topobadger'"). 0 gas. **First end-to-end validation that the gate intercepts a real strike attempt.**
+  - liquidate(target=13253, attacker=11224, account_id pre-resolved): **REVERTED** ("kami lacks violence (weak)"), 2.68M gas.
+  - Oracle cross-node scan (session 78 — see `predator/targeting.md`): node 25 has 49 zero-def EERIE-body soft targets; node 88 has 10 SCRAP-soft; node 62 has 11 INSECT-soft. Strongest cluster intel since chapter pivot.
+**Result**: 0 kills, 0 obols, 0 musu earned. 5.33M gas. **Affinity bonus contribution to threshold_ratio < 0.07** for EERIE-hand vs SCRAP-body (else 13253 strike at HP 0.97 would have cleared 0.902 baseline + affinity ≥ 0.07 = ≥ 0.97). Roster cannot one-shot Guardian-built H≥20 farmers at near-full HP regardless of affinity matchup. Three sessions, 24M gas, 0 kills on node 86 — time to move.
+**Gas notes**: All tx accounted. Guild block was free (no tx submitted) — validation that the gate's pre-tx check works as designed. Single revert at GDD-spec 7.5M ceiling but actual gas consumed 2.68M (consistent with sessions 76/77 revert costs).
+**Anomalies**: none. `alerts.md` unchanged. Session 77 conclusion that Hostility doesn't propagate may have been incomplete (data point sat in margin-of-error band) — but not retesting now since we're pivoting off node 86.
+**Next session**: Cluster move evaluation (plan.md Priority 1 — node 25 with 10705 INSECT-hand for the EERIE-body cluster). If node 25 non-guild cluster ≥ 5, plan + execute the move. Fallback to node 88 (11224 SCRAP-prey). If both disappoint, retreat to strain-wait kills on 11332/13253 at node 86. Scheduled +4h (allows further prey HP decay if we end up staying).
