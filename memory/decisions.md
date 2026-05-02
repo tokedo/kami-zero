@@ -2894,3 +2894,41 @@ ORDER BY liq.liq_ts DESC
 ```
 
 **Next session (88)**: Re-wake +30 min. Resume with the strike attempt — oracle scanner over all currently-HARVESTING non-guild kamis, apply heal-event guard (no `feed` since `harvest_start`), counter-predator scan, ≥5 HP margin gate. Candidates from session-86 prep: node 9 cluster (BandG/theplux/kaviar — ~14 kamis, no feed events), kami 6661 alivebatman (V=16/H=17 glass cannon, no feeds). Avoid node 72 Ironwrench (atk_threshold_shift=260). Single strike if any candidate clears all gates with margin ≥ 5 HP at ×1.5 calibration. Caw-caw farms (node 82 etc.) remain GUILD-BLOCKED.
+
+
+## 2026-05-02 22:35 UTC — session 88 (Bug fixes shipped + hunt deferred — strikers RESTING)
+
+**ETH balance**: not measured this session (harness operations only)
+**Perceived**:
+- Plan: ship Bug 1+2 fixes (already in working tree from session 87 prep), validate KAMI_LIQ_* canonical formula, cross-check on 5 founder calibration kamis, then hunt with corrected formula.
+- All 6 bpeon strikers are currently `RESTING_OR_DEAD` (no open harvest_start in oracle's last-200-action window). 12649 was respec'd at 20:13 UTC today (founder reroll for max attack stats: V=34/H=12/HP=170, atk_shift=300, atk_ratio=500, spoils=200, cooldown=-150, hand=NORMAL, Level 56). 11224 cycled stop/start/stop ending RESTING at 19:17. Operator last placed predators on node 86 (Guardian Skull, room 86, EERIE-INSECT dual-affinity).
+- Node 86 is hot: ~50 active harvesters, but most started at 22:25-22:30 (~5 min ago) so pools are tiny (3-10 MUSU). The kamis that have been harvesting >10h are dominated by guild-blacklisted accounts (`buzz` 30+ kamis, `fey-fey` 20+, `Tonin`, `pleaseonemoretim`, `Shadow3X`).
+
+**Decided**:
+- Ship Bug 3 fix discovered during cross-check (dual-affinity slot independence bug — `harvest_efficacy` was claiming +650 body match AND +350 hand match on opposite slots of the same dual-affinity node, instead of constraining both to the same slot). Fix in `executor/hp_projection.py` and `executor/oracle_state.py`.
+- Validate KAMI_LIQ_* on-chain config and compare canonical-vs-empirical kill_threshold. Empirical wins (99.60% vs 98.18% on N=495 corpus). Empirical retained as operational formula; canonical documented as reference.
+- **No strike this session** — gating analysis below.
+
+**Acted**:
+- Wrote `/tmp/canonical_kill_threshold.py` and `/tmp/canonical_v2.py` — canonical formula sweep on N=495 corpus. Empirical 99.60% vs canonical 98.18% vs alternate 94.75%. Documented in `predator/mechanics.md` § "Cached on-chain KAMI_LIQ_* config".
+- Wrote `/tmp/read_liq_config.py` — reads KAMI_LIQ_* via `component.value.safeGet(keccak256("is.config" || configName))` packed int32[8] decode. Result: KAMI_LIQ_ANIMOSITY[1]=400, [3]=3; KAMI_LIQ_THRESHOLD[1]=1000, [3]=3.
+- Wrote `/tmp/calib_cross_check.py` — cross-checked 5 founder calibration kamis [16479, 12386, 12293, 12728, 15042]. Post Bug 1+2+3 fixes: mean error **0.40 HP / 0.12% pool** vs founder client truth. No `×1.4-1.5` calibration multiplier needed.
+- Edited `executor/hp_projection.py:harvest_efficacy()` and `executor/oracle_state.py:_harvest_efficacy()` — single-slot constraint enumerating each unique node slot, returning `max(1000 + body_comp(slot) + hand_comp(slot))`.
+- Wrote `/tmp/scan_candidates.py` and `/tmp/scan_remaining.py` — scanned 50+ HARVESTING non-guild kamis on node 86 with the corrected formula. Result table:
+  - **4045 (Alp135)** — only non-guild candidate with positive margin (+32.9 HP) on first scan. Re-check 3 min later showed state=RESTING_OR_DEAD (someone else struck or owner stopped). No longer a target.
+  - **9980 (Assassins)** V=28/H=24/HP=170 def_shift=0/def_ratio=0 — would be margin >>+50 BUT n_feeds_since_start=2 (heal-event guard rejects per session 85 codified rule).
+  - All other non-guild kamis (lele/dias/cherki — 35+ kamis) just started harvesting at 22:25-22:30; pools 3-9 MUSU; projected HP ≈ max_HP-1; margins -29 to -142. Not killable.
+  - Remaining buzz/fey-fey/Tonin/pleaseonemoretim positive-margin candidates are GUILD-BLOCKED.
+
+**Result**:
+- Bug 1+2+3 fixes shipped and cross-checked. Empirical kill_threshold cert remains at 99.60% (no regression).
+- KAMI_LIQ_* config cached in `predator/mechanics.md`. Canonical-vs-empirical analysis documented.
+- **0 strikes this session**: (a) no clean non-guild candidate cleared the +5 HP margin gate after the heal-event guard, AND (b) all 6 bpeon strikers are currently RESTING — even with a clean candidate, no strike could fire (eligibility rule 1: attacker must be HARVESTING).
+
+**Gas notes**: 0 strike tx submitted. All work was reads + local computation. Harness commits forthcoming.
+
+**Next session (89)** — Re-wake +30 min. Priority sequence:
+1. **Verify striker readiness via on-chain reads** (staleness escape hatch — oracle says all my predators RESTING_OR_DEAD; chain is authoritative). If 12649/11224 actually RESTING with HP > safety margin, manually `harvest_start` on node 86 (auto_v2 is paused for predator mode — manual restart is the deployment path).
+2. **Re-scan node 86 hunting field** — by then the lele/dias/cherki cluster will have ~35-min pools (~50-100 MUSU each); some will be near-killable. Apply guild gate, heal-event guard, +5 HP margin.
+3. **9980 Assassins re-check** — if no further feed events since the 2 from before, the heal-event guard might lift after target's next collect. Worth re-scanning.
+4. **Single strike if margin ≥ 5 HP** with corrected (Bug 1+2+3) formula. Document in decisions.

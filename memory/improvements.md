@@ -250,3 +250,22 @@ Migration sequence (next session, separate PR scope):
 2. Rewrite `get_kami_state` → thin wrapper over `oracle_state.oracle_kami_state` for predator callers (keep raw kamibots version under a `_legacy_*` name for kami-agent control plane).
 3. Add a server-level guard: any tool decorated `@predator_only` rejects internal `_api_get*` calls in its call graph.
 - **Commit**: (this session's session commit; audit doc-only, no code changes yet)
+
+## 2026-05-02 — Bug 3: harvest_efficacy single-slot constraint (session 88)
+
+- **What**: Fixed `harvest_efficacy()` in both `executor/hp_projection.py` and `executor/oracle_state.py` to enforce **single-slot constraint** on dual-affinity nodes. Both body and hand affinity now check against the SAME single node-affinity slot (the one that maximizes overall efficacy), instead of independently picking their best-matching slot. Previously, on a dual-affinity node like 86 (EERIE-INSECT), a kami with body=EERIE/hand=INSECT would erroneously claim +650 (body match EERIE) AND +350 (hand match INSECT) = 2000, when the canonical rule yields 1550 (body match EERIE + hand mismatch non-NORMAL=-100, picking the EERIE slot).
+- **Why**: Cross-check on kami 16479 in session 88 showed harness predicted efficacy=2000 vs founder client truth 1550. Bug was masked in the back-fit cert (99.6%) because the empirical-mode fit uses oracle collect data directly, not the formula path. Bug surfaces in formula-mode HP projection (forward-projection of bounty pool when no live read available).
+- **Files**:
+  - `executor/hp_projection.py` — `harvest_efficacy()` enumerates each unique node affinity slot, computes `1000 + body_comp(slot) + hand_comp(slot)`, returns the max.
+  - `executor/oracle_state.py` — `_harvest_efficacy()` mirrors the same single-slot logic.
+- **How to use**: No API change. Existing `compute_current_hp(...)` and `oracle_kami_state(...)` callers benefit transparently.
+- **Validation**: Founder cross-check on 5 calibration kamis [16479, 12386, 12293, 12728, 15042] now matches client truth at **mean 0.40 HP / 0.12% pool error** (post Bug 1+2+3 fixes, no `×1.4-1.5` calibration multiplier).
+- **Commit**: (this session's harness commit)
+
+## 2026-05-02 — KAMI_LIQ_* on-chain config reader (session 88)
+
+- **What**: Verified KAMI_LIQ_ANIMOSITY = `[_,400,_,3,_]` and KAMI_LIQ_THRESHOLD = `[_,1000,_,3,_]` (packed int32[8] decoded MSB-first from uint256, indices 1 = ratio/base, 3 = precision_exponent). Read via `component.value.safeGet(keccak256("is.config" || configName))`.
+- **Why**: Plan Priority 3b required validating empirical kill_threshold formula against canonical formula derived from on-chain config. Result: empirical (99.60%) beats canonical-as-derived (98.18%) on N=495 corpus. Likely a precision-exponent interpretation issue; empirical retained as operational formula.
+- **Files**: `predator/mechanics.md` § "Cached on-chain KAMI_LIQ_* config" — cached values + canonical-vs-empirical accuracy table.
+- **Reader script** (one-off, kept in /tmp for repro): `/tmp/read_liq_config.py` — `from web3 import Web3; entity = int.from_bytes(Web3.keccak(b"is.config" + name.encode()), "big"); val_comp.functions.safeGet(entity).call()`.
+- **Commit**: (this session's session commit; mechanics-doc-only)

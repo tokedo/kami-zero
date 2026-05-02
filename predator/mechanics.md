@@ -758,3 +758,112 @@ proj_hp = sync_hp - strain
 
 Practical heuristic: `harvest.time.last == harvest.time.start AND
 harvest.bounty.balance == 0` → untouched-since-start → formula mode.
+
+## Session 88 — three formula corrections (cross-checked vs founder client)
+
+Three bugs in the formula path were discovered when cross-checking against
+founder-supplied truth on 5 kamis [16479, 12386, 12293, 12728, 15042].
+Pre-fix mean error was ~30%; post-fix is **0.40 HP / 0.12% pool**.
+
+### Bug 1 — `harvest_efficacy` was using LIQUIDATION rock-paper-scissors
+
+The harvest affinity rule is **not** the EERIE>SCRAP>INSECT triangle from
+liquidation. It's a flat **same/different/NORMAL** rule:
+
+| Trait vs node slot | Body bonus | Hand bonus |
+|---|---|---|
+| Same affinity (e.g. EERIE on EERIE node slot) | +650 | +350 |
+| Different non-NORMAL | -250 | -100 |
+| NORMAL (either side) | 0 | 0 |
+
+Where 1000 = base efficacy multiplier (i.e. +650 = +65% intensity rate).
+
+### Bug 2 — `projected_bounty` was integrating Intensity over [0,T]
+
+Wrong (pre-fix): `pool = ∫₀ᵀ (Fertility + Intensity(t)) dt`.
+Right (per `systems/harvesting.md`): pool snapshot uses **end-of-period
+rate × duration**:
+
+```
+pool = (Fertility + Intensity(T)) × T × bounty_boost / 1e9
+```
+
+Where `Intensity(T)` already includes the cumulative `+10/hr * T` ramp
+plus `harvest_intensity_boost` additive on the base 10.
+
+### Bug 3 — dual-affinity nodes constrain body+hand to the SAME slot
+
+Discovered when kami 16479 cross-check showed `efficacy=2000` (predicted
++100% rate) but founder client truth was `efficacy=1550`. Root cause:
+old `harvest_efficacy()` allowed body and hand to independently match
+different node-affinity slots on dual-affinity nodes (e.g. EERIE-INSECT).
+
+Per canonical: both body AND hand check against the **same single node
+slot**. The system picks whichever slot maximizes overall efficacy. Fix
+applied to `executor/hp_projection.py:harvest_efficacy()` and
+`executor/oracle_state.py:_harvest_efficacy()` — single helper that
+enumerates each unique node slot, computes `1000 + body_comp(slot) +
+hand_comp(slot)`, and returns the max.
+
+Worked example (kami 16479: body=EERIE hand=INSECT, node 86 = EERIE-INSECT):
+- Slot=EERIE: 1000 + 650 (body match) + (-100) (hand mismatch, non-NORMAL) = 1550 ✓
+- Slot=INSECT: 1000 + (-250) (body mismatch) + 350 (hand match) = 1100
+- max = 1550 ← matches founder truth
+
+### Re-validation
+
+After Bug 1+2+3 fixes (no calibration multiplier removed, no `×1.4-1.5`
+factor needed), the back-fit cert was re-run:
+
+- **Empirical mode** (uses oracle collect data): 99.60% on N=495.
+- **Formula mode** (uses corrected projected_bounty + harvest_efficacy):
+  back-fit accuracy needs re-cert on a fresh corpus pull; cross-check on
+  5 founder kamis is the spot-evidence (mean 0.40 HP / 0.12% pool error).
+
+The session-87 ×1.5 strain multiplier in formula mode is **no longer
+needed** — the bugs it was masking (Bug 2 integration error +
+Bug 3 dual-affinity over-claim) are now fixed at the source.
+
+## Cached on-chain KAMI_LIQ_* config (read 2026-05-02)
+
+Read via `component.value.safeGet(keccak256("is.config" || configName))`,
+decoded as packed int32[8] (MSB-first) from the uint256:
+
+| Config | [0] | [1] (ratio/base) | [2] | [3] (prec_exp) | [4] |
+|---|---|---|---|---|---|
+| `KAMI_LIQ_ANIMOSITY` | – | 400 | – | 3 | – |
+| `KAMI_LIQ_THRESHOLD` | – | 1000 | – | 3 | – |
+| `KAMI_LIQ_KARMA` | – | – | – | – | – |
+| `KAMI_LIQ_RECOIL` | – | – | – | – | – |
+| `KAMI_LIQ_SALVAGE` | – | – | – | – | – |
+| `KAMI_LIQ_SPOILS` | – | – | – | – | – |
+
+Reader script: `/tmp/read_liq_config.py` (commit-relative; reproducible
+via `executor/server.py::_resolve_component("component.value")` +
+`safeGet(_config_entity(name))`).
+
+### Canonical kill_threshold derived from these values
+
+```
+animosity_proportion = cdf(ln(V/H)) × KAMI_LIQ_ANIMOSITY[1] / 10^KAMI_LIQ_ANIMOSITY[3]
+                     = cdf × 400 / 1000 = cdf × 0.4
+efficacy_multiplier  = (KAMI_LIQ_THRESHOLD[1] + atk_ratio − def_ratio) / 10^KAMI_LIQ_THRESHOLD[3]
+                     = (1000 + atk_ratio − def_ratio) / 1000
+shift_proportion     = (atk_shift − def_shift) / 1000   # 1e3 prec
+threshold_ratio      = animosity × efficacy_multiplier + shift_proportion
+kill_zone            = max(0, threshold_ratio × victim_max_hp)
+```
+
+### Empirical vs canonical accuracy on N=495 corpus
+
+| Formula | Accuracy |
+|---|---|
+| **Empirical** (sessions 76-79): `(animosity + atk_shift − def_shift) × (1 − def_ratio) × max_hp`, animosity_scale=1.0 | **99.60%** |
+| Canonical (as-derived above): animosity_scale=0.4, efficacy as multiplier | 98.18% |
+| Alternate scaling (anim=0.4, shift_scale=1/400) | 94.75% |
+
+The empirical formula remains the operational kill_threshold for
+predator-decision path. The canonical underperforms by ~7 verdict misses
+on the corpus — likely a precision-exponent interpretation issue or a
+missing affinity_shift term not yet pulled from chain. Either way:
+**the empirical cert governs strikes**, canonical is reference math.
