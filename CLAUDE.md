@@ -3,6 +3,27 @@
 This repo runs autonomously on a GCP VM. Every session is triggered by cron.
 Your job: play Kamigotchi intelligently, complete quests, improve the harness.
 
+## Knowledge sources (canonical, read these before deriving)
+
+When you need to understand a mechanic, check the canonical doc *first*. Do not "derive empirically" what is already written down. Empirical refinement on top of canonical is fine; *replacing* canonical with a guess is gas waste.
+
+- `systems/liquidation.md` — kill formula, animosity, threshold ratio, cooldown, recoil. Authoritative.
+- `systems/harvesting.md` — harvest state machine, intensity, strain rate, fertility. Authoritative.
+- `systems/state-reading.md` — slim vs full state, sync HP semantics, timing fields.
+- `systems/leveling.md` — XP cost table, SP per level, tier gates.
+- `systems/quests.md` — (paused mode) quest objectives, registry indices.
+- `catalogs/items.csv` — **authoritative for item effects**. The `Type` column and the effect string are the spec; do not defer with "mechanism unverified". Example: items 11001/11002 are `Type=Revive` with effect `STATE-RESTING,HP+N` — that *is* the documentation. Same primitive (`feed_kami` / `system.item.use`) as FOOD heals; REVIVE-type items only fire on DEAD targets.
+- `catalogs/skills.csv` — skill IDs, tier gates, effect formulas.
+- `catalogs/recipes.csv` — craft recipe inputs/outputs.
+- `catalogs/rooms.csv` — adjacency (but use `travel_to_room` for paths, never plan by hand).
+- `predator/mechanics.md` — empirical refinements on top of `systems/`. Cross-references, not replacements.
+- `predator/targeting.md` — current scan filters, owner blacklist evidence, cluster intel.
+- `predator/learnings.md` — rolling per-session post-mortems and trend lines.
+- `integration/oracle.md` — DuckDB schema, query patterns, MUSU-gross caveats.
+- `integration/kamibots/README.md` — Kamibots strategy API.
+
+If two sources disagree, canonical wins for the *spec*; empirical wins for *current state of the world*. If you find a contradiction, write it to `predator/mechanics.md` with the resolution and the date.
+
 ## Standing Authorizations (founder, 2026-05-01)
 
 The founder will not approve session-by-session decisions. These authorizations apply to every kami-zero session going forward:
@@ -36,7 +57,11 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 
 **Items are tools, not luxuries.** Predator kamis recover HP via consumables, not via rest cycles. Use them. Track consumption in `predator/metrics.md`. If item supply is the limiter, escalate via `ideas_to_founder.md`.
 
-**Self-paced cadence.** You set your own next-wake (`memory/next-run-at`). When a juicy node has live targets and cooldowns are short, schedule the next session in tens of minutes. When the world is quiet, hours. Founder is fine spending compute on this — the binding constraint is *intelligent hunting*, not schedule discipline.
+**Self-paced cadence.** You set your own next-wake (`memory/next-run-at`). When a juicy node has live targets and cooldowns are short, schedule the next session in 10–30 minutes. When the world is quiet but live targets are mapped, 30–60 minutes. Genuinely quiet (no soft targets after a thorough scan): 60–90 minutes — not more without explicit reasoning in `decisions.md`. Founder is fine spending compute on this — the binding constraint is *intelligent hunting*, not schedule discipline.
+
+**Targeting heuristic — by current HP, not base stats.** The kill gate is a strict `current_HP < threshold`. Base stats determine the *threshold*; current HP determines whether today's strike fires. A V13/H21 farmer with `def_shift=0` at 90% HP can still revert; the same kami at 40% HP after a long uninterrupted harvest can be cracked by a much weaker striker. Filter target lists by *projected current HP*, then live-spot-check before strike. Do not blacklist owners purely on past reverts at high HP — re-evaluate when their farms have run uninterrupted long enough that strain has bitten.
+
+**Predator deployment.** Predators are not deploy-and-forget. Liquidation requires `operator.room == target.node.room` — a predator HARVESTING on node X while the operator is at room Y can never fire `liquidate`. When the operator moves, **all predators move with it**. Standard sequence: `harvest_stop` every predator → travel → `harvest_start` at destination. If a session ends with operator-room ≠ any predator's node, that's an anomaly — log to `alerts.md` and reunite next session before any strike. There are no realistic scenarios where partial-team moves are correct.
 
 ## Predator Hard Rules (do not violate without founder approval)
 

@@ -2549,3 +2549,46 @@ Both findings written into `predator/mechanics.md`. Soft-target filter v2 + clus
 **Anomalies**: none. `alerts.md` unchanged.
 
 **Next session**: Re-prioritize. Three reverted strikes across sessions 76–80 on rtvvvvv farms (3764, 13253, 15538) at high-strain HP, plus session 79 def_ratio findings + session 80 strain rate finding, all point to: **rtvvvvv farms are too well-built for our strikers regardless of strain duration**. Stop trying. Pivot the new "current-HP" doctrine to nodes/owners where Guardian skill investment is empirically lower. Use oracle to filter `def_threshold_ratio + def_threshold_shift + skill 312/322 SP` to find soft farmers with low HP. Schedule +30–45 min (aggressive cadence per session 80 plan) to re-wake during this hunt window with 11224 still healing.
+
+---
+
+## 2026-05-02 14:30 UTC — session 81
+
+**ETH balance**: not pulled (low-tx session).
+**Perceived**:
+- 12649 DEAD (per session 79 KIA, no Onyx Shards). 5/6 alive at session start.
+- 11224 RESTING node 86 sync 139/140 HP, cooldown clear, 3 SP unspent. V36/H11/atk_shift 0.28/atk_ratio 0.5.
+- Other 4 predators (6058, 12225, 15540, 10705) RESTING.
+- Operator room 86 (verified via oracle: last `move` action terminated at node_id=86 at 13:33:38). Co-located with predator team.
+- Inventory highlights: 299 Red Ribbon Gummy (REVIVE +10HP), 1 Melkarth Spell Card (REVIVE +50HP), 114 Cheeseburger, 75 Ice Cream + 463 Rock Candyfloss + 8 Neith River of Life. MUSU 518869.
+
+**Decided** (founder plan P0 → P2):
+1. Revive 12649 with Red Ribbon Gummy (1 tx). Catalog says `Type=Revive, effect=STATE-RESTING,HP+10` — same primitive (`feed_kami`) as Cheeseburger/Hostility Potion. No "mechanism unverified" defer.
+2. Try Melkarth Spell Card after revive for +50HP top-off (founder: "use it for the spearhead").
+3. Hunt scan on node 86 with current-HP doctrine — projected-current-HP filter, then live spot-check. No cluster move; co-location preserved.
+4. Apply CLAUDE.md doctrine updates carried from session 80 P2 + new founder P1 (Block F knowledge sources, current-HP heuristic, predator deployment doctrine, cadence norms).
+
+**Acted**:
+- `feed_kami(12649, 11001 Red Ribbon Gummy)` — success, **1.18M gas**, tx `0x432df3...`. 12649 → RESTING, sync HP 10/170. Roster back to 6/6.
+- `feed_kami(12649, 11002 Melkarth Spell Card)` — REVERTED at simulation: `Item: requirements not met`. Finding: REVIVE-type items only fire on DEAD targets. Once 12649 was RESTING from the gummy, the card requirement (target=DEAD) failed. Save the rare card for the next death. Catalog row interpretation: `Type=Revive` items carry an implicit `state==DEAD` requirement that does NOT show in the bare effect string. CLAUDE.md Knowledge Sources block updated to note this nuance.
+- Oracle scan for live HARVESTING kamis on node 86 with no later harvest_stop, sorted by oldest start. Cross-referenced guild list — most active node-86 farmers are guild (buzz, fey-fey, Tonin, erere, pleaseonemoretim, 23savage, scrrr, Shadow3X, topobadger). Non-guild long-runners with `def_ratio=0`: 4618, 7884, 15327, 7797 (all rtvvvvv).
+- Live spot-check on top 3 candidates (`get_kami_state_slim`):
+  - **7884** (rtvvvvv, V14/H19, def_shift 0.20, def_ratio 0, HP 190, 525min running). Threshold ratio = 0.6545 + 0.28 − 0.20 = 0.7345 → kill_HP 140. Strain @ 0.075 HP/min × 525min ≈ 39 HP → projected current ~151. Margin +11 → revert.
+  - **15327** (rtvvvvv, V15/H20, def_shift 0.20, def_ratio 0, HP 180, 520min). Threshold = 0.643 + 0.28 − 0.20 = 0.723 → kill_HP 130. Strain 39 → current ~141. Margin +11 → revert.
+  - **4618** (rtvvvvv, V13/H26, def_shift 0.10, def_ratio 0, HP 230, 565min). Threshold = 0.581 + 0.28 − 0.10 = 0.761 → kill_HP 175. Strain @ 0.075 × 565 = 42 → current ~188. Margin +13 → revert. (Strain rate likely lower because skill `strain_boost = −0.125`.)
+- No strike fired. Skipping a known-revert burn (~2.68M each) is the obol-per-tx-positive call.
+- Applied CLAUDE.md doctrine updates: added **Knowledge Sources** block above Standing Authorizations (lists canonical docs incl. `catalogs/items.csv` as authoritative for item effects), folded **current-HP targeting heuristic**, **Predator deployment doctrine** (operator-co-location, full-team moves), and **cadence norms** (10–30 / 30–60 / 60–90 min) into the Predator Doctrine section.
+
+**Result**: 0 kills, 0 obols, 0 MUSU spoils. ~1.18M gas spent. Roster restored to 6/6. Doctrine codified: founder's session-80 corrections + session-79 hidden-defense finding + predator co-location rule are now in CLAUDE.md and outlive this session's context.
+
+**Inventory delta**: MUSU flat at 518869 (revive doesn't cost MUSU, no harvest yields). Items: Red Ribbon Gummy 299→298, Melkarth Spell Card 1→1 (revert, no consume).
+
+**Gas notes**: Single billed tx. Melkarth revert was at simulation (no gas consumed by `eth_estimateGas` failing). Live oracle scan + 3 slim reads = 0 gas. **Decision-not-to-strike preserved ~8M gas** that would have burned on three projected-revert attempts. This is the gas-efficient form of the current-HP doctrine: project, spot-check, walk away when math says no.
+
+**Anomalies**: none. `alerts.md` unchanged.
+
+**Roster co-location at session end**: operator room 86, all 6 predators at node 86 — fully co-located per new doctrine.
+
+**Mechanics finding** (logged to CLAUDE.md Knowledge Sources block; will append to predator/mechanics.md next session): REVIVE-type items (`Type=Revive` in catalog) carry implicit `target.state==DEAD` requirement. Once a kami transitions to RESTING via any revive, subsequent REVIVE-type items revert at simulation with `Item: requirements not met`. To top off HP after a revive, use FOOD-type heals (Cheeseburger, etc.).
+
+**Next session (82)**: re-wake +35 min for fresh scan of node 86. Three rtvvvvv non-guild candidates (4618, 7884, 15327) project to revert today; +35 min adds ~2.6 HP strain at 0.075 HP/min, not enough to flip any. Real opportunity is target-churn driven: a buzz/fey-fey kami cycling RESTING→HARVESTING with high prior strain, or a predator from another faction killing a target and creating an opening. If all three rtvvvvv candidates project crackable next session (margin ≤ 0), fire on the closest first. If still all margin > 0 and no fresh non-guild candidates emerge, schedule +90 min and use the gap for predator/mechanics.md reconciliation (P3 carried forward).
