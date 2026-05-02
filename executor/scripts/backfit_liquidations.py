@@ -131,6 +131,7 @@ def backfit_one(row: dict, *, mode: str = "formula", strain_mult: float = 1.0) -
     a_violence = _safe_int(row.get("a_violence"))
     a_ats = _safe_int(row.get("a_ats"))
     a_atr = _safe_int(row.get("a_atr"))
+    a_hand = _safe_str(row.get("a_hand_aff"))
 
     node_affs = _split_node_affinities(row.get("node_affinity"))
 
@@ -178,6 +179,8 @@ def backfit_one(row: dict, *, mode: str = "formula", strain_mult: float = 1.0) -
         atk_threshold_ratio=a_atr,
         def_threshold_shift=v_dts,
         def_threshold_ratio=v_dtr,
+        attacker_hand=a_hand,
+        victim_body=v_body,
     )
 
     explained = projected_hp < kt["kill_zone"]

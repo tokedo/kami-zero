@@ -106,23 +106,23 @@ _LIQ_TRIANGLE = {
 def _liq_affinity_shift(attacker_hand: str, victim_body: str) -> int:
     """Threshold-efficacy affinity shift (×1000 prec).
 
-    Per systems/liquidation.md, attacker hand vs victim body:
-      strong → +<value>; weak → −<value>; neutral / NORMAL → 0.
-    Empirical magnitudes for kill_threshold's affinityShift have not been
-    cleanly separated from KAMI_LIQ_THRESHOLD[2] in the back-fit corpus,
-    so we keep it conservative at 0/0 here and let atk/def_threshold_ratio
-    bonuses carry the directional asymmetry (they were validated at 99.6%).
-    A future session that pulls KAMI_LIQ_THRESHOLD config on-chain can
-    plug a non-zero magnitude here.
+    Per systems/liquidation.md and the team's liquidation calculator
+    (founder cross-check 2026-05-02, 6/6 tests):
+      NORMAL on either side  → +200  (special, +0.2)
+      same affinity (non-NORMAL) → 0
+      attacker hand strong vs victim body → +500  (+0.5)
+      attacker hand weak vs victim body   → −500  (−0.5)
     """
     a = (attacker_hand or "").upper()
     v = (victim_body or "").upper()
     if a == "NORMAL" or v == "NORMAL":
+        return 200
+    if a == v:
         return 0
     if (a, v) in _LIQ_TRIANGLE:
-        return 0  # placeholder: strong matchup
+        return 500
     if (v, a) in _LIQ_TRIANGLE:
-        return 0  # placeholder: weak matchup
+        return -500
     return 0
 
 
@@ -416,47 +416,69 @@ def kill_threshold(
     def_threshold_ratio: int = 0,    # ×1000 prec
     attacker_hand: str = "NORMAL",
     victim_body: str = "NORMAL",
+    animosity_ratio: float = 0.4,    # KAMI_LIQ_ANIMOSITY[2] (cached on-chain config)
 ) -> dict:
-    """Kill-threshold predicate. Strike fires iff projected_HP < kill_zone.
+    """Canonical kill-threshold predicate. Strike fires iff projected_HP < kill_zone.
 
-    Empirical formula (sessions 76-79, validated to 99.6% on N=495 corpus):
-      threshold_ratio = (animosity + atk_shift − def_shift) × (1 − def_ratio)
-      kill_zone       = threshold_ratio × victim_max_hp
+    Per systems/liquidation.md, calibrated 6/6 against the team's official
+    liquidation calculator (founder cross-check 2026-05-02). See plan in
+    memory/plan.md (session 89) for the calibration table.
 
-    Canonical formula (per systems/liquidation.md):
-      efficacy        = KAMI_LIQ_THRESHOLD[2] + affinityShift + atk_ratio − def_ratio
-      shift           = (atk_shift − def_shift) × shiftPrecision
-      threshold       = (animosity × efficacy + shift) × victim_max_hp / precision
+      combat_ratio = ln(V_atk / max(1, H_def))
+      animosity    = Φ(combat_ratio) × KAMI_LIQ_ANIMOSITY[2]   (= 0.4)
 
-    The empirical and canonical agree numerically on the back-fit corpus
-    where def_ratio dominates and atk_ratio is small. Without on-chain
-    KAMI_LIQ_THRESHOLD[2] / shiftPrecision pulled, we keep the empirical
-    form here — it has the validated cert. The triangle (attacker hand
-    vs victim body) is captured in `_liq_affinity_shift` but currently
-    returns 0 pending config-pull (TODO).
+      affinity_shift (attacker hand vs victim body):
+        NORMAL on either side       → +0.2  (special)
+        same affinity (non-NORMAL)  → 0
+        hand strong vs body         → +0.5
+        hand weak vs body           → −0.5
+
+      # Ratio bonuses (atk_ratio, def_ratio) only apply when matchup
+      # is not weak. In a weak matchup, efficacy stays at base + shift.
+      if affinity_shift >= 0:
+          efficacy = 1.0 + affinity_shift + atk_ratio − def_ratio
+      else:
+          efficacy = 1.0 + affinity_shift   # weak matchup, ratios don't rescue
+
+      threshold_ratio = animosity × efficacy + atk_shift − def_shift
+      kill_zone       = floor(threshold_ratio × victim_max_hp)
+
+    Calibration table (death-below HP from team's calculator):
+      INSECT→SCRAP weak,  V=38, H=15, mhp=150, atk_r=0.25, atk_s=0.20  → 54  ✓
+      EERIE→SCRAP strong, V=36, H=20, mhp=200                           → 86  ✓
+      SCRAP→EERIE weak,   V=36, H=20, mhp=200                           → 28  ✓
+      NORMAL→NORMAL,      V=36, H=20, mhp=200, atk_r=0.20               → 80  ✓
+      NORMAL→NORMAL,      V=36, H=20, mhp=200, def_r=0.20               → 57  ✓
+      EERIE→SCRAP strong, V=36, H=20, mhp=200, atk_r=0.20               → 98  ✓
     """
     if victim_harmony <= 0:
         victim_harmony = 1
     combat_ratio = math.log(max(1, attacker_violence) / victim_harmony)
-    animosity = _gaussian_cdf(combat_ratio)
+    animosity = _gaussian_cdf(combat_ratio) * animosity_ratio
+
+    aff_shift = _liq_affinity_shift(attacker_hand, victim_body) / 1000.0
 
     atk_s = atk_threshold_shift / 1000.0
     def_s = def_threshold_shift / 1000.0
     atk_r = atk_threshold_ratio / 1000.0
     def_r = def_threshold_ratio / 1000.0
 
-    aff_shift = _liq_affinity_shift(attacker_hand, victim_body) / 1000.0  # 0 today
+    if aff_shift >= 0:
+        efficacy = 1.0 + aff_shift + atk_r - def_r
+    else:
+        efficacy = 1.0 + aff_shift  # weak matchup gates ratio bonuses
 
-    threshold_ratio = (animosity + atk_s - def_s) * (1.0 - def_r)
-    kill_zone = threshold_ratio * victim_max_hp
+    threshold_ratio = animosity * efficacy + atk_s - def_s
+    kill_zone = math.floor(threshold_ratio * victim_max_hp)
 
     return {
         "animosity": animosity,
+        "affinity_shift": aff_shift,
         "atk_shift": atk_s,
         "def_shift": def_s,
         "atk_ratio": atk_r,
         "def_ratio": def_r,
-        "affinity_shift": aff_shift,
+        "efficacy": efficacy,
         "threshold_ratio": threshold_ratio,
         "kill_zone": kill_zone,
         "victim_max_hp": victim_max_hp,
