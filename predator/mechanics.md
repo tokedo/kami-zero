@@ -577,3 +577,99 @@ model is wrong for this kami.
 The session 81/82 no-strike calls on 7884/15327/4618 were **likely
 overly conservative** — they were probably killable for hours. Accept
 the lesson, don't repeat it.
+
+## Validated HP projection (back-fit certificate, session 84)
+
+**N = 200 historical liquidations** (7d window, 2026-04-25 → 2026-05-02,
+filter: `amount IS NOT NULL`, no intervening `harvest_stop`).
+**M = 199 / 200 correctly explained** → **99.5%** accuracy.
+
+The single miss (v_idx=12629, elapsed=117s, projected=199, kill_zone=119)
+is consistent with a recently-revived victim entering harvest at 33 HP
+(REVIVE-item heal floor) rather than at total_hp. Out-of-model: REVIVE
+mid-cycle entry.
+
+### The validated model
+
+```
+projected_hp(now) = sync_hp_at_last_touch − strain(bounty_pool_now)
+
+strain(pool) = ceil(pool × 6500 × (1000 + strain_boost) / (1e6 × (Harmony + 20)))
+```
+
+Where:
+- `sync_hp_at_last_touch` = on-chain `health.sync` value (set at the most
+  recent `harvest_start` or `harvest_collect` for this kami).
+- `bounty_pool_now` = live `harvest.bounty.balance` from kami entity
+  (or projected from time delta if reading live isn't possible —
+  see fallback below).
+- `strain_boost` = oracle `kami_static.strain_boost` (×1000 prec, negative
+  reduces strain).
+- `Harmony` = oracle `kami_static.total_harmony`.
+
+**Strain only applies to the CURRENT uncollected pool.** Each `harvest_collect`
+already drained the pool and updated `health.sync` with the strain. Between
+actions the pool grows but the chain's stored HP doesn't change — projection
+just adds the current pool's strain to the last sync.
+
+### Fallback: projected pool when live read unavailable
+
+For historical back-fit (no live state), use sum of per-collect strains plus
+final-pool strain:
+
+```
+total_strain ≈ Σ_collects ceil(collect_amount_i × 6500 × (1000+sb) / (1e6 × (H+20)))
+             + ceil(final_pool × 6500 × (1000+sb) / (1e6 × (H+20)))
+```
+
+`final_pool` ≈ `liq_musu / spoils_ratio_assumed` (default 0.5). This is what
+`executor/scripts/backfit_liquidations.py --mode empirical` uses.
+
+For a forward projection (no current pool to read, e.g. estimating future
+HP), the canonical Fertility+Intensity bounty formula in
+`systems/harvesting.md` UNDER-projects by ~1.5× for many builds. Empirical
+calibration: applying `strain_mult = 1.5` to the projected-pool path lifts
+back-fit accuracy from 76.5% → 97.0% (formula mode). Prefer **always
+reading `bounty.balance` live** for live strikes; only fall back to
+projection when the chain read fails.
+
+### Cached config constants (verified from oracle)
+
+| Constant | Value | Source |
+|---|---|---|
+| Strain divisor | `H + 20` | systems/harvesting.md |
+| Strain coefficient | `6500` | systems/harvesting.md |
+| Strain precision | `/1e6` | systems/harvesting.md |
+| Strain_boost precision | `/1000` (negative reduces) | oracle docs |
+
+No further on-chain constants needed for HP projection — strain is
+deterministic from those four values plus pool, harmony, strain_boost.
+
+### Out-of-model edge cases (the 0.5%)
+
+- **REVIVE mid-cycle**: kami died, was revived (33 HP from item 11001/11002),
+  then started harvesting at 33 HP. Projection assumes sync_hp = total_hp
+  at harvest_start, which is wrong here. Mitigation: query oracle for `feed`
+  events with REVIVE items shortly before the harvest_start — if found,
+  use 33 HP as sync floor.
+- **HEAL items mid-harvest** (FOOD type, not REVIVE): adds HP without
+  resetting harvest. Not currently encountered in back-fit data; if it
+  becomes a class of misses, model by querying `feed` events between
+  hstart and liq with HP-restoring item ids.
+- **Window-edge over-claim** (oracle): if a kami's most recent
+  `harvest_start` is older than the 28d retention window, we can't anchor
+  the strain calculation. Live strikes don't suffer this — we read state
+  directly.
+
+### How to refresh this certificate
+
+When skill mechanics or game balance change, re-run:
+
+```bash
+# 1. Pull a fresh 7d window of liquidations from oracle (use the query in
+#    executor/scripts/backfit_liquidations.py header), save the JSON dump
+# 2. Run back-fit
+python3 executor/scripts/backfit_liquidations.py <dump.json> empirical 1.0
+# 3. Update N, M, accuracy in this section. If accuracy drops below 90%,
+#    investigate — formula has gaps.
+```

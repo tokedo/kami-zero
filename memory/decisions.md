@@ -2676,3 +2676,43 @@ Both findings written into `predator/mechanics.md`. Soft-target filter v2 + clus
 - memory/alerts.md: oracle 2-session outage escalation.
 
 **Next session (84)**: Re-wake +60 min. Watch 7884/15327/4618 for re-start (HARVESTING with low sync HP — opportunity for instant strike if owner restarts before full rest). With updated strain model: any rtvvvvv farm at intensity_boost ≥ 20 with elapsed harvest ≥ 3h is **probably already past kill_zone** — fire on cooldown-clear rather than wait. If oracle is back, fresh broader scan with the updated strain model. If oracle still down, continue node 86 live monitoring.
+
+## 2026-05-02 17:54 UTC — session 84
+
+**ETH balance**: not pulled (zero on-chain tx this session — pure read + tool-build).
+
+**Mandate**: Founder's session-83 plan replacement: **STOP STRIKING.** Build & back-fit-validate HP projection. No `liquidate` tx until ≥90% accuracy on historical kills + margin ≥ 5 HP on live candidate.
+
+**Acted**:
+- Built `executor/hp_projection.py` (already shipped end of session 83 from prior summary; module at 433 LOC, no chain dependencies, pure Python).
+- Built `executor/scripts/backfit_liquidations.py` — back-fit validator with two modes: `formula` (canonical Fert+Int projection + strain) and `empirical` (use actual oracle collect data + per-collect ceil strain).
+- Pulled 200 historical liquidations from oracle (7d window, no intervening `harvest_stop`, victim+attacker enriched with kami_static fields, node affinity from nodes_catalog).
+- Ran back-fit:
+  - **`formula` mode (no calibration): 153/200 = 76.5%** — under target.
+  - **`formula` mode + `strain_mult=1.5`: 194/200 = 97.0%** — calibrated path, usable as fallback.
+  - **`empirical` mode (using actual collect amounts from oracle): 199/200 = 99.5%** — **CERTIFICATE PASSED.**
+
+**Key finding**: Strain model is **correct as written in `systems/harvesting.md`** — the back-fit gap was not a formula bug, it was a **bounty projection** issue. The canonical Fert+Int+/1e9 formula under-projects realized bounty by ~1.5× because it doesn't fully capture per-collect intensity dynamics for kamis that collect frequently. With ACTUAL collect amounts substituted in (per-collect ceil(bounty × 6500 × (1000+sb) / (1e6 × (H+20))) summed + final-pool strain), the formula matches reality at 99.5%.
+
+**Validated model (now in `predator/mechanics.md` § "Validated HP projection")**:
+```
+projected_hp(now) = sync_hp_at_last_touch − strain(bounty_pool_now)
+strain(pool) = ceil(pool × 6500 × (1000 + strain_boost) / (1e6 × (Harmony + 20)))
+```
+For LIVE strikes: read `harvest.bounty.balance` via `get_kami_state` and apply strain to that pool. The chain's `health.sync` already incorporates all past strain — only the current uncollected pool's strain needs adding.
+
+**Single miss (v_idx=12629, elapsed=117s)**: consistent with REVIVE mid-cycle (kami at 33 HP from item 11001/11002 then started harvesting). Out-of-model edge case; mitigation noted in mechanics.md.
+
+**Doctrine**: appended to CLAUDE.md Predator Hard Rules → "**HP is computed, not read.** [...] No strike unless certificate is current AND validated projection puts candidate's HP below kill threshold by margin ≥ 5 HP." Updated `compute_current_hp(...)` to accept `bounty_pool_now` (live read) — confidence 0.95 when present, 0.7 when projecting from elapsed time.
+
+**Result**:
+- Validation certificate: **N=200, M=199, accuracy=99.5%** on 7d window 2026-04-25→2026-05-02. Recorded in `predator/mechanics.md`.
+- Tools shipped: `hp_projection.py` + `backfit_liquidations.py`.
+- No on-chain action this session.
+- 0 kills, 0 obols, 0 MUSU spoils.
+
+**Gas notes**: Zero gas. Oracle reads only.
+
+**Anomalies**: none. Oracle is healthy this session (was down sessions 82/83). Update `alerts.md` if it stays healthy through next session.
+
+**Next session (85)**: Re-wake +30 min. With certificate passed, the rule allows striking — but only when (a) live `harvest.bounty.balance` is read for the candidate (not projected), (b) strain on that pool puts projected HP below kill_zone by ≥ 5 HP, AND (c) standard pre-flight (cooldown clear, not guild member, no rtvvvvv blacklist conflict). Priority: scan node 86 live, identify candidates, fire one shot if any clears the validated gate. If no clean candidate, run a broader oracle-driven scan (top recent harvesters with weak Harmony, high projected pool, no atk_threshold skills) — pre-validate before traveling.

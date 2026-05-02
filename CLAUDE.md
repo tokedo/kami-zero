@@ -71,6 +71,7 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 4. **No cross-region travel for a single target.** Cluster math must justify every move > one room away. Reasoning logged in `decisions.md` before executing.
 5. **Counter-predator math before strike, every strike.** Even on a node you've hunted before — populations shift fast.
 6. **Tx budget per session is your own call**, but log gas spent vs obols + musu earned to `predator/metrics.md` every session. The metric, not a budget cap, is the regulator.
+7. **HP is computed, not read.** Kami current HP is never on-chain — it must be projected from `health.sync` (last-touch HP) plus strain on the live `harvest.bounty.balance` pool. The validated model and back-fit certificate live in `predator/mechanics.md` § "Validated HP projection". Use `executor/hp_projection.py` (`compute_current_hp(...)`, `kill_threshold(...)`) for every projection. **No strike unless** (a) the certificate is current (≥90% accuracy on a recent 7d back-fit) AND (b) the validated projection puts the candidate's HP below the kill threshold by margin ≥ 5 HP. If skill mechanics or game balance change, re-validate before striking — see "How to refresh this certificate" in mechanics.md.
 
 ## Self-Diagnostics
 

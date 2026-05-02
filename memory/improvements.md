@@ -205,3 +205,17 @@ Audit basis: read of `executor/server.py` MCP tool surface. Existing tools relev
   - Both kamis must be HARVESTING on the same node, attacker not on cooldown, attacker HP > 0, AND the threshold formula must yield `target_current_HP < threshold` (see `predator/mechanics.md`).
 - **Restart needed**: yes — running MCP server picks up new tool only after restart. For session 76 the tool was invoked via direct `python -c "import server; asyncio.run(server.liquidate(...))"` to avoid the restart round-trip.
 - **Commit**: (this session's harness commit)
+
+## 2026-05-02 — HP projection module + back-fit validator
+
+- **What**: Pure-python HP projection (`executor/hp_projection.py`, 433 LOC) and a back-fit validation script (`executor/scripts/backfit_liquidations.py`).
+- **Why**: 8 sessions of guess-at-HP striking burned 70M+ gas with 0 kills. Founder mandate: HP must be COMPUTED from canonical formulas + back-fit-validated against historical liquidations before any strike.
+- **Files**:
+  - `executor/hp_projection.py` — `compute_current_hp(...)` (HARVESTING/RESTING/DEAD branches), `kill_threshold(...)`, `harvest_efficacy(...)`, `strain_from_bounty(...)`, `projected_recovery(...)`, `max_hp(...)`. No chain dependencies — pure python, suitable for unit testing and back-fitting.
+  - `executor/scripts/backfit_liquidations.py` — validates the projection against historical liquidations. Two modes: `formula` (canonical Fert+Int projection) and `empirical` (use actual oracle collect data + per-collect ceil strain).
+- **How to use**:
+  - Live projection: read victim's `health.sync` and `harvest.bounty.balance` from `get_kami_state`, then `compute_current_hp(state="HARVESTING", sync_hp=..., bounty_pool_now=<live balance>, harmony=v.total_harmony, strain_boost=v.strain_boost, ...)`. The `bounty_pool_now` arg drives confidence to 0.95 (validated path).
+  - Kill threshold: `kill_threshold(attacker_violence=..., victim_harmony=..., victim_max_hp=..., atk_threshold_shift=..., def_threshold_shift=..., def_threshold_ratio=...)`. Strike fires only if `compute_current_hp.projected_hp < kill_threshold.kill_zone` by margin ≥ 5 HP.
+  - Re-validate certificate: pull a fresh 7d window of liquidations from oracle (template SQL in the back-fit script header), save JSON dump, run `python3 executor/scripts/backfit_liquidations.py <dump.json> empirical 1.0`. If accuracy drops below 90%, formula has gaps — investigate before striking.
+- **Validation certificate (session 84)**: N=200, M=199, accuracy 99.5% on 7d window 2026-04-25→2026-05-02. Recorded in `predator/mechanics.md` § "Validated HP projection". Single miss (v_idx=12629, 117s elapsed) consistent with REVIVE mid-cycle entry — out-of-model edge case.
+- **Commit**: (this session's harness commit)
