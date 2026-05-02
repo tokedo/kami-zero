@@ -247,12 +247,97 @@ observed delta on a controlled hit.
 1. Pull `get_kami_state_slim(target)` and check `health.sync` (current HP,
    not max).
 2. Compute approximate threshold:
-   `threshold ≈ GaussianCDF(ln(V_atk / H_vic)) × (1 + atk_shift − def_shift) × max_HP`.
-   (Affinity efficacy adjusts the multiplier inside the parens; NORMAL/NORMAL
-   = 1.0 baseline. EERIE→SCRAP / SCRAP→INSECT / INSECT→EERIE add a positive
-   nudge; the reverse three subtract.)
-3. **If threshold ≤ current_HP, skip — the strike will revert**. Pick
-   another target or wait.
+   `threshold_ratio ≈ GaussianCDF(ln(V_atk / H_vic)) + atk_shift − def_shift`
+   (additive shift form — see § "Empirical formula refinement (session 77)").
+3. **If threshold × maxHP ≤ current_HP, skip — the strike will revert**.
+   Pick another target or wait.
 4. As a quick rule-of-thumb for our V34 spearhead (12649) at full-HP
-   targets: clean kills require either H ≤ ~16 with def_shift ≤ 80, OR
+   targets: clean kills require either H ≤ ~14 with def_shift = 0, OR
    matching affinity to lift efficacy.
+
+## Empirical formula refinement (session 77)
+
+Two more reverts in session 77 forced a sharper read of the threshold
+formula. The version above was a working hypothesis; this section
+nails it down.
+
+### What we tried
+
+| Strike | Attacker | atk_shift | Target | H | def_shift | Hp(real est.) | Result |
+|---|---|---|---|---|---|---|---|
+| 76-A | 12649 V34 | 0.30 | 3764 | 21 | 0.00 | ~200/200 | revert "weak" |
+| 77-A | 12649 V34 | **0.33 (Hostility)** | 3764 | 21 | 0.00 | ~195-200/200 | revert "weak" |
+| 77-B | 12649 V34 | 0.33 (Hostility) | 14296 | 18 | 0.10 | 185/190 (post-tx sync) | revert "weak" |
+
+### Best-fit formula (additive shift, no atk_ratio in threshold)
+
+```
+threshold_ratio = GaussianCDF(ln(V_atk / H_vic)) + atk_shift − def_shift
+kill_zone       = threshold_ratio × maxHP
+strike clears iff current_HP < kill_zone   (strict <, not ≤)
+```
+
+`attack.threshold.ratio` (slim's 0.5 for 12649) does **not** appear in
+the kill formula. Best guess from the field name: it gates a different
+check (maybe spoils, intensity, or a secondary skill effect). Confirmed
+by all three reverts being consistent with the additive-shift form
+without needing the ratio multiplier.
+
+#### Worked checks against the data
+
+- 77-B: animosity = CDF(ln(34/18)) ≈ CDF(0.628) ≈ 0.735.
+  threshold_ratio ≈ 0.735 + 0.33 − 0.10 = 0.965. kill_zone ≈ 183.
+  Real HP ≈ 185 (synced post-tx). 185 ≥ 183 → revert ✓.
+- 76-A: animosity = CDF(ln(34/21)) ≈ CDF(0.482) ≈ 0.685.
+  threshold_ratio ≈ 0.685 + 0.30 − 0 = 0.985. kill_zone ≈ 197. Full HP
+  200 > 197 → revert ✓.
+- 77-A: same as 76-A but with hostility (0.33 instead of 0.30) →
+  threshold_ratio ≈ 1.015. kill_zone ≈ 203. **Should clear at full HP**.
+  But it reverted. Two possible explanations:
+  1. Slim's `attack.threshold.shift = 0.33` does NOT propagate into the
+     kill formula. The Hostility "buff" registers as a slim-only bonus
+     and does not write to the contract's threshold-state cache used
+     by `system.harvest.liquidate`. (Most likely — single-shot consumable
+     failed to land in the relevant component.)
+  2. The CDF (or the encoded animosity precision) gives a smaller value
+     than 0.685 — say ~0.65 — which would make 77-A's threshold_ratio
+     0.65 + 0.33 = 0.98 ≤ 1.0 → revert.
+
+Either way, **planning math should ignore Hostility's shift bump** until
+we have proof it propagates into the kill formula. Formula above is the
+operating rule.
+
+### Hostility Potion — provisional verdict (test inconclusive)
+
+- **Slim delta on attacker 12649 after `feed_kami(11410)`:**
+  `attack.threshold.shift 0.30 → 0.33` (+0.03). Other attack/spoils
+  fields unchanged. Buff persisted across two consecutive
+  liquidate attempts (stayed visible at 0.33 in slim after both
+  reverts).
+- **Empirical effect on threshold gate:** **null** — strike 77-A had
+  the bump in slim and still reverted at full HP against a target the
+  formula predicts is killable post-bump. Either slim shows a stat that
+  the kill path doesn't consume, or the bump is too small to lift
+  threshold above 1.0 (animosity may be under-reported in our model).
+- **Don't burn another Hostility Potion** for threshold-clearing
+  purposes until we have a non-edge-case test (a target the formula
+  says is killable WITHOUT Hostility, then re-test WITH it on a
+  comparable target to A/B the spoils delta, since spoils is the most
+  likely real effect).
+
+### Strain decay rate (empirical)
+
+- Attacker 12649 (strain_boost 0): HP synced 170 → 163 over ~85 min of
+  active harvest = **~0.082 HP/min** (about 0.04% of max HP/min).
+- Target 14296 (strain_boost 0): HP 190 → 185 over 158 min =
+  **~0.032 HP/min** (about 0.017% of max HP/min) — even slower; this
+  may reflect that 14296 sat idle without an intensity ramp.
+- Target 3764 (strain_boost −0.125, i.e. −12.5% strain): expected
+  ~0.07 × normal rate. Over 96 min should have lost ≤ 5 HP at most.
+
+**Implication**: at these rates, waiting for a Guardian-built target's
+HP to bleed below an out-of-range threshold takes hours, not tens of
+minutes. Doctrine "strain wait band" only works against the **near-edge**
+case (kill zone ≈ 0.99 × maxHP, need ≤ 1% decay). For Guardian-
+defended targets where kill zone is 0.85–0.95 × maxHP, strain wait is
+not the right lever — affinity or recoil-via-multi-strike is.

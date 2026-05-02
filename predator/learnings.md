@@ -250,3 +250,83 @@ These move to session 77.
 Founder rule: only after observing 11224 in real hunts. Session 76
 produced no kills. **3 SP stay unspent.** Allocation deferred to a
 session in which 11224 actually strikes.
+
+---
+
+## Session 77 — Hostility-boosted re-strike: two more reverts (no kill)
+
+**Outcome**: 0 kills, 0 obols, 7.81M gas burned. Definitive read on
+the kill formula and a provisional verdict on Hostility Potion. Session
+budget breakdown:
+- Hostility Potion fed to 12649 (`feed_kami` not `use_account_item`):
+  2.42M gas. Pre/post slim delta = `attack.threshold.shift 0.30 → 0.33`.
+- Strike 1 (3764 re-attempt): 2.68M gas, reverted "kami lacks
+  violence (weak)".
+- Strike 2 (tom 14296, H18 with def_shift 0.10): 2.71M gas, same
+  revert.
+
+### What we learned (load-bearing)
+
+1. **Kill formula nailed down**: `threshold_ratio = animosity +
+   atk_shift − def_shift`. Additive shift form. `attack.threshold.ratio`
+   (slim's 0.5 for 12649) does NOT enter the kill check — see
+   `mechanics.md` § "Empirical formula refinement (session 77)" for
+   the worked-example fits and the math.
+2. **Hostility Potion**: fed via `feed_kami(kami_id, food_item_id=11410)`.
+   `use_account_item(11410)` reverts with "not for ACCOUNT" — it's
+   kami-targeted. The +0.03 shift visible in slim does NOT cross the
+   kill-threshold gate in either of our two test strikes (one of which
+   the formula predicted should clear). Either slim shows a stat the
+   kill path doesn't read, or animosity is under-estimated by our CDF
+   model. **Stop burning Hostility for threshold-clearing purposes.**
+3. **Strain decay rate observation**: 12649 (strain_boost 0) lost 7 HP
+   over ~85 min active harvest = ~0.082 HP/min. Target 14296 lost 5 HP
+   over 158 min = ~0.032 HP/min. **Implication**: waiting for a
+   Guardian-defended target (kill_zone ≤ 0.95 maxHP) to bleed below
+   threshold takes hours-to-days, not minutes. The "strain wait" lever
+   only matters for near-edge targets (kill_zone 0.97–0.99).
+4. **Node 86 is Guardian-saturated**. Oracle scan of 40 active
+   harvesters at H ≤ 18: every single one has def_threshold.shift ≥
+   0.10. Only outlier in our hunting band is 3764 (H21 / def 0). For
+   bpeon's V34 spearheads, virtually every node-86 farmer sits in
+   `kill_zone ≤ 0.95 × maxHP` band → strain-wait is not viable.
+5. **Counter-predator gate clear at session start**: top-15 7d
+   liquidator scan crossed against current node-86 active harvesters
+   returned only **Aaron's kami 14430** as a node-86 last-start, but
+   it's RESTING (harvest INACTIVE since ~16h ago) — no live threat.
+
+### Strategic implication for session 78+
+
+**The "camp on node 86 + strain-wait" plan is not yielding kills.**
+Two options for the next pivot:
+
+A) **Affinity hunt** — switch attacker by target body. 11224 (EERIE) →
+   SCRAP-body targets, 6058 (SCRAP) → INSECT-body, 10705 (INSECT) →
+   EERIE-body. Affinity efficacy bonus may add the missing 5–10% to
+   kill_zone. Costs: each hunter needs to be HARVESTING on node 86
+   first (1.5M gas/start). Worth it if even one strike lands.
+B) **Cluster scan elsewhere** — node 86's saturation by Guardians
+   suggests other nodes might be less defended. Per oracle session 73
+   data: nodes 73, 16, 60, 9 are next biggest. Probably also Guardian-
+   defended at the top of the leaderboard, but maybe softer at the
+   margins. Movement cost is non-trivial (6+ M gas per cross-region
+   move) so this needs cluster math first.
+
+**Session 78 recommendation: Option A.** Same node, lower marginal
+gas, tests the affinity hypothesis explicitly. If 11224 strike on a
+SCRAP-body target lands, we have a working hunt loop. If not, we
+learn the affinity multiplier is too small to matter and Option B
+becomes mandatory.
+
+### What did NOT get tested this session
+- Recoil HP cost of a successful strike (no successful strike).
+- Cooldown duration (no successful strike).
+- Hostility Potion's actual effect (e.g. spoils delta) — would need a
+  successful strike to compare against a baseline strike.
+- 11224's 3 SP — still unspent per founder rule.
+
+### Hostility Potion availability
+- Inventory still shows "Hostility Potion 1" pre-feed → 0 post-feed.
+  We've burned the potion. Future characterization requires acquiring
+  another (Mina shop? droptable? unknown). **Add to ideas_to_founder.md**
+  if we want to characterize spoils delta cleanly.
