@@ -3,6 +3,21 @@
 This repo runs autonomously on a GCP VM. Every session is triggered by cron.
 Your job: play Kamigotchi intelligently, complete quests, improve the harness.
 
+## Data Plane: Oracle-Only (founder, 2026-05-02)
+
+**All world-state reads come from kami-oracle.** Stats, traits, skills, build, sync HP at last touch, current state, harvest pool, harvest timestamps, bonuses, equipment, location, node affinity — every datum that feeds a predator decision. Oracle is the single source of truth for "what is the world."
+
+Web3 direct chain reads are the **staleness escape hatch only** — use when oracle has the schema but its snapshot lags (e.g., `kami_static.build_refreshed_ts` older than the latest level_up event for the target). Web3 reads are not first-line; oracle is.
+
+**Kamibots is forbidden for world-state reads in kami-zero.** No `get_kami_state`, `get_account_kamis`, `get_inventory`, no playwright endpoints in any predator-decision path. Kamibots remains in scope only for control-plane operations (e.g., kami-agent strategy management on harvester accounts) — not for kami-zero's world-state reads.
+
+If oracle is missing a field kami-zero needs, write the ask to `ideas_to_founder.md` and either skip the candidate or accept reduced confidence. Do **not** fall back to kamibots.
+
+The canonical primitives live in `executor/oracle_state.py`:
+- `oracle_kami_state(kami_index)` — composite read; replaces `get_kami_state`
+- `reconstruct_bounty_pool(kami_index)` — live pool projection from action stream
+- `resolve_target_owner(kami_index)` — replaces playwright owner lookup
+
 ## Knowledge sources (canonical, read these before deriving)
 
 When you need to understand a mechanic, check the canonical doc *first*. Do not "derive empirically" what is already written down. Empirical refinement on top of canonical is fine; *replacing* canonical with a guess is gas waste.
@@ -72,6 +87,7 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 5. **Counter-predator math before strike, every strike.** Even on a node you've hunted before — populations shift fast.
 6. **Tx budget per session is your own call**, but log gas spent vs obols + musu earned to `predator/metrics.md` every session. The metric, not a budget cap, is the regulator.
 7. **HP is computed, not read.** Kami current HP is never on-chain — it must be projected from `health.sync` (last-touch HP) plus strain on the live `harvest.bounty.balance` pool. The validated model and back-fit certificate live in `predator/mechanics.md` § "Validated HP projection". Use `executor/hp_projection.py` (`compute_current_hp(...)`, `kill_threshold(...)`) for every projection. **No strike unless** (a) the certificate is current (≥90% accuracy on a recent 7d back-fit) AND (b) the validated projection puts the candidate's HP below the kill threshold by margin ≥ 5 HP. If skill mechanics or game balance change, re-validate before striking — see "How to refresh this certificate" in mechanics.md.
+8. **Kamibots-API state reads are forbidden in any predator-decision path.** Oracle is the data plane (see top-of-file "Data Plane: Oracle-Only"). All inputs to `compute_current_hp` / `kill_threshold` come from `executor/oracle_state.py`. Kamibots may still be used for kami-agent control-plane operations (auto_v2 strategy management on harvester accounts) but never for kami-zero world-state reads.
 
 ## Self-Diagnostics
 

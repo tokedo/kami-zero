@@ -583,16 +583,33 @@ The session 81/82 no-strike calls on 7884/15327/4618 were **likely
 overly conservative** — they were probably killable for hours. Accept
 the lesson, don't repeat it.
 
-## Validated HP projection (back-fit certificate, session 84)
+## Validated HP projection (back-fit certificate)
 
-**N = 200 historical liquidations** (7d window, 2026-04-25 → 2026-05-02,
+### Session 87 re-validation (oracle-only data plane)
+
+**N = 495 historical liquidations** (7d window, 2026-04-25 → 2026-05-02,
 filter: `amount IS NOT NULL`, no intervening `harvest_stop`).
-**M = 199 / 200 correctly explained** → **99.5%** accuracy.
+**M = 493 / 495 correctly explained** → **99.6%** accuracy.
 
-The single miss (v_idx=12629, elapsed=117s, projected=199, kill_zone=119)
-is consistent with a recently-revived victim entering harvest at 33 HP
-(REVIVE-item heal floor) rather than at total_hp. Out-of-model: REVIVE
-mid-cycle entry.
+The 2 misses are both short-elapsed (<1h) edge cases consistent with
+REVIVE mid-cycle entry: v_idx=12629 (117s, proj=199, kz=119) and
+v_idx=15273 (3235s, proj=82, kz=49) — both have sync_hp != total_hp at
+harvest_start due to revive-from-dead.
+
+This re-validation was run after the **structural migration** from
+kamibots-fed inputs to oracle-only inputs (session 87). Same back-fit
+script (`executor/scripts/backfit_liquidations.py empirical 1.0`); inputs
+are now produced by the corpus query in
+`memory/decisions.md` § session 87 (joins liq → harvest_start →
+harvest_collects → kami_static victim/attacker → nodes_catalog).
+The new live-targeting code path is `executor/oracle_state.py`
+(`oracle_kami_state`, `reconstruct_bounty_pool`).
+
+### Session 84 baseline (kamibots-fed inputs, deprecated path)
+
+**N = 200, M = 199, accuracy 99.5%.** Same window. Same miss class
+(v_idx=12629). Cert remained stable across the migration — projection
+math is unchanged; only the data plane source moved.
 
 ### The validated model
 
