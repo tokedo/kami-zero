@@ -341,3 +341,45 @@ minutes. Doctrine "strain wait band" only works against the **near-edge**
 case (kill zone ≈ 0.99 × maxHP, need ≤ 1% decay). For Guardian-
 defended targets where kill zone is 0.85–0.95 × maxHP, strain wait is
 not the right lever — affinity or recoil-via-multi-strike is.
+
+## Affinity bonus — provisional null finding (session 78)
+
+Tested 11224 (V36 H11, **EERIE hand**, atk_shift 0.28) vs 13253 (tom,
+SCRAP body, V15/H20, def_shift 0.10, maxHP 200, current HP 194 = 0.97).
+EERIE-hand → SCRAP-body is the advantageous matchup in the affinity
+triangle.
+
+- Predicted no-affinity threshold_ratio: 0.722 (animosity) + 0.28 − 0.10 = **0.902**.
+- Predicted no-affinity kill_zone: 0.902 × 200 = **180**.
+- Real HP: 194 → if no affinity, expect revert ✓.
+- Strike result: **revert "kami lacks violence (weak)"** at 2.68M gas.
+
+**Inference**: the affinity bonus, IF it propagates into the kill
+formula at all, contributes < 0.07 to threshold_ratio for an
+EERIE-hand vs SCRAP-body matchup. Either the affinity efficacy multiplier
+in the GDD formula is small in practice (e.g. +0.05–0.10 range, which
+when multiplied by animosity 0.722 yields +0.04–0.07), or it doesn't
+register on the field at all.
+
+**Practical implication**: roster-spearhead-class atk_shift (0.28–0.33)
++ optimal affinity is **insufficient to one-shot** Guardian-built
+H≥18 farmers at 90%+ HP. Node 86 (and any equivalently Guardian-
+saturated node) is structurally unkillable for this roster at full
+prey HP.
+
+**Alternative levers to test next**:
+
+1. **Prey at lower HP** — strain decay at ~0.03–0.08 HP/min on
+   unstrained targets. A 0.97 HP-fraction target needs ~3–5 hours to
+   bleed below a 0.90 kill_zone. Feasible for repeat hunts but not
+   for "session-and-go" strikes.
+2. **Less-defended targets** — softer nodes with def_shift = 0
+   (zero-defender farmers) reset the math. See
+   `predator/targeting.md` § "Cross-node target distribution
+   (session 78 oracle scan)".
+3. **Recoil-via-multi-strike** — accept that single-shot kills aren't
+   available; chain partial-HP strikes from multiple attackers.
+   Untested; cost/yield unknown.
+4. **Attack threshold ratio** — `attack.threshold.ratio` at 0.5 may
+   actually enter a path we haven't isolated. Worth re-reading the
+   on-chain library code if/when GDD source becomes available.

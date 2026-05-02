@@ -330,3 +330,77 @@ becomes mandatory.
   We've burned the potion. Future characterization requires acquiring
   another (Mina shop? droptable? unknown). **Add to ideas_to_founder.md**
   if we want to characterize spoils delta cleanly.
+
+---
+
+## Session 78 — affinity hunt: revert (no kill)
+
+**Outcome**: 0 kills, 0 obols, 5.33M gas. Tested 11224 (EERIE-hand,
+V36/H11, atk_shift 0.28) vs SCRAP-body 13253 (tom, V15/H20, def_shift
+0.10, HP 194/200). Strike reverted "kami lacks violence (weak)" at
+2.68M gas. **Affinity bonus is < 0.07 contribution to threshold_ratio
+for our roster** — insufficient to crack Guardian-defended H20 farmers
+at 90%+ HP. Detail in `mechanics.md` § "Affinity bonus — provisional
+null finding".
+
+### What happened, in order
+
+1. Read state: 11224 RESTING at 90/140 HP, cooldown clear. 12649 still
+   HARVESTING node 86 from session 77 (HP 163/170, atk_shift 0.33
+   Hostility-buff persists across full sessions).
+2. Oracle scan for SCRAP-body active harvesters at node 86. 40 rows.
+   Filter against guild-no-touch.csv: most low-H candidates (23savage,
+   erere, Tonin, Shadow3X, topobadger) are guild-protected.
+3. **Validated guild gate end-to-end**: tried `liquidate(target=12433
+   topobadger)` → tool returned `blocked: true, reason: "target
+   account_id matches guild member 'topobadger'"`. **No tx submitted.**
+   First real proof the in-code gate works under live conditions.
+4. Pivoted to **non-guild SCRAP candidates 13253 + 11332** (both tom).
+   Both V20/H20, def_shift 0.10, HP near full. Predicted threshold_ratio
+   without affinity = 0.902.
+5. Healed 11224 (Cheeseburger 50 HP) → started harvest on node 86.
+6. Strike 13253 → revert. Result documented above.
+
+### Strategic implication for session 79
+
+**Three cumulative strike-test sessions, zero kills, ~24M gas burned.**
+Doctrine says: change something. The change is **cluster move off
+node 86**. Oracle cross-node scan (session 78, see `targeting.md` §
+"Cross-node target distribution") shows:
+
+- **Node 25**: 49 zero-def EERIE-body harvesters. Perfect for 10705
+  (INSECT hand). 7× node 86's best affinity bucket.
+- **Node 88**: 10 SCRAP-soft (vs node 86's 15 mostly-guild). Worth
+  scoping for 11224.
+- **Node 62**: 11 INSECT-soft. Worth scoping for 6058.
+
+**Session 79 plan**: oracle scan + guild-filter + non-guild cluster
+math for node 25 first (highest density, best affinity for 10705).
+If clean ≥ 5 non-guild zero-def candidates exist, plan the move
+(travel cost ~5–6M gas). Strike with 10705 to test affinity at scale.
+
+If node 25 cluster also disappoints, the working hypothesis becomes
+**affinity doesn't propagate to kill formula at all** — and the lever
+shifts to either prey strain decay or finding pure low-V/low-HP
+targets independent of affinity.
+
+### What did NOT get tested (still)
+
+- Recoil HP cost — no successful strike again.
+- Cooldown duration — no successful strike.
+- Full effect of Hostility (it persisted on 12649 across sessions but
+  did not enable any kill against tested targets).
+- 11224's 3 SP — still unspent per founder rule.
+
+### State left at session end
+
+- 11224 HARVESTING node 86 (started 07:33 UTC ≈ 1777707222). Will
+  accumulate strain over the gap to next session.
+- 12649 still HARVESTING node 86 from session 77.
+- Other 4 predators RESTING at node 86.
+- bpeon account at room 86.
+
+If the next session decides to leave node 86 for cluster-move target,
+the migration teardown is: stop both 11224 + 12649 harvests + all
+bpeon kamis on node 86 → travel → harvest_start at new node. Gas
+estimate ~12–15M for the move + new starts (per session 76 reference).
