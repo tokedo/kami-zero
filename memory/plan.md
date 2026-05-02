@@ -4,9 +4,13 @@ This is a complete replacement for `memory/plan.md` on the VM. Push to `~/kami-z
 
 ---
 
-## ⚠️ Founder cross-checked the formula against in-game client truth — found two bugs
+## ⚠️ Founder cross-checked the formula against in-game client truth — found two bugs (HP), audit also for kill_threshold
 
-While session 87 was running, founder + assistant ran a 5-kami cross-check using in-game client snapshots from Geometric Cliffs (node 82). The session 87 work was good (oracle-only data plane, ×1.4 calibration approximates 16479's right answer), but **the calibration multiplier is a fudge factor masking two structural bugs in `executor/hp_projection.py`**. With both fixed, the formula matches client within 0–1 HP across all 5 kamis, mean error 0.11%. **Remove the calibration multiplier this session — replace with the rigorous fixes.**
+While session 87 was running, founder + assistant ran a 10-kami cross-check using in-game client snapshots from three different nodes (Geometric Cliffs, Blooming Tree, Guardian Skull). The session 87 work was good (oracle-only data plane, ×1.4 calibration approximates 16479's right answer), but **the calibration multiplier is a fudge factor masking two structural bugs in `executor/hp_projection.py`**. With both fixed, the formula matches client within 0–1 HP across all 10 kamis, mean error 0.11%. **Remove the calibration multiplier this session — replace with the rigorous fixes.**
+
+**Founder also flagged**: HP projection is only half the equation. The other half is `kill_threshold(attacker, victim)` — at what HP can our striker actually liquidate a target? That formula is the empirical one from sessions 76–79 (`(animosity + atk_shift − def_shift) × (1 − def_ratio)`) which was derived under the broken HP formula. With HP fixed, kill_threshold needs **independent re-validation against the canonical formula in `systems/liquidation.md` + `mechanics/combat/kill.md`** — particularly the affinity-efficacy term that the empirical version dropped. See Priority 4b below.
+
+**Founder also rerolled 12649's skills for max attack** on 2026-05-02. 12649's stats are different from prior sessions' characterization. Re-read its full state from the oracle path before any strike plan involves 12649.
 
 The cross-check evidence (all on node 82, body=SCRAP, eff varies):
 
@@ -139,11 +143,51 @@ If 16479 doesn't come out at 29 ± 1 HP, the fix is incomplete — re-investigat
 
 ---
 
+## Priority 3b — Validate `kill_threshold` against the canonical formula
+
+The current `kill_threshold` in `executor/hp_projection.py` was derived empirically across sessions 76–79 — when the HP formula was wrong. With the HP fix, the empirical kill_threshold needs to be re-checked against the canonical spec.
+
+Canonical (per `systems/liquidation.md` + `kamigotchi-gdd/mechanics/combat/kill.md`):
+
+```
+combatRatio  = ln(attackerViolence / victimHarmony)
+animosity    = Φ(combatRatio) × KAMI_LIQ_ANIMOSITY[2] / 10^(18 + KAMI_LIQ_ANIMOSITY[3] − 6)
+
+# Threshold efficacy uses LIQUIDATION's rock-paper-scissors triangle
+#   (attacker hand vs victim body): EERIE > SCRAP > INSECT > EERIE
+# This IS the triangle — keep it here. (Bug 1 was about removing the triangle from
+# harvest_efficacy; kill_threshold's efficacy DOES use the triangle.)
+efficacy     = KAMI_LIQ_THRESHOLD[2] + affinityShift + atk_threshold_ratio − def_threshold_ratio
+shift        = (atk_threshold_shift − def_threshold_shift) × shiftPrecision
+threshold    = (animosity × efficacy + shift) × victimMaxHP / precision
+strike fires iff projected_HP < threshold (strict <)
+```
+
+Tasks:
+1. Read the on-chain config values: `KAMI_LIQ_ANIMOSITY[2,3]`, `KAMI_LIQ_THRESHOLD[2]`, the precision exponents. Cache them in `predator/mechanics.md` § "Cached config constants".
+2. Confirm the affinity-efficacy term: `+650/+350` for strong (hand beats body in triangle), `−250/−100` for weak — or whatever the threshold-efficacy table says (the body/hand split may differ between harvest and liquidation; read the canonical config).
+3. Compare the canonical `kill_threshold(attacker, victim)` output against the empirical one for 5–10 attacker/victim pairs from oracle's historical liquidations. If they differ, the empirical was wrong. Switch to canonical.
+4. Re-run the full back-fit (HP-fix + kill_threshold canonical) — should still hit ≥99.5% on the same N=495 corpus session 87 used. If accuracy *improves* or holds, you've validated both formulas. If it drops, one of the two needs more work.
+
+If kill_threshold's empirical formula was wrong, that's Bug 3 — document in `predator/mechanics.md` § "Validated formula corrections (founder cross-check 2026-05-02)" alongside Bugs 1 & 2.
+
+**No live strikes until kill_threshold is also confirmed against canonical.**
+
+---
+
 ## Priority 4 — Live-target cross-check
 
 The 5 calibration kamis are guild-blocked (`caw-caw` and other founder accounts on the no-touch list — confirmed in session 87). Pick **one or two non-guild HARVESTING kamis from the broader oracle scan** and run the new projection. If you can observe their HP / pool through any reliable means (oracle's reconstructed values, on-chain reads), confirm match within ≤2 HP.
 
 If oracle's reconstruction matches your formula prediction for non-calibration kamis, the fix generalizes.
+
+---
+
+## Priority 4b — Re-read 12649's full state (skills rerolled by founder)
+
+Founder rerolled 12649's skill points for max attack on 2026-05-02. The kami's stats — Violence in particular, and any of `bonuses.attack.threshold.shift/ratio` — are different from prior session memory. Pull 12649's full state via the new oracle-only path. Update `predator/learnings.md` § "Roster brief" with the new build. Note any changes to its targeting role.
+
+If 12649 is now the strongest striker (V > 11224's 36, or with significant ATK_THRESHOLD bonuses), strike-priority assignment may need to update. Don't allocate to a strike attempt until the cross-check on canonical formulas (P3 + P3b) is complete.
 
 ---
 
