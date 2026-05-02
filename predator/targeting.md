@@ -129,3 +129,38 @@ yield to break even on the round trip. Both 60 and 62 plausibly
 support that, but **must verify counter-predator scan and live
 strain on the 8 buja723 / 7 wiuuuu kamis right before the move** —
 not pre-commit. Doctrine: data-then-move, never the reverse.
+
+## Owner stop-rule: rtvvvvv (sessions 76 / 78 / 80, codified 83)
+
+rtvvvvv farms on node 86 have been the worst-case strain-wait targets across
+five sessions. Empirical pattern:
+
+- **Build**: H ≥ 19, def_shift 0.20 (skills 311 ×5 + 312 ×5 + 313 ×?, no
+  323/341 — pure tier-1 Guardian). A few use H ≥ 25 with strain_boost
+  −0.125 from full skill 232 / 222.
+- **Strain rate**: ≤ 0.083 HP/min on H19 base; ≤ 0.075 HP/min on H ≥ 20
+  (skill-boosted intensity offsets node throughput); ≤ 0.072 HP/min on
+  H ≥ 25 (session 80 finding on 15538). The window where current_HP
+  falls below kill_zone is multi-hour wait per kill.
+- **Owner cadence**: rtvvvvv kamis cycle to RESTING **without warning**.
+  Session 82 → 83: 7884 went from 552 min HARVESTING (margin +5) to
+  RESTING in ~93 min — owner self-cycled before strain-wait flipped.
+  4618 likewise cycled session 81 → 82. Strain-wait depth has no
+  guarantee of being realized.
+- **Reverts**: 3 strikes against rtvvvvv farms (3764 s76, 13253 s78
+  was tom not rtvvvvv — actually 3764 / 15538 / 7884-class) burned
+  ≥ 8M gas with zero kills.
+
+**Stop rule**: rtvvvvv farms are **last-resort candidates only**. Keep
+in the pool only when no fresh non-rtvvvvv non-guild softs exist. Even
+then, no strike unless margin ≤ +3 *and* one of:
+
+- striker has a fresh atk_shift bonus (Hostility Potion, etc.) that
+  pushes threshold ratio above the projected current HP, OR
+- target shows clear pre-cycle signal (cooldown remaining ≤ 60s,
+  bounty ≥ some threshold suggesting owner intent to ride out).
+
+Otherwise: skip the strike, log the projected margin, and move the
+session focus to broader scans, mechanics work, or rest. The decision
+not to fire on a margin-positive rtvvvvv farm is the obol-per-tx-positive
+call by a wide margin.

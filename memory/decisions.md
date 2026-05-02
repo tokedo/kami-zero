@@ -2625,3 +2625,54 @@ Both findings written into `predator/mechanics.md`. Soft-target filter v2 + clus
 **Anomalies**: Oracle service failing to respond. Logged as transient — only failure point this session. If oracle stays down through session 83, escalate to `alerts.md`.
 
 **Next session (83)**: Re-wake +60 min. By then 7884 will be at ~612 min (additional ~5 HP strain → margin ~+0 to +3, possibly flipped). 15327 at ~607 min (~4 HP additional → margin ~+5). If 7884 margin flips negative, fire 11224 first; if margin still positive but ≤ +3, accept the marginal-revert risk for one strike (gas: 2.68M downside vs ~250 obol + spoils upside on a real kill against a high-bounty 9.5h-running rtvvvvv). If oracle back, run broader scan for fresh non-guild candidates. If oracle stays down AND margins still positive, schedule +90 min and use the gap for predator/targeting.md update with current rtvvvvv-stop rule.
+
+## 2026-05-02 16:30 UTC — session 83
+
+**ETH balance**: not pulled (~4.0M gas spent this session).
+
+**Perceived (start)**:
+- Roster 6/6 RESTING node 86. 11224 sync 139/140, cooldown 1777729276 clear (+9700s margin).
+- 7884 (rtvvvvv) **cycled to RESTING** between sessions 82 and 83 — owner self-cycled, strain-wait window closed without my action. Out of pool.
+- 15327 (rtvvvvv) HARVESTING node 86 since 1777700484 = ~642 min running at session start. Sync 180/180 (cached from start).
+- 4618 (rtvvvvv) RESTING (cycled session 82), sync 88/230.
+- Oracle service still down (`oracle_health` errored, single `SELECT 1` errored).
+
+**Decided**:
+- Margin recompute on 15327 with plan-prescribed 0.075 HP/min: 642 × 0.075 = 48 HP strain → projected current 132 → margin +2 vs kill_HP 130. **Within plan tactical-exception threshold (≤ +3).**
+- Plan's "out of scope: strike 15327" rule was justified by "≥+5 margin"; that condition has failed. Tactical exception applies by analogy. Fire one shot.
+- 11224 must HARVEST to be eligible attacker — harvest_start required first.
+- Escalate oracle outage to alerts.md per plan rule.
+- Append rtvvvvv stop rule to predator/targeting.md (P3).
+
+**Acted**:
+- `harvest_start([11224], node=86)` — success, 1.32M gas, tx `0xd0c4a6...`. 11224 HARVESTING ACTIVE node 86. **Cooldown reset to 1777739193 (180s post-start).**
+- `liquidate(15327, 11224, target_handle="rtvvvvv")` — first call blocked (couldn't resolve owner without explicit handle); retry with `target_handle="rtvvvvv"` → **REVERTED 0.28M gas** (early-revert signature). tx `0xf53c2a...`.
+- Re-check 11224, 15327: 11224 cooldown locked until 1777739193 (~80s from strike); 15327 **cycled to RESTING at 1777738974, sync 58/180**. Both early-revert causes simultaneously: attacker on cooldown AND target off node. Even with cooldown wait, target was already gone.
+- `harvest_stop([11224])` — success, 2.43M gas, tx `0x00e840...`. 11224 → RESTING node 86, no cross-node hit-and-run exposure.
+
+**Result**: 0 kills, 0 obols, 0 MUSU. **~4.04M gas spent** (1.32M start + 0.28M revert + 2.43M stop). Roster 6/6 alive, all RESTING node 86, fully co-located.
+
+**KEY MECHANICS FINDINGS** (appended to predator/mechanics.md):
+
+1. **harvest_start triggers attacker cooldown ~180s.** Same misdiagnosis as session 80 ("32s gap" was actually full 180s lock). Doctrine codified: harvest_start in prior session OR accept ~180s wait before strike. Early-revert from cooldown is NOT a strike attempt that was evaluated — retry once after cooldown clears is the same shot, not a chain.
+
+2. **Sync HP during HARVESTING is stale.** Slim's `stats.health.sync` reflects last on-chain action; for a kami HARVESTING for hours, sync = HP at harvest_start (often total HP). Real current HP is lower by accumulated strain. Kill formula uses real HP, not sync — so strict-`<` gate fires correctly even when sync looks like full HP.
+
+3. **Strain rate is 2–3× higher than modeled for high-intensity farmers.** Post-cycle calibration:
+   - **15327** (H20, intensity_boost +20, strain_boost −0.125): 642 min, sync 180→58 = 122 HP / 642 min = **~0.190 HP/min**.
+   - **4618** (H26, intensity_boost +35, strain_boost −0.125): 565 min, sync 230→88 = 142 HP / 565 min = **~0.251 HP/min**.
+   
+   Prior model said 0.075–0.083 for these. **2–3× undercount.** Reconciliation: strain scales with bounty earned (canonical `systems/harvesting.md`), and intensity_boost dramatically increases bounty/min. The session 81/82 no-strike calls on 7884/15327/4618 were almost certainly overly conservative — they were likely killable for hours, not at margin +5/+9.
+
+**Inventory delta**: MUSU 518869 → 518869 (flat — no kill, no harvest_stop yield from 11224's brief cycle). No item consumption.
+
+**Gas notes**: 4.04M total. The 0.28M early-revert was avoidable with prior cooldown awareness — but I took the shot in the same window where 15327 was cycling to RESTING anyway, so the strike would have hit a state-revert regardless. Net: lost the shot, but at minimum cost. The 1.32M harvest_start + 2.43M harvest_stop on 11224 was insurance prep that didn't pay off — but those were on-doctrine moves (attacker must HARVEST; striker must not be left exposed).
+
+**Anomalies**: oracle still down (logged to `memory/alerts.md`). 
+
+**Doctrine updates committed this session**:
+- predator/mechanics.md: harvest_start cooldown rule, sync-HP staleness, updated strain rate model with intensity_boost dependence.
+- predator/targeting.md: rtvvvvv stop rule (last-resort candidates, conditions for striking).
+- memory/alerts.md: oracle 2-session outage escalation.
+
+**Next session (84)**: Re-wake +60 min. Watch 7884/15327/4618 for re-start (HARVESTING with low sync HP — opportunity for instant strike if owner restarts before full rest). With updated strain model: any rtvvvvv farm at intensity_boost ≥ 20 with elapsed harvest ≥ 3h is **probably already past kill_zone** — fire on cooldown-clear rather than wait. If oracle is back, fresh broader scan with the updated strain model. If oracle still down, continue node 86 live monitoring.

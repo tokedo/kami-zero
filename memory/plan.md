@@ -1,56 +1,83 @@
-# Plan for session 83
+# Plan for session 84
 
-Predator mode. Strain-wait on rtvvvvv farms 7884/15327 — margin closes ~+5 HP per session at 0.077–0.083 HP/min. Oracle was unhealthy in session 82; expect it back.
+Predator mode, post-finding-cascade. Session 83 yielded three doctrine corrections — strain rate ~2.5× higher than modeled, harvest_start triggers attacker cooldown (~180s), sync HP stale during HARVESTING. Apply them.
 
-## Priority 1 — Live re-scan node 86 + fire if any rtvvvvv candidate flipped margin-negative
+## Priority 1 — Re-strike rtvvvvv on cooldown-clear, not strain-wait
 
-Re-perceive both surviving candidates:
+The rtvvvvv "stop rule" written this session needs updating already: with corrected strain rate (~0.19–0.25 HP/min for intensity_boost ≥ 20 builds), the issue was never that they're too tough — it was that my model was undercounting strain by 2–3×.
 
-| idx  | owner    | V/H    | def_shift | def_ratio | base_HP | margin@s82 | est. margin@s83 (+60min) |
-|------|----------|--------|-----------|-----------|---------|------------|--------------------------|
-| 7884 | rtvvvvv  | 14/19  | 0.20      | 0         | 190     | +4 to +8   | **+0 to +3** (closest to flip) |
-| 15327| rtvvvvv  | 15/20  | 0.20      | 0         | 180     | +9         | +5 |
+**Live re-check at session start** (read `get_kami_state_slim` for each):
 
-Strike rule: if `current_HP < threshold_ratio × max_HP × (1 − def_ratio)`, fire 11224 (V36, atk_shift 0.28, EERIE-hand, cooldown clear).
+| idx  | last seen state | last cycle ts | sync after cycle | re-start expected? |
+|------|-----------------|---------------|------------------|--------------------|
+| 7884 | RESTING (s83)   | ~1777734795   | 87/190 (low)     | After full rest cycle |
+| 15327| RESTING (s83)   | 1777738974    | 58/180 (very low)| After substantial rest |
+| 4618 | RESTING (s82)   | 1777733332    | 88/230 (low)     | Rested longest, may restart soon |
 
-**Tactical exception** allowed this session: if 7884 margin ≤ +3, accept the marginal revert risk and fire one strike. EV math: P(kill) × (~obol + 9.5h-bounty spoils) − P(revert) × 2.68M gas. At margin +3, P(kill) is non-trivial (strain rate uncertainty band overlaps 0); 9.5h-running rtvvvvv farm bounty is high. Single shot only — do NOT chain on revert.
+**Strike rule (updated)**: if any of these is HARVESTING again, project current HP using `(sync_at_start) − 0.20 HP/min × elapsed_harvest_min`. Fire IF projected current HP < kill_HP. Use `0.25` rate for 4618-class (high intensity_boost), `0.19` for 15327-class.
 
-If both margins still > +3, no strike. Schedule +90 min and continue strain-wait.
+**11224 cooldown gating**: 11224's cooldown was reset by session 83's harvest_start to 1777739193 — clear by session 84 start. **Do NOT call harvest_start on 11224 just before strike** — the harvest_start triggers a fresh ~180s cooldown that blocks immediate liquidate. Either:
+- Strike from already-HARVESTING state (preserved across sessions if we leave 11224 in flight), OR
+- harvest_start ≥ 3 min before strike (different cron tick), OR
+- harvest_start, accept 0.28M revert tax, retry after `time.cooldown` elapses.
 
-4618 cycled to RESTING in s82 — re-check; if HARVESTING again with fresh start, it's a long-tail candidate (max HP 230, slowest to crack).
+Plan-suggested approach: **at session start, harvest_start([11224]) on node 86 immediately** (gives 11224 an active harvest), then check candidates — by the time we project + decide + strike, the 180s cooldown should have elapsed (or close to). If margin is tight, do a single 0.28M-tax retry after explicit cooldown read.
 
-## Priority 2 — Broader cluster scan if oracle back
+## Priority 2 — Broader scan if oracle is back
 
-Re-run session 81/82 plan P2 oracle filter: `defense_threshold_ratio ≤ 10 AND defense_threshold_shift ≤ 15` (note INTEGER scale: 10 = 0.10, 15 = 0.15). Cross-reference `predator/guild-no-touch.csv`. If 5+ new non-rtvvvvv non-guild candidates appear with projected current_HP below kill_zone, spot-check live and fire on the closest.
+Oracle was down sessions 82 and 83. If it's back at session 84:
 
-If oracle still down → escalate to `memory/alerts.md` and skip P2.
+```sql
+WITH recent_starts AS (
+  SELECT kami_id, MAX(timestamp) AS last_start
+  FROM kami_action
+  WHERE action_type = 'harvest_start'
+    AND timestamp > NOW() - INTERVAL '24 hour'
+  GROUP BY kami_id
+)
+SELECT s.kami_index, s.account_name, s.body_affinity, s.hand_affinity,
+       s.total_violence, s.total_harmony, s.total_health,
+       s.defense_threshold_shift, s.defense_threshold_ratio,
+       s.harvest_intensity_boost, s.strain_boost,
+       r.last_start
+FROM kami_static s
+JOIN recent_starts r ON r.kami_id = s.kami_id
+WHERE s.account_name != 'bpeon'
+  AND s.defense_threshold_ratio = 0
+  AND s.defense_threshold_shift <= 20  -- 0.20 max
+  AND s.harvest_intensity_boost >= 20  -- targets that have already strained heavily
+  AND r.last_start < extract(epoch from NOW()) - 3 * 3600  -- ≥3h elapsed
+ORDER BY r.last_start ASC  -- oldest harvest first (most strained)
+LIMIT 30
+```
 
-## Priority 3 — predator/targeting.md update with rtvvvvv stop rule
+Cross-reference `predator/guild-no-touch.csv`. Any non-guild candidate at elapsed ≥ 3h with intensity_boost ≥ 20 is **probably below kill_zone already** — strike priority over strain-wait planning.
 
-Sessions 76/78/80 reverted 3 strikes against rtvvvvv farms. Session 82 doctrine update should be reflected in `predator/targeting.md`: rtvvvvv farms are the worst-case strain-wait targets — strain rate ≤0.083 HP/min on H19+, def_shift 0.20, multi-hour wait per kill window. Keep them in candidate pool only when no fresh non-rtvvvvv softs exist.
+If oracle still down → skip P2, continue P1 live monitoring.
 
-## Priority 4 — 11224 SP allocation (still gated)
+## Priority 3 — 11224 SP allocation (still gated)
 
-3 SP unspent. Founder rule: hold until first kill. Do not allocate.
+3 SP unspent. Founder rule: hold until first kill. **0 kills across sessions 76–83.** Still gated.
 
-## Priority 5 — Self-schedule
+## Priority 4 — Self-schedule
 
-- After kill: +15 min (chain on same node; 11224 cooldown ~3 min, target churn fast).
-- After live margin-positive re-check, no strike: +90 min (continue strain-wait).
-- If oracle alerts (still down): +90 min and document.
+- After kill: +15 min (fast cycle, look for next opening on same node).
+- After live HARVESTING re-start spotted but cooldown-blocked: +5 min retry.
+- After live re-check, no HARVESTING rtvvvvv: +60 min (wait for any to restart).
+- After multiple sessions with no kill opportunities: continue +60 min, do not extend further — target restart cadence is on the hours-not-half-day timescale.
 
 ## Out of scope
 
 - Cluster moves (no fresh data; oracle down).
 - Quest progression (paused).
 - Operator move > 1 hop without `harvest_stop` on every predator first.
-- Striking 15327 or 4618 without an oracle-derived softer alternative — both are ≥+5 margin or RESTING.
-- Striking ANY rtvvvvv farm at margin > +3 HP this session.
+- Striking guild members (predator/guild-no-touch.csv enforces — gate is in code).
+- Re-trying a same-session strike that hit deep-revert (2.68M gas) — that's a real threshold-not-met, not a cooldown miss.
 
-## Roster (session 82 close)
+## Roster (session 83 close)
 
-- 12649 (V34/H12, HP 170, sync ~10/170 RESTING node 86) — revived, ~3 cheeseburgers to fight-shape if redeployed.
-- 11224 (V36/H11, HP 140, sync 139/140 RESTING node 86) — primary striker, cooldown clear, 3 SP unspent.
+- 12649 (V34/H12, sync 10/170 RESTING node 86) — revived, needs feed before redeployment.
+- 11224 (V36/H11, sync 140/140 RESTING node 86) — primary striker, cooldown 1777739193 clear by session 84, 3 SP unspent.
 - 6058 (SCRAP-hand) RESTING node 86.
 - 12225, 15540, 10705 (INSECT-hand) RESTING node 86.
 
@@ -59,7 +86,12 @@ Operator room 86. All 6 co-located.
 ## Knowledge sources to consult before any cross-cutting change
 
 - `systems/liquidation.md` for kill formula
-- `systems/harvesting.md` for strain mechanics (strain scales with bounty earned, not raw time)
+- `systems/harvesting.md` for strain mechanics (strain scales with bounty earned, NOT raw time — this is the root of the rate-undercount)
 - `catalogs/items.csv` for item effects (REVIVE items have implicit DEAD-target requirement)
-- `predator/mechanics.md` for empirical refinements (strain-rate row, revert gas-signature triage, hidden defense)
-- `predator/targeting.md` for current scan filters and owner blacklist evidence
+- `predator/mechanics.md` — read the new "harvest_start cooldown" + "sync HP stale" + "strain rate vs intensity_boost" sections
+- `predator/targeting.md` — read the rtvvvvv stop rule, but reapply with corrected strain rate context
+
+## Carry-forward concerns
+
+- Two consecutive oracle outages logged in `alerts.md`. If session 84 makes it three, demote to working-around-it (no further outage logging) but flag in `ideas_to_founder.md` that oracle reliability is hurting hunt cadence.
+- The session-83 rtvvvvv stop rule appended to `predator/targeting.md` was written under the wrong-strain-rate model. Once a confirmed kill validates the corrected rate, **rewrite that section** to reflect that rtvvvvv farms ARE killable on the right cadence, not last-resort.

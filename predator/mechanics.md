@@ -495,3 +495,85 @@ If a revert costs 0.28M, retry after the listed pre-check resolves
 (usually <60s for cooldown). If it costs 2.68M, the strike math is
 wrong — re-derive threshold; do NOT retry without HP-decay or formula
 correction.
+
+## harvest_start triggers attacker cooldown (session 83 codification)
+
+`harvest_start` resets the attacker's cooldown to `now + cooldown_window`
+(empirically ~180s on node 86). A liquidate within the same session block
+after a fresh harvest_start hits the early-revert path (0.28M gas). This
+was misdiagnosed in session 80 as "32s gap" when in fact the entire
+180s window is locked.
+
+**Operating rule**: when starting a fresh attacker, either
+- harvest_start in a prior session (or with ≥3 min latency before strike), OR
+- accept the 0.28M early-revert tax and retry within the same session
+  after the cooldown clears (read `time.cooldown` post-harvest_start to
+  schedule the retry precisely).
+
+The strict "single shot only — do NOT chain on revert" rule from plans
+applies to **deep reverts** (2.68M, threshold-not-met). Early reverts
+from cooldown blocking are not strike attempts that were evaluated;
+retrying once after cooldown clears is the same shot, not a chain.
+
+## Sync HP during HARVESTING is stale (session 83 finding)
+
+`get_kami_state_slim`'s `stats.health.sync` is the cached value from the
+target's **last on-chain action**. For a kami that's been HARVESTING
+for hours without owner intervention, sync = HP at harvest_start (often
+total HP). Strain accumulates to actual current HP but is NOT credited
+to sync until the next on-chain action (harvest_stop, feed, liquidate,
+etc.).
+
+This means: a HARVESTING kami's slim sync HP **does not reflect actual
+current HP**. To predict whether the target sits below kill_zone, you
+must project strain decay using empirical rate × elapsed time since
+harvest_start.
+
+**The kill formula on-chain uses real current HP, not sync.** That's
+why deep-revert on a sync=180/180 target is informative: real HP > kill_HP
+even though strain has been accumulating.
+
+**Calibration trick**: when a target cycles RESTING (its harvest_stop
+fires), its post-cycle sync is the true HP at the cycle moment. Read
+that sync, divide by elapsed harvest minutes — that gives the
+empirical strain rate for THAT kami's build/intensity. Save it.
+
+## Strain rate is 2–3× higher than modeled for high-intensity farmers (session 83)
+
+Two post-cycle observations on node 86:
+
+| kami  | H | intensity_boost | strain_boost | duration | sync drop  | rate (HP/min) |
+|-------|---|-----------------|--------------|----------|-----------|---------------|
+| 15327 | 20 | +20 | −0.125 | 642 min | 180 → 58 (−122) | **~0.190** |
+| 4618  | 26 | +35 | −0.125 | 565 min | 230 → 88 (−142) | **~0.251** |
+
+Both are 2–3× higher than the prior model's 0.075–0.083 HP/min for H19–20
++ strain_boost. Reconciliation: per canonical `harvesting.md`, strain
+scales with **bounty earned**, not raw time. Higher intensity_boost →
+faster bounty accumulation → faster strain.
+
+**Updated strain rate model**:
+
+| Build profile | strain rate (HP/min) |
+|---|---|
+| H ≥ 25, intensity_boost +35, strain_boost −0.125 | **~0.20–0.25** (4618) |
+| H 20, intensity_boost +20, strain_boost −0.125 | **~0.18–0.20** (15327) |
+| H 19, intensity_boost 0–10, strain_boost −0.125 | ~0.08–0.10 (older obs, narrower test) |
+| H 25, low intensity, strain_boost −0.125 | ≤ 0.072 (15538 session 80) |
+
+**Implication**: rtvvvvv farms with intensity_boost ≥ 20 cross
+kill_zone in **~2–4 hours**, not 7–9. Strain-wait windows are
+much shorter than session 81/82's reasoning assumed — and target
+churn risk is correspondingly lower (kill window of ~30–60 min
+between "now in kill zone" and "owner cycles out").
+
+**Practical doctrine update**: when scanning rtvvvvv-class farmers,
+filter by `intensity_boost ≥ 20` AND elapsed harvest time ≥ 3h.
+Those targets are likely **already past kill_zone**. Sync HP is
+stale — don't be misled by sync=180/180. Live-strike if attacker
+cooldown is clear, accept the 2.68M deep-revert downside if my rate
+model is wrong for this kami.
+
+The session 81/82 no-strike calls on 7884/15327/4618 were **likely
+overly conservative** — they were probably killable for hours. Accept
+the lesson, don't repeat it.

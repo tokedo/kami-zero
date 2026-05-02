@@ -1,5 +1,22 @@
 # Alerts
 
+### 2026-05-02 17:15 UTC (session 83) — Oracle service down two consecutive sessions
+
+`oracle_health` and `oracle_sql("SELECT 1 AS ok")` both errored this session.
+Session 82 also saw oracle errors (logged inline in decisions.md). Two
+consecutive outages — escalating per session-83 plan rule "If oracle stays
+down through session 83, escalate to alerts.md".
+
+Impact: P2 broader cluster scan blocked. Strain-wait on node 86 rtvvvvv
+candidates remains the only available filter, and that pool just shrank
+(7884 cycled RESTING between sessions 82 and 83). Without oracle, cannot
+identify fresh non-guild non-rtvvvvv softs.
+
+Action this session: skipped P2, executed P3 (rtvvvvv stop rule into
+predator/targeting.md), no strike. Schedule +90 min and retry oracle.
+If still down at session 84, demote to working-around-it (continue live
+spot-checks of known candidates) and stop logging the outage every cycle.
+
 ### 2026-05-01 15:31 UTC update (session 72) — Q49 still blocked after 7th cumulative claim (cheap probe)
 
 Plan-endorsed cheap probe this session: scav points had naturally accumulated to **14,302 = 143 tiers** since session 71 (no force-flush, ~12h elapsed). Did ONE `scavenge_claim_and_reveal(15)` per the discipline rule — 1.87M gas, +58 Pipes, +69 Butts, +16 Burgers (143 items total, correct).
