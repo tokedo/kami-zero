@@ -623,3 +623,40 @@ Total ~42M gas. 0 kills. 0 obols. 0 MUSU.
   even at 525min; 1 of 2 in the strict sense was a target-availability
   failure, not a doctrine failure).
 - REVIVE-type item mechanism (Red Ribbon Gummy, Melkarth Spell Card).
+
+## 2026-05-02 23:30 UTC — Cluster intel snapshot (session 90 recon, no movement)
+
+Recon scan over nodes 25/60/62/73 with the canonical kill_threshold formula (session 89 ship). No movement, no tx. Goal: surface migration-worthy clusters.
+
+| Node | Aff    | Total HARV | Non-guild | No-def | Cands ≥+5 HP | Notes |
+|------|--------|------------|-----------|--------|--------------|-------|
+| 25   | EERIE  | 84         | 10        | 0      | 4 (orange)   | proj_hp=0 mystery — 17.3h elapsed, no actions; 1 liquidate by 0xDE6E3AD1B5d813 (V31, INSECT) at 17:32 UTC suggests live counter-predator. **Defer.** |
+| 60   | SCRAP  | 203        | 203       | 6      | 9 (TrayzinCarpathia 5, others 4) | **Hot cluster.** 0 liquidates last 6h — quiet pocket. Top 5 candidates margin +18 to +50, started 4-9h ago. |
+| 62   | INSECT | 44         | 21        | 8      | 0            | buja723 cluster fully above kill_zone (margins -8 to -45); skip. |
+| 73   | SCRAP  | 526        | 526       | 4      | 4 (Yeahta)   | Sparse but workable. Top candidates +10 to +69. 0 liquidates last 6h. |
+
+### Migration recommendation (next session)
+
+**Target**: node 60 (room 60), TrayzinCarpathia cluster.
+
+Top 5 by margin:
+- 6023 (lv34, HP140, SCRAP/SCRAP, dts=140) — proj_hp 50, kill_zone 100, **+50**
+- 12238 (lv32, HP140, SCRAP/NORMAL, dts=100) — proj_hp 63, kill_zone 100, **+37**
+- 16591 (lv26, HP180, NORMAL/SCRAP, dts=0) — proj_hp 104, kill_zone 131, **+27**
+- 2644 (lv34, HP170, SCRAP/NORMAL, dts=120) — proj_hp 99, kill_zone 123, **+24**
+- 2141 (lv36, HP230, NORMAL/NORMAL, dts=200) — proj_hp 109, kill_zone 127, **+18**
+
+**Why now feasible**: cluster is real (0 recent liquidates means the candidates aren't being defended actively, just not visited by predators), all SCRAP node so SCRAP-handed striker 6058 (V=31, atk_s=280, atk_r=250) is highest-efficacy choice for SCRAP-body victims; for SCRAP-victim/SCRAP-attacker matchups it's same-affinity (efficacy bonus 0, but ratio gate still opens).
+
+**Migration cost estimate**: 6 strikers × 2.4M gas stop_harvest = ~14M, travel 86→60 (~3 hops, ~3M gas), 6 × 1.5M harvest_start = 9M. Total **~26M gas** for full team move + redeployment.
+
+**Yeahta as backup**: node 73, SCRAP, similar profile. Adjacent room? Not yet checked. If node 60 migration goes well and chain dies, consider 60→73 hop only if rooms are close.
+
+**Orange cluster (node 25) DO-NOT-CHASE**: proj_hp=0 at 17.3h elapsed = either (a) we're modeling it wrong, or (b) the kamis are being defended by an account-tier mechanism we don't see, or (c) an active predator (0xDE6E3AD1B5d813) cleaned that node ~6h ago and these are stale. Treat as oracle-staleness/structural-surprise risk; do not migrate without spot-checking with on-chain reads first.
+
+### Cooldown timing reaffirmed for next session
+- post-`harvest_start`: **180s** attacker cooldown (mechanics.md § "Attacker cooldown", session 83 codification).
+- Wait ≥185s. Spot-check target HARVESTING + no feed before liquidate.
+
+### Counter-predator scan needed pre-strike on node 60
+Top recent attackers across the world: scan for any V≥30 INSECT/SCRAP-handed kami that's been HARVESTING on node 60 for >5 min before deploying a striker. Counter-counter math: our weakest deployed kami's HP after the kill must clear the highest-V counter-predator's kill_zone for our roster.
