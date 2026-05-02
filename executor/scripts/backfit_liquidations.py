@@ -162,8 +162,7 @@ def backfit_one(row: dict, *, mode: str = "formula", strain_mult: float = 1.0) -
             strain_ratio=0,
             bounty_boost=v_hbb,
             fertility_boost=v_hfb,
-            intensity_boost_pct=0,
-            intensity_boost_flat=v_hib,
+            intensity_boost_pct=v_hib,  # additive on base 10 in formula
         )
         # Apply strain multiplier
         strain = (v_total_hp - proj.projected_hp) * strain_mult

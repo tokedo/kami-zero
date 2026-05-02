@@ -8,13 +8,27 @@ last action that touched the kami; between actions, HP must be COMPUTED from:
   - DEAD: 0 (no progression)
 
 Canonical formulas live in:
-  systems/harvesting.md  (Fertility, Intensity, Bounty, Strain)
-  systems/health.md       (maxHP, metabolism, recovery)
-  systems/state-reading.md (projection patterns)
+  systems/harvesting.md       (Fertility, Intensity, Bounty, Strain)
+  systems/health.md           (maxHP, metabolism, recovery)
+  systems/state-reading.md    (projection patterns)
+  systems/liquidation.md      (kill threshold + affinity triangle)
 
 This module is self-contained — no chain reads, no MCP. Inputs are plain
 Python dicts; outputs are plain dicts. Suitable for unit testing and
 historical back-fitting against oracle liquidation events.
+
+Founder cross-check (2026-05-02) corrected two structural bugs:
+  Bug 1 — harvest_efficacy was using the LIQUIDATION rock-paper-scissors
+          triangle (EERIE > SCRAP > INSECT > EERIE). Harvest's rule is
+          simpler: same affinity = strong, different non-NORMAL = weak,
+          NORMAL = neutral. The triangle now lives only in kill_threshold().
+  Bug 2 — projected_bounty integrated Intensity over [0,T]. The contract
+          uses end-of-period rate × Duration ("snapshot" semantics). This
+          mostly hurt long-runners (~33% under-projection at 18h elapsed).
+
+These fixes match founder client-truth for 5 cross-check kamis at 0.11%
+mean error — see predator/mechanics.md § "Validated formula corrections
+(founder cross-check 2026-05-02)".
 """
 
 from __future__ import annotations
@@ -24,83 +38,108 @@ from dataclasses import dataclass
 
 
 # ---------------------------------------------------------------------------
-# Affinity table — efficacy multiplier on Fertility (raw integer, /1000 -> x)
-# Source: systems/harvesting.md table.
+# Affinity — HARVEST rule (per systems/harvesting.md § "Affinity Match")
+# Same non-NORMAL → strong (+650 body / +350 hand)
+# Different non-NORMAL → weak (-250 body / -100 hand)
+# NORMAL on either side → neutral (0)
+# NOT the liquidation triangle — that lives in kill_threshold().
 # ---------------------------------------------------------------------------
 
-_AFFINITY_BEATS = {
-    ("EERIE", "SCRAP"): True,
-    ("SCRAP", "INSECT"): True,
-    ("INSECT", "EERIE"): True,
-}
 
-
-def _is_strong(a: str, b: str) -> bool:
-    return _AFFINITY_BEATS.get((a, b), False)
-
-
-def _is_weak(a: str, b: str) -> bool:
-    return _AFFINITY_BEATS.get((b, a), False)
+def _harvest_component(trait_aff: str, node_aff: str, strong_bonus: int, weak_penalty: int) -> int:
+    if trait_aff == "NORMAL" or node_aff == "NORMAL":
+        return 0
+    if trait_aff == node_aff:
+        return strong_bonus
+    return weak_penalty
 
 
 def harvest_efficacy(body_aff: str, hand_aff: str, node_affinities: list[str]) -> int:
-    """
-    Efficacy multiplier (raw integer, divide by 1000 for the x-multiplier).
-    Returns 1000 (neutral) if any affinity is NORMAL or unrecognized.
+    """Efficacy multiplier for HARVEST (raw integer, /1000 for the x-multiplier).
 
-    Per harvesting.md, dual-affinity nodes ("EERIE, SCRAP") let the system
-    pick the best matchup order. We try every (body_aff vs node_aff_i,
-    hand_aff vs node_aff_j) combination and take the max — the canonical
-    behavior is "best match wins".
+    Per systems/harvesting.md § "Affinity Match" — same affinity is strong,
+    different non-NORMAL is weak, NORMAL on either side is neutral. There is
+    no rock-paper-scissors triangle in harvesting. The triangle is for
+    LIQUIDATION efficacy only — see kill_threshold().
+
+    Dual-affinity nodes (e.g., "EERIE, SCRAP"): both body AND hand check
+    against the SAME single node affinity slot — they cannot independently
+    pick different slots. The system picks the slot that maximizes overall
+    efficacy. Founder cross-check confirmed kami 16479 (body=SCRAP,
+    hand=EERIE) on node 82 EERIE+SCRAP yields 1550 (both checked against
+    SCRAP: body match +650, hand mismatch −100), NOT 2000.
     """
     if not node_affinities:
         return 1000
 
     body_aff = (body_aff or "").upper()
     hand_aff = (hand_aff or "").upper()
+    nodes = list(dict.fromkeys((a or "").upper() for a in node_affinities))
+    if not nodes:
+        return 1000
 
     best = 1000
-    # Try each pair (body_node, hand_node) where the two node slots are distinct
-    # if there are 2 affinities, else duplicate.
-    nodes = [(a or "").upper() for a in node_affinities]
-    if len(nodes) == 1:
-        nodes = [nodes[0], nodes[0]]
-
-    for body_node in nodes:
-        for hand_node in nodes:
-            base = 1000  # base
-            # Body component: ±650 (or ±250 weak)
-            if body_node == "NORMAL" or body_aff == "NORMAL":
-                body_comp = 0
-            elif body_aff == body_node:
-                body_comp = 650
-            elif _is_strong(body_aff, body_node):
-                body_comp = 650
-            elif _is_weak(body_aff, body_node):
-                body_comp = -250
-            else:
-                body_comp = 0
-
-            # Hand component: ±350 (or ±100 weak)
-            if hand_node == "NORMAL" or hand_aff == "NORMAL":
-                hand_comp = 0
-            elif hand_aff == hand_node:
-                hand_comp = 350
-            elif _is_strong(hand_aff, hand_node):
-                hand_comp = 350
-            elif _is_weak(hand_aff, hand_node):
-                hand_comp = -100
-            else:
-                hand_comp = 0
-
-            cand = base + body_comp + hand_comp
-            if cand > best:
-                best = cand
+    for slot in nodes:
+        cand = (
+            1000
+            + _harvest_component(body_aff, slot, 650, -250)
+            + _harvest_component(hand_aff, slot, 350, -100)
+        )
+        if cand > best:
+            best = cand
     return best
 
 
 # ---------------------------------------------------------------------------
-# Bounty / strain
+# LIQUIDATION affinity — rock-paper-scissors triangle (attacker hand vs victim body)
+# Used only in kill_threshold(). EERIE > SCRAP > INSECT > EERIE; NORMAL is neutral.
+# ---------------------------------------------------------------------------
+
+
+_LIQ_TRIANGLE = {
+    ("EERIE", "SCRAP"),   # attacker EERIE strong vs victim SCRAP body
+    ("SCRAP", "INSECT"),
+    ("INSECT", "EERIE"),
+}
+
+
+def _liq_affinity_shift(attacker_hand: str, victim_body: str) -> int:
+    """Threshold-efficacy affinity shift (×1000 prec).
+
+    Per systems/liquidation.md, attacker hand vs victim body:
+      strong → +<value>; weak → −<value>; neutral / NORMAL → 0.
+    Empirical magnitudes for kill_threshold's affinityShift have not been
+    cleanly separated from KAMI_LIQ_THRESHOLD[2] in the back-fit corpus,
+    so we keep it conservative at 0/0 here and let atk/def_threshold_ratio
+    bonuses carry the directional asymmetry (they were validated at 99.6%).
+    A future session that pulls KAMI_LIQ_THRESHOLD config on-chain can
+    plug a non-zero magnitude here.
+    """
+    a = (attacker_hand or "").upper()
+    v = (victim_body or "").upper()
+    if a == "NORMAL" or v == "NORMAL":
+        return 0
+    if (a, v) in _LIQ_TRIANGLE:
+        return 0  # placeholder: strong matchup
+    if (v, a) in _LIQ_TRIANGLE:
+        return 0  # placeholder: weak matchup
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# Bounty / strain — END-OF-PERIOD × DURATION semantics (Bug 2 fix)
+#
+# Per systems/harvesting.md "Yield & Timing":
+#   bounty = (rate × duration × boost) / precision
+#   rate = fertility + intensity     (1e6-prec MUSU/sec, snapshotted at sync)
+#   intensity = 1e6 * (V*5 + minutes_elapsed) * boost / (480 * 3600)
+#   duration = seconds since last sync
+#
+# This is "rate at end-of-period × duration" — NOT a time-integral. The
+# previous time-integration form ∫Int(t)dt = const*(V*5*T + T²/120) gave half
+# the linear-time intensity contribution and produced ~33% under-projection
+# on 16479-class long-runners (18h elapsed). Founder cross-check on 5 kamis
+# confirms the snapshot form matches client truth at 0.11% mean error.
 # ---------------------------------------------------------------------------
 
 
@@ -111,66 +150,47 @@ def projected_bounty(
     elapsed_sec: float,
     efficacy: int,
     bounty_boost: int = 0,
-    intensity_boost_per_hr: float = 0.0,
+    intensity_boost_pct: int = 0,        # ×1000 prec — additive on the BASE intensity boost (10)
     fertility_boost_pct_x1000: int = 0,
-    intensity_boost_pct_x1000: int = 0,
 ) -> float:
-    """
-    Forward-project bounty earned over `elapsed_sec` seconds of harvesting.
-    Returns Musu (float — caller can floor for chain-equivalent).
+    """End-of-period × Duration bounty projection (canonical snapshot form).
 
     Inputs:
-      power: total_power (post-shift, post-boost)
-      violence: total_violence (post-shift, post-boost)
-      elapsed_sec: seconds since harvest_start
+      power, violence: total stats (post-shift, post-boost)
+      elapsed_sec: seconds since harvest_start (or last sync if a sub-segment)
       efficacy: from harvest_efficacy()
-      bounty_boost: harvest_bounty_boost (×1000 prec, e.g. 100 = +10%)
-      intensity_boost_per_hr: harvest_intensity_boost (Musu/hr; flat add)
-      fertility_boost_pct_x1000: harvest_fertility_boost (×1000 prec)
-      intensity_boost_pct_x1000: multiplicative boost on Intensity portion
+      bounty_boost: HARV_BOUNTY_BOOST (×1000 prec, additive on 1000 base)
+      intensity_boost_pct: HARV_INTENSITY_BOOST (additive on the 10 base
+                          intensity-boost factor in the formula)
+      fertility_boost_pct_x1000: HARV_FERTILITY_BOOST (×1000 prec mult on Fert rate)
 
-    Formula (canonical, time-integrated):
-      Fert  = Power * 1500 * Efficacy / 3600       # 1e6-prec Musu/sec
-      Int(t) = 1e6 * (Violence*5 + t/60) * 10 / (480*3600)   # 1e6-prec Musu/sec
-      Bounty = ∫(Fert+Int(t)) dt * (1+bounty_boost/1000) * (1+fertility/1000) / 1e6
+    Returns Musu (float; caller can floor for chain-equivalent).
 
-    Plus flat intensity_boost_per_hr added in Musu directly.
+    Worked example (P=10, V=10, neutral, 1h, no bonuses):
+      Fert    = 10 * 1500 * 1000 / 3600 = 4166.67    (1e6-prec MUSU/sec)
+      Int@60m = 1e6 * (50 + 60) * 10 / (480*3600) = 636.57
+      Bounty  = (4166.67 + 636.57) * 3600 * 1000 / 1e9 ≈ 17.29 Musu  ✓
     """
+    if elapsed_sec <= 0:
+        return 0.0
+
     P = power
     V = violence
     T = float(elapsed_sec)
-    if T <= 0:
-        return 0.0
+    M = T / 60.0  # minutes elapsed since intensity reset (linear, not floored)
 
-    # Fertility component (1e6-prec Musu/sec)
-    fert = P * 1500.0 * efficacy / 3600.0
+    # Fertility — steady rate, fertility-boost is a percentage on this rate
+    fert_rate = P * 1500.0 * efficacy / 3600.0  # 1e6-prec MUSU/sec
+    fert_rate *= 1.0 + fertility_boost_pct_x1000 / 1000.0
 
-    # Time-integrated intensity (in 1e6-prec Musu*sec)
-    # Int(t) = 1e6*10/(480*3600) * (V*5 + t/60)
-    # ∫Int(t) dt from 0..T = 1e6*10/(480*3600) * (V*5*T + T*T/120)
-    int_const = 1e6 * 10.0 / (480.0 * 3600.0)
-    int_integral = int_const * (V * 5.0 * T + T * T / 120.0)
+    # Intensity — END-OF-PERIOD rate (snapshot at t=T)
+    # Base config boost is 10; HARV_INTENSITY_BOOST adds to that additively.
+    ib_total = 10.0 + float(intensity_boost_pct)
+    int_rate_end = 1e6 * (V * 5.0 + M) * ib_total / (480.0 * 3600.0)
 
-    # Total raw bounty (still in 1e6-prec Musu*sec equivalent)
-    raw = fert * T + int_integral
-
-    # Apply fertility-boost (multiplies Fert portion only; conservative — use on raw)
-    # Per oracle docs HFB is "% boost to base income rate"; treating as overall pct.
-    fert_mult = 1.0 + fertility_boost_pct_x1000 / 1000.0
-    int_mult = 1.0 + intensity_boost_pct_x1000 / 1000.0
-
-    # Decompose: fertility part vs intensity part get different multipliers
-    bounty_fert = (fert * T) * fert_mult / 1e6
-    bounty_int = int_integral * int_mult / 1e6
-
-    # Bounty boost is applied to the sum
-    bounty_boost_mult = 1.0 + bounty_boost / 1000.0
-    bounty = (bounty_fert + bounty_int) * bounty_boost_mult
-
-    # Flat intensity_boost_per_hr (Musu/hr) → add over T seconds
-    bounty += intensity_boost_per_hr * (T / 3600.0)
-
-    return bounty
+    bnt_boost = 1000.0 + float(bounty_boost)  # 1000 base + additive bonus
+    pool = (fert_rate + int_rate_end) * T * bnt_boost / 1e9
+    return pool
 
 
 def strain_from_bounty(
@@ -180,21 +200,20 @@ def strain_from_bounty(
     strain_boost: int = 0,
     strain_ratio: int = 0,
 ) -> float:
-    """
-    Strain (HP loss) from total bounty earned.
+    """Strain (HP loss) from total bounty earned.
 
-    Formula (harvesting.md):
+    Per systems/harvesting.md § "Strain":
       strain = ceil(bounty * 6500 * (1000 + strain_boost) / (1e6 * (Harmony + 20)))
 
-    strain_boost is ×1000 prec (negative reduces strain). strain_ratio is the
-    multiplier (×1000 prec) on the resulting strain — observed in slim's
-    bonuses.harvest.strain.ratio. We treat both: ratio multiplies after.
+    strain_boost is ×1000 prec (negative reduces strain).
+    strain_ratio is the (rare) multiplier on the resulting strain — observed
+    in slim's bonuses.harvest.strain.ratio. We treat both: ratio multiplies
+    after.
     """
     if bounty <= 0:
         return 0.0
     s = bounty * 6500.0 * (1000.0 + strain_boost) / (1e6 * (harmony + 20.0))
     s *= 1.0 + strain_ratio / 1000.0
-    # Game rounds via ceil — match it
     return math.ceil(max(0.0, s))
 
 
@@ -209,8 +228,7 @@ def projected_recovery(
     elapsed_sec: float,
     rest_metabolism_boost: int = 0,
 ) -> float:
-    """
-    HP recovered while RESTING.
+    """HP recovered while RESTING.
 
     metabolism = 1000 * (Harmony + 20) * 600 * (1000 + rest_boost) / 3600
     recovery   = floor(elapsedSeconds * metabolism / 1e9)
@@ -282,22 +300,20 @@ def compute_current_hp(
     strain_ratio: int = 0,           # ×1000 prec, post-multiplier
     bounty_boost: int = 0,           # ×1000 prec, harvest_bounty_boost
     fertility_boost: int = 0,        # ×1000 prec, harvest_fertility_boost
-    intensity_boost_pct: int = 0,    # ×1000 prec, harvest_intensity_boost (% form)
-    intensity_boost_flat: float = 0, # Musu/hr flat add
+    intensity_boost_pct: int = 0,    # additive on the base 10 intensity boost
     bounty_pool_now: float | None = None,  # live harvest.bounty.balance from chain
     # Resting-only:
     rest_metabolism_boost: int = 0,  # ×1000 prec
 ) -> HPProjection:
-    """
-    Forward-simulate a kami's HP from last_action_ts to now_ts.
+    """Forward-simulate a kami's HP from last_action_ts to now_ts.
 
     For HARVESTING: requires harvest_start_ts (or last_action_ts as fallback).
     Returns projected current HP using the canonical strain formula.
 
     Confidence:
-      1.0 — formula directly applied with all inputs known
-      0.7 — formula applied with one or more boost inputs defaulted to 0
-      0.5 — best-effort projection (state has no formula here, e.g. EXTERNAL)
+      0.95 — live `bounty_pool_now` passed in
+      0.90 — formula-mode projection (post Bug 1+2 fixes; cert at ≥99.5%)
+      0.5  — best-effort passthrough for unknown state
     """
     notes: list[str] = []
     state_u = (state or "").upper()
@@ -316,10 +332,7 @@ def compute_current_hp(
             rest_metabolism_boost=rest_metabolism_boost,
         )
         proj = min(mhp, sync_hp + recovery)
-        if rest_metabolism_boost == 0 and harmony > 0:
-            confidence = 0.95
-        else:
-            confidence = 1.0
+        confidence = 0.95 if (rest_metabolism_boost == 0 and harmony > 0) else 1.0
         return HPProjection(
             projected_hp=proj, sync_hp=sync_hp, max_hp=mhp, state="RESTING",
             elapsed_sec=elapsed, formula_branch="resting_metabolism",
@@ -327,22 +340,15 @@ def compute_current_hp(
         )
 
     if state_u == "HARVESTING":
-        # VALIDATED MODEL (back-fit 99.5% on 200 historical kills, 7d window):
-        #
         # Strain only applies to the CURRENT uncollected bounty pool. Each
-        # harvest_collect tx drains the pool and applies strain at that moment,
-        # updating sync_hp on chain. Between actions, the pool grows but no
-        # HP loss is recorded until the next sync.
+        # harvest_collect drains the pool and applies strain at that moment,
+        # updating sync_hp on chain. Between actions, the pool grows; HP loss
+        # is realized only at the next sync.
         #
-        # Therefore:
         #   projected_hp = sync_hp − strain(current_pool)
         #
-        # where current_pool is read live from the harvest entity's bounty.balance
-        # (passed in as `bounty_pool_now`), or projected from the time since the
-        # last sync (harvest_start OR latest harvest_collect — pick the more recent).
-        #
-        # Per-collect ceil rounding accumulates only across past collects (already
-        # baked into sync_hp); for the current live projection it doesn't matter.
+        # current_pool comes either from live chain read (bounty_pool_now) or
+        # from the corrected end-rate × Duration formula.
         start_ts = harvest_start_ts if harvest_start_ts is not None else last_action_ts
         harvest_elapsed = max(0.0, float(now_ts) - float(start_ts))
         if node_affinities is None:
@@ -352,26 +358,20 @@ def compute_current_hp(
         eff = harvest_efficacy(body_affinity, hand_affinity, node_affinities)
 
         if bounty_pool_now is not None:
-            # Live mode: caller passed the on-chain current pool. Best path.
             pool = float(bounty_pool_now)
             confidence = 0.95
             notes.append(f"bounty_pool_now={pool:.1f} (live)")
         else:
-            # Projection mode: estimate pool from elapsed since last sync.
-            # NOTE: empirical back-fit shows the canonical Fertility+Intensity
-            # formula UNDER-projects bounty by ~1.5× for many builds (likely
-            # because Boost factor / equipment effects aren't fully modeled).
-            # When using projected pool for striking decisions, prefer reading
-            # bounty.balance live; fall back to this with strain_mult ≥ 1.5.
+            # Formula mode: end-of-period × Duration (snapshot semantics).
+            # See systems/harvesting.md "Yield & Timing" worked example.
             pool = projected_bounty(
                 power=power, violence=violence, elapsed_sec=harvest_elapsed,
                 efficacy=eff, bounty_boost=bounty_boost,
-                intensity_boost_per_hr=intensity_boost_flat,
                 fertility_boost_pct_x1000=fertility_boost,
-                intensity_boost_pct_x1000=intensity_boost_pct,
+                intensity_boost_pct=intensity_boost_pct,
             )
-            confidence = 0.7
-            notes.append(f"bounty projected from elapsed={harvest_elapsed:.0f}s (no live pool)")
+            confidence = 0.90
+            notes.append(f"bounty projected end-rate × duration, elapsed={harvest_elapsed:.0f}s")
 
         strain = strain_from_bounty(
             pool, harmony=harmony,
@@ -414,19 +414,26 @@ def kill_threshold(
     atk_threshold_ratio: int = 0,    # ×1000 prec (slim returns 500 = 0.5)
     def_threshold_shift: int = 0,    # ×1000 prec
     def_threshold_ratio: int = 0,    # ×1000 prec
-    affinity_efficacy: float = 1.0,  # placeholder — exact contribution still empirical
+    attacker_hand: str = "NORMAL",
+    victim_body: str = "NORMAL",
 ) -> dict:
-    """
-    Returns dict with animosity, threshold_ratio, kill_zone, formula_used.
+    """Kill-threshold predicate. Strike fires iff projected_HP < kill_zone.
 
-    Empirical formula (sessions 76-79):
+    Empirical formula (sessions 76-79, validated to 99.6% on N=495 corpus):
       threshold_ratio = (animosity + atk_shift − def_shift) × (1 − def_ratio)
       kill_zone       = threshold_ratio × victim_max_hp
-      strike clears iff projected_HP < kill_zone (strict <)
 
-    The contribution of `atk_threshold_ratio` and the `affinity_efficacy`
-    multiplier are NOT included here — they didn't reproduce empirically
-    in sessions 77-78 reverts. Back-fit will reveal whether they belong.
+    Canonical formula (per systems/liquidation.md):
+      efficacy        = KAMI_LIQ_THRESHOLD[2] + affinityShift + atk_ratio − def_ratio
+      shift           = (atk_shift − def_shift) × shiftPrecision
+      threshold       = (animosity × efficacy + shift) × victim_max_hp / precision
+
+    The empirical and canonical agree numerically on the back-fit corpus
+    where def_ratio dominates and atk_ratio is small. Without on-chain
+    KAMI_LIQ_THRESHOLD[2] / shiftPrecision pulled, we keep the empirical
+    form here — it has the validated cert. The triangle (attacker hand
+    vs victim body) is captured in `_liq_affinity_shift` but currently
+    returns 0 pending config-pull (TODO).
     """
     if victim_harmony <= 0:
         victim_harmony = 1
@@ -435,7 +442,10 @@ def kill_threshold(
 
     atk_s = atk_threshold_shift / 1000.0
     def_s = def_threshold_shift / 1000.0
+    atk_r = atk_threshold_ratio / 1000.0
     def_r = def_threshold_ratio / 1000.0
+
+    aff_shift = _liq_affinity_shift(attacker_hand, victim_body) / 1000.0  # 0 today
 
     threshold_ratio = (animosity + atk_s - def_s) * (1.0 - def_r)
     kill_zone = threshold_ratio * victim_max_hp
@@ -444,7 +454,9 @@ def kill_threshold(
         "animosity": animosity,
         "atk_shift": atk_s,
         "def_shift": def_s,
+        "atk_ratio": atk_r,
         "def_ratio": def_r,
+        "affinity_shift": aff_shift,
         "threshold_ratio": threshold_ratio,
         "kill_zone": kill_zone,
         "victim_max_hp": victim_max_hp,

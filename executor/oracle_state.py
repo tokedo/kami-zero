@@ -145,43 +145,42 @@ def resolve_target_owner(kami_index: int) -> dict:
 
 
 def _harvest_efficacy(body_aff: str, hand_aff: str, node_affinities: list[str]) -> int:
-    """Affinity efficacy multiplier (×1000 prec). See hp_projection.py."""
-    AFFINITY_BEATS = {("EERIE", "SCRAP"), ("SCRAP", "INSECT"), ("INSECT", "EERIE")}
+    """Harvest efficacy multiplier (×1000 prec).
+
+    Per systems/harvesting.md: same affinity → strong (+650 body / +350 hand);
+    different non-NORMAL → weak (-250 body / -100 hand); NORMAL → neutral.
+    NOT the rock-paper-scissors triangle — that's for liquidation only.
+
+    Dual-affinity nodes: body AND hand BOTH check against the SAME single
+    node slot (system picks the slot that maxes overall efficacy). Founder
+    cross-check 2026-05-02 verified kami 16479 (body=SCRAP, hand=EERIE)
+    on node 82 (EERIE,SCRAP) yields eff=1550, not 2000 — both checked
+    against SCRAP slot.
+    """
     body_aff = (body_aff or "").upper()
     hand_aff = (hand_aff or "").upper()
-    nodes = [(a or "").upper() for a in node_affinities]
-    if len(nodes) == 1:
-        nodes = [nodes[0], nodes[0]]
+    nodes = list(dict.fromkeys((a or "").upper() for a in node_affinities))
+    if not nodes:
+        return 1000
+
+    def _comp(trait: str, node: str, strong: int, weak: int) -> int:
+        if trait == "NORMAL" or node == "NORMAL":
+            return 0
+        return strong if trait == node else weak
+
     best = 1000
-    for body_node in nodes:
-        for hand_node in nodes:
-            if body_node == "NORMAL" or body_aff == "NORMAL":
-                bc = 0
-            elif body_aff == body_node:
-                bc = 650
-            elif (body_aff, body_node) in AFFINITY_BEATS:
-                bc = 650
-            elif (body_node, body_aff) in AFFINITY_BEATS:
-                bc = -250
-            else:
-                bc = 0
-            if hand_node == "NORMAL" or hand_aff == "NORMAL":
-                hc = 0
-            elif hand_aff == hand_node:
-                hc = 350
-            elif (hand_aff, hand_node) in AFFINITY_BEATS:
-                hc = 350
-            elif (hand_node, hand_aff) in AFFINITY_BEATS:
-                hc = -100
-            else:
-                hc = 0
-            cand = 1000 + bc + hc
-            if cand > best:
-                best = cand
+    for slot in nodes:
+        cand = (
+            1000
+            + _comp(body_aff, slot, 650, -250)
+            + _comp(hand_aff, slot, 350, -100)
+        )
+        if cand > best:
+            best = cand
     return best
 
 
-def _bounty_integral(
+def _bounty_endrate(
     *,
     power: int,
     violence: int,
@@ -189,64 +188,55 @@ def _bounty_integral(
     efficacy: int,
     bounty_boost: int = 0,
     fertility_boost_pct_x1000: int = 0,
-    intensity_boost_pct_x1000: int = 0,
-    intensity_flat_per_hr: float = 0.0,
+    intensity_boost_pct: int = 0,
     t_offset_sec: float = 0.0,
 ) -> float:
-    """Forward-projected bounty over `elapsed_sec` continuing from
-    `t_offset_sec` of cumulative-since-start (intensity grows linearly with
-    minutesElapsed since harvest_start). Returns Musu (float).
+    """End-of-period rate × Duration bounty projection (snapshot semantics).
 
-    Mirrors executor/hp_projection.py:projected_bounty but supports a non-zero
-    starting-offset so we can reset the integral after each on-chain touch
-    (collect/feed) — those reset the active accumulator on chain.
+    Per systems/harvesting.md "Yield & Timing":
+      bounty = (rate × duration × boost) / precision
+      rate   = fertility + intensity   (1e6-prec MUSU/sec, snapshotted at sync)
+      intensity = 1e6 * (V*5 + minutes_elapsed) * (10 + ib_skill) / (480*3600)
+      duration  = seconds since last sync
 
-    NOTE: per session 86 doctrine, intensity does NOT actually reset on
-    collect/feed in the canonical formula; it's a function of total elapsed
-    since harvest_start. Use t_offset_sec=time-since-start (NOT 0) when
-    integrating a sub-segment.
+    `t_offset_sec` is cumulative-since-start (intensity is a function of total
+    elapsed since harvest_start; each on-chain touch syncs the accumulator
+    but intensity itself uses the cumulative minute clock).
     """
     if elapsed_sec <= 0:
         return 0.0
     P, V = power, violence
     T = float(elapsed_sec)
-    tau = float(t_offset_sec)
-    fert_per_sec_1e6 = P * 1500.0 * efficacy / 3600.0
-    fert_total = fert_per_sec_1e6 * T
-    int_const = 1e6 * 10.0 / (480.0 * 3600.0)
-    # Int(t) = int_const * (V*5 + t/60); integral from tau to tau+T of dt:
-    # = int_const * (V*5*T + ((tau+T)^2 - tau^2)/120)
-    int_total = int_const * (
-        V * 5.0 * T
-        + ((tau + T) ** 2 - tau ** 2) / 120.0
-    )
-    fert_mult = 1.0 + fertility_boost_pct_x1000 / 1000.0
-    int_mult = 1.0 + intensity_boost_pct_x1000 / 1000.0
-    bounty_fert = (fert_total * fert_mult) / 1e6
-    bounty_int = (int_total * int_mult) / 1e6
-    bounty = (bounty_fert + bounty_int) * (1.0 + bounty_boost / 1000.0)
-    bounty += intensity_flat_per_hr * (T / 3600.0)
-    return bounty
+    M_at_end = (float(t_offset_sec) + T) / 60.0  # minutes at end-of-period
+
+    # Fertility — rate × fertility_boost
+    fert_rate = P * 1500.0 * efficacy / 3600.0  # 1e6-prec MUSU/sec
+    fert_rate *= 1.0 + fertility_boost_pct_x1000 / 1000.0
+
+    # Intensity — END-OF-PERIOD snapshot (additive boost on base 10)
+    ib_total = 10.0 + float(intensity_boost_pct)
+    int_rate_end = 1e6 * (V * 5.0 + M_at_end) * ib_total / (480.0 * 3600.0)
+
+    bnt_boost = 1000.0 + float(bounty_boost)
+    pool = (fert_rate + int_rate_end) * T * bnt_boost / 1e9
+    return pool
 
 
 def reconstruct_bounty_pool(
     kami_index: int,
     *,
     now_ts: int | None = None,
-    strain_calibration: float = 1.5,
 ) -> dict:
     """Reconstruct the live `harvest.bounty.balance` from oracle action stream.
 
-    Walks all kami_action events since the latest `harvest_start`. For each
-    inter-event interval, integrates the canonical Fertility+Intensity bounty
-    formula. At each `harvest_collect` / `feed`, the chain resets the active
-    accumulator (collect drains pool; feed updates sync_hp without draining
-    pool — but we treat feed as resetting harvest.time.last for chain
-    consistency).
+    Walks `kami_action` since the latest `harvest_start`. The active pool is
+    drained at each `harvest_collect`. `feed` events do NOT drain the pool
+    (they update sync_hp; heal-event guard is the caller's job).
 
-    NOTE: the back-fit certificate (session 84, N=200, M=199, 99.5%) used this
-    same forward-simulation logic when in `empirical` mode. The
-    `strain_calibration` knob mirrors the back-fit's ×1.5 calibrated mode.
+    Uses the corrected end-of-period × Duration bounty formula
+    (`_bounty_endrate`) — see systems/harvesting.md. Founder cross-check on
+    5 calibration kamis: 0.11% mean error vs client truth (no calibration
+    multiplier needed; the previous ×1.4–1.5 fudge was masking Bug 1+2).
 
     Returns:
       {kami_index, kami_id, harvest_start_ts, harvest_id, node_id,
@@ -376,31 +366,21 @@ def reconstruct_bounty_pool(
             # feed does NOT drain the active accumulator per harvesting.md;
             # but heal-event guard rule still applies (caller checks).
 
-    # Bounty since last drain to now
+    # Bounty since last drain to now (end-rate × Duration with cumulative-since-start
+    # intensity offset).
     sub_elapsed = max(0, now_ts - last_drain_ts)
-    pool_now = _bounty_integral(
+    pool_now = _bounty_endrate(
         power=power, violence=violence,
         elapsed_sec=sub_elapsed, efficacy=eff,
-        bounty_boost=hbb, fertility_boost_pct_x1000=hfb,
-        intensity_boost_pct_x1000=0,
-        intensity_flat_per_hr=hib,
+        bounty_boost=hbb,
+        fertility_boost_pct_x1000=hfb,
+        intensity_boost_pct=hib,
         t_offset_sec=cumulative_offset_at_drain,
     )
 
     # Confidence: high if we observed at least one collect (per-collect
-    # validation possible); medium if pure forward-projection.
-    if n_collects > 0:
-        confidence = 0.85
-    else:
-        confidence = 0.7
-        warnings.append(
-            "no harvest_collect events since start — pool is pure formula "
-            "projection; apply strain_calibration ≥ 1.5 for back-fit-proven "
-            "97% accuracy"
-        )
-
-    # Apply calibration (caller can override). Returns BOTH raw and calibrated.
-    pool_calibrated = pool_now * strain_calibration
+    # validation possible); slightly lower if pure forward-projection.
+    confidence = 0.92 if n_collects > 0 else 0.90
 
     return {
         "kami_index": int(kami_index),
@@ -418,9 +398,7 @@ def reconstruct_bounty_pool(
         "sum_collected": sum_collected,
         "n_feeds": n_feeds,
         "feed_event_ts": feed_events,
-        "pool_now_raw": pool_now,
-        "pool_now": pool_calibrated,
-        "strain_calibration": strain_calibration,
+        "pool_now": pool_now,
         "confidence": confidence,
         "freshness_warnings": warnings,
         "build_refreshed_ts": str(s.get("build_refreshed_ts") or ""),
@@ -458,8 +436,7 @@ class KamiState:
     power: int
     violence: int
     harmony: int
-    bounty_pool_now: float  # calibrated
-    bounty_pool_now_raw: float
+    bounty_pool_now: float
     n_collects: int
     sum_collected: int
     n_feeds_since_start: int
@@ -477,7 +454,6 @@ def oracle_kami_state(
     kami_index: int,
     *,
     now_ts: int | None = None,
-    strain_calibration: float = 1.5,
 ) -> KamiState:
     """One-stop oracle-only state read for a kami.
 
@@ -485,7 +461,9 @@ def oracle_kami_state(
     (current harvest cycle, pool reconstruction, feed events).
 
     Returns KamiState with all fields needed to feed compute_current_hp +
-    kill_threshold without ANY kamibots call.
+    kill_threshold without ANY kamibots call. No calibration multiplier:
+    the corrected formula (Bug 1 + Bug 2 fixes) matches client truth at
+    ~0.1% mean error on the founder's 5-kami cross-check.
     """
     if now_ts is None:
         now_ts = int(time.time())
@@ -504,9 +482,7 @@ def oracle_kami_state(
         raise RuntimeError(f"kami_index {kami_index} not in oracle kami_static")
     kami_id = s["kami_id"]
 
-    pool = reconstruct_bounty_pool(
-        kami_index, now_ts=now_ts, strain_calibration=strain_calibration
-    )
+    pool = reconstruct_bounty_pool(kami_index, now_ts=now_ts)
 
     # sync_hp_at_last_touch: read latest action that touches HP
     # harvest_start sets sync to current (capped at max_hp at the time);
@@ -588,7 +564,6 @@ def oracle_kami_state(
         violence=_safe_int(s.get("total_violence")),
         harmony=_safe_int(s.get("total_harmony")),
         bounty_pool_now=pool.get("pool_now") or 0.0,
-        bounty_pool_now_raw=pool.get("pool_now_raw") or 0.0,
         n_collects=pool.get("n_collects") or 0,
         sum_collected=pool.get("sum_collected") or 0,
         n_feeds_since_start=pool.get("n_feeds") or 0,
