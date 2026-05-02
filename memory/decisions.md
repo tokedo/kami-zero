@@ -2747,3 +2747,46 @@ This is the "HEAL mid-cycle" edge case explicitly named as out-of-model in the s
 - predator/mechanics.md § "Practical pre-flight checklist": new rule (5) feed-event guard.
 
 **Next session (86)**: Re-wake +20 min. Re-scan node 86 with the new feed-event guard applied. 9980 specifically is now BURNED for this cycle (sync=170 at full + pool growing means itll be a long wait for kill_zone). Look for fresh candidates: harvesting > 1h, sync = total_hp (full), AND no feed events since `harvest.time.last`. If none on node 86, broader oracle scan with the same guard.
+
+## 2026-05-02 19:20 UTC — session 86
+
+**Mandate**: Re-scan node 86 with the new feed-event guard (session 85 doctrine), strike if any candidate clears the validated gate (margin ≥ 5 HP, certificate current, guild gate, no feed-events since harvest.time.last).
+
+**ETH balance**: not pulled (no balance-affecting external tx).
+
+**Perceived**:
+  - 11224 RESTING node 86 (last seen), HP 139/140, cooldown clear, atk_shift 0.28, V36/H11 (glass cannon).
+  - Operator co-located room 86 (carry-over from session 85).
+  - Oracle healthy. Guild file Updated: 2026-05-01 (within 7d window).
+  - Node 86 scan with feed-event guard returned 50 HARVESTING candidates, ZERO with `feed` events since their `last_start_ts` — guard applied cleanly, the rule didn't drop any soft target this scan.
+
+**Decided**: Strike stefan97 (15906) on node 86. Forward projection (cert formula mode ×1.5):
+  - target stats: power=14, violence=16, harmony=24, max_hp=300, def_threshold_shift=0.24, def_threshold_ratio=0, intensity_boost=50, body=EERIE, hand=INSECT (efficacy=2000 on EERIE-INSECT node).
+  - elapsed = 38,692s (10.7h since harvest_start at 08:29:10 UTC).
+  - projected bounty (formula) = 1078.9 MUSU; strain_base = 160.0; strain_calibrated = ×1.5 = 240.0.
+  - proj_hp = 300 - 240 = **60 HP**; kill_zone (V36 vs H24, atk 0.28, def 0.24) = **209.2 HP**.
+  - margin = 209.2 - 60 = **+149.2 HP** — well above the 5 HP gate even with 50% formula error.
+
+**Acted**:
+  - Pre-flight: feed-event oracle query on 15906 → zero `feed` rows since harvest_start at 08:29:10 ✓; guild gate ✓ (stefan97 not in `predator/guild-no-touch.csv`).
+  - `harvest_start([11224], node=86)`: success, 1.32M gas, 11224 placed at node 86 with 80s cooldown.
+  - Waited ~80s for cooldown clear.
+  - **Re-spot-check before liquidate**: oracle query → 15906 has a fresh `harvest_stop` at 19:16:16 UTC (~1 minute before strike). **Target cycled out mid-prep.** Strike aborted.
+  - `harvest_stop([11224])`: success, 2.34M gas, 11224 returned to RESTING (HP 140/140 confirmed).
+  - Re-scan of node 86 for alternate targets: 10020 (dias) HARVESTING but def_threshold_ratio=0.25 + body/hand affinity unverified; 10896 (aaron) HARVESTING def_threshold_ratio=0.50 unverified affinity; 2477 RESTING (cycled out). Both remaining targets have heavy `def_threshold_ratio` bonuses whose effect on kill_zone has NOT been empirically validated through the cert (cert was only on positive kills, all of which had def_ratio=0). **Stand down on alternate targets** — gambling unverified mechanics after 3.6M gas already burned this session is bad-EV.
+
+**Result**: 0 obols. 3.66M gas spent (1.32M start + 2.34M stop). Same target-churn class of failure as session 80 (8761 cycled within 10 min of scan-strike loop).
+
+**Key finding (harness gap)**: For HARVESTING kamis whose chain state hasn't been touched since `harvest_start`, **chain-stored `harvest.bounty.balance = 0`** — the chain only writes a balance snapshot on `harvest_start`/`feed`/`harvest_collect`/`harvest_stop`/`harvest_liquidate`. For untouched-since-start kamis (the prime soft-target profile: long uninterrupted harvest), the playwright endpoint and direct `component.value.safeGet(harvest_id)` both return 0. Validated this against 9980 (had feed at 15:15 → balance=264 readable, post-feed) vs 15906 (no touches since start → balance=0). This means **strict adherence to plan-86 rule 2 ("read live `harvest.bounty.balance`") would block strikes on the most-vulnerable target profile**. Cert-documented fallback: formula mode (Fert+Int integral) ×1.5 strain multiplier, 97% accuracy on N=200. Formal doctrine update: when `harvest.bounty.balance == 0` AND `harvest.time.last == harvest.time.start` (no on-chain touch since start), use formula-mode forward projection — that is the correct path, not a degraded one.
+
+**Gas notes**: 3.66M gas total. The harvest_stop was insurance against cross-node hit-and-run on glass-cannon 11224 (per session 79 lesson). The harvest_start was committed before re-spot-check; in hindsight, the re-spot-check should happen *between* harvest_start submission and acceptance, but harvest_start is synchronous so cant be aborted mid-flight. The right correction is **shorter pre-strike window** (re-spot-check immediately before harvest_start, not after) — see plan 87 rule update.
+
+**Anomalies**:
+  - Earlier this session I miscomputed 15906s stats (used max_hp=233 from a stale memory; correct is 300). Caught when re-querying kami_static. **Lesson**: always pull stats fresh from oracle/slim within the same session — never rely on summary-recalled values for projections.
+  - Oracle SQL silently fails on `WHERE kami_id = <int>` (kami_id is VARCHAR uint256 hash, not int). Use `kami_index` or join via kami_static.
+
+**Doctrine updates committed this session**:
+- predator/mechanics.md § "Bounty pool snapshot semantics": chain stores at last on-chain touch; untouched-since-start = balance reads 0; formula-mode forward projection ×1.5 is the correct fallback (97% cert accuracy), not a degraded path.
+- memory/plan.md (session 87): tightened pre-flight ordering — re-spot-check target HARVESTING + no-feed within seconds before `harvest_start`, not after.
+
+**Next session (87)**: Re-wake +25 min. Re-scan node 86. stefan97/15906 just stopped HARVESTING; will likely restart within 15-30 min — re-evaluate as soft target on next harvest_start. dias-10020 and aaron-10896 still HARVESTING — pull body/hand affinity from oracle and recompute kill_zone with their def_threshold_ratio bonuses (0.25 and 0.50 respectively) before considering. If def_ratio empirically reduces kill_zone as the formula `(1 - def_ratio)` suggests, both may be killable with the right efficacy — but **need empirical validation first** (back-fit 7d for kills with def_ratio>0; 0 such cases in cert means the multiplicative form is unproven). Without that validation, treat any def_ratio>0 candidate as out-of-cert and skip.
