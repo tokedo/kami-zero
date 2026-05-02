@@ -193,3 +193,15 @@ Audit basis: read of `executor/server.py` MCP tool surface. Existing tools relev
 - **Files**: None changed. This is a research note.
 - **DO NOT REPEAT**: Future sessions: do not re-spawn the parent-component lookup. If you need objective-config, either (1) try the off-chain indexer (if any becomes available), (2) read open-source MUD system code to find the correct creation pattern, or (3) keep using empirical probes as in session 68.
 - **`debug_traceCall` is also unavailable** on the RPC endpoint — can't trace the staticCall revert path.
+
+## 2026-05-02 — Liquidate MCP tool + guild-no-touch gate
+- **What**: New `liquidate(target_kami_id, attacker_kami_id, account, target_account_id?, target_handle?)` MCP tool. Submits `system.harvest.liquidate.executeTyped(uint256 victimHarvestID, uint256 killerKamiID)` with the GDD-required 7.5M gas limit. In-code guild gate loads `predator/guild-no-touch.csv`, parses `# Updated: YYYY-MM-DD` header, denies all if missing or > 7 days old, matches by account_id (preferred) else handle (case-insensitive). Cache invalidates on file mtime change.
+- **Why**: Predator hard rule #1 — never liquidate guild members. Doctrine says "encode in code, not memory". Also: liquidate is the central PvP action and was completely absent from the executor; nothing else in the predator playbook works without it.
+- **Files**: `executor/server.py` (added `_ABI_HARVEST_LIQUIDATE`, `_GUILD_NO_TOUCH_PATH`, `_GUILD_NO_TOUCH_CACHE`, `_load_guild_no_touch()`, `_is_target_protected()`, `liquidate(...)` async tool; added `import datetime`).
+- **How to use**:
+  - `liquidate(target_kami_id=3764, attacker_kami_id=12649, account="bpeon")` — gate runs, target owner resolved via Kamibots API; tx submitted if unblocked.
+  - Pre-resolved owner skips API call: `liquidate(..., target_account_id="538526...", target_handle="rtvvvvv")`.
+  - Returns `{tx_hash, status, block, gas_used, blocked?, reason?, target/attacker fields}`. `status` will be `'reverted'` for contract-side denies (e.g. "kami lacks violence (weak)"); inspect via `eth_call` replay to recover the revert reason.
+  - Both kamis must be HARVESTING on the same node, attacker not on cooldown, attacker HP > 0, AND the threshold formula must yield `target_current_HP < threshold` (see `predator/mechanics.md`).
+- **Restart needed**: yes — running MCP server picks up new tool only after restart. For session 76 the tool was invoked via direct `python -c "import server; asyncio.run(server.liquidate(...))"` to avoid the restart round-trip.
+- **Commit**: (this session's harness commit)

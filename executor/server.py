@@ -16,6 +16,7 @@ Architecture:
 
 import asyncio
 import csv
+import datetime
 import json
 import os
 import struct
@@ -151,6 +152,104 @@ _UINT32_VALUE_ABI = json.loads(
     '"inputs":[{"name":"entity","type":"uint256"}],'
     '"outputs":[{"type":"uint32"}],"stateMutability":"view"}]'
 )
+
+
+# ---------------------------------------------------------------------------
+# Guild no-touch gate (predator hard rule #1, encoded in code)
+# ---------------------------------------------------------------------------
+
+_GUILD_NO_TOUCH_PATH = _REPO / "predator" / "guild-no-touch.csv"
+_GUILD_NO_TOUCH_CACHE: dict = {"mtime": None, "rows": [], "updated_at": None}
+_GUILD_NO_TOUCH_MAX_AGE_DAYS = 7
+
+
+def _load_guild_no_touch() -> tuple[list[dict], datetime.date]:
+    """Load + cache predator/guild-no-touch.csv.
+
+    Returns (rows, updated_at). Each row is dict(account_id, handle, note).
+    Raises FileNotFoundError if the file is missing, ValueError if no
+    'Updated:' header line is parseable. Cached by mtime.
+    """
+    p = _GUILD_NO_TOUCH_PATH
+    if not p.exists():
+        raise FileNotFoundError(f"guild-no-touch.csv missing at {p}")
+    mtime = p.stat().st_mtime
+    if _GUILD_NO_TOUCH_CACHE.get("mtime") == mtime:
+        return _GUILD_NO_TOUCH_CACHE["rows"], _GUILD_NO_TOUCH_CACHE["updated_at"]
+
+    updated_at: datetime.date | None = None
+    rows: list[dict] = []
+    with p.open() as f:
+        for raw in f:
+            line = raw.rstrip("\n")
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("#"):
+                # parse "# Updated: YYYY-MM-DD ..." header line
+                low = stripped.lstrip("#").strip().lower()
+                if low.startswith("updated:"):
+                    rest = stripped.split(":", 1)[1].strip()
+                    token = rest.split()[0] if rest else ""
+                    try:
+                        updated_at = datetime.date.fromisoformat(token)
+                    except ValueError:
+                        pass
+                continue
+            if stripped.startswith("account_id,"):  # CSV header
+                continue
+            parts = [c.strip() for c in stripped.split(",")]
+            if len(parts) < 2:
+                continue
+            rows.append({
+                "account_id": parts[0],
+                "handle": parts[1],
+                "note": parts[2] if len(parts) >= 3 else "",
+            })
+
+    if updated_at is None:
+        raise ValueError(
+            f"guild-no-touch.csv missing parseable 'Updated:' header at {p}"
+        )
+
+    _GUILD_NO_TOUCH_CACHE.update({
+        "mtime": mtime, "rows": rows, "updated_at": updated_at,
+    })
+    return rows, updated_at
+
+
+def _is_target_protected(account_id: str, handle: str) -> tuple[bool, str]:
+    """Guild gate. Returns (blocked, reason).
+
+    Hard rule #1 from CLAUDE.md: file missing OR 'Updated:' line older than
+    7 days → deny ALL strikes ("treat as deny-all"). Match by account_id
+    if non-empty, else by handle (case-insensitive). Both are authoritative
+    per CLAUDE.md.
+    """
+    rows, updated_at = _load_guild_no_touch()
+    age_days = (datetime.date.today() - updated_at).days
+    if age_days > _GUILD_NO_TOUCH_MAX_AGE_DAYS:
+        return True, (
+            f"guild-no-touch.csv stale "
+            f"(updated {updated_at.isoformat()}, age {age_days}d > "
+            f"{_GUILD_NO_TOUCH_MAX_AGE_DAYS}d threshold) — deny all"
+        )
+
+    aid = (account_id or "").strip()
+    hdl = (handle or "").strip()
+    hdl_lower = hdl.lower()
+    for row in rows:
+        if aid and row["account_id"] and row["account_id"] == aid:
+            return True, (
+                f"target account_id matches guild member "
+                f"'{row['handle']}' (note: {row['note'] or '-'})"
+            )
+        if hdl and row["handle"] and row["handle"].lower() == hdl_lower:
+            return True, (
+                f"target handle '{row['handle']}' on no-touch list "
+                f"(note: {row['note'] or '-'})"
+            )
+    return False, ""
 
 
 # ---------------------------------------------------------------------------
@@ -1477,6 +1576,12 @@ _ABI_HARVEST_STOP = json.loads(
     '"outputs":[{"type":"bytes[]"}],"stateMutability":"nonpayable"}]'
 )
 _ABI_HARVEST_COLLECT = _ABI_HARVEST_STOP  # same signature
+_ABI_HARVEST_LIQUIDATE = json.loads(
+    '[{"type":"function","name":"executeTyped",'
+    '"inputs":[{"name":"victimHarvestID","type":"uint256"},'
+    '{"name":"killerKamiID","type":"uint256"}],'
+    '"outputs":[{"type":"bytes"}],"stateMutability":"nonpayable"}]'
+)
 _ABI_LISTING_BUY = json.loads(
     '[{"type":"function","name":"executeTyped",'
     '"inputs":[{"name":"merchantIndex","type":"uint32"},'
@@ -1564,6 +1669,104 @@ def harvest_collect(kami_ids: list[int], account: str = "main") -> dict:
         "executeBatched", [h_ids], 2_000_000,
     )
     result["kamis"] = kami_ids
+    return result
+
+
+@mcp.tool()
+async def liquidate(
+    target_kami_id: int,
+    attacker_kami_id: int,
+    account: str = "main",
+    target_account_id: str = "",
+    target_handle: str = "",
+) -> dict:
+    """Liquidate a target kami's harvest. PvP strike. Costs ~7.5M gas.
+
+    Both kamis must be HARVESTING on the same node, attacker not on
+    cooldown, attacker HP > 0, victim HP < kill threshold (Gaussian-CDF
+    formula on V:H ratio + affinity efficacy + flat shift). Attacker
+    receives 1 Obol (item 1015) + MUSU spoils added to its harvest bounty.
+    Recoil HP cost applies; do not strike strained against high-V victims.
+
+    GUILD GATE (CLAUDE.md hard rule #1): target's account_id/handle is
+    checked against predator/guild-no-touch.csv. If file is missing or its
+    'Updated:' line is older than 7 days, ALL strikes are denied. Match
+    is by account_id if present, falling back to handle (case-insensitive).
+    Tx is NOT submitted when blocked.
+
+    Args:
+        target_kami_id: Token index of the kami to liquidate.
+        attacker_kami_id: Token index of OUR kami doing the strike.
+        account: Account label (pass 'bpeon' for kami-zero).
+        target_account_id: Optional. Pre-resolved owner account_id (string,
+            decimal). If empty, resolves via /api/playwright/kami/{id}/.
+        target_handle: Optional. Pre-resolved owner handle. If empty,
+            resolves via /api/playwright/kami/{id}/.
+    """
+    aid = (target_account_id or "").strip()
+    hdl = (target_handle or "").strip()
+    if not aid and not hdl:
+        try:
+            data = await _api_get(
+                f"/api/playwright/kami/{target_kami_id}/", account
+            )
+        except Exception as e:
+            return {
+                "blocked": True,
+                "reason": f"could not resolve target owner via playwright: {e}",
+                "target_kami_id": target_kami_id,
+            }
+        owner = (
+            data.get("account") or data.get("owner") or data.get("operator")
+            or {}
+        )
+        if isinstance(owner, dict):
+            aid_v = (
+                owner.get("id") or owner.get("account_id")
+                or owner.get("entityId") or owner.get("entity_id") or ""
+            )
+            aid = str(aid_v).strip() if aid_v is not None else ""
+            hdl = str(
+                owner.get("handle") or owner.get("name")
+                or owner.get("username") or ""
+            ).strip()
+    if not aid and not hdl:
+        return {
+            "blocked": True,
+            "reason": "could not resolve target owner; pass target_account_id/target_handle",
+            "target_kami_id": target_kami_id,
+        }
+
+    try:
+        blocked, reason = _is_target_protected(aid, hdl)
+    except Exception as e:
+        return {
+            "blocked": True,
+            "reason": f"guild-roster gate error (deny-fail): {e}",
+            "target_kami_id": target_kami_id,
+            "target_account_id": aid,
+            "target_handle": hdl,
+        }
+    if blocked:
+        return {
+            "blocked": True,
+            "reason": reason,
+            "target_kami_id": target_kami_id,
+            "attacker_kami_id": attacker_kami_id,
+            "target_account_id": aid,
+            "target_handle": hdl,
+        }
+
+    h_id = _harvest_entity_id(target_kami_id)
+    k_id = _kami_entity_id(attacker_kami_id)
+    result = _send_tx(
+        account, "system.harvest.liquidate", _ABI_HARVEST_LIQUIDATE,
+        [h_id, k_id], gas_limit=7_500_000,
+    )
+    result["target_kami_id"] = target_kami_id
+    result["attacker_kami_id"] = attacker_kami_id
+    result["target_account_id"] = aid
+    result["target_handle"] = hdl
     return result
 
 
