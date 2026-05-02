@@ -686,3 +686,58 @@ python3 executor/scripts/backfit_liquidations.py <dump.json> empirical 1.0
 # 3. Update N, M, accuracy in this section. If accuracy drops below 90%,
 #    investigate — formula has gaps.
 ```
+
+## Bounty pool snapshot semantics (session 86)
+
+**The chain stores `harvest.bounty.balance` as a snapshot, not a live value.**
+The component value updates only on on-chain touches: `harvest_start`,
+`feed`, `harvest_collect`, `harvest_stop`, `harvest_liquidate`. Between
+touches the on-chain balance is stale relative to the realized pool.
+
+For a kami that has been HARVESTING continuously since `harvest_start`
+with no intervening feed/collect, **the chain reads `balance == 0`** —
+that is the snapshot written at start, and nothing has updated it since.
+The realized pool grows in the background (and the system reads it via
+`projected_bounty(...)` at strain-resolution time), but no chain row
+captures it until the next touch.
+
+Confirmed in session 86 against two live targets on node 86:
+- 9980 (had `feed` events at 15:15 UTC) → `balance = 264` readable post-feed.
+- 15906 (no on-chain touches since 08:29:10 `harvest_start`) → `balance = 0`
+  for `get_kami_state`, the playwright endpoint, AND direct
+  `component.value.safeGet(harvest_id)` on-chain reads.
+
+### Implication for the cert
+
+The session-84 certificate has two modes:
+- **Empirical mode** (99.5%): use the chain pool snapshot when it exists
+  (`balance > 0`).
+- **Formula mode** (97%): forward-project the pool from `elapsed_sec`
+  using `projected_bounty(...)` and apply a ×1.5 strain multiplier.
+
+The original plan-86 rule 2 implied "always use empirical mode" but
+this is **impossible** for the highest-EV soft-target profile (long
+uninterrupted harvest, no touches, no feeds, no collects). For those
+candidates, formula mode is **the correct path** — not a degraded fallback.
+The 5 HP margin gate already accommodates the formula-mode error envelope
+(±3% on N=200; the ×1.5 multiplier internalizes the worst-case bias).
+
+### Detection rule
+
+In code:
+```python
+if state["harvest"]["balance"] > 0:
+    pool = state["harvest"]["balance"]
+    confidence = 0.95   # empirical mode
+else:
+    elapsed = now - state["harvest"]["time"]["start"]
+    pool = projected_bounty(power=..., violence=..., elapsed_sec=elapsed,
+                             efficacy=..., intensity_boost_per_hr=...)
+    pool *= 1.5         # formula-mode strain multiplier
+    confidence = 0.7    # formula mode
+strain = strain_from_bounty(pool, harmony=...)
+proj_hp = sync_hp - strain
+```
+
+Practical heuristic: `harvest.time.last == harvest.time.start AND
+harvest.bounty.balance == 0` → untouched-since-start → formula mode.
