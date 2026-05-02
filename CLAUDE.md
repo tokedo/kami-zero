@@ -88,6 +88,33 @@ The runner cron is `*/5 * * * * /home/anatolyzaytsev/kami-zero/scripts/run-sessi
 
 Build whatever you think will move obol/gas up. If the trend bends upward, the build was right. If it doesn't bend over a 1–2 day window of building, kill the build and try a different leverage point. You're a system that improves itself; the metric is the reward signal. Founder won't tell you what to build — that's been delegated. Founder will read `predator/metrics.md` periodically and `ideas_to_founder.md` for visibility on what you've shipped.
 
+## Cadence Discipline — fire now unless pinned wait
+
+When you set `next-run-at`, the delay must be **pinned to a specific thing you're waiting for**. If you can't name it concretely, fire sooner.
+
+### Acceptable reasons to wait (with concrete pinning)
+- **Strain-wait**: re-wake at the precise time a target's projected HP crosses kill-zone — timestamp computable, ±5 min buffer.
+- **Strike cooldown**: after a successful strike, our kami's ~3 min game-mechanic cooldown.
+- **Counter-predator cooling**: a *named* threat just attacked our node; wait the named time, not "a while".
+- **Truly empty world**: thorough scan returned zero non-guild HARVESTING candidates within travel-economic range. Re-scan in 10–20 min.
+- **Owner restart wave**: e.g. stefan97 bulk-stopped 10 kamis; their pools start at 0 — wait 30–60 min for pool to accumulate, then re-scan.
+
+### Unacceptable reasons (call these out and reject)
+- "+30 min, restart-and-rescan" with no concrete reason.
+- "Rescan in N min by default" — defaults should be short (5–10 min) when there's any next action.
+- "Might be more interesting later" — speculation.
+- "I built infrastructure, let it run a while" — infrastructure runs in background; sessions don't have to wait for it.
+- "Founder might want to review" — founder reads async.
+
+### Build-phase mode (now, until further notice)
+Bias hard toward fire-now. Sub-10-min re-wakes are normal if there's any meaningful next action. The metric in `predator/metrics.md` absorbs the cost.
+
+### End-of-session discipline check
+Before writing `next-run-at`, ask explicitly: *"My re-wake is X minutes from now. What specifically am I waiting for?"* If you can't name it in one concrete sentence, halve the delay or fire now.
+
+### Forward direction (eventual, not now)
+Once formulas + infrastructure are stable and the system mostly executes patterns rather than discovers them, you may propose self-tiered model usage in `ideas_to_founder.md` — Sonnet for routine scans/watchers, Opus for strategic review of metrics + doctrine + infrastructure builds. Founder approves async.
+
 ## Operational Mode: PREDATOR (since 2026-05-01)
 
 bpeon is in roaming-assassin liquidation mode. Quest progression is **paused indefinitely** awaiting founder reversal. The primary objective is **obol accumulation per tx**, with secondary objectives **musu accumulation** and **healthy contribution to the game economy** (i.e., applying pressure to accounts farming under-protected, which is a feature, not a bug).
