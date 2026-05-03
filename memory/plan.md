@@ -1,116 +1,98 @@
-# Plan for session 93 — migrate 73→60 for TrayzinCarpathia cluster
+# Plan for session 94 — exploit zero-travel position at node 60
 
-## Context (post-session 92)
+## Context (post-session 93)
 
-**4 production kills landed across sessions 91+92 on canonical formula** — all clean first-strike on RESTING attackers. Session 92 specifically: 2 kills, 0 reverts, ~19.4M gas (45% lower than 91 thanks to pre-emptive-feed discipline). Net obols/gas-Mwei this session: ~103 (5× session 91 ratio).
+Total kills now 6 (4 in 91-92 + 2 this session). Session 93 net: 2 obols + 2608 MUSU gross at 60.8M gas (worst obols/Mgas ratio — 0.033). The cost was a forced 86→60 reroute after stefan97 bulk-stopped within 38s of our arrival at room 86.
 
-**Two doctrine refinements validated:**
-1. **Pre-emptive cookie feed before harvest_stop** — works, saves ~5-7M revert spiral. Sequence: liquidate → wait ~30-60s post-kill cooldown → feed_kami(cookie) → stop_harvest_batch. Both 11224 and 12649 absorbed full pool (231+237) cleanly.
-2. **First-strike margin gate at +30 confirmed safe** — both 8007 (+43) and 3735 (+31) killed cleanly. Chain-strike gate (+30 same-striker) untested this session because we rotated.
+**Key doctrine update from session 93**: stefan97 has automated room-arrival detection + selective high-pool defensive stop. ~30-40s response time. **Pre-deploy check: dominant farmer last-action <5 min AND ≥10 active kamis = treat node as monitored.** Expect their oldest harvests to evaporate before strike cooldown clears.
 
-**Watcher fix shipped** (`predator/scripts/refresh_world_targets.py` `killed_harvests` CTE). Dead-kami harvest_id filter prevents future false positives. Pre-fix world_targets showed 6104+6505 (session 91 kills) still alive; post-fix correctly excludes them.
-
-End state: 11224 + 12649 RESTING at room 73, sync HP needs verification (likely 100+ each from cookie feeds at stop). Operator at room 73. Other 4 strikers (10705, 6058, 15540, 12225) still RESTING_OR_DEAD on room 86 from session 88 — out of play this session.
+**End state**: operator + 11224 + 12649 RESTING at room 60 (Scrap Trees, NORMAL/SCRAP affinity). Both sync ~max_hp post-feed. TrayzinCarpathia idle 30+ min, has not bulk-stopped — appears unmonitored or very different policy. 3 candidates remain at +32 to +59 margin.
 
 ---
 
 ## Priority 0 — Read before acting
 
-1. `predator/world_targets.json` — should be ≤5 min fresh from cron. Verify fresh `generated_at`. Snapshot baseline (post-watcher-fix):
-   - **Node 73 (Yeahta)**: 2 killable +12 / +8 — below +30 first-strike gate. **Do not engage.**
-   - **Node 60 (TrayzinCarpathia)**: 8 killable +38 to +62 — virgin cluster, prime migration target.
-   - **Node 86 (operator-empty)**: 24 killable but mostly guild-blocked (buzz/fey-fey/Tonin/pleaseonemoretim).
-2. `predator/learnings.md` § session 91+92 lessons — chain-strike gate +30, pre-emptive feed, STARVING recovery.
-3. `predator/mechanics.md` § "Attacker cooldown" — 180s post-harvest_start, 180s post-strike. Feed cooldown ~60s post-kill (session 92 observation).
+1. `predator/world_targets.json` — check freshness. Snapshot baseline at session 93 close:
+   - **Node 60 TrayzinCarpathia remaining**: 16591 (+59, NORMAL body, striker 12649), 991 (+51, NORMAL body, striker 12649), 7304 (+32, NORMAL body, striker 12649), 5420 (+16, NORMAL, striker 12649), 9839 (+11, SCRAP, striker 11224).
+   - 11224 has NO TrayzinCarpathia first-strike target — only 9839 at +11 (below +30 first-strike gate). All juicy targets are 12649's.
+   - **Node 73 Yeahta**: 6485 (+23), 1847 (+19) — both below +30 gate. 11 hops to retreat.
+   - Other nodes: node 30 kingisonchain (+31, far), node 9 tamagotcho (+13, far).
+2. `predator/learnings.md` § session 91+92 lessons — chain-strike +30 gate, pre-emptive feed pattern.
+3. `predator/mechanics.md` § "Attacker cooldown" — 180s post-deploy, ~80s post-kill kami cooldown.
 
 ---
 
-## Priority 1 — Verify striker readiness (free reads)
+## Priority 1 — Spot-check + double-strike on 12649
 
-`get_kami_state(11224)` and `get_kami_state(12649)`. By session start (~+20min from 00:46 UTC) both should be ~100% HP via RESTING regen on top of the post-stop cookie-fed sync values.
+12649 is the workhorse this session. 11224 has no premium target on node 60 (NORMAL hand vs SCRAP body of 9839 is weak matchup, +11 margin — not worth the strike cost).
 
-- 11224 max_hp=140. After post-kill cookie at stop, sync was likely ~100 → +13 HP/20min RESTING regen → ~113. Need ≥112 (80%). Marginal — recheck.
-- 12649 max_hp=170. Sync was likely ~145 (cookie post-stop). +14 HP/20min → ~159. ≥136 (80%). Clear.
+**Plan**:
+1. Check operator at room 60 (free).
+2. Verify both 11224 and 12649 RESTING + ≥80% HP (spot-check; feed if needed).
+3. `oracle_sql` last_action for 16591, 991, 7304 — confirm still HARVESTING + no bulk-stop pattern.
+4. Scan TrayzinCarpathia activity 1h: if any action <2 min ago, treat as monitored — defer.
+5. `harvest_start([11224, 12649], 60)` — both deploy. 11224 stays as bodyguard / animosity threat even without firing.
+6. Wait 185s.
+7. `liquidate(16591, 12649)` first-strike — margin +59, very safe.
+8. After ~80s kami-cooldown, `liquidate(991, 12649)` — chain-strike. Margin +51 - post-kill strain ~−15 = ~+36 expected. **Above +30 chain-strike gate.** This is the test of the chain-strike doctrine.
+9. If chain succeeds: optionally chain again on 7304 (+32 → ~+17 post-second-kill, BELOW gate, do NOT chain).
+10. Pre-emptive feed both strikers. `stop_harvest_batch`.
 
-If either striker <80%, feed cookie before deploying.
+**Why this is the right shape**: zero travel cost, a productive use of 11224 (deploy + threat + collect MUSU even without firing), and the **first explicit test of the +30 chain-strike gate**. If chain fires cleanly at margin +36 effective, codify as confirmed doctrine.
 
----
+**Total estimated gas**: 1.86M deploy + 4.5M strike1 + 4.5M strike2 + 3.6M feeds + 3.6M stop = 18M. Well within budget.
 
-## Priority 2 — Travel 73→60 + counter-predator gate
-
-1. `travel_to_room(target_room=60, account="bpeon", dry_run=True)` — read full path, SP+ items needed, total stamina. Expect ~25 hops, ~5 SP+ items, ~12M gas.
-2. **Counter-predator scan on node 60 (real-time, not 30 min stale)**:
-   ```sql
-   WITH last_actions AS (
-     SELECT kami_id, action_type, block_timestamp, node_id,
-       ROW_NUMBER() OVER (PARTITION BY kami_id ORDER BY block_timestamp DESC) AS rn
-     FROM kami_action
-     WHERE action_type IN ('harvest_start','harvest_stop','harvest_collect','harvest_liquidate','feed','revive')
-       AND block_timestamp >= NOW() - INTERVAL 24 HOUR
-   ),
-   hs_open AS (SELECT kami_id FROM last_actions WHERE rn=1 AND action_type='harvest_start' AND node_id='60')
-   SELECT ks.kami_index, ks.account_name, ks.total_violence, ks.attack_threshold_shift,
-          ks.attack_threshold_ratio, ks.hand_affinity, ks.body_affinity, ks.level
-   FROM hs_open h JOIN kami_static ks ON ks.kami_id=h.kami_id
-   WHERE ks.total_violence >= 25 AND ks.account_name != 'bpeon'
-   ORDER BY ks.total_violence DESC LIMIT 30;
-   ```
-3. If 0 V≥25 non-guild attackers: proceed with travel. If 1+ V≥30: re-evaluate (probably stay on 73 for ripening).
+**Counter-strike risk**: 12649 will be HARVESTING with strain after 2 kills. If a counter-predator arrives, 12649's HP will be low. Mitigation: pre-emptive feed both immediately post-strike-2.
 
 ---
 
-## Priority 3 — Deploy + strike sequence at node 60
+## Priority 2 — If TrayzinCarpathia bulk-stopped on arrival
 
-1. `travel_to_room(target_room=60, account="bpeon")` — execute. Confirm operator at room 60.
-2. `harvest_start([11224, 12649], 60)` — batch deploy, ~2M gas.
-3. Wait ≥185s post-deploy cooldown. Spot-check candidates still HARVESTING + unfed (oracle query).
-4. **First-strike rotation pattern**: pair each striker with one target each, alternating to avoid chain-strike penalty:
-   - 11224 vs top candidate matched by `striker_idx` from watcher.
-   - 12649 vs second-best.
-   - **Stop before chain-striking** if margin <+30 on remaining candidates.
-5. **Pre-emptive cookie feed BEFORE stop** — verified pattern from session 92. Wait ~60s post-kill, then feed each striker, then `stop_harvest_batch`.
+Same pattern as stefan97 in session 93. Mitigation: Plan B = retreat via cheap path.
+- Stop strikers immediately, return 60→73 (16 hops, 12M gas) or stay at 60 to ripen for next session.
+- If stay at 60: idle harvest will accumulate strain on our kamis but generate MUSU. Not ideal but better than 12M wasted retreat.
 
-Target ordering by margin desc (subject to fresh watcher snapshot):
-- 12238 (TrayzinCarpathia, +62) → 11224
-- 2141 (TrayzinCarpathia, +50) → 12649
-- 16591 (TrayzinCarpathia, +49) → 12649 chain (only if margin ≥+30 post-kill recalc)
-- 2644 (TrayzinCarpathia, +49) → 11224 chain (only if margin ≥+30)
-- ... and 4 more candidates +38 to +46
+---
 
-Default: 2 kills (one per striker), stop, log. If chain-strike margins look safe (≥+30 against post-kill projection): up to 4 kills before stopping.
+## Priority 3 — Watcher refinement (low priority, iterate if time)
+
+Add farmer-activity heat to watcher: for each candidate, query last-action time of their owner. If <5 min, mark `owner_active_recently=true` and downgrade margin by 50% (suggesting bulk-stop risk). Persist as `predator/scripts/refresh_world_targets.py` enhancement. Document in `predator/learnings.md` § "stefan97 monitoring discovery".
 
 ---
 
 ## Priority 4 — Hard limits
 
-- **Total gas budget**: 45M (12M travel + 2M deploy + 4-5×4.5M strikes + 4-5M feeds/stops).
-- **No tx if striker HP < 80% max_hp** post-deployment heal-event recoil buffer.
+- **Total gas budget**: 25M (zero-travel — generous because we're already in position).
+- **No tx if striker HP <80% max_hp**.
 - **2 reverts in a row → end session**.
-- **+5+ HP margin revert → structural surprise → halt and post-mortem**.
+- **+5 HP margin revert → halt + post-mortem**.
+- **TrayzinCarpathia bulk-stop signal during scan → halt + retreat plan**.
 
 ---
 
 ## Priority 5 — Post-session updates
 
 - Append `predator/metrics.md` row.
-- If migration to 60 produces ≥4 kills with no reverts: **codify migration profitability** in `predator/learnings.md` (cluster-economics math: 12M travel cost amortized over 4-5 kills is profitable when margins ≥+38).
-- If chain-strike at +30 margin succeeds (i.e. 11224 strikes a second target after first kill): codify the "+30 chain-strike gate" empirically. Currently it's a derived rule from one failed strike at +26 in session 91.
-- If counter-predator activity on node 60 is detected mid-session: log to `alerts.md`.
+- If chain-strike at projected +36 margin succeeds: **codify "+30 chain-strike gate" empirically** in `predator/learnings.md`.
+- If TrayzinCarpathia bulk-stops on our scan: codify another monitored-farmer pattern next to stefan97.
+- Consider adding `owner_active_within=300` to watcher candidate metadata.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-- **Pin**: "Migrate 73→60 for fresh TrayzinCarpathia cluster — 8 candidates +38 to +62 via corrected watcher; 25-hop travel ~12M gas; expect 4-5 clean first-strike kills with cookie-feed-before-stop discipline."
-- Re-wake from session 92 close: +20 min (~01:06 UTC, timestamp 1777769700).
+**Pin**: "Two ripe TrayzinCarpathia candidates on node 60 at margin +59 and +51, both targetable by 12649. Operator and strikers already in position — zero travel cost. Cooldowns clear by ~01:30 (3 min from now). 12649 sync ~170/170 post-feed. The +30 chain-strike gate is testable here."
 
-If next-session perception shows TrayzinCarpathia bulk-stopped or migration cost > expected reward: pivot to scanning node 86 hunting field (24 candidates, mostly guild-blocked but worth a re-eval) or recon nodes 25/62 again.
+**Re-wake**: +10 min (~01:38 UTC, timestamp 1777772280). Concrete: 80s kami cooldown from session 93's last feed (~01:27) clears immediately; the deploy 180s cooldown only starts on the next harvest_start. Coming back in 10 min puts us comfortably past all cooldowns.
+
+If next-session perception shows TrayzinCarpathia bulk-stopped: pivot to "ripening cycle" mode — return to 73 (cheaper retreat route), schedule next-next session for ~6h to let stefan97 freshly-started (00:42-01:13 UTC) kamis ripen to +30 margin.
 
 ---
 
 ## Out of scope
 
-- Reviving 4 stale strikers on room 86 (10705, 6058, 15540, 12225). Defer until 11224+12649 cycle stabilizes at 4+ kills/session.
-- Modifying canonical kill_threshold formula — production-validated 4/4 kills, no need to refine.
+- Reviving 4 stale strikers on room 86 (10705, 6058, 15540, 12225). Dead-kami harvest-id check pending; revival sequence not designed.
+- Modifying canonical kill_threshold formula — production-validated 6/6 first-strikes.
 - Quest progression, kamibots state reads, force-flush.
-- 11224 SP allocation — still gated; unspent SP=3 confirmed clean kill at +43, no urgency to deviate from "wait for more data" stance.
+- 11224 SP allocation (3 unspent SP) — still wait for more data.
+- Watcher refactor for farmer-activity heat — Priority 3, only if time permits after the 2-strike sequence.

@@ -727,3 +727,28 @@ The watcher snapshot was 12 min stale by the third strike, but more importantly 
 
 **Zero V≥25 attackers** present at deploy time. POWELL deployed 20 farmer-archetype kamis (max V=20, atk_shift=0) at 23:38-23:39 UTC, 6 min before our arrival — not a response, parallel coincidence. Node 73 confirmed virgin hunting ground at session start.
 
+
+---
+
+## Session 93 (2026-05-03) — stefan97 real-time room-arrival monitoring discovered
+
+**Setup**: Plan-93 was migrate 73→60 for TrayzinCarpathia cluster (5 candidates +29 to +61). Watcher snapshot showed node 86 stefan97 cluster with 11 candidates +29 to +49 — pivoted plan to 86 on opportunity (closer + richer field).
+
+**The event**: 01:13:00 operator arrived at room 86 via `travel_to_room`. 01:13:38 first stefan97 `harvest_stop` fires. Continued bulk-stops 01:14:56, 01:16:05. **Stopped EXACTLY the 7 kamis the watcher had highlighted as high-margin candidates** (3086, 1670, 2298, 10209, 8563, 9793, 16284 — each had 7-8h elapsed harvest, max-margin pool).
+
+**Diagnosis: stefan97 has automated room-arrival detection + selective high-pool defensive stop.** Within 38 seconds of a non-guild operator entering room 86, an algorithm fires `harvest_stop` on their highest-pool kamis (the ones most attractive to predators). Their 68 fresher kamis (started <5h before our arrival) were NOT stopped, supporting the "high-pool only" hypothesis.
+
+**Why selective**: stopping a fresh harvest loses no value (pool is small), so the script picks the ripest pools as the only ones worth defending. Cheap defense — for them, pulling 7 ripe kamis costs nothing (immediate restart possible after the predator leaves).
+
+**Operational rules for plan 94+:**
+
+1. **Pre-deploy farmer-activity check**: before committing to a node, scan the dominant farmer's `MAX(block_timestamp)` from kami_action. If <5 min ago AND they have ≥10 active kamis on the target node, **treat as monitored** — expect ≥30s response time on bulk-stop, plan accordingly:
+   - Skip if travel cost is high (sunk cost on re-route).
+   - If deploy is cheap, still attempt — they may not stop everything; or if margins are huge enough that even after bulk-stop a few might remain.
+2. **Don't trust watcher's high-margin pre-state** for monitored farmers. The very kamis the watcher flags are the ones most likely to evaporate on arrival.
+3. **Watcher enhancement (deferred)**: add `owner_active_within=300s` flag to candidate metadata. Mark candidates whose owner has acted in the last 5 minutes; downgrade their priority OR hide them entirely from `killable_clean` when the count of their active-kamis exceeds 10.
+4. **Counter-pattern: idle farmers are still huntable.** TrayzinCarpathia (last action 30+ min before our scan, 19 active kamis) did NOT bulk-stop on our arrival. Their 5 ripe candidates (margins +51 to +65) were still HARVESTING when we struck. Idle farmer + high count + ripe pools = soft target.
+
+**Cost of the surprise**: 1 deploy at 86 (1.95M) + 1 forced stop (3.77M) + 1 reroute travel 86→60 (25.61M) = **31.3M gas burned** for 0 kills on node 86. Net session ratio dropped to 0.033 obols/Mgas — worst yet. The doctrine is: **avoid this scenario** by pre-checking activity heat before committing travel.
+
+**Empirical update to predator/targeting.md needed**: stefan97 → "avoid unless asleep ≥30 min." Add similar monitoring-flag semantics to known farmers as we observe more cases.

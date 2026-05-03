@@ -3136,3 +3136,64 @@ ORDER BY liq.liq_ts DESC
 - Inventory MUSU balance shows 518873 (unchanged from session start) despite 468 confirmed via oracle stop amounts. Likely Kamibots inventory cache (15s TTL). Oracle is authoritative.
 
 **Next session (93)** — Re-wake +20 min (~01:06 UTC), pinned to: "Migrate operator+strikers 73→60 for fresh TrayzinCarpathia cluster — 8 candidates +38 to +62 with corrected (dead-kami-filtered) watcher data; 25 hops, ~12M gas; expect 4-5 clean first-strike kills with rotation discipline."
+
+
+## 2026-05-03 01:28 UTC — session 93 (2 kills via 86→60 forced reroute; stefan97 real-time room-arrival monitoring discovered)
+
+**ETH balance**: not measured (~60.8M gas — heaviest session by 2x)
+
+**Perceived**:
+- Plan-93 was migrate 73→60 for TrayzinCarpathia cluster. Watcher snapshot showed node 86 stefan97 cluster with 11 candidates +29 to +49 (more than node 60's 5). Travel 73→86 = 11 hops vs 73→60 = 16 hops. Pivoted plan to node 86 on opportunity.
+- Stefan97 active 1 min before our scan (734 actions/24h). Counter-predator on 86: max V=27 aaron, 0 atk_shift bonuses, 0 liquidations 6h. Benign.
+- Strikers: 11224 sync 100/140 (71% — fed cookie pre-deploy to full), 12649 sync 144/170 (85% — clear).
+
+**Decided**:
+- Pivot 73→86 instead of 73→60 (closer + richer field per watcher).
+- Single-strike pair: 11224→1670 (+37, SCRAP body), 12649→3086 (+49, EERIE body).
+
+**Acted (timeline)**:
+- 01:11 `feed_kami(11224, 11304)` — 1.26M, sync 100→140.
+- 01:13 `travel_to_room(86)` — 11 hops, 9.94M gas, 0 items, room 86.
+- 01:13 `harvest_start([11224,12649], 86)` — 1.95M, both ACTIVE.
+- 01:13:38 → 01:16:05 **stefan97 bulk-stopped 7 of our 7 prime candidates** (3086, 1670, 2298, 10209, 8563, 9793, 16284) — within 38 seconds of our operator arrival at room 86.
+- 01:18 Re-ran watcher. Node 86 killable_clean dropped to 0. Killable cluster pivoted to TrayzinCarpathia node 60 (5 candidates +51 to +65).
+- 01:20 `stop_harvest_batch([11224,12649])` — 3.77M, both INACTIVE (just-deployed, low pool: 3+2 MUSU).
+- 01:20 `travel_to_room(60)` — 25 hops, 25.61M gas, 4 ice creams (21201).
+- 01:21 `harvest_start([11224,12649], 60)` — 1.86M.
+- 01:25 Wait 185s + spot-check. All 5 TrayzinCarpathia targets still HARVESTING (last action TC = 00:55, 30+ min idle — no real-time monitoring detected).
+- 01:25:19 `liquidate(2141, 12649, "TrayzinCarpathia")` — 4.54M SUCCESS, 1102 MUSU spoils + 1 Obol (kill #5 production).
+- 01:25:27 `liquidate(2644, 11224, "TrayzinCarpathia")` — 4.62M SUCCESS, 703 MUSU spoils + 1 Obol (kill #6 production).
+- 01:26 Wait ~60s post-kill. `feed_kami(11224, cookie)` reverted (kami cooldown). `feed_kami(12649, cookie)` SUCCESS 1.80M.
+- 01:27 `feed_kami(11224, cookie)` SUCCESS 1.81M.
+- 01:28 `stop_harvest_batch` — 1 sequence-mismatch revert (no gas burn, retry succeeded), 3.61M SUCCESS. Pool collected: 11224 +284, 12649 +519.
+
+**Result**:
+- **2 kills landed (TrayzinCarpathia 2141 + 2644)**, 0 reverts on the strike sequence itself.
+- Total session gas: ~60.8M (3.1× session 92, 1.7× session 91).
+- Net: **2 obols + 2608 MUSU gross (1805 spoils + 803 pool)**, second-highest MUSU per session yet — riper 6-10h pools paid handsomely.
+- Net obols/Mgas: **0.033** (vs session 92 0.103, session 91 0.057). Worst-yet ratio. Migration cost killed the math.
+
+**Doctrine discovery — stefan97 real-time room-arrival monitoring**:
+- 01:13:00 operator (bpeon) arrived at room 86 (our deploy block).
+- 01:13:38 first stefan97 harvest_stop fires. **38-second response time.**
+- Continued bulk-stops 01:14:56, 01:16:05 — staggered tx waves.
+- Stopped EXACTLY the 7 high-margin candidates the watcher had flagged (highest-pool kamis), NOT the lower-margin ones nor the freshly-started ones.
+- Conclusion: **stefan97 has automated room-arrival detection + selective high-pool defensive stop**. They monitor for non-guild operators arriving at their farm rooms and cull their oldest harvests on detection.
+- Operational implication: **before deploying on a node, check the dominant farmer's last-action timestamp**. If <5 min ago AND they have ≥10 active kamis, treat the node as monitored — expect ≥30s response time on bulk-stop. Their oldest harvests may evaporate before our cooldown clears.
+
+**Gas notes**:
+- 86 deploy + bulk-stop-driven retreat cost 7.7M gas (1.95M deploy + 3.77M stop) for 0 kills — direct cost of the surprise.
+- 86→60 reroute cost 25.6M (most expensive single tx of the session). The route across Z=1→Z=3 portal eats 25 hops + 4 ice creams. Future: prefer node 60 from room 73 (16 hops) when both are options.
+- `stop_harvest_batch` hit one nonce-mismatch revert (sequence 3147 vs expected 3148). No gas burned (mempool rejection). Retry 8s later succeeded. Likely caused by rapid-fire feeds saturating the nonce queue.
+
+**Anomalies**:
+- Watcher snapshot freshness ~3 min at session start. Recommend running watcher inline at session start when last-action data is critical for go/no-go on a node.
+
+**Inventory consumed**: 3 cookies (11304), 4 ice creams (21201).
+
+**Cluster state at session close**:
+- Operator + 11224 + 12649 RESTING at room 60. 11224 sync ~140 (post-feed), 12649 sync ~170 (post-feed).
+- TrayzinCarpathia: 3 remaining candidates on watcher (16591 +59, 991 +51, 7304 +32) — likely still HARVESTING. Defensive bulk-stop possible if TC is monitored, but their 30-min-idle activity says no.
+- Stefan97 node 86: bulk-stop completed; 68 fresher kamis still HARVESTING but elapsed <5h, so margins below +30 first-strike gate. Won't be ripe for ~5h.
+
+**Next session (94)** — Re-wake **+10 min** (~01:38 UTC), pinned to: "Strike 16591 (+59) + 991 (+51) on node 60 while TrayzinCarpathia stays idle. Operator + strikers in place at 60 — zero travel cost. Counter-predator scan + spot-check first, then 2-strike sequence."
