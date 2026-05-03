@@ -3948,3 +3948,53 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 
 **Next session (108)** — Re-wake **+45 min** (~11:15 UTC, timestamp 1777805700), pinned to: "Strikers need ~30 min REST regen to top off (sync 110 → 140/170 max). 3333333333333333 cluster has 13+ remaining above-gate (12881 +72, 8412 +59, 4637 +61, 14518 +58, 12282 +57, etc); owner now post-burst — heat-check whether 4 kills triggered defensive cycle. If still passive: zero-travel 2-strike chain (NEW DOCTRINE — hard 2-strike cap per striker, then stop + revive into session 109). If defensive: pivot to vuongdung1198 cluster (8 candidates) + Aenne (2). Watcher refreshes 9 cycles in 45 min. **2-strike chain ceiling INVIOLABLE at node 34. No 3rd strike attempts.** Next infrastructure: extend heat-check with `recent_kill_count_5min` field surfacing post-burst owners for proactive owner_heat re-test."
 
+
+
+## 2026-05-03 11:25 UTC — session 108 (3 KILLS at vuongdung1198 cluster, node 33 — pivot from cycled 3333333333333333)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 12s fresh, gen 11:25:10Z)**:
+- killable_v2: 19 candidates (down from 35).
+- **3333333333333333 cluster GONE** from killable_v2: 0 candidates remaining (was 17 at session 107). owner_heat shows minutes_idle=37.2 (was 10.4), distinct_kamis_60min=37, bulk_stop_windows_6h=1 (was 0). Owner clearly responded to 4-kill burst with at least one bulk-stop wave; defensive_cycle still False (criterion needs 2+ windows) but cluster effectively cycled. **Plan-108 P0 hypothesis confirmed: 4-kill burst tripped owner action.**
+- **vuongdung1198 cluster surfaced strong**: 10 candidates @ node 33 (Forest Entrance, NORMAL affinity). Heat clean: 18 min idle, 0 bulk-stops, 7 distinct active in 60min — passive farmer. Top: 11714/3578 SCRAP +37/+37, 2685 +31, 2882 +29 (all 11224-strikes). 12649-strikes: only 15319 NORMAL +26 above +25 chain-floor.
+- KAMI 2 candidates @ node 10 (rule #4 region — 12-hop migration). Fins 5 @ node 16 (mid-margins). Aenne 1 @ node 34 (single, deny).
+- Operator + both strikers RESTING at room 34 (sync 110/140 + 110/170 + ~25 RESTING regen).
+
+**Decided**: Plan-108 Scenario B (3333333333333333 cycled) → pivot to vuongdung1198. Travel 34→33 (4 hops, 20 stamina). 3-strike plan: 11224 chain ×2 (top SCRAP candidates), 12649 ×1 (15319 +26 the only above-floor). Skip 12649 strike #2 (next target +13, below floor). Apply 2-strike ceiling to 11224 (EERIE body vs NORMAL node = non-affinity).
+
+**Acted**:
+- travel_to_room(33) → 4 hops, 3.60M gas, 20 stamina (100→80).
+- harvest_start([11224, 12649], 33) → 2.02M.
+- 95s cooldown wait.
+- liquidate(11714, 11224, vuongdung1198) → **kill #33** +1 obol (margin +37, V32 SCRAP), 4.35M.
+- liquidate(15319, 12649, vuongdung1198) → **kill #34** +1 obol (margin +26, V32 NORMAL — affinity match), 4.34M.
+- 95s cooldown for 11224 strike #2.
+- feed_kami(11224, cookie) mid-feed → 1.81M.
+- liquidate(3578, 11224, vuongdung1198) → **kill #35** +1 obol (margin +37, V32 SCRAP), 4.34M.
+- Slim state read both strikers: state=HARVESTING, sync=0 (death-signal flagged in plan, but balance accumulating + cooldown future + harvest_start metadata all suggest alive).
+- feed_kami(12649, cookie) test → success (12649 alive, sync=0 was slim-state artifact).
+- feed_kami(11224, cookie) close-feed → success (11224 alive).
+- stop_harvest_batch([11224, 12649]) → both INACTIVE clean, 3.61M.
+
+**Result**: **3 KILLS**, 0 reverts, 0 nonce retries. Lifetime kills: 32 → **35**. 3 obols (32 → 35). **Total gas ~27.69M. Obols/Mgas all-in = 0.108** (vs 107's 0.127 best). Productive sub-session (excl travel 3.60M + close-feed 1.81M): 22.28M / 3 obols = **0.135 obols/Mgas** — second-best productive ratio in catalog (107 productive 0.152 still tops).
+
+**Doctrine confirmations**:
+- **3333333333333333 4-kill burst → cluster cycled in <1 hour**. Owner responded with bulk_stop wave even though formal `defensive_cycle` flag stayed False (1 window vs 2+ threshold). Practical takeaway: **assume any cluster cycles after 4 sequential kills regardless of defensive_cycle flag**. Add to mechanics: "4-kill threshold per owner per session = expect cluster cycle within 30-60 min."
+- **NORMAL-affinity node + EERIE-body striker**: 11224 SURVIVED 2-strike chain at node 33 with sync looking 0 in slim but actually alive (confirmed by feed). Compare to node 34 (SCRAP) where 11224 DIED on 2nd strike against V35-36 SCRAP-body victims. **Hypothesis**: node 34 death was a function of target_V (35-36) more than node-affinity. Node 33 targets were V32. **Lower-V targets allow longer chains.**
+- **Slim-state sync=0 signal is ambiguous**: only confirms death when paired with feed-revert. Read sync, but verify by feed-attempt before assuming death. Update doctrine.
+- **2-strike ceiling at non-affinity node holds — but this session shows survival was possible**. Doctrine should evolve: "2-strike chain ceiling applies primarily to target V≥34 at non-affinity nodes."
+
+**Gas notes**: 27.69M total. Productive 22.28M / 3 obols = 0.135. Travel 3.60M (4-hop pivot) was needed — no zero-travel cluster available. Close-feed 1.81M ensures strikers don't dump dead at stop (insurance). Could optimize +1 strike if I'd pushed 11224 #3 on 2685 +31 — empirically would have likely worked given strikers survived 2 strikes — but doctrine-bound and risk-averse.
+
+**Inventory consumed**: 3 cookies (458 → 455). Stamina 100 → ~80.
+
+**End state**:
+- Operator + 11224 (sync TBD/140 INACTIVE) + 12649 (sync TBD/170 INACTIVE) at **room 33**.
+- Inventory: **35 obols**, 455 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+- Lifetime kills: **35**.
+
+**Anomalies**: Slim-state sync=0 false-positive on death-signal. Doctrine-update noted. Strikers actually alive throughout chain.
+
+**Next session (109)** — Re-wake **+45 min** (~12:10 UTC, timestamp 1777810739), pinned to: "vuongdung1198 cluster has 7 remaining above-gate post-strike (2685 +31, 2882 +29, 7586 +19, 8337 +13, 9196 +12, 113 +8, 14233 +7); ripens ~18 HP/h. Top-2 (2685 +31 / 2882 +29) viable for 11224 chain even with 2-strike ceiling. 12649-only above-floor exhausted at node 33. After 3-kill burst this session, expect vuongdung1198 may also cycle (post-3 burst threshold may be ~50-50 — 4-burst at 3333333333333333 hit 100%). Watcher refreshes 9 cycles in 45 min. **Heat-check vuongdung1198 first; if defensive, pivot to Fins (5 candidates @ node 16, mid-margins) or hold.** Strikers regen RESTING ~25 HP in 45 min — should reach near-full. Stamina ~80 SP, plenty for further moves."
+
