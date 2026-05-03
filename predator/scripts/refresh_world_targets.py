@@ -225,6 +225,84 @@ def scan_node(node_id, node_meta, handles, accs):
     return candidates
 
 
+def owner_heat_check(owners):
+    """For each owner, compute heat-check signals used by Plan-104 P0 v2:
+      - minutes_idle: minutes since last action
+      - distinct_kamis_5min: how many distinct kamis acted in the past 5 min
+      - distinct_kamis_60min: ditto past 60 min
+      - bulk_stop_windows_6h: count of 1-second windows with >=5 kamis
+        starting or stopping a harvest
+
+    Returns: { owner_lower: {minutes_idle, distinct_kamis_5min,
+               distinct_kamis_60min, bulk_stop_windows_6h, defensive_cycle} }
+    Defensive cycle (per Plan-104 P0 v2) = blacklist if ANY:
+      - minutes_idle < 10 AND distinct_kamis_5min >= 3
+      - bulk_stop_windows_6h >= 3
+      - owner == 'stefan97' AND minutes_idle < 240 (4h)
+    """
+    if not owners:
+        return {}
+    quoted = ",".join(f"'{o}'" for o in sorted(set(owners)))
+    sql = f"""
+    WITH a AS (
+      SELECT ks.account_name AS owner, a.action_type, a.kami_id, a.block_timestamp
+      FROM kami_action a
+      JOIN kami_static ks ON a.kami_id = ks.kami_id
+      WHERE ks.account_name IN ({quoted})
+        AND a.block_timestamp >= NOW() - INTERVAL 6 HOUR
+    ),
+    bulk AS (
+      SELECT owner, date_trunc('second', block_timestamp) AS sec,
+             COUNT(DISTINCT kami_id) AS n_kamis
+      FROM a
+      WHERE action_type IN ('harvest_start','harvest_stop')
+      GROUP BY 1, 2
+      HAVING n_kamis >= 5
+    )
+    SELECT
+      a.owner,
+      MAX(a.block_timestamp) AS last_action,
+      EXTRACT(EPOCH FROM (NOW() - MAX(a.block_timestamp)))/60.0 AS minutes_idle,
+      COUNT(DISTINCT CASE WHEN a.block_timestamp >= NOW() - INTERVAL 5 MINUTE
+                          THEN a.kami_id END) AS distinct_kamis_5min,
+      COUNT(DISTINCT CASE WHEN a.block_timestamp >= NOW() - INTERVAL 60 MINUTE
+                          THEN a.kami_id END) AS distinct_kamis_60min,
+      (SELECT COUNT(*) FROM bulk b WHERE b.owner = a.owner) AS bulk_stop_windows_6h
+    FROM a
+    GROUP BY a.owner
+    """
+    rows = oracle_sql(sql, limit=500)
+    out = {}
+    for r in rows:
+        owner_lower = (r.get("owner") or "").lower()
+        minutes_idle = float(r.get("minutes_idle") or 9999)
+        distinct_5 = int(r.get("distinct_kamis_5min") or 0)
+        distinct_60 = int(r.get("distinct_kamis_60min") or 0)
+        bulk_6h = int(r.get("bulk_stop_windows_6h") or 0)
+
+        defensive = False
+        reasons = []
+        if minutes_idle < 10 and distinct_5 >= 3:
+            defensive = True
+            reasons.append(f"sync_active(idle={minutes_idle:.1f}min,kamis_5min={distinct_5})")
+        if bulk_6h >= 3:
+            defensive = True
+            reasons.append(f"bulk_stop_x{bulk_6h}_in_6h")
+        if owner_lower == "stefan97" and minutes_idle < 240:
+            defensive = True
+            reasons.append(f"stefan97_idle_lt_4h({minutes_idle:.0f}min)")
+
+        out[owner_lower] = {
+            "minutes_idle": round(minutes_idle, 1),
+            "distinct_kamis_5min": distinct_5,
+            "distinct_kamis_60min": distinct_60,
+            "bulk_stop_windows_6h": bulk_6h,
+            "defensive_cycle": defensive,
+            "defensive_reasons": reasons,
+        }
+    return out
+
+
 def main():
     t0 = time.time()
     handles, accs = load_guild()
@@ -249,6 +327,22 @@ def main():
         }
         all_candidates.extend(cands)
 
+    # Heat-check pass: gather signals for every owner present in the candidate
+    # pool, then annotate each candidate.
+    owners_in_pool = {(c["v_acct"] or "").lower() for c in all_candidates if c["v_acct"]}
+    heat = owner_heat_check(owners_in_pool)
+    for c in all_candidates:
+        owner_lower = (c.get("v_acct") or "").lower()
+        h = heat.get(owner_lower)
+        c["heat"] = h or {
+            "minutes_idle": None,
+            "distinct_kamis_5min": 0,
+            "distinct_kamis_60min": 0,
+            "bulk_stop_windows_6h": 0,
+            "defensive_cycle": False,
+            "defensive_reasons": [],
+        }
+
     # Filter to clean killable list (margin >= +5, no guild, no no-touch, no feed).
     killable = [c for c in all_candidates
                 if c["margin"] >= 5
@@ -257,13 +351,18 @@ def main():
                 and not c["fresh_feed_since_start"]]
     killable.sort(key=lambda x: x["margin"], reverse=True)
 
+    # killable_v2: heat-check filtered. Removes defensive-cycle owners.
+    killable_v2 = [c for c in killable if not c["heat"].get("defensive_cycle")]
+
     out = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "scan_duration_sec": round(time.time() - t0, 2),
         "hot_nodes": HOT_NODES,
         "guild_blacklist_size": len(handles) + len(accs),
         "by_node": by_node,
-        "killable_clean": killable[:50],  # top 50 across all nodes
+        "killable_clean": killable[:50],  # top 50 across all nodes (legacy field)
+        "killable_v2": killable_v2[:50],  # heat-check filtered (defensive owners removed)
+        "owner_heat": heat,  # per-owner heat-check signals
     }
 
     tmp_path = OUTPUT_PATH.with_suffix(".json.tmp")
@@ -271,7 +370,9 @@ def main():
     tmp_path.rename(OUTPUT_PATH)
 
     n_killable = len(killable)
-    print(f"world_targets.json refreshed: {n_killable} killable across {len(HOT_NODES)} nodes in {out['scan_duration_sec']}s")
+    n_v2 = len(killable_v2)
+    n_defensive_owners = sum(1 for h in heat.values() if h.get("defensive_cycle"))
+    print(f"world_targets.json refreshed: {n_killable} killable ({n_v2} after heat-check), {n_defensive_owners} defensive owners, across {len(HOT_NODES)} nodes in {out['scan_duration_sec']}s")
     return 0
 
 
