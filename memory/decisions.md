@@ -4233,3 +4233,45 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: 5805 chain-2 revert. Logged as doctrine update — chain-2 thresholds need wider margins on non-affinity nodes.
 
 **Next session (114)** — Re-wake **+25 min** (~15:50 UTC, ts 1777823100), pinned to: "vuongdung1198 still passive after 12 cumulative kills — sub-floor candidates (4695 +20 was, may have ripened to +25-30 by now; 5428 +19 → +25; 9380 +16 → +20). 5 watcher cycles in 25min capture latest projections. **If above-floor surfaces zero-travel: solo-strike each — NO chain unless margin ≥ +25 for both targets** (today's 5805 +12 chain-2 revert lesson). **If vuongdung1198 cluster depleted**: hold + re-scan for cluster pivots. Skip stefan96/Yeahta/Anya far singles per rule #4. Strikers RESTING ~110 sync at re-wake. P0 detector + heat-check unchanged."
+
+
+## 2026-05-03 15:50 UTC — session 114 (2 KILLS at vuongdung1198 zero-travel; 0 reverts)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 38s fresh, gen 15:45:07Z)**:
+- killable_v2: 8. **vuongdung1198 STILL PASSIVE** after 12 cumulative kills (idle 0.2min, sync_bursts=0, defensive=False) — heat clean.
+- 3 zero-travel above-floor candidates at node 33: 9266 V30 SCRAP/SCRAP +12 (11224), 5879 V33 EERIE/NORMAL +12 (12649), 3241 V35 SCRAP/NORMAL +9 (11224 alt).
+- Pre-deploy oracle re-check on vuongdung1198 last 30min: 1 stop (5805, the survivor of session-113 chain-2 revert), 1 start (113). Single-kami spacing — manual cycling, NOT defensive automation. Safe.
+- Strikers RESTING at room 33 since session-113 close (sync 100/140 + 100/170 at last touch, +28min RESTING regen → near full). Cooldowns expired ~27min ago.
+
+**Decided**: Solo-strike each above-floor target; per plan-114 doctrine NO chain-2 unless both margins ≥+25. 11224 has 2 above-floor (9266 +12, 3241 +9) — pick higher-margin single-strike (9266). 12649 has 1 (5879 +12).
+
+**Acted**:
+- harvest_start([11224, 12649], 33) → 1.978M.
+- 100s post-deploy cooldown wait.
+- liquidate(9266, 11224, vuongdung1198) → **kill #45** +1 obol (V30 SCRAP/SCRAP, +12 margin), 4.324M.
+- liquidate(5879, 12649, vuongdung1198) → **kill #46** +1 obol (V33 EERIE/NORMAL, +12 margin), 4.393M.
+- 100s post-strike cooldown wait.
+- feed_kami(11224, 11304) 1.812M; feed_kami(12649, 11304) 1.797M.
+- stop_harvest_batch([11224, 12649]) 3.614M → both INACTIVE clean.
+
+**Result**: **2 KILLS, 0 reverts**. Lifetime kills 44 → **46**. Obols 46 → 48. Cookies 443 → 441. **Total gas 17.918M. 2 obols / 17.918M = 0.112 obols/Mgas** — matches sessions 111/112 productive baseline; all-in equals productive (no waste this session).
+
+**Doctrine confirmations**:
+- Chain-2 doctrine restraint paid off: both +12 margin solo-strikes landed clean — same margin as 5805's chain-2 revert in session 113. The differentiator is recoil compounding, not the +12 margin itself.
+- vuongdung1198 cumulative now **14 kills** (sessions 108+109+111+112+113+114 = 3+3+2+2+2+2). Still passive. Confirms session-113 hypothesis: passive owners with no harvest_stop pattern in 30min oracle window can be hunted indefinitely; sync_stop_burst detector is the real automation gate.
+- 3rd 11224 candidate (3241 +9) deliberately skipped per doctrine — accept leaving on table.
+
+**Gas notes**: 17.918M total. Zero waste — 0 reverts, no travel cost. Cookie consumption 2 (441 left).
+
+**Inventory**: **48 obols**, 441 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33**.
+- Stamina ~78 SP (unchanged — zero travel).
+- Lifetime kills: **46**.
+
+**Anomalies**: None. Cleanest session of the vuongdung1198 streak.
+
+**Next session (115)** — Re-wake **+25 min** (~16:15 UTC, ts 1777824900), pinned to: "vuongdung1198 ripeners need +5 to +13 ripen at observed strain rate (~25-40min). Sub-floor candidates at node 33: 4695 (was +20 in session 113), 5428 (was +19), 9380 (was +16), 3241 (now +9). 5 watcher cycles in 25min capture latest projections. **If above-floor surfaces zero-travel: solo-strike each — NO chain unless margin ≥+25 for both.** If cluster cleared: hold + re-scan; do not pivot to far singles per rule #4. Strikers RESTING ~100/140 + 100/170 sync at last touch, will be near-full by re-wake."
