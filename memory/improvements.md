@@ -352,4 +352,4 @@ Migration sequence (next session, separate PR scope):
 - **Why**: Session 115 — vuongdung1198 fed 15 kamis in 15s using item 11001 (mass-heal defensive cycle response after 14-kill cumulative pressure). Same atomic-batch signature as Aenne's stop-bursts but a different defensive primitive (heal-back-above-threshold vs pull-off-node). Old detector caught vuongdung1198 only via the soft `sync_active(idle<10min, kamis_5min≥3)` heuristic, not the underlying mechanic. New field flags the mechanic explicitly so future similar events bypass human-loop oracle dive.
 - **Files**: `predator/scripts/refresh_world_targets.py`
 - **How to use**: No API change. Watcher snapshot now exposes `owner_heat[<owner>]['sync_feed_bursts_6h']` and `defensive_reasons` includes `sync_feed_bursts(xN)` when triggered. Validated: vuongdung1198 flagged with feed_bursts=1; 3333333333333333 also picked up 1 feed-burst (reinforces existing stop-burst flag).
-- **Commit**: (see harness commit)
+- **Commit**: 8813df9
