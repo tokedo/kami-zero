@@ -3197,3 +3197,59 @@ ORDER BY liq.liq_ts DESC
 - Stefan97 node 86: bulk-stop completed; 68 fresher kamis still HARVESTING but elapsed <5h, so margins below +30 first-strike gate. Won't be ripe for ~5h.
 
 **Next session (94)** — Re-wake **+10 min** (~01:38 UTC), pinned to: "Strike 16591 (+59) + 991 (+51) on node 60 while TrayzinCarpathia stays idle. Operator + strikers in place at 60 — zero travel cost. Counter-predator scan + spot-check first, then 2-strike sequence."
+
+
+## 2026-05-03 01:50 UTC — session 94 (1 KILL clean; chain-strike discipline held the line)
+
+**ETH balance**: not measured (~13.88M gas — light single-strike session)
+
+**Perceived**:
+- Operator + 11224 + 12649 RESTING at room 60 from session 93. Both kamis sync ~100, last touched 01:28 UTC (~12 min idle resting → near-max HP). Cooldowns clear (1777771774 < 1777772417).
+- Watcher snapshot fresh (13s old). Node 60: 5 clean TrayzinCarpathia candidates (16591 +66, 7304 +40, 5420 +24, 9839 +18, 6032 +8). 991 (plan-94 +51 chain-strike target) had been cycled by TC at 01:37:43 UTC (3 min before session start) — watcher correctly excluded via session 92 dead-kami filter.
+- TrayzinCarpathia activity scan past 24h: pure cycler pattern (9 starts + 12 stops), routine pool collection at 7-9h elapsed, ~30 min between cycles. **Not a real-time monitor like stefan97.** 991 stop matched their cadence, not a defensive response.
+- 16591 most-overdue at 9.07h elapsed → high cycle risk imminent.
+- Counter-predator: 0 V≥25 attackers seen on node 60 in scan.
+
+**Decided**:
+- Strike 16591 single-strike with 12649 (+66 margin). High EV given imminent TC cycle.
+- **Skip chain-strike on 7304**: watcher +40 → ~+25 effective post-strain on 12649 → BELOW +30 chain-strike gate. Plan-94 explicitly designed this as the doctrine test (only 991 at +51→+36 effective qualified; 991 cycled out, no qualifying chain target remaining).
+- Deploy 11224 too (animosity threat + collects MUSU even without firing) — its only NORMAL/SCRAP candidate is 9839 +18, below first-strike comfort zone.
+- Pre-emptive feed both before stop (session 92 pattern).
+
+**Acted**:
+- 01:43:02 `harvest_start([11224, 12649], 60)` — 1.98M, both ACTIVE.
+- 01:46:30 spot-check oracle: 16591 + 7304 0 actions in 30 min, still HARVESTING uninterrupted.
+- 01:47:09 `liquidate(16591, 12649, "TrayzinCarpathia")` SUCCESS — 4.54M, +793 MUSU spoils + 1 Obol (kill #7 production).
+- 01:48:00 wait 65s for kami cooldown.
+- 01:49:03 `feed_kami(12649, cookie 11304)` — 1.80M SUCCESS.
+- 01:49:05 `feed_kami(11224, cookie 11304)` — 1.95M SUCCESS (no kami-cooldown reverts; this striker did not strike).
+- 01:49:16 `stop_harvest_batch([11224, 12649])` — 3.61M both INACTIVE. Pool: 11224 +2 MUSU (brief deploy, no strike), 12649 +379 MUSU (deploy + post-strike pool).
+- 01:50:00 manual watcher refresh: 16591 dropped from candidates as expected. 7304 ripened to +44 margin.
+
+**Result**:
+- **1 kill** on canonical formula (kill #7 production), 0 reverts.
+- Predicted +66 margin → no surprise; formula validates again on first-strike RESTING attacker.
+- **Chain-strike doctrine held**: skipped 7304 at +40 watcher (~+25 effective). Doctrine remains untested empirically (no in-margin candidate this session).
+- Net session: 1 obol, 793 MUSU spoils + 381 MUSU pool = 1174 MUSU gross, ~13.88M gas. Obols/Mgas = **0.072**.
+
+**Comparison vs recent**:
+- Session 91 (2 kills, 35M gas, 11.47M travel): 0.057 obols/Mgas
+- Session 92 (2 kills, 19.4M gas, 0 travel, 0 reverts): 0.103
+- Session 93 (2 kills, 60.8M gas, 35.5M travel through reroute): 0.033
+- Session 94 (1 kill, 13.88M gas, 0 travel, 0 reverts): 0.072
+
+Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) > 93 (forced reroute). Pattern: **zero-travel + zero-revert is the dominant strategy** — even single-strike beats double-strike when the second is an unsafe chain.
+
+**Gas notes**:
+- 4.54M strike (productive — 1 obol + 793 MUSU).
+- 3.75M pre-emptive feeds (preventive — would be 5-6M reverts without).
+- 1.98M deploy + 3.61M stop = baseline cost to convert intent into kill.
+- 11224 deploy was 0-EV (no kill), but cost minimal (~1M marginal vs single-deploy).
+
+**Anomalies**:
+- None operationally. TrayzinCarpathia continues to operate as automated cycler — no real-time monitoring detected.
+- Watcher had stale 16591 entry for ~10 min post-kill (oracle ingest lag for liquidate event). Manual refresh post-stop confirmed the dead-kami filter works once data is ingested.
+
+**Inventory consumed**: 2 cookies (11304).
+
+**Next session (95)** — Re-wake **+25 min** (~02:14 UTC, timestamp 1777774437), pinned to: "7304 ripening on TC node 60; currently +44 watcher margin at 7.85h elapsed. TC cycle window 8-9h → strike NOW window: 30-60 min before TC auto-cycles. 12649 will be RESTING ~25 min → near-max HP. Single first-strike on 7304 (margin should be +50+ effective by then). 11224 has no in-margin candidate — leave RESTING or include as bodyguard."
