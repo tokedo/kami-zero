@@ -4275,3 +4275,46 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. Cleanest session of the vuongdung1198 streak.
 
 **Next session (115)** — Re-wake **+25 min** (~16:15 UTC, ts 1777824900), pinned to: "vuongdung1198 ripeners need +5 to +13 ripen at observed strain rate (~25-40min). Sub-floor candidates at node 33: 4695 (was +20 in session 113), 5428 (was +19), 9380 (was +16), 3241 (now +9). 5 watcher cycles in 25min capture latest projections. **If above-floor surfaces zero-travel: solo-strike each — NO chain unless margin ≥+25 for both.** If cluster cleared: hold + re-scan; do not pivot to far singles per rule #4. Strikers RESTING ~100/140 + 100/170 sync at last touch, will be near-full by re-wake."
+
+
+## 2026-05-03 16:18 UTC — session 115 (0 strikes; vuongdung1198 cycled via sync-feed burst; P0 detector extended)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 14s fresh, gen 16:15:07Z)**:
+- killable_v2: 7. **ZERO zero-travel candidates at node 33** — vuongdung1198 cluster cleared.
+- vuongdung1198 heat: idle 3.8min, distinct_kamis_5min=6, defensive_cycle=True via `sync_active(idle=3.8min,kamis_5min=6)`. Old detector flagged via activity heuristic, not via the underlying mechanic.
+- Oracle re-check: vuongdung1198 **fed 16 kamis in last 60min**, 15 of them in a **15-second window** (16:09:57-16:10:12) using item 11001. 1 trailing feed at 16:11:18. This is the defensive cycle response — but it's a sync-FEED burst, not sync-STOP. Different primitive, same atomic-batch signature.
+- Available candidates (all far-singles, rule #4 deny): Yeahta 1374 +41 node 73, TrayzinCarpathia 6023 +15 node 60, kaviar 1380 +11 / 7672 +10 node 16, tamagotcho 7311 +10 node 9, wiuuuu 1451 +8 node 60, stefan96 (DENY-ALL).
+- Plan-115 P2 wiuuuu node 60 pivot needs ≥3 above-floor; only 2 (6023 +15, 1451 +8 chain-floor risk). Skip.
+
+**Decided**: No strike. Hold, then **build P0 sync-feed-burst extension** to the watcher heat detector. Vuongdung1198 cumulative-pressure threshold confirmed at ~14 kills before defensive response triggers. Next time this happens to a hunted cluster, detector should see it without us needing the oracle deep-dive.
+
+**Acted (build only)**:
+- Extended `predator/scripts/refresh_world_targets.py` `owner_heat_check()`:
+  - Added CTEs `feeds`, `feed_burst_windows`, `feed_burst_islands`, `feed_burst_count` mirroring the stop-burst logic with 5s window + 3-kami threshold.
+  - Added `sync_feed_bursts_6h` field to per-owner heat output.
+  - `anti_predator_automation` now True if EITHER stop-bursts OR feed-bursts ≥1.
+  - Split defensive_reasons: `sync_stop_bursts(xN)` and `sync_feed_bursts(xN)` reported separately for diagnostic clarity.
+- Refreshed watcher: vuongdung1198 now `sync_feed_bursts_6h=1, anti_predator_automation=True`. Cross-check: 3333333333333333 also picked up 1 feed-burst (was already auto-suppressed via stop-bursts; now reinforced). Aenne / foden / dias / rtvvvvv unchanged (stop-bursts only). killable_v2 7→6 (one candidate of 3333333333333333 newly filtered).
+
+**Result**: 0 kills, 0 obols, ~0 gas (build-only session). Lifetime kills unchanged at **46**. Doctrine value: detector now covers a defensive primitive we hadn't explicitly modeled (mass-heal vs mass-stop). Both signatures share atomic-batch fingerprint, both now flagged.
+
+**Doctrine update — sync-feed burst is a defensive primitive**:
+- vuongdung1198 confirmed cumulative-kill threshold ~14 before response. Lower-bound estimate — could be higher elsewhere.
+- Defensive response can be sync-feed (heal back above kill threshold) instead of sync-stop (pull off node). Same atomic-batch signature: dozens of identical actions inside ≤15s. Both auto-batched via same kamibots-style API.
+- For owners with passive heat that suddenly fire a sync-feed burst: cluster effectively cleared until the new HP bleeds back down (likely 1-3h for V20-V35 kamis at observed strain). Don't re-deploy until burst is >60min old AND new strain projections show above-floor candidates.
+- Detector now flags this. Future similar events will trigger `defensive_cycle=True` automatically with `sync_feed_bursts(xN)` reason — no human-loop oracle dive needed.
+
+**Gas notes**: 0 tx submitted. Pure build session.
+
+**Inventory (unchanged from session 114)**: 48 obols, 441 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33** (no movement).
+- Stamina ~78 SP.
+- Lifetime kills: **46**.
+
+**Anomalies**: None. Detector update validated against 6 known automation owners.
+
+**Next session (116)** — Re-wake **+25 min** (~16:43 UTC, ts 1777826580), pinned to: "vuongdung1198 sync-feed burst at 16:10 healed 15 kamis to ~full HP (item 11001, presumably hi-HP food). Re-strain timing for V20-V35 kamis post-feed: ~30-60min before new sub-floor candidates appear; ~60-90min before margin reclaims +15+. **First check**: watcher heat should still flag vuongdung1198 anti_predator_automation=True for the next 6h via burst persistence in the SQL window. **Second check**: any zero-travel candidates surfacing — if YES the detector mis-classified or owner's burst was already absorbed; if NO, hunt is paused on this owner. **If still cleared**: scan for fresh clusters elsewhere — node 60 (wiuuuu region) and node 73 (Yeahta) are stale leads from this scan; new nodes may have surfaced. Build asks remaining: cumulative-burst tracker, chain-2 feasibility model, pre-strike cooldown helper."

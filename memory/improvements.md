@@ -346,3 +346,10 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py`
 - **How to use**: Run `python3 predator/scripts/refresh_world_targets.py` as before — output JSON at `predator/world_targets.json` now includes `owner_heat[name].sync_stop_bursts_6h` and `anti_predator_automation` per owner. `killable_v2` already filters by `defensive_cycle` which now incorporates the new flag. Validation set: Aenne sync_bursts=2, 3333333333333333=3, foden=26, dias=20, rtvvvvv=2 — all properly flagged. vuongdung1198 sync_bursts=0 (false-positive cleared at 5s threshold).
 - **Commit**: (this session)
+
+## 2026-05-03 — Watcher: sync-feed burst detector (anti-predator automation extension)
+- **What**: Extended `owner_heat_check()` in `predator/scripts/refresh_world_targets.py` with `sync_feed_bursts_6h` field and corresponding CTEs (`feeds`, `feed_burst_windows`, `feed_burst_islands`, `feed_burst_count`). Mirror of stop-burst detector: 5-second window, ≥3-distinct-kami threshold, gap-based island collapse. `anti_predator_automation` is now True if EITHER stop-bursts OR feed-bursts ≥1. Defensive reasons split into `sync_stop_bursts(xN)` / `sync_feed_bursts(xN)` for diagnostic clarity.
+- **Why**: Session 115 — vuongdung1198 fed 15 kamis in 15s using item 11001 (mass-heal defensive cycle response after 14-kill cumulative pressure). Same atomic-batch signature as Aenne's stop-bursts but a different defensive primitive (heal-back-above-threshold vs pull-off-node). Old detector caught vuongdung1198 only via the soft `sync_active(idle<10min, kamis_5min≥3)` heuristic, not the underlying mechanic. New field flags the mechanic explicitly so future similar events bypass human-loop oracle dive.
+- **Files**: `predator/scripts/refresh_world_targets.py`
+- **How to use**: No API change. Watcher snapshot now exposes `owner_heat[<owner>]['sync_feed_bursts_6h']` and `defensive_reasons` includes `sync_feed_bursts(xN)` when triggered. Validated: vuongdung1198 flagged with feed_bursts=1; 3333333333333333 also picked up 1 feed-burst (reinforces existing stop-burst flag).
+- **Commit**: (see harness commit)
