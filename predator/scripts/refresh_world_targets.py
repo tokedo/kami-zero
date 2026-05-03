@@ -246,14 +246,18 @@ def owner_heat_check(owners):
       - bulk_stop_windows_6h: count of 1-second windows with >=5 kamis
         starting or stopping a harvest
       - sync_stop_bursts_6h: count of clusters where 3+ harvest_stops fall
-        inside a 60-second window (Aenne automation signature, session 110)
+        inside a 5-second window (Aenne automation signature, session 110)
+      - sync_feed_bursts_6h: count of clusters where 3+ feeds fall inside
+        a 5-second window (vuongdung1198 sync-heal signature, session 115:
+        15 kamis fed via item 11001 in 15s after 14-kill cumulative pressure)
       - anti_predator_automation: True if sync_stop_bursts_6h >= 1
+        OR sync_feed_bursts_6h >= 1
 
     Returns: { owner_lower: {…, anti_predator_automation: bool} }
     Defensive cycle = blacklist if ANY:
       - minutes_idle < 10 AND distinct_kamis_5min >= 3
       - bulk_stop_windows_6h >= 3
-      - anti_predator_automation == True (sync_stop_bursts_6h >= 1)
+      - anti_predator_automation == True (sync_stop OR sync_feed bursts)
       - owner == 'stefan97' AND minutes_idle < 240 (4h)
     """
     if not owners:
@@ -312,6 +316,37 @@ def owner_heat_check(owners):
       WHERE prev_anchor IS NULL
          OR anchor_ts > prev_anchor + INTERVAL 5 SECOND
       GROUP BY owner
+    ),
+    -- Sync-feed burst detector (Plan-115 P0, session 115):
+    -- vuongdung1198 fed 15 kamis in 15s using item 11001 after 14-kill
+    -- cumulative pressure. Same atomic-batch signature as sync-stop, but
+    -- the defensive primitive is mass-healing, not mass-stopping.
+    feeds AS (
+      SELECT owner, kami_id, block_timestamp AS ts
+      FROM a
+      WHERE action_type = 'feed'
+    ),
+    feed_burst_windows AS (
+      SELECT f1.owner, f1.ts AS anchor_ts,
+             COUNT(DISTINCT f2.kami_id) AS n_kamis_in_window
+      FROM feeds f1
+      JOIN feeds f2
+        ON f1.owner = f2.owner
+       AND f2.ts BETWEEN f1.ts AND f1.ts + INTERVAL 5 SECOND
+      GROUP BY f1.owner, f1.ts
+      HAVING COUNT(DISTINCT f2.kami_id) >= 3
+    ),
+    feed_burst_islands AS (
+      SELECT owner, anchor_ts,
+             LAG(anchor_ts) OVER (PARTITION BY owner ORDER BY anchor_ts) AS prev_anchor
+      FROM feed_burst_windows
+    ),
+    feed_burst_count AS (
+      SELECT owner, COUNT(*) AS sync_feed_bursts_6h
+      FROM feed_burst_islands
+      WHERE prev_anchor IS NULL
+         OR anchor_ts > prev_anchor + INTERVAL 5 SECOND
+      GROUP BY owner
     )
     SELECT
       a.owner,
@@ -323,7 +358,9 @@ def owner_heat_check(owners):
                           THEN a.kami_id END) AS distinct_kamis_60min,
       (SELECT COUNT(*) FROM bulk b WHERE b.owner = a.owner) AS bulk_stop_windows_6h,
       COALESCE((SELECT sync_stop_bursts_6h FROM burst_count bc WHERE bc.owner = a.owner), 0)
-        AS sync_stop_bursts_6h
+        AS sync_stop_bursts_6h,
+      COALESCE((SELECT sync_feed_bursts_6h FROM feed_burst_count fbc WHERE fbc.owner = a.owner), 0)
+        AS sync_feed_bursts_6h
     FROM a
     GROUP BY a.owner
     """
@@ -336,7 +373,8 @@ def owner_heat_check(owners):
         distinct_60 = int(r.get("distinct_kamis_60min") or 0)
         bulk_6h = int(r.get("bulk_stop_windows_6h") or 0)
         sync_bursts = int(r.get("sync_stop_bursts_6h") or 0)
-        anti_predator = sync_bursts >= 1
+        sync_feed_bursts = int(r.get("sync_feed_bursts_6h") or 0)
+        anti_predator = sync_bursts >= 1 or sync_feed_bursts >= 1
 
         defensive = False
         reasons = []
@@ -346,9 +384,12 @@ def owner_heat_check(owners):
         if bulk_6h >= 3:
             defensive = True
             reasons.append(f"bulk_stop_x{bulk_6h}_in_6h")
-        if anti_predator:
+        if sync_bursts >= 1:
             defensive = True
-            reasons.append(f"anti_predator_automation(sync_bursts={sync_bursts})")
+            reasons.append(f"sync_stop_bursts(x{sync_bursts})")
+        if sync_feed_bursts >= 1:
+            defensive = True
+            reasons.append(f"sync_feed_bursts(x{sync_feed_bursts})")
         if owner_lower == "stefan97" and minutes_idle < 240:
             defensive = True
             reasons.append(f"stefan97_idle_lt_4h({minutes_idle:.0f}min)")
@@ -359,6 +400,7 @@ def owner_heat_check(owners):
             "distinct_kamis_60min": distinct_60,
             "bulk_stop_windows_6h": bulk_6h,
             "sync_stop_bursts_6h": sync_bursts,
+            "sync_feed_bursts_6h": sync_feed_bursts,
             "anti_predator_automation": anti_predator,
             "defensive_cycle": defensive,
             "defensive_reasons": reasons,
