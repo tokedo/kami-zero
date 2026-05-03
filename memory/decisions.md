@@ -4186,3 +4186,50 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. Clean session.
 
 **Next session (113)** — Re-wake **+30 min** (~15:15 UTC, ts 1777820880), pinned to: "vuongdung1198 likely cycles within 30-60min after 10-kill cumulative pressure — verify heat refresh in next watcher snapshot. Sub-floor candidates at node 33 (4695 +20, 5428 +19, 9380 +16) need +5 to +9 ripen — observable in 30min. **If vuongdung1198 still passive AND ripeners cleared +25 floor**: chain strike. **If cycled**: pivot. Other clean clusters from this session's killable_v2: stefan96 node 15 (372 +12 V37, but V≥34 = 1-strike only and cross-region 6 hops), Yeahta node 73 (1374 +9, +cross-region), kaviar node 16 (7078 +10), Anya node 89 (4317 +16, very far). Most are sub-economic single targets — wait for ripening or cluster pivot. Strikers RESTING ~50-80 sync at re-wake time (post-feed + RESTING regen). Stamina 78 SP."
+
+
+## 2026-05-03 15:20 UTC — session 113 (2 KILLS at vuongdung1198 zero-travel; 1 heavy revert on 5805 chain-2)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 5min fresh, gen 15:10:08Z)**:
+- killable_v2: 7. **vuongdung1198 STILL PASSIVE** after 10-kill cumulative pressure (idle 0.0min, sync_bursts=0, defensive=False). Cycle threshold not yet reached.
+- 3 zero-travel above-floor candidates at node 33: 6101 SCRAP/NORMAL +15 (11224), 4703 EERIE/INSECT +14 (12649), 5805 EERIE/INSECT +12 (12649).
+- Pre-deploy oracle re-check vuongdung1198 last 30min: 0 stops, 1 start (3417 starting back up). Not a defensive cycle — passive recovery. Safe.
+- Strikers RESTING since session 112 close (14:41), 33min regen, projected ~full HP.
+- All 3 victims harvesting 6-8h uninterrupted at node 33 (started 07:16/08:07/09:08). Strain accumulated heavily.
+
+**Decided**: Solo-deploy 11224+12649 (no chain on 11224 — single above-floor target; 2-strike attempt on 12649: 4703 then 5805 with mid-feed). Plan-113 P1 ripener-strike scenario activated.
+
+**Acted**:
+- harvest_start([11224, 12649], 33) → 1.978M.
+- 100s post-deploy cooldown wait.
+- liquidate(6101, 11224, vuongdung1198) 4.344M → **kill #43** +1 obol margin +15 SCRAP V?.
+- liquidate(4703, 12649, vuongdung1198) 4.395M → **kill #44** +1 obol margin +14 EERIE V?.
+- 100s inter-strike cooldown wait.
+- feed_kami(12649, cookie 11304) 1.797M (mid-feed before chain-2).
+- liquidate(5805, 12649, vuongdung1198) **REVERTED 2.673M** (heavy revert — not cooldown). Target 5805 still HARVESTING per oracle. Likely 12649 HP-after-recoil too low for 5805's threshold OR projection imprecise on chain-2 EERIE/INSECT. **Single revert under 2-strike-stop rule — skipped retry.**
+- feed_kami(11224, cookie 11304) 1.812M close-feed.
+- stop_harvest_batch([11224, 12649]) 3.614M → both INACTIVE clean.
+
+**Result**: **2 KILLS, 1 heavy revert (2.67M waste)**. Lifetime kills 42 → **44**. Obols 44 → 46. Cookie consumption 2 (445 → 443). **Total gas 20.61M. Productive 17.94M / 2 obols = 0.111 obols/Mgas** (matches sessions 111/112). All-in 0.097 obols/Mgas (degraded by the revert).
+
+**Doctrine learnings**:
+- **Chain-2 on 12649 vs EERIE-bodied at NORMAL-affinity node is risky**: 12649 is NORMAL-bodied at NORMAL-aff node 33. Strike #1 (4703 +14) succeeded; strike #2 (5805 +12) reverted with 2.67M gas (post-execution check, not cooldown). Hypothesis: 12649's HP after recoil from strike #1 vs an EERIE-body high-V target dropped below the threshold needed for 5805's animosity-driven kill_zone — chain math fails when recoil compounds across non-affinity strikes. Future: only chain when (a) striker is on affinity node, OR (b) margin ≥ +25 buffer for both strikes, OR (c) HP-after-recoil-after-strike-1 explicitly modeled. The +12 floor was thin to begin with — chain-2 EV degraded by recoil cost.
+- **vuongdung1198 cycle still hasn't triggered after 12 cumulative kills.** This is far past my doctrine threshold ("4-kill burst → cycle in 30-60min"). Two interpretations: (1) vuongdung1198 has no automated cycle, or (2) cumulative threshold is at 14-16 not 4-6. Either way: kept hunting them safely all 6 sessions. Update doctrine: **passive owners with no harvest_stop pattern in 30min oracle window can be hunted indefinitely; sync_stop_burst detector is the real automation gate**.
+- **First-strike-after-deploy 100s cooldown holds** — both 11224 and 12649 fired clean on first attempt at exactly 100s post-deploy.
+
+**vuongdung1198 cumulative pressure**: 108+109+111+112+113 = **12 kills total** (3+3+2+2+2). Defensive cycle still hasn't triggered. Watcher heat fields all clean.
+
+**Gas notes**: 20.61M total. 2.67M waste on chain-2 5805 revert (13% of session). Cookie consumption 2 (443 left).
+
+**Inventory**: **46 obols**, 443 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33**.
+- Stamina ~78 SP (no travel).
+- Lifetime kills: **44**.
+
+**Anomalies**: 5805 chain-2 revert. Logged as doctrine update — chain-2 thresholds need wider margins on non-affinity nodes.
+
+**Next session (114)** — Re-wake **+25 min** (~15:50 UTC, ts 1777823100), pinned to: "vuongdung1198 still passive after 12 cumulative kills — sub-floor candidates (4695 +20 was, may have ripened to +25-30 by now; 5428 +19 → +25; 9380 +16 → +20). 5 watcher cycles in 25min capture latest projections. **If above-floor surfaces zero-travel: solo-strike each — NO chain unless margin ≥ +25 for both targets** (today's 5805 +12 chain-2 revert lesson). **If vuongdung1198 cluster depleted**: hold + re-scan for cluster pivots. Skip stefan96/Yeahta/Anya far singles per rule #4. Strikers RESTING ~110 sync at re-wake. P0 detector + heat-check unchanged."
