@@ -308,3 +308,10 @@ Migration sequence (next session, separate PR scope):
 - **Cron**: `*/5 * * * * /usr/bin/python3 /home/anatolyzaytsev/kami-zero/predator/scripts/refresh_world_targets.py >/tmp/world_targets_cron.log 2>&1`
 - **Hot-list update**: edit `HOT_NODES` in script. Striker roster: edit `STRIKERS` constant; refresh on respec.
 - **Commit**: 6d346be
+
+## 2026-05-03 — Watcher: dead-kami harvest_id filter
+- **What**: Added `killed_harvests` CTE in `predator/scripts/refresh_world_targets.py` that pulls all `harvest_id` from recent `harvest_liquidate` actions, then filters open harvests via `WHERE hs.harvest_id NOT IN (SELECT harvest_id FROM killed_harvests)`.
+- **Why**: `harvest_liquidate` rows have NULL `target_kami_id` — only the victim's `harvest_id` is preserved. Victim's own action stream shows no terminating event after kill, so the watcher's `last_actions` CTE incorrectly picked up `harvest_start` as the latest action even after the kami was killed. Session 91 kills (6104, 6505) appeared as alive with margins +94/+51 in session 92's snapshot, almost causing a wasted strike sequence.
+- **Files**: `predator/scripts/refresh_world_targets.py`
+- **How to use**: Watcher runs every 5 min via cron. No callsite change. Re-validation: post-fix node 73 killable went 6→2 (correctly excluded 4 dead Yeahta kamis from sessions 91+92).
+- **Commit**: (this session)

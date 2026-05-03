@@ -3087,3 +3087,52 @@ ORDER BY liq.liq_ts DESC
 
 **Next session (92)** — Re-wake +30 min (~00:28 UTC), pinned to: "post-kill striker HP recovery + Yeahta/POWELL cluster ripening on node 73 + decision: continue 73 hunt vs migrate 73→60 for fresh TrayzinCarpathia cluster."
 
+
+
+## 2026-05-03 00:46 UTC — session 92 (2 KILLS clean session — pre-emptive feed pattern shipped + watcher bug fixed)
+
+**ETH balance**: not measured (~19.4M gas — light session)
+
+**Perceived**:
+- world_targets.json fresh (14s old). BUT showed 6104, 6505 still HARVESTING with margins +94/+51 — stale: those were killed in session 91. Watcher bug: harvest_liquidate has NULL target_kami_id, only target's harvest_id, so victim's action stream shows no terminating event. Watcher needed cross-reference filter.
+- Real Yeahta candidates after dedupe: 8007 (+43), 3735 (+31), 6485 (+9), 1847 (+8). Two ≥+30 first-strike candidates.
+- Striker recovery (39 min RESTING since session 91 close): 11224 sync HP=100/140 (80% — clears safety margin). 12649 sync HP=37/170 (29% — needs heal).
+- Operator at room 73 (no travel cost). Counter-predator scan node 73: 0 V≥25 non-bpeon harvesters.
+
+**Decided**:
+- Stay on 73, in-place re-deploy 11224 + 12649. Two clean first-strike candidates, no migration cost.
+- Apply session 91 lesson preemptively: feed strikers BEFORE harvest_stop to avoid STARVING revert spiral.
+- Skip chain-strike on 6485 (+9 margin << +30 chain-strike gate).
+- After session: migrate to node 60 TrayzinCarpathia (8 fresh candidates +38 to +62) target.
+
+**Acted**:
+- `feed_kami(12649, 11304 Cookie)` — 1.26M, sync 37→137 (~88%).
+- `harvest_start([11224, 12649], 73)` — 1.91M batch.
+- Wait 190s cooldown + spot-check — 8007/3735/6485 all still HARVESTING unfed per oracle.
+- `liquidate(8007, 11224, target_handle="Yeahta")` — 4.44M SUCCESS, +425 MUSU spoils + 1 Obol (kill #3 production).
+- `liquidate(3735, 12649, target_handle="Yeahta")` — 4.49M SUCCESS, +388 MUSU spoils + 1 Obol (kill #4 production).
+- Spot-check post-kill state: 11224 sync=0 (STARVING confirmed), 12649 sync=44.
+- `feed_kami(11224, cookie)` — first attempt reverted "kami on cooldown" (~14s remaining). Waited 60s, retried 1.81M SUCCESS.
+- `feed_kami(12649, cookie)` — 1.87M SUCCESS.
+- `stop_harvest_batch([11224, 12649])` — 3.61M, both INACTIVE, +231 + +237 = +468 MUSU collected.
+- **Watcher fix**: edited `predator/scripts/refresh_world_targets.py` — added `killed_harvests` CTE that pulls all `harvest_id` from recent `harvest_liquidate` actions, filtered out via `WHERE hs.harvest_id NOT IN (SELECT harvest_id FROM killed_harvests)`. Re-ran watcher: node 73 killable went 6→2 (correctly excluded 6104+6505+8007+3735).
+
+**Result**:
+- **2 kills, 0 reverts, 0 stuck-state diagnostics** — clean execution. Pre-emptive feed pattern (vs reactive session 91) saved ~5-7M gas in cleanup reverts.
+- **Watcher bug shipped**: dead-kami harvest_id filter prevents future false-positive candidate selection.
+- **Net session**: 2 obols, 1281 MUSU spoils + 468 MUSU pool, ~19.4M gas (45% lower than session 91 — no travel, no reverts).
+- Operator + strikers all RESTING at room 73 (operator co-located with node 73 — invariant preserved).
+
+**Gas notes**:
+- 1.26M cookie feed (necessary heal, gates harvest_start safety margin).
+- 1.91M harvest_start batch (necessary deployment).
+- 4.44M + 4.49M = 8.93M strike kills (productive — 2 obols + 1281 MUSU spoils generated).
+- 1.81M + 1.87M = 3.68M post-kill cookie feeds (preventive — avoided ~6M revert spiral from session 91).
+- 3.61M stop_harvest_batch (clean drain, +468 MUSU collected).
+- **Net obols/gas-Mwei: ~103** (2 obols / 19.4M gas), 5x the session 91 ratio. The pre-emptive-feed discipline is the lever.
+
+**Anomalies**:
+- `feed_kami(11224)` first attempt reverted with "kami on cooldown" 14s after the kill tx. The kill produced a kami-level cooldown distinct from the 180s post-`harvest_start` attacker cooldown. Need to characterize whether feed cooldown == kill cooldown ~80s, or just the in-game "any action" cooldown. Not material for now — pattern: wait ~30-60s post-kill before feeding.
+- Inventory MUSU balance shows 518873 (unchanged from session start) despite 468 confirmed via oracle stop amounts. Likely Kamibots inventory cache (15s TTL). Oracle is authoritative.
+
+**Next session (93)** — Re-wake +20 min (~01:06 UTC), pinned to: "Migrate operator+strikers 73→60 for fresh TrayzinCarpathia cluster — 8 candidates +38 to +62 with corrected (dead-kami-filtered) watcher data; 25 hops, ~12M gas; expect 4-5 clean first-strike kills with rotation discipline."
