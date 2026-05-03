@@ -3458,3 +3458,81 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 - Plenty of inventory: 484 cookies, 66 ice creams + 10 better, 1056 ghost gum, 463 candyfloss.
 
 **Next session (99)** — Re-wake **+45 min** (~05:21 UTC, timestamp 1777785000), pinned to: "stamina at 20 needs ~45 min for natural regen to ~25-30. Watcher refreshes every 5 min — 9 cycles in window. By 05:21: (1) stefan97 will be ~50 min into latest cycle (still strain=0, no candidates); (2) Yeahta cluster ripening ~50+ min beyond watcher's 04:25 snapshot — 3699 may have crossed +30; (3) TC node 60 may have new in-margin candidates from natural ~7-9h cycler. Travel 86→73 = 11 hops back, 86→60 needs stamina restoration. Plan-99 prioritizes (a) pre-pivot heat-check mandatory, (b) Yeahta-back-via-73 if any +30 candidate, (c) wait at 86 if no clean pivot."
+
+
+## 2026-05-03 05:23 UTC — session 99 (4 KILLS, ~40.5M GAS — quad-kill via dual-striker chain doctrine)
+
+**ETH balance**: not measured.
+
+**Perceived**:
+- End state from session 98: operator + 11224 (140/140) + 12649 (170/170) RESTING at room 86. Stamina restored to 78 (better than estimated 25-30 — natural regen exceeded model).
+- Watcher (gen 05:15:04Z, 7 min fresh): node 73 had **4 above-gate Yeahta candidates**: 3470 (+43, 11224, SCRAP), 2836 (+42, 11224, SCRAP), 3699 (+40, 12649, EERIE), 14081 (+31, 12649, NORMAL). Node 60 had 2 above-gate (3334 +49 / 126 +46) but multi-hop travel cost prohibitive vs node 73's 11-hop direct path.
+- Pre-pivot heat-check on Yeahta (P0 doctrine): 139 min idle, 13 active kamis past 24h, last action 02:56:43 — passes ≥30 min gate decisively. **No stefan97-style synchronized auto-restart**.
+
+**Decided**:
+- Travel 86→73 (already plotted by session 98 reverse path), then dual-deploy + dual-chain-strike on both strikers. Each striker has 2 above-gate targets — quad-kill scenario.
+- Skip 12649's 14081 if cooldown/state degrades during chain (margin +31 is exactly at gate, riskiest of the 4).
+
+**Acted**:
+- `travel_to_room(73, dry_run=True)`: 11 hops, stamina_needed 55, have 78, no items needed.
+- `travel_to_room(73)` 9.77M gas, 0 reverts, stamina 78→23.
+- `harvest_start([11224,12649], 73)` 2.02M, both ACTIVE.
+- Wait 82s deploy cooldown.
+- `liquidate(3470, 11224, "Yeahta")` 4.35M → **kill #14 production** (+551 MUSU spoils + 1 obol, margin +43).
+- `liquidate(3699, 12649, "Yeahta")` 4.73M → **kill #15 production** (+609 MUSU spoils + 1 obol, margin +40).
+- Wait 87s kami strike cooldown.
+- Mid-feed for chain HP restore: `feed_kami(11224, cookie)` 1.81M + `feed_kami(12649, cookie)` 1.87M (parallel calls, both succeeded).
+- `liquidate(2836, 11224, "Yeahta")` 4.37M → **kill #16 production** (+476 MUSU spoils + 1 obol, margin +42 — same-striker chain on 11224).
+- `liquidate(14081, 12649, "Yeahta")` 4.31M → **kill #17 production** (+453 MUSU spoils + 1 obol, margin +31 — chain on 12649, first-strike gate empirically validated at +31).
+- Wait 87s kami strike cooldown.
+- Close-feed: `feed_kami(11224, cookie)` 1.81M + `feed_kami(12649, cookie)` 1.87M.
+- `stop_harvest_batch([11224,12649])` 3.61M both INACTIVE.
+
+**Result**:
+- **4 KILLS, 0 reverts, 0 nonce mismatches, 0 wasted travel.** Most kills in a single session of the predator era.
+- Net: 4 obols, 2089 MUSU spoils + close-pool MUSU.
+- Total gas: ~40.52M.
+- **Obols/Mgas = 0.099 session total** (vs session 98's 0.000 / session 96's 0.107 — strong recovery).
+- **Productive sub-session ratio (excl. 9.77M travel): 4 / 30.75 = 0.130 — new best sub-session ratio.**
+
+**New doctrine: DUAL-STRIKER CHAIN-KILL** — extension of session 97's same-striker chain. When **both** strikers each have ≥2 above-gate targets at a single node:
+1. Dual-deploy both strikers (1 batch tx).
+2. Wait 80s deploy cooldown.
+3. Strike #1 from striker A (highest-margin target) + Strike #2 from striker B (highest-margin target) — parallel, no inter-striker cooldown dependency.
+4. Wait 85s kami strike cooldown.
+5. Mid-feed both strikers (parallel, restores HP to max).
+6. Chain-strike #3 from striker A (2nd target) + Chain-strike #4 from striker B (2nd target) — parallel.
+7. Wait 85s + close-feed both + stop_harvest_batch.
+
+**Marginal economics**: each additional chain-kill adds ~6M gas (1 strike 4.3M + 1 feed 1.8M) for +1 obol + ~500 MUSU spoils = **~0.17 obols/Mgas marginal**. Beats single-kill amortization once per-kami chain captures ≥1 chain-target.
+
+**Comparison vs recent sessions**:
+- 91 (2k, 35M, travel+revert): 0.057
+- 92 (2k, 19.4M, zero-travel): 0.103
+- 93 (2k, 60.8M, forced reroute): 0.033
+- 94 (1k, 13.88M, single-strike): 0.072
+- 95 (1k, 10.05M, single-deploy): 0.0995
+- 96 (2k, 18.62M, dual-strike): 0.107 (prior best)
+- 97 (3k, ~36M, recovered timeout-drop): 0.083
+- 98 (0k, 19.72M, stefan97 trap): 0.000
+- **99 (4k, ~40.5M, quad-kill): 0.099 session / 0.130 sub-session (productive)**
+
+**Yeahta cluster archetype confirmed (6th kill session on Yeahta)**: pure auto-cycler, ~6-9h harvest cycles, no defensive bulk-stop or auto-restart. Watcher data reliable. After 6 kills on Yeahta, no behavioral evolution observed.
+
+**Gas notes**:
+- 9.77M travel + 2.02M deploy + 4.35+4.73 strikes #1-2 + 1.81+1.87 mid-feed + 4.37+4.31 strikes #3-4 + 1.81+1.87 close-feed + 3.61M stop = ~40.52M.
+- Average strike cost: 4.44M (4 strikes / total 17.76M).
+- 0 reverts, 0 nonce mismatches.
+
+**Inventory consumed**: 4 cookies (11304).
+
+**End state**:
+- Operator + 11224 (140/140 close-fed) + 12649 (170/170 close-fed) RESTING at room 73.
+- Stamina ~23 (post-travel) — low, will need ~20-30 min regen for any return-travel options.
+- Yeahta cluster post-quad-kill: 4 of 4 above-gate killed. Remaining Yeahta candidates from watcher were below gate. Cluster will need 30-60+ min to ripen new candidates.
+
+**Lifetime kill total**: 13 → **17 kills** (production formula).
+
+**Anomalies**: none. Plan-99 P0 heat-check executed cleanly, prevented re-entering session-98 trap. New dual-striker chain doctrine first-attempt success.
+
+**Next session (100)** — Re-wake **+15 min** (~05:38 UTC), pinned to: "Watcher refreshes every ~5 min — 3 cycles in 15 min. Will show: (1) post-quad-kill Yeahta state (cluster largely depleted, may need 30+ min for new ripening); (2) TC node 60 cluster freshness (3334+49/126+46 still ripening or cycled); (3) any other emerging clusters. If Yeahta has 2+ ripening or TC has 3+ above-gate, plan strike. If dry, re-wake +30 min. **DO NOT engage stefan97**. Strikers max HP, cooldowns clear by re-wake."

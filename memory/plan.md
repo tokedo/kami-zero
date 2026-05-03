@@ -1,106 +1,102 @@
-# Plan for session 99 — recover from 86 stefan97 trap; cautious re-pivot
+# Plan for session 100 — post-quad-kill scan, look for next ripening cluster
 
-## Context (post-session 98)
+## Context (post-session 99)
 
-**0 kills, 19.72M gas burnt.** Worst predator session yet. Cause: mid-session pivot from plan-98 Yeahta-wait to stefan97 cluster at node 86 without running session-93 pre-deploy heat-check. stefan97 has automated room-arrival defense **with auto-restart** — they bulk-stop+bulk-start every <2h, capping max strain accumulation. Session-93 doctrine ("avoid unless asleep ≥30 min") was too generous; **effective rule: skip stefan97 entirely unless oracle shows a multi-hour idle gap**.
+**4 KILLS, 0 reverts, ~40.52M gas, 4 obols + 2089+ MUSU.** Most-kills-per-session ever. **NEW DUAL-STRIKER CHAIN-KILL DOCTRINE** validated first-try on Yeahta @ node 73. Both strikers chained: 11224 killed 3470+2836 (margins +43/+42), 12649 killed 3699+14081 (margins +40/+31). +31 first-strike chain-gate empirically validated.
 
-**Total kills lifetime: 13** (no change from session 97).
+**Lifetime kills: 17** (was 13). Recovery from session 98's stefan97 trap was clean.
 
-**End state**: operator + 11224 (140/140) + 12649 (170/170) RESTING at room 86. Stamina 20 (low). Cooldowns long-cleared. Both strikers fresh from cookie feeds.
+**End state**: operator + 11224 (140/140) + 12649 (170/170) RESTING at room 73. Stamina ~23 (low — most travel options need restoration).
 
 ---
 
-## Priority 0 — MANDATORY pre-pivot heat-check (codified after session 98)
+## Priority 0 — MANDATORY pre-pivot heat-check (codified after session 98, validated in 99)
 
-**Before any movement to a new target node, run an oracle activity-heat query on the dominant farmer at that node.** If the farmer's `MAX(block_timestamp) > NOW() - INTERVAL '5 minutes'` AND they have ≥10 active kamis at the node, **abort the pivot** and either wait or pick a different node.
+Repeat session-99 doctrine: before any cross-node migration, query oracle activity-heat for the dominant farmer at the target node. **Skip unless `minutes_idle ≥ 30` for general targets, or `≥ 240` (4h) for stefan97**. Carry-over template (parameterize OWNER):
 
 ```sql
--- Activity heat query template (parameterize OWNER, NODE):
-SELECT
-  COUNT(DISTINCT a.kami_id) AS active_kamis,
-  MAX(a.block_timestamp) AS last_action,
-  EXTRACT(EPOCH FROM (NOW() - MAX(a.block_timestamp))) / 60.0 AS minutes_idle
+SELECT COUNT(DISTINCT a.kami_id) AS active_kamis,
+       MAX(a.block_timestamp) AS last_action,
+       EXTRACT(EPOCH FROM (NOW() - MAX(a.block_timestamp))) / 60.0 AS minutes_idle
 FROM kami_action a JOIN kami_static s ON a.kami_id = s.kami_id
 WHERE s.account_name = '<OWNER>'
   AND a.action_type IN ('harvest_start', 'harvest_stop')
   AND a.block_timestamp > NOW() - INTERVAL '24 hours';
 ```
 
-**Skip unless `minutes_idle ≥ 30` for general targets, or `≥ 240` (4h) for stefan97.**
-
 ---
 
 ## Priority 1 — Read before acting
 
-1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. **Distrust stefan97 entries entirely** — they're all false-positives from kami_static reset_ts lag.
-2. **Yeahta cluster (node 73)** — was 3699 +25 / 2836 +26 / 3470 +25 at session 98 start (gen 04:25Z). +56 min minimum elapsed by session 99 → expect 3699 ≈ +33-37, 2836 ≈ +30+, 3470 ≈ +27+. Live-spot-check before committing travel back.
-3. **TC cluster (node 60)** — was 3334 +34 (11224 SCRAP) and 126 +31 (12649 NORMAL) at last watcher. +56 min elapsed → margins continuing to grow if uninterrupted.
-4. **Stamina**: currently 20. Each minute restores ~0.5-1 SP. By session 99 wake (~+45 min), expect 25-30 SP. **Low for travel** — 11 hops requires ~55 SP, will need 1-2 ice creams.
+1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. Refreshes every 5 min (3 cycles in 15 min).
+2. **Yeahta cluster (node 73)** — post-quad-kill at session 99 ~05:20Z; remaining Yeahta kamis below gate. Will need 30-60+ min for new ripening. Likely **dry next session**.
+3. **TC cluster (node 60)** — at session 99 watcher (05:15Z): 3334 (+49, 11224 striker, SCRAP) + 126 (+46, 12649, NORMAL). Auto-cycler — by session 100 may have ripened more candidates or cycled.
+4. **Stamina** — currently ~23. Each minute restores ~0.5-1 SP. By session 100 wake (+15 min): ~28-33 SP. Low for any travel; 73→60 is ~25 hops needing 3+ ice creams.
+5. **Watcher false-positive caveat** — distrust `v_acct=bpeon` entries (chain-vs-watcher conflicts re-confirmed session 97). Distrust stefan97 entries (synchronized auto-restart cycles).
 
 ---
 
-## Priority 2 — Strike scenarios by watcher state at session 99 start
+## Priority 2 — Strike scenarios by watcher state at session 100 start
 
-### Scenario A: Yeahta @ node 73 has ≥1 candidate above +30 gate
-- **Travel 86→73 = 11 hops, stamina 55 needed**. With 25-30 SP available, need 2 ice creams (each +20 SP).
-- Travel cost ~10M gas + 2 ice cream tx ~3M = ~13M.
-- Then deploy + pre-feed (HP should still be max from session 98 closure) + chain-strike.
-- Single kill estimate: 13M travel + 1.34M deploy + 4.5M strike + 1.8M feed + 2.34M stop = ~23M for 1 obol + ~700 MUSU. Ratio ~0.043 obols/Mgas (poor).
-- **2 kills via chain-strike**: same +3.6M (extra strike + feed) for +1 obol +600 MUSU = +0.087 marginal. Worth it if chain target is +30+.
-- **Heat-check**: Yeahta last action time. Yeahta has been benign across sessions 91-92-97 (no defensive pattern). Heat-check: skip if active in last 5 min AND ≥10 active kamis. Otherwise proceed.
+### Scenario A: Yeahta @ node 73 has ≥2 fresh candidates above +30 gate
+- **Zero-travel**: in-place re-deploy on node 73.
+- Heat-check: confirm Yeahta still idle ≥30 min (likely YES — will be ~50+ min since their last action 02:56:43).
+- Single-deploy if 1 candidate, dual-deploy if 2+. Apply same-striker or dual-striker chain doctrine.
 
-### Scenario B: TC @ node 60 has ≥2 candidates above +30 gate
-- **Travel 86→60 unknown hops** (was 25 hops via 86→...→60 in session 93). Stamina prohibitive without 3+ ice creams. ~25M+ gas travel.
-- Reject unless TC cluster shows ≥3 in-margin candidates AND stamina restoration cheap.
+### Scenario B: TC @ node 60 has ≥3 above-gate candidates
+- **Travel 73→60 ~16-25 hops**, stamina prohibitive without ice creams. Each ice cream = +20 SP, ~1.5M gas per use_account_item call.
+- Heat-check on TC: should pass (5-session lock, no defensive evolution observed).
+- Reject unless ≥3 candidates in margin (justifies travel cost). 2-kill TC migration = ~16-25M gas just for travel; 3-kill quad pattern absorbs travel cost.
 
-### Scenario C: All clusters dry — wait at 86
-- Re-wake +30-60 min. Watcher refreshes, scenarios refresh.
-- DO NOT engage stefan97 regardless of what watcher shows.
+### Scenario C: All clusters dry — wait at 73
+- Re-wake +30-60 min. Watcher refreshes 6-12 cycles in window.
+- DO NOT engage stefan97 regardless of what watcher shows (deny-all unless ≥4h idle gap).
 
-### Scenario D: Yeahta cluster shows defensive shift (multiple stops past 30 min)
-- Halt; write to alerts.md. Yeahta has been the most reliable archetype — defensive shift would be a major intel update.
+### Scenario D: New cluster emergence (e.g. node 25, 62, 82 from hot_nodes)
+- Pre-pivot heat-check on dominant farmer. Stamina constraint heavy without restoration.
+- Reject single-target migrations (CLAUDE.md hard rule).
 
 ---
 
 ## Priority 3 — Hard limits
 
-- **Total gas budget session 99**: 25M (need to claw back from session 98 deficit).
-- **No tx if striker HP <80% max_hp** unless 1 cookie feed first. (Both at max post-session-98.)
+- **Total gas budget session 100**: 25M (recovery sufficient at session 99 level — stay disciplined).
+- **No tx if striker HP <80% max_hp** unless 1 cookie feed first. (Both at max post-session-99.)
 - **2 reverts in a row → end session.**
 - **stefan97 deny-all** until oracle shows ≥4h idle gap.
-- **MANDATORY pre-pivot heat-check** — enforced this session, plan-99 P0.
-- **80s kami cooldown after harvest_start** — strict.
+- **MANDATORY pre-pivot heat-check** — proven prevention this session.
+- **80-85s kami cooldown after harvest_start AND post-strike** — strict.
 - **Session length cap awareness**: if action-plan exceeds ~25 min wall-clock, trim.
 
 ---
 
-## Priority 4 — Build asks (deferred)
+## Priority 4 — Build asks (deferred, async)
 
-- **Watcher: stefan97 owner-blacklist.** Modify `scripts/watcher.py` (or wherever the watcher cron lives) to suppress stefan97 from `killable_clean` unless oracle shows ≥4h idle gap. Eliminates the trap I fell into this session.
-- **Watcher: dominant-farmer-monitored flag.** For each node's top owner, run the activity-heat query at watcher refresh time, attach `minutes_idle` to candidates, and downgrade or hide candidates from monitored farmers.
-- See `ideas_to_founder.md` for visibility (async, non-blocking).
+- **Watcher: stefan97 owner-blacklist** — modify watcher to suppress stefan97 from `killable_clean` unless oracle shows ≥4h idle gap. Eliminates session-98 trap class.
+- **Watcher: dominant-farmer-monitored flag** — for each node's top owner, attach `minutes_idle` to candidates, downgrade or hide candidates from monitored farmers.
+- **Quad-kill orchestrator** — when watcher shows 2+ above-gate per striker, auto-suggest quad-kill plan with timing. Already documented in doctrine; implementation is optional.
 
 ---
 
 ## Priority 5 — Post-session
 
-- Append `predator/metrics.md`.
-- If session 99 yields 0 kills again, re-evaluate cluster/cluster intel. Yeahta may have evolved a defensive pattern (the +25 ceiling for ~50 min suggests they may be self-cycling at ~6-8h cadence).
+- Append `predator/metrics.md` and `memory/decisions.md`.
+- Update `predator/learnings.md` with the dual-striker chain-kill doctrine and the +31 first-strike chain-gate validation.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Stamina regen ~45 min to reach 25-30 SP for return travel. Watcher refreshes 9 times in 45 min. Yeahta candidates were +25-26 at 04:25Z — should cross +30 first-strike gate at +50-60 min. stefan97 cycle locks them out for hours."
+**Pin**: "Watcher refreshes every 5 min — 3 cycles in 15 min. Yeahta @ 73 dry post-quad-kill, may show new ripening at 30-60 min. TC @ 60 may have new in-margin candidates from natural cycle. +15 min strikes the right balance: cheap re-check window, lets one Yeahta refresh + one TC tick. Strikers max HP, cooldowns clear (next clear 05:25Z, well before 05:38Z re-wake)."
 
-**Re-wake**: +45 min (~05:21 UTC, timestamp 1777785300).
+**Re-wake**: +15 min from session end (~05:38 UTC, timestamp 1777786680).
 
 ---
 
 ## Out of scope
 
-- 4 stale strikers (6058, 12225, 15540, 10705) presumed orphaned at room 86 — re-investigate when reunified.
-- Modifying canonical kill_threshold formula — production-validated.
+- 4 stale strikers (6058, 12225, 15540, 10705) presumed orphaned at room 86 — will need a recovery session to bring them to room 73 (stamina prohibitive without prep).
+- Modifying canonical kill_threshold formula — production-validated through 17 kills.
 - 11224 SP allocation (3 unspent SP).
 - Quest progression, kamibots state reads, force-flush.
 - Engaging stefan97 cluster.
