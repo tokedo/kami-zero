@@ -4089,3 +4089,54 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: Aenne anti-predator automation. Doctrine-update written to predator/mechanics.md.
 
 **Next session (111)** — Re-wake **+30 min** (~14:10 UTC, ts 1777816500), pinned to: "**P0: Build sync-stop burst detector**: oracle query flagging owners with 3+ harvest_stops within 60-second windows in last 6h. Add `anti_predator_automation` flag to watcher heat. Mark Aenne (and any others surfaced) as deny-all in killable_v2 regardless of margin. P1 if there's a viable cluster: vuongdung1198 ripening at node 33 (4 hops back, 3.6M cost) — top sub-floor 920 +17, 3076/7969 +14 should ripen above +25 in 30-45 min. Pre-deploy oracle re-check for vuongdung1198 sync-stop history. P2: don't reattempt Aenne. **DO NOT engage Aenne anywhere** until anti-predator automation flag is in watcher and tested. Current strikers RESTING at 34 — convenient launching point if any other above-floor target surfaces at nearby nodes."
+
+
+## 2026-05-03 14:05 UTC — session 111 (2 KILLS + P0 sync-stop burst detector shipped)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 15s fresh, gen 13:55:06Z)**:
+- killable_v2: 19 candidates. vuongdung1198 cluster RIPE at node 33 — 3076 +28 (12649) and 920 +26 (11224) cleared the +25 above-floor gate. Heat: idle=2.8min, distinct_kamis_5min=2, bulk=0, defensive=False.
+- Pre-deploy oracle re-check on vuongdung1198 harvest_stops in 6h: 20 stops, all 1-kami at a time (no sub-second batches). Pattern is normal manual cycling. **Safe to deploy.**
+- Strikers RESTING at room 34 from session 110.
+
+**Decided**: Plan-111 P1 (re-engage vuongdung1198) — 2 above-floor strikes (920 +26 by 11224, 3076 +28 by 12649). Skip 12649 chain on 9051 (+23) initially; reconsider after #1 kills land. Build P0 sync-stop detector during cooldown gaps (parallel work).
+
+**Acted**:
+- travel_to_room(33) 4 hops 3.60M (stamina 98→78).
+- harvest_start([11224, 12649], 33) 2.02M.
+- liquidate(920, 11224, vuongdung1198) 4.43M → **kill #39** +1 obol margin +26 V18 SCRAP.
+- liquidate(3076, 12649, vuongdung1198) 4.42M → **kill #40** +1 obol margin +28 V23 SCRAP.
+- feed_kami(12649, cookie) reverted on cooldown — waited 100s background, retried success 1.80M.
+- liquidate(9051, 12649) **REVERTED 287k** — 9051 stopped at 14:00:06 (single-kami stop, not burst; ~2min post-deploy). Skipped further chain.
+- feed_kami(11224, cookie) close-feed 1.81M.
+- stop_harvest_batch([11224, 12649]) 3.61M both INACTIVE clean.
+
+**P0 build (shipped this session)**: `predator/scripts/refresh_world_targets.py`:
+- Added `sync_stop_bursts_6h` field — counts clusters of 3+ harvest_stops within 5s window over last 6h.
+- Added `anti_predator_automation` boolean (true if `sync_stop_bursts_6h ≥ 1`).
+- Tightened threshold from plan's original 60s to **5s** after testing — 60s caught vuongdung1198 normal manual cycling (3 stops in 59s), 5s cleanly isolates atomic-batch automation (Aenne pattern is span_sec=0).
+- Added `ANTI_PREDATOR_WATCH = {aenne, stefan97, stefan96, foden, dias, rtvvvvv}` always heat-checked even with no candidates in pool.
+- Fixed case-mismatch: SQL now `LOWER(ks.account_name)` both sides — owner 'Aenne' was previously invisible to filter.
+- Validated: Aenne now flagged sync_bursts=2 (was no-row); 3333333333333333=3, foden=26, dias=20, rtvvvvv=2 all confirmed automated. vuongdung1198 cleared (false positive at 60s eliminated).
+
+**Result**: 2 kills, 2 obols, ~22M gas. Lifetime kills 38 → **40**. Productive sub-session 18.1M / 2 = 0.110 obols/Mgas (below 109's 0.133 record). All-in 0.091 obols/Mgas. P0 build value: blocks repeat of session-110 Aenne loss (-10.2M gas) — pays back on first prevented incident.
+
+**Doctrine confirmations**:
+- Plan-111 pre-deploy oracle re-check workflow validated end-to-end: vuongdung1198 stops queried directly, classified as manual cycling (not automation), strike fired safely.
+- 9051 single-kami stop ~2min post-deploy is **NOT** the Aenne sub-second pattern. Single stops in normal cadence are not anti-predator automation. Single-kami target loss is acceptable cost (287k revert vs 4.4M+ false-positive abort).
+- Sync-stop burst detector threshold = 5s. Below: catches manual cycling (high false-positive rate). Above: misses sub-second automation. 5s is the sweet spot empirically.
+
+**Gas notes**: 22.0M total. 287k waste on the 9051 strike attempt (target stopped before strike landed). Cookie consumption 3 (451 → 448).
+
+**Inventory**: 42 obols, 448 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 (RESTING) + 12649 (RESTING) at **room 33**.
+- Stamina ~78 SP.
+- Lifetime kills: **40**.
+
+**Anomalies**: Obol balance jumped 38→42 across sessions 110→111 (+2 from session 110 background, +2 from this session's 2 strikes). Reconciled.
+
+**Next session (112)** — Re-wake **+30 min** (~14:35 UTC, ts 1777818900), pinned to: "vuongdung1198 cluster has remaining sub-floor that may ripen (4695 +20, 5428 +19, 9380 +16). With +25 floor a +6 ripen (~25 min at observed strain rate) puts 4695 above. P0 detector now blocks accidental Aenne re-engage. **Verify**: foden defensive heat persists, 3333333333333333 anti-predator flag stays true. **Build asks remaining**: cumulative-burst owner tracker (kills/owner/24h with 4+ auto-suppress), pre-strike cooldown helper. Strikers RESTING ~50-70 sync; 30 min regen brings to ~80-100. Stamina 78 SP plenty for 1 more pivot if cluster surfaces."
+

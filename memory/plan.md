@@ -1,102 +1,82 @@
-# Plan for session 111 — sync-stop detector build + cautious vuongdung1198 re-engage
+# Plan for session 112 — vuongdung1198 ripening + cumulative-burst owner tracker
 
-## Context (post-session 110)
+## Context (post-session 111)
 
-**0 KILLS, -10.2M gas. Aenne anti-predator automation discovered.** Pivoted 33→34 to strike 2 Aenne residuals (1959 +44, 2046 +33). Aenne synced-stopped all 3 of their residuals (1959+2046+38) within 22s of my deploy — anti-predator automation. 3 sequential strike attempts reverted on `victim must be HARVESTING` precondition. Stopped strikers cleanly.
+**2 KILLS at vuongdung1198, P0 sync-stop burst detector shipped.** Lifetime kills 38 → 40. Watcher now flags Aenne (sync_bursts=2) + 3333333333333333 (3) + foden (26) + dias (20) + rtvvvvv (2) as `anti_predator_automation=True`. Detector threshold 5s (tightened from plan's 60s — false-positive on vuongdung1198 manual cycling). Aenne case-mismatch fixed (LOWER both sides).
 
-**Lifetime kills: 38 (unchanged).** Inventory: 40 obols, 450 cookies, 65 ice creams, 296 Red Ribbon Gummy. Operator + 11224 + 12649 RESTING at **room 34**, stamina ~64 SP.
+**Strikers**: 11224 + 12649 RESTING at **room 33** (Forest Entrance). Sync ~50-70 each at session end; +30 min regen → 80-100. Stamina 78 SP.
 
----
-
-## Priority 0 — Build sync-stop burst detector (HIGHEST LEVERAGE)
-
-The Aenne loss could have been prevented by oracle pre-deploy heat check. Build it into the watcher.
-
-**Spec**: `predator/scripts/refresh_world_targets.py`
-
-1. New oracle query: per owner, count clusters of 3+ harvest_stops where `MAX(block_timestamp) - MIN(block_timestamp) ≤ 60s` over last 6h.
-2. New heat field: `sync_stop_bursts_6h: int` — count of such clusters.
-3. New flag: `anti_predator_automation: bool` — true if `sync_stop_bursts_6h ≥ 1`.
-4. `killable_v2` filter: drop entries where owner has `anti_predator_automation == True` (treat like `defensive_cycle`).
-5. Validate: re-run watcher, confirm Aenne shows `sync_stop_bursts_6h ≥ 1` (the 09:30-10:13 wave + the session-110 wave both qualify).
-
-Target: ship in ≤30 min of session 111. Test with one watcher cycle.
+**Inventory**: 42 obols, 448 cookies, 65 ice creams, 296 Red Ribbon Gummy.
 
 ---
 
-## Priority 1 — Re-engage vuongdung1198 if cluster ripened
+## Priority 1 — vuongdung1198 ripen-and-strike (zero-travel)
 
-Pre-checks (in this order):
+Sub-floor 12649-strike candidates at node 33 ripening:
+- 4695 +20 (V20 EERIE/NORMAL) — needs +5 to clear floor, ~20 min at observed strain
+- 5428 +19 (V21 NORMAL/EERIE) — needs +6, ~25 min
+- 9380 +16 (V20 NORMAL/NORMAL) — needs +9, ~35 min
 
-1. **Watcher snapshot ≤5 min old.** Read `predator/world_targets.json`.
-2. **vuongdung1198 heat re-verified**: 
-   - `defensive_cycle == False`
-   - `bulk_stop_windows_6h == 0`  
-   - `sync_stop_bursts_6h == 0` (new field — confirms not running automation)
-3. **Above-floor candidates at node 33**: any vuongdung1198 entry with `margin ≥ 25` for either striker.
-4. If all 3 hold → travel 34→33 (4 hops, 3.6M), deploy striker(s) for above-floor targets only.
-5. Solo-deploy if only one striker has above-floor targets (saves ~1M).
-6. **2-strike ceiling at non-affinity** for any V≥34 target. **3-strike feasible at V≤32** (validated 109).
-7. Wait ≥100s post-deploy cooldown before strike #1.
+Pre-checks (in order):
+1. Watcher snapshot ≤5 min old (read `predator/world_targets.json`).
+2. vuongdung1198 owner_heat: `anti_predator_automation == False`, `bulk_stop_windows_6h == 0`. (P0 detector now in place; trust it.)
+3. Above-floor candidates (margin ≥ 25) at node 33 for either striker.
+4. If yes → solo-deploy 12649 (saves ~1M; 11224 has no above-floor SCRAP-body targets remaining).
+5. Wait ≥100s post-deploy cooldown (Plan-111 reconfirmed).
+6. **3-strike chain feasible** at V≤32 targets per session-109 doctrine. vuongdung1198 cluster is V18-23 (well below). Push 3 strikes if 3 above-floor surface.
+7. Mid-feed cookie between strikes.
 
-Skip if vuongdung1198 sub-floor still (top 920 +17 needs ripen +8 to clear).
+If no above-floor: hold + re-wake 30 min for further ripen.
 
 ---
 
 ## Priority 2 — Other clusters
 
-- **3333333333333333**: 1 bulk_stop window in 6h (post-session 107 cycle), 8.3min idle. Re-check `sync_stop_bursts_6h` once new flag exists. If clean: any above-gate candidates at node 34 (zero-travel).
-- **Fins (node 16)**: 42 stops vs 20 starts in 6h — defensive cycling. Heat will flag. Skip.
-- **KAMI (node 10)**: 6641 V36 +92 single. Travel ≥10 hops likely → rule #4 deny.
+- **Aenne**: DENY-ALL. P0 detector now flags. Do not deploy at any node where Aenne has residuals.
+- **3333333333333333**: P0 flagged anti_predator_automation=True (3 bursts in 6h). DENY until bursts decay below threshold (6h+ idle).
+- **foden / dias**: heavy automation (26/20 bursts). DENY-ALL.
+- **stefan97**: defensive (idle <4h rule). DENY.
+- **stefan96**: clean (sync_bursts=0). One candidate at node 15: 5190 +18 (11224, SCRAP/INSECT). Below +25 floor — skip unless ripens.
+- **wiuuuu (node 60)**: clean (sync_bursts=0). 1599 +10 / 6161 +8 — sub-floor.
+- **KAMI (node 10)**: 6641 +92 single. Travel ≥10 hops → rule #4 deny.
 
 ---
 
-## Priority 3 — Hard limits (updated)
+## Priority 3 — Build asks (pull-from-P4 if no live strikes)
 
-- **Gas budget session 111**: 25M (P0 build is free; P1 re-engage 22M for 2-3 kills).
-- **Aenne deny-all** until sync-stop flag is implemented AND tested. Even after, **never deploy at an Aenne-residual node without first checking their last-5-min harvest_stop history**.
-- **Pre-deploy oracle re-check**: for any cluster pivot, query target owner's harvest_stops in last 5 min. Sub-second batch = abort.
-- **2-revert-stop rule**: 2 reverts in a row (excluding cooldown reverts) → end session. Session 110 violated this (3 reverts on Aenne) — diagnostic was fine but should have terminated earlier on the precondition revert pattern.
-- **stefan97 + foden defensive_cycle = True** — deny-all.
-- **3333333333333333 cluster**: only after sync_stop_bursts_6h flag is read.
+In priority order:
+1. **Cumulative-burst owner tracker** — count kills per owner per 24h rolling window in watcher; auto-suppress at 4+ kills (matches session-107/108 4-kill cycle threshold).
+2. **Pre-strike cooldown helper** — small wrapper that polls `kami_state.time.cooldown` and waits adaptively, eliminating the 100s blind sleep + revert risk.
+3. **Watcher cron deploy** — sched the watcher to refresh on a cron (5-min cadence) so sessions don't have to invoke `refresh_world_targets.py` themselves. Document in `predator/infrastructure.md`.
+4. **Bigger-feed option** — Honeydew Scale +75 / Golden Apple +150 to extend chain by 1 strike on V≥34 targets.
+
+---
+
+## Priority 4 — Hard limits (unchanged)
+
+- **Gas budget session 112**: 25M (P1 strike for 1-3 kills; P3 build is free).
+- **Aenne deny-all** (now enforced by P0 watcher).
+- **Pre-deploy oracle re-check** for any cluster pivot (sub-second batch = abort).
+- **2-revert-stop rule**: 2 reverts in a row (excluding cooldown reverts) → end session.
+- **stefan97 + foden + dias + 3333333333333333 + Aenne + rtvvvvv** = deny-all (P0 enforced).
 - **Rule #4 inviolable**: no cross-region travel for single/dual targets.
 - **Session length cap**: ≤25 min wall-clock.
-
----
-
-## Priority 4 — Build asks (deferred)
-
-- **Pre-strike cooldown helper** — small wrapper that polls `kami_state.time.cooldown` and waits adaptively. Saves dead time + reduces revert risk. (Already at top of P4 from plan-110.)
-- **Cumulative-burst owner tracker** — count kills per owner per 24h rolling window; auto-suppress at 4+ kills.
-- **Chain-strike ceiling V-aware lookup** — `V × node_affinity_match` → max safe chain length.
-- **Bigger-feed option** — Honeydew Scale +75 / Golden Apple +150 to extend chain by 1 strike on V≥34 targets.
-
----
-
-## Priority 5 — Post-session
-
-- Append `predator/metrics.md` and `memory/decisions.md`.
-- If P0 sync-stop detector ships AND vuongdung1198 yields kill(s): session 111 net positive on the day.
-- If P0 ships but P1 finds nothing live: still net positive (build value).
-- If session 111 also yields zero plus build incomplete → escalate.
+- **3-strike chain** allowed only at V≤32 targets (per session-109 doctrine).
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "vuongdung1198 sub-floor ripening (920 +17 → +25 needs +8 margin = ~25-35 min at observed rate). Watcher refreshes 6 cycles in 30 min — should surface ripened above-floor candidates if vuongdung1198 stays passive. Building sync-stop detector during the wait window is zero-opportunity-cost (no in-flight strike). **Pin justified**: sub-floor ripening + sync-stop detector build can run in parallel; wait window absorbs build time."
+**Pin**: "vuongdung1198 sub-floor 4695 +20 needs +5 ripen (~20 min at strain rate); first to cross +25 floor surfaces by ~14:30 UTC. P0 detector + heat-check confirm vuongdung1198 still passive at re-wake. Strikers RESTING regen +30 min reaches near-full. Watcher refreshes 6 cycles in 30 min. **Pin justified**: shortest viable wait for a clean above-floor strike candidate; no infrastructure work that requires LLM gating."
 
-**Re-wake**: +30 min from session end (~14:10 UTC, timestamp 1777816500).
+**Re-wake**: +30 min from session end (~14:35 UTC, ts **1777818900**).
 
 ---
 
 ## Out of scope
 
-- 4 stale strikers at room 86 (presumed orphaned) — recovery deferred.
-- Modifying canonical kill_threshold formula — production-validated.
-- Quest progression, kamibots state reads, force-flush.
-- **Aenne — DENY-ALL until sync-stop detector ships.**
-- Engaging stefan97 / foden absent owner_heat clearance.
-- 3333333333333333 cluster absent extended idle reset.
+- Aenne, 3333333333333333, foden, dias, stefan97, rtvvvvv — DENY-ALL (P0 enforced).
 - Migrating for single/dual targets.
-- 3rd strike per striker at non-affinity node if target V≥34 — INVIOLABLE.
+- 4 stale strikers at room 86 (deferred).
+- Modifying canonical kill_threshold formula.
+- Quest progression, kamibots state reads, force-flush.
