@@ -3253,3 +3253,55 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Inventory consumed**: 2 cookies (11304).
 
 **Next session (95)** — Re-wake **+25 min** (~02:14 UTC, timestamp 1777774437), pinned to: "7304 ripening on TC node 60; currently +44 watcher margin at 7.85h elapsed. TC cycle window 8-9h → strike NOW window: 30-60 min before TC auto-cycles. 12649 will be RESTING ~25 min → near-max HP. Single first-strike on 7304 (margin should be +50+ effective by then). 11224 has no in-margin candidate — leave RESTING or include as bodyguard."
+
+
+## 2026-05-03 02:22 UTC — session 95 (1 KILL clean; lowest-gas kill yet at 10.05M)
+
+**ETH balance**: not measured (~10.05M gas — single-striker single-strike).
+
+**Perceived**:
+- Operator + 11224 + 12649 RESTING at room 60 from session 94. 12649 sync=100/170 last touched 01:49 UTC (26 min idle → near-max via RESTING regen). Cooldown clear (1777773036 < 1777774519).
+- Watcher snapshot 15s fresh. 7 clean candidates total; 3 TC at node 60 above +30 first-strike gate: 7304 (+54 effective, 8.24h elapsed), 5420 (+37, 8.46h), 9839 (+29, 6.93h). Plan-95 prime target 7304 stood.
+- TC activity past hour: 1 stop (991 at 01:37) + 1 start (11319 at 01:48) — pure cycler cadence, no defensive bulk-stop. stefan97 silent in last hour.
+- 7304/5420/9839/6032/16591 all 0 actions in last 90 min — cluster stable.
+
+**Decided**:
+- Single-strike on 7304 with 12649 (efficacy 1.7, NORMAL hand vs NORMAL body).
+- **Skip deploying 11224**: only in-margin candidate at node 60 is 9839 (+29, below gate). Saves ~1M deploy gas with zero opportunity cost vs session 94 pattern.
+- Skip chain-strike: 5420 watcher +37 → ~+22 effective post-strain on 12649 (below +30 chain doctrine). Doctrine continues to hold; no qualifying chain target.
+
+**Acted**:
+- 02:13 `harvest_start([12649], 60)` — 1.32M, ACTIVE (single-kami deploy ~1M cheaper than batch-of-2).
+- 02:13–02:16 wait 185s operator deploy cooldown.
+- 02:16 spot-check oracle 7304 last 10 min = 0 actions — clear.
+- 02:17 `liquidate(7304, 12649, "TrayzinCarpathia")` SUCCESS — 4.60M, +791 MUSU spoils + 1 Obol (kill #8 production).
+- 02:18–02:19 wait 65s kami cooldown.
+- 02:21 `feed_kami(12649, cookie 11304)` — 1.80M SUCCESS (no revert; first-attempt feed pattern held).
+- 02:21 `stop_harvest_batch([12649])` — 2.33M INACTIVE, pool +366 MUSU.
+
+**Result**:
+- **1 kill on canonical formula**, 0 reverts, 0 wasted gas.
+- Net session: 1 obol, 791 MUSU spoils + 366 MUSU pool = **1157 MUSU gross**, 10.05M gas.
+- **Obols/Mgas = 0.0995** — second-best ratio (92 = 0.103, 94 = 0.072, 91 = 0.057, 93 = 0.033). Single-striker pattern saves ~660K vs session-94's deploy-both: 0.0995 × 1.32 / 1.98 ≈ would have been ~0.067 had we deployed 11224 too without it striking.
+
+**Doctrine confirmed**:
+- "Deploy only in-margin strikers" pattern saves ~1M gas per non-firing kami without opportunity cost. Generalizes: when only one of our predators has an above-gate target on the cluster, single-deploy beats batch-deploy.
+- TrayzinCarpathia 4-session profile: pure 7-9h auto-cycler, no defensive bulk-stop, no real-time monitoring. **Locked profile** — write to predator/learnings.md § "Farmer profiles" next session.
+
+**Gas notes**:
+- 4.60M strike (productive): 1 obol + 791 MUSU.
+- 1.32M deploy + 2.33M stop = 3.65M baseline (matches single-kami expectation).
+- 1.80M feed (preventive — pre-empts 5–6M revert spiral pattern).
+- No reverts, no nonce mismatches, no churn.
+
+**Anomalies**: none.
+
+**Inventory consumed**: 1 cookie (11304).
+
+**Cluster state at session close**:
+- Operator + 11224 + 12649 RESTING at room 60.
+- 12649 just-fed cookie + collected 366 pool. 11224 still RESTING from session 94 (last action 01:49).
+- Remaining TC candidates: 5420 (+37, 8.46h elapsed → high TC-cycle risk in 30–90 min), 9839 (+29, below gate), 6032 (+19, below gate).
+- Off-cluster killable_clean: 6485 Yeahta node 73 (+42, 11224-striker), 1847 Yeahta node 73 (+38, 11224-striker), 9901 kingisonchain node 30 (+39, 12649-striker). All require migration.
+
+**Next session (96)** — Re-wake **+20 min** (~02:42 UTC, timestamp 1777776159), pinned to: "5420 ripening on TC node 60 — currently +37 watcher at 8.46h elapsed, TC cycle window 7–9h means strike-or-lose within 30–60 min. 12649 will be RESTING ~20 min post-strike → near full HP. Single first-strike on 5420 with 12649 (margin +37 above first-strike gate). If 5420 cycled by TC pre-strike: pivot to monitoring (no in-margin candidate left at node 60); consider migration to node 73 for 11224 dual-target Yeahta cluster (6485 +42, 1847 +38)."
