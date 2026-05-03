@@ -936,3 +936,63 @@ cannot: striking with EERIE hand into SCRAP body gets +0.5 affinity
 bonus; striking into NORMAL body gets +0.2; same-affinity (non-NORMAL)
 gets 0. Empirical was matchup-blind. This is real strike-EV upside the
 team-validated formula unlocks.
+
+## Chain-strike ceiling at non-affinity nodes (session 107, 2026-05-03)
+
+**Empirical: at SCRAP-affinity node 34, both 11224 (max HP 140, EERIE
+body / NORMAL hand) and 12649 (max HP 170, NORMAL body / NORMAL hand)
+DIED on their 2nd strike, even with cookie mid-feed (+100 HP) between
+strikes.** Recoil per strike against a high-V SCRAP-body victim was
+sufficient to exceed the cookie's HP restoration in cumulative terms.
+
+Sequence proof:
+- 12649 strike #1 (target 41 V35, margin +88) → success kill #29
+- 12649 mid-feed cookie +100
+- 12649 strike #2 (target 6247 V35, margin +87) → success kill #30
+- 11224 strike #1 (target 10866 V35, margin +79) → success kill #31
+- 11224 mid-feed cookie +100
+- 11224 strike #2 (target 15454 V36, margin +76) → success kill #32
+- 12649 strike #3 attempt (target 8859 V36, margin +73) → REVERTED 1.23M
+  - Post-revert: 12649 sync HP = 0/170 (DEAD), 11224 sync HP = 0/140 (DEAD)
+  - State field stale (showed HARVESTING); revive item 11001 fired
+    successfully → confirms both were on-chain DEAD
+
+**Doctrine — chain-strike ceiling**:
+
+1. **At node where striker has affinity disadvantage (e.g. our NORMAL/EERIE
+   body strikers at SCRAP-affinity node 34), the ceiling is 2 strikes per
+   striker per chain.** A 3rd strike attempt will likely revert OR result
+   in death from cumulative recoil + harvest strain.
+
+2. **Mid-feed cookie (+100 HP) is necessary but insufficient for a 3rd
+   strike.** Higher-HP food (Honeydew Scale +75 actually less; Golden
+   Apple +150) may extend the chain by 1, but stocks are scarce.
+
+3. **Slim state field is unreliable post-strike.** A kami with `health.sync
+   == 0` is DEAD on-chain regardless of `state` showing "HARVESTING".
+   Always read `health.sync` when planning post-strike actions. If sync=0,
+   the kami needs revive (item 11001 Red Ribbon Gummy: 298 in stock per
+   session 107) before any other action.
+
+4. **Plan revives as part of the chain budget.** 2-strike chain with
+   revive cost = 2 obols + 1 Red Ribbon Gummy (~$0 marginal cost given
+   stockpile). 3-strike chain attempt = same 2 obols banked + 1 reverted
+   strike (1.23M wasted gas) + still-dead kami needing revive.
+
+5. **Affinity-matched chains may extend further.** This learning applies
+   to NORMAL/EERIE-body strikers at SCRAP nodes. A SCRAP-body striker at
+   a SCRAP node should take less recoil per strike (lower affinity nudge);
+   re-test before accepting the same 2-strike ceiling there.
+
+This supersedes session-106's apparent 3-strike chain success (3 kills
+on 11224 alone at node 34, killed nobody). Re-reading session 106:
+strikes were against 16537 (V35), 3477 (V32), 6522 (V32) — average V33;
+session 107 averaged V35.7. Higher V → higher recoil. The 11224 close-fed
+3 times in session 106 (vs 1 mid-feed here) and recoils stayed within
+HP buffer. Session 107's denser tempo (cookie only between strikes,
+higher-V victims) blew the buffer.
+
+**Operational rule**: read `health.sync` on the striker after each
+strike in a chain. If sync ≤ 30% of max HP, do NOT attempt another
+strike without a Golden-Apple-class feed; default action is stop +
+revive next session.

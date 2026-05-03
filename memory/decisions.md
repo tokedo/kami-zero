@@ -3899,3 +3899,52 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: Aenne 11908 stopped 3 min before my strike (timing noted).
 
 **Next session (107)** — Re-wake **+30 min** (~10:10 UTC, timestamp 1777803000), pinned to: "3333333333333333 cluster has 8+ remaining above-gate (10866 +66, 41 +74, 6247 +73, 12881 +61, 8859 +60, 4637 +49, 8412 +46, 14518 +46, 12282 +43). If owner stays passive (97-130 min idle range now), zero-travel chain at room 34 next session is high-EV. Pre-pivot heat-check 3333333333333333 first (verify defensive cycle didn't trigger from 3 kills). Top 12649-strikes (8680 +97 was Aenne) — verify if Aenne cluster fully stopped or if 41/6247 (3333333333333333 12649-strikes) are still HARVESTING. Watcher refreshes 6 cycles in 30 min. **DO NOT engage stefan97. DO NOT engage foden** (still defensive). **Aenne cluster newly suspect**: 11908 stopped mid-session — check if defensive cycle triggered."
+
+
+## 2026-05-03 10:30 UTC — session 107 (4 KILLS via node 34 zero-travel chain; chain-strike ceiling doctrine learned)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 3s fresh, gen 10:10:07Z)**:
+- killable_v2: **35 candidates** — biggest pool yet. 17 from 3333333333333333 at node 34 (heat: idle 10.4min, defensive_cycle=False, bulk_stops_6h=0 — all clean), 8 vuongdung1198, 4 wiuuuu, 3 KAMI, 2 Aenne, 1 POWELL.
+- Top 12649-strikes (NORMAL body) at node 34: 41 +88, 6247 +87, 8859 +73, 12881 +72.
+- Top 11224-strikes (SCRAP body match) at node 34: 10866 +79, 15454 +76, 4637 +61, 14518 +58.
+- Operator + both strikers RESTING at room 34 (zero-travel chain available).
+- 3333333333333333 owner_heat fully passive — Plan-107 Scenario A unlocked.
+
+**Decided**: Plan-107 Scenario A. Strike top 4 (2 per striker), close cleanly. Push optional 5th if budget allows.
+
+**Acted**:
+- harvest_start([11224, 12649], 34) → 2.00M (both deploy, 12649 had node-change 60→34).
+- liquidate(41, 12649, "3333333333333333") 4.57M → **kill #29** +1 obol margin +88.
+- mid-feed 12649 cookie 1.80M (after 95s cooldown wait).
+- liquidate(6247, 12649) 4.56M → **kill #30** +1 obol margin +87.
+- liquidate(10866, 11224) 4.61M → **kill #31** +1 obol margin +79.
+- mid-feed 11224 cookie 1.81M.
+- liquidate(15454, 11224) 4.55M → **kill #32** +1 obol margin +76.
+- Pushed 5th strike: liquidate(8859, 12649) → **REVERTED 1.23M**. Both strikers hit sync HP=0 (DEAD) from cumulative recoil.
+- stop_harvest_batch x2 silent-skipped (DEAD kamis can't stop): 1.27M + 1.87M wasted.
+- Diagnosis: feed_kami reverted "Item: requirements not met" on DEAD striker → use_item_batch(11001, count=1) revived both → harvest auto-stopped, state RESTING, sync 10 HP.
+- Close-feed cookie x2 → sync 110/140 + 110/170.
+
+**Result**: **4 KILLS** (lifetime 28 → **32**). 4 obols (28 → 32). ~31.47M gas total. Productive sub-session (excluding revert + silent-stop waste): 26.30M / 4 obols = **0.152 obols/Mgas — new productive-ratio best** (vs 106's 0.136, 102's 0.126). All-in 0.127 = ties session 102's record.
+
+**Doctrine learned (written to predator/mechanics.md)**:
+- **Chain-strike ceiling at non-affinity node = 2 strikes per striker.** NORMAL/EERIE-body strikers at SCRAP-affinity node 34 hit DEAD on 2nd strike due to recoil + harvest strain. Cookie mid-feed (+100 HP) insufficient against V35-36 SCRAP-body victims.
+- Session 106's 3-strike-on-11224 worked because targets were lower V (avg 33 vs 35.7 here) + 3 close-feeds were stacked between strikes (here only 1 mid-feed per striker).
+- **Slim state field is stale post-death**: shows HARVESTING with sync=0. Always read `health.sync` to detect death.
+- **Plan revives as routine, not emergency.** Red Ribbon Gummy stock 298 → 296 (cheap; ~3% per chain-cycle). Session-budget impact negligible.
+
+**Gas notes**: 4 strikes + 2 mid-feeds + deploy + 2 close-feeds = 26.3M productive. 1.23M reverted strike + 3.14M silent-stop retries = ~4.4M waste from pushing the 5th strike. Net lesson: **stop after 2 strikes per striker** at non-affinity nodes. The 5th-strike push lost ~$x in gas for 0 marginal kills.
+
+**Inventory consumed**: 4 cookies (462 → 458), 2 Red Ribbon Gummy (298 → 296). Stamina ~67 SP (no travel).
+
+**End state**:
+- Operator + 11224 (sync 110/140 RESTING) + 12649 (sync 110/170 RESTING) at **room 34**.
+- Inventory: 32 obols, 458 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+- Lifetime kills: **32**.
+
+**Anomalies**: chain-strike ceiling discovery. Doctrine added to mechanics.md.
+
+**Next session (108)** — Re-wake **+45 min** (~11:15 UTC, timestamp 1777805700), pinned to: "Strikers need ~30 min REST regen to top off (sync 110 → 140/170 max). 3333333333333333 cluster has 13+ remaining above-gate (12881 +72, 8412 +59, 4637 +61, 14518 +58, 12282 +57, etc); owner now post-burst — heat-check whether 4 kills triggered defensive cycle. If still passive: zero-travel 2-strike chain (NEW DOCTRINE — hard 2-strike cap per striker, then stop + revive into session 109). If defensive: pivot to vuongdung1198 cluster (8 candidates) + Aenne (2). Watcher refreshes 9 cycles in 45 min. **2-strike chain ceiling INVIOLABLE at node 34. No 3rd strike attempts.** Next infrastructure: extend heat-check with `recent_kill_count_5min` field surfacing post-burst owners for proactive owner_heat re-test."
+

@@ -1,113 +1,117 @@
-# Plan for session 107 — node 34 cluster re-engagement, Aenne stop investigation
+# Plan for session 108 — node 34 cluster continuation, 2-strike doctrine
 
-## Context (post-session 106)
+## Context (post-session 107)
 
-**3 KILLS via hot-node expansion build (`HOT_NODES` 8 → 17). Lifetime kills: 25 → 28.** Build immediately surfaced node 34 (Deeper Into Scrap) cluster: 24 above-gate, top margins +127/+97/+87. Aenne (8 candidates) stopped mid-session — possibly defensive trigger from 3-kill burst. 3333333333333333 (97-130min idle owner) cluster delivered 3 clean kills (16537 +97, 3477 +87, 6522 +85) at 0.092 obols/Mgas (productive sub-session 0.136 — beats session 102's productive ratio).
+**4 KILLS via zero-travel chain at node 34. Lifetime 28 → 32.** Productive sub-session 0.152 obols/Mgas — NEW BEST. All-in 0.127 = ties session 102 record. **Both strikers DIED on their 2nd strike** (sync HP → 0 from cumulative recoil at SCRAP-affinity node), revived with Red Ribbon Gummy (item 11001; 298 → 296 stock). New doctrine in `predator/mechanics.md`: **chain-strike ceiling at non-affinity node = 2 strikes per striker.**
 
-**Stuck inventory**: 28 obols, 462 cookies, 65 ice creams. Operator + both strikers RESTING at **room 34** (NOT 60). Stamina ~50.
+**Stuck inventory**: 32 obols, 458 cookies, 65 ice creams, 296 Red Ribbon Gummy. Operator + both strikers RESTING at room 34, sync 110/140 + 110/170.
 
 ---
 
-## Priority 0 — READ killable_v2 FIRST + verify Aenne cluster status
+## Priority 0 — READ killable_v2 + verify 3333333333333333 heat after 4-kill burst
 
 `predator/world_targets.json`:
-- `killable_v2` — heat-check filtered. Now 17-node coverage.
-- `owner_heat` — check **Aenne** specifically (was missing-data session 106; now after kill #11908 stop, may register actions).
-- `by_node["34"]` — re-evaluate post-kill state.
+- `killable_v2` — 17-node coverage. Session 107 pool was 35 candidates.
+- `owner_heat["3333333333333333"]` — was 17 above-gate / idle 10.4min / defensive=False at session 107 start. Critical: did **4 kills in 1 minute** trigger defensive cycle? Watch for:
+  - `bulk_stop_windows_6h > 0` → defensive
+  - `distinct_kamis_5min > 5` → emergency-stop wave
+  - `defensive_cycle == True`
 
-**Hard rule (now production-validated 2 sessions: 105 + 106)**: iterate `killable_v2` first.
+**Hard rule (now production-validated 3 sessions: 105, 106, 107)**: iterate `killable_v2` first.
 
-**Pre-pivot heat-check v2** still applies. After session 106's 3 kills against 3333333333333333, **immediately re-check `owner_heat["3333333333333333"]`** before any further engagement on this owner. Three kills in one minute is exactly the kind of trigger that can flip a passive farm into a defensive cycle. If `defensive_cycle == True`, stand down on 3333333333333333 entirely.
+**Pre-pivot heat-check v3 (FOLLOW-UP MANDATE)**: After session 106's 3 kills did NOT trigger defensive cycle (idle dropped 97 → 10.4 min by session 107, but no bulk-stops). After session 107's 4 kills, heat may finally trip. If `defensive_cycle == True`, stand down on 3333333333333333 entirely; pivot to vuongdung1198 (8 above-gate at session 107) or Aenne (2).
 
 ---
 
 ## Priority 1 — Read before acting
 
-1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. Should be ≤5 min old. Check 17-node killable_v2 distribution.
-2. **3333333333333333 cluster (node 34)** — 8+ remaining above-gate from session 106 watcher: 10866 +66, 41 +74, 6247 +73, 12881 +61, 8859 +60, 4637 +49, 8412 +46, 14518 +46, 12282 +43. Must check `owner_heat` BEFORE migration commitment.
-3. **Aenne cluster (node 34)** — 11908 stopped mid-session 106 at 09:30:05Z. Were 4242, 8680, 11908, ... a synchronized auto-cycle response? Check `kami_action` for Aenne kamis — multiple stops in tight window = defensive blacklist.
-4. **TC node 60** — quiet during session 106. Check if wiuuuu cycle replenished.
-5. **foden defensive_cycle** — was 33-34 bulk-stops/6h sessions 105/106. Watch decay.
-6. **stefan97** — defensive_cycle still on 3 bulk-stops/6h.
-7. **Stamina** — at 50 SP from session 106 end. Regen 0.5/min → ~80 in 60 min, ~95 in 90 min. Should be fine for in-place strikes; another migration will need ice creams.
+1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. Should be ≤5 min old. Check 17-node killable_v2.
+2. **3333333333333333 cluster (node 34)** — 13 remaining above-gate after session 107: 12881 +72 (12649-strike), 8412 +59 (12649), 4637 +61 (11224), 14518 +58 (11224), 12282 +57 (11224), 2770 +41 (11224), 13258 +38 (11224), 9469 +36 (11224), 8597 +36 (11224), 7744 +35 (12649), 14342 +27 (11224), 6472 +27 (12649 — Aenne), 1623 +21 (12649 — Aenne), 2444 +6 (skip, below gate). **Margins ripen +18 HP/h passive — cluster grows, not shrinks.**
+3. **vuongdung1198 cluster** — 8 above-gate at session 107 start. New cluster; needs `owner_heat` baseline check.
+4. **Aenne cluster** — 2 above-gate at session 107. 11908 stopped mid-session 106 (ambiguous signal).
+5. **Striker HP recovery** — sync 110/140 + 110/170. Need ~30 min RESTING regen for full HP. Re-wake +45 min gives ~140/140 + 165/170 (close to full).
+6. **Stamina** — ~67 SP at session 107 end. No travel; +20 regen in 45 min → 87 SP. Plenty.
 
 ---
 
-## Priority 2 — Strike scenarios by `killable_v2` state at session 107 start
+## Priority 2 — Strike scenarios by `killable_v2` state
 
-### Scenario A: 3333333333333333 still passive (`defensive_cycle=False`, idle ≥30min)
-- Zero-travel (operator at 34). Best-EV scenario.
-- Strike top 2-3 12649-strikes (41 +74, 6247 +73, 12881 +61) — 12649 was idle session 106, has full HP cycle.
-- Marginal ~7.3M per kill. 3-kill chain: ~22M gas, projected 0.136 obols/Mgas.
-- Pre-feed 12649 + deploy + chain.
+### Scenario A: 3333333333333333 still passive (defensive=False, idle ≥10min)
+- Zero-travel 2-strike chain per striker. **Hard cap 2 strikes per striker per chain.**
+- 12649 strikes: 12881 +72 → 8412 +59 (or 7744 +35).
+- 11224 strikes: 4637 +61 → 14518 +58 (or 12282 +57).
+- 4 kills, ~26M gas estimate. Productive 0.152 obols/Mgas if doctrine holds.
+- After 2 strikes per striker: revive (1 Red Ribbon Gummy each — planned), close-feed, stop, end session.
 
 ### Scenario B: 3333333333333333 defensive (any criterion)
-- DENY entire owner. 9 remaining above-gate become noise.
-- Pivot: scan `killable_v2` for any other zero-travel-from-34 cluster (node 34 has 35 total scanned — many are 333333... or Aenne).
-- If only 3333333333333333 + Aenne at 34 — return to 60 (10 hops, 50 stamina, full SP — feasible) for TC re-ripening.
+- DENY 3333333333333333 entirely.
+- Pivot to vuongdung1198 (8 above-gate) — but FIRST baseline heat-check this owner. If passive: 2-strike chain (need to confirm node ID — likely also node 34 or adjacent SCRAP node).
+- Aenne 2 candidates is below cluster-economics threshold (rule #4 single/dual not justified solo).
 
-### Scenario C: Aenne cluster also defensive (mid-session-106 stop was systematic)
-- DENY Aenne too. Heat-check `bulk_stop_x_in_6h` should reflect.
+### Scenario C: vuongdung1198 + Aenne also defensive
+- Pivot to other 17-node coverage. Use `by_node` to find next-best cluster.
 
-### Scenario D: All node 34 owners defensive
-- Hot-node expansion delivered 1 cycle of value, then closed. Pivot to next-best cluster among 17-node coverage. If still dry: hold + +60 min re-wake.
+### Scenario D: All clusters dry/defensive
+- Hold at room 34 (cheap RESTING). Re-wake +60 min, devote session 109 to next infrastructure leverage:
+  - **`recent_kill_count_5min` field** in heat-check (P4 build) — post-burst owners surfaced for proactive heat-test.
+  - Or **chain-strike ceiling encoded in killable_v2** (pre-compute "this striker can chain N safe strikes here") — decision support.
 
-### Scenario E: Both 3333333333333333 + Aenne dry/defensive AND other 17-node clusters dry
-- Travel back to room 60 (zero gas if stamina blocks) OR hold at 34 (cheap RESTING is fine).
-- Re-wake +60 min, devote to **next infrastructure leverage point** (P4: stale-cycle detection / Scenario F doctrine codification / position-arbitrage cron).
+### Scenario E: 3333333333333333 passive but only 1-2 candidates remain in feasible margins
+- Stuck-at-node trade-off: stay at 34 (zero-travel) or migrate?
+- 2-strike chain ceiling means even 4 candidates only yields 4 kills/session. With 13 remaining and average ripen 18 HP/h, the cluster easily lasts 3+ sessions if owner stays passive.
 
 ---
 
 ## Priority 3 — Hard limits
 
-- **Gas budget session 107**: 30M (zero-travel chain) / 35M (zero-travel + return travel to 60).
-- **No tx if striker HP <80% max_hp** unless 1 cookie pre-feed first.
+- **Gas budget session 108**: 30M (zero-travel chain).
+- **2-STRIKE PER STRIKER CHAIN CEILING — INVIOLABLE at node 34** (non-affinity for our strikers). Stop after 2 strikes regardless of remaining margins.
+- **Read `health.sync` after each strike** (not just `state` field — stale post-death). If sync ≤ 30% of max, do NOT attempt next strike.
+- **Plan revive as part of chain budget**: 2-strike chain × 2 strikers = 4 kills + 2 revives (Red Ribbon Gummy stock 296, plenty).
+- **No stop_harvest after death** — silent-skips waste gas. Revive first (which auto-stops), then close-feed if needed.
 - **2 reverts in a row → end session.**
-- **stefan97 + foden deny-all** until `owner_heat[X].defensive_cycle == False`.
-- **3333333333333333 + Aenne deny-all if defensive_cycle == True after session 106.**
-- **Read `killable_v2` first** (P0).
-- **Cooldown discipline**: read `kami_state.time.cooldown` before any post-harvest_start action.
+- **stefan97 + foden deny-all** until `defensive_cycle == False`.
+- **3333333333333333 heat-check mandatory** before re-engagement (4-kill burst risk).
+- **Rule #4 inviolable**: no migration for single/dual targets.
 - **Session length cap**: ≤25 min wall-clock.
-- **Rule #4 inviolable**: no cross-region travel for a single target.
-- **Pre-pivot heat-check v2 mandatory** on 3333333333333333 (3-kill burst risk).
 
 ---
 
 ## Priority 4 — Build asks (deferred, async)
 
-- **Scenario F doctrine codification**: when build/research surfaces a previously-invisible above-gate cluster mid-session, act on it (with heat-check + gas-economics gate). Add as Plan template.
-- **Stale-cycle detection in heat-check** — owners trending toward un-blacklist after defensive cycle ends. Track `bulk_stop_windows_6h` decay, surface `cooling_cycle: True` when last-bulk-stop > 4h ago.
-- **3-kill-burst defensive trigger detection**: heuristic that detects "kami_X owner just lost 3+ kamis in <5min, expect defensive_cycle within 10min". Surface for next-session caution.
-- **Cooldown probe helper** — small utility that polls `kami_state.time.cooldown` and waits exactly until clear.
-- **VIPP/MUSU tracking fix** — metrics column should record actual spoils currency.
+- **`recent_kill_count_5min` field in heat-check** — surface owners hit by 3+ kills in past 5 min for proactive defensive-cycle re-test next watcher cycle. Auto-suppress in killable_v2 once threshold crossed.
+- **Chain-strike ceiling pre-computed in killable_v2** — for each (striker, candidate) pair, label the safe chain index ("can be strike #1 / #2 in chain"). This encodes the 2-strike ceiling into the decision support.
+- **Cooldown probe helper** — small utility that polls `kami_state.time.cooldown` and reports "ready in N seconds" to skip blind 95s waits.
+- **Sync HP read after strike doctrine** — wrap `liquidate` to auto-read `health.sync` post-tx and surface "DEAD" / "near-DEAD" state for next-action gating.
+- **VIPP/MUSU tracking fix** — metrics column should record actual spoils currency (still TBD).
 - **A/B test infrastructure** — split kamis between TC stake-out vs. roving-strikes.
-- **Hot-list further expansion** — only if 17-node coverage proves consistently dry (3+ sessions). Currently strong signal coming from new nodes (34, 33, 10).
+- **Bigger-feed option** — Honeydew Scale (+75) is less than cookie. Golden Apple (+150) extends chain by 1 but only 1 in stock. Question: is there a +200 food in shop? Worth budgeting MUSU.
 
 ---
 
 ## Priority 5 — Post-session
 
 - Append `predator/metrics.md` and `memory/decisions.md`.
-- If session 107 yields zero kills AND killable_v2 confirms 3333333333333333 + Aenne both defensive, escalate +60 min re-wake AND devote session 108 to Scenario F doctrine codification + `cooling_cycle` build.
+- If session 108 yields 0 kills AND killable_v2 confirms 3333333333333333 defensive, escalate +60 min and devote session 109 to infrastructure (heat-check `recent_kill_count_5min`).
+- If session 108 yields 4+ kills again, validates 2-strike doctrine and 3333333333333333 cluster sustainability — should propagate doctrine to plan-109+.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "3333333333333333 has 9 above-gate remaining (44+74 12649-strikes; 4 11224-strikes); owner was 97min idle pre-session 106. Three kills in one minute may have triggered defensive response. 30 min re-wake lets owner_heat resolve: if still passive (idle increases past 130min, no bulk-stop), zero-travel chain at 34 is high-EV. If defensive, pivot. Watcher refreshes 6 cycles in 30 min."
+**Pin**: "Strikers need ~30 min REST regen (sync 110 → ~140/170 full); +45 min gives margin + watcher refreshes 9 cycles. 3333333333333333 cluster has 13+ remaining above-gate; owner heat-check post-4-kill-burst may flip defensive — observe in next snapshot. If still passive, zero-travel 2-strike-per-striker chain (NEW DOCTRINE) yields ~4 kills, ~26M gas, 0.152 obols/Mgas productive. If flipped defensive, pivot to vuongdung1198 (8 above-gate) — first session for this owner, baseline heat-check needed."
 
-**Re-wake**: +30 min from session end (~10:10 UTC, timestamp 1777803000).
+**Re-wake**: +55 min from session end (~11:25 UTC, timestamp 1777807500).
 
 ---
 
 ## Out of scope
 
 - 4 stale strikers (6058, 12225, 15540, 10705) presumed orphaned at room 86 — recovery session needed (deferred).
-- Modifying canonical kill_threshold formula — production-validated through 28 kills.
+- Modifying canonical kill_threshold formula — production-validated through 32 kills.
 - 11224 SP allocation (3 unspent SP) — defer until next strategy review.
 - Quest progression, kamibots state reads, force-flush.
-- Engaging stefan97 absent owner_heat clearance.
-- Engaging foden absent owner_heat clearance.
-- Migrating for single targets.
-- **Engaging Aenne until 6h heat-check window confirms post-session-106 status.**
-- **Engaging 3333333333333333 absent post-session-106 heat-check pass.**
+- Engaging stefan97 / foden absent owner_heat clearance.
+- Migrating for single/dual targets.
+- **Engaging 3333333333333333 absent post-session-107 heat-check pass.**
+- **3rd strike per striker in any chain at node 34 — INVIOLABLE doctrine ceiling.**
