@@ -1,5 +1,22 @@
 # Alerts
 
+### 2026-05-03 03:55 UTC (session 97) — 30-min `timeout` cap dropped a partial session
+
+A prior session-97 attempt fired ~03:13 UTC (cron after plan-96's next-run-at 03:08), did substantial on-chain work, and **failed to commit** before the `timeout 30m` cap in `scripts/run-session.sh` killed it. Sequence reconstructed from chain + oracle action stream + git status (no commit = no state snapshot):
+
+- 03:13:55 — 12649 `harvest_start` at node 60.
+- 03:17:30 — successful `liquidate` on node 60 (+843 MUSU spoils + 1 obol). Target unknown without `target_kami_id` resolve in oracle.
+- 03:18:52 / 03:20:12 — feed + `harvest_stop` (+410 MUSU pool collected).
+- ~03:20–03:35 — operator traveled 60→9 (cluster misread; node 9 had only +13 below-gate target), batch start at 9 reverted, per-kami starts succeeded, then both stopped at 9 with no productive harvest (+4/+4 MUSU). Estimated ~20M gas wasted.
+- 03:35:45 — `harvest_start_batch([11224,12649], 73)` REVERTED (kami harvest entities still showed node 9 reset_ts).
+- Process killed by `timeout 30m`. No `decisions.md` append, no commit, no `next-run-at` update.
+
+A new cron tick at ~03:43 entered the recovery sub-session, observed the strange chain state (operator at 73, kamis RESTING after partial 60→9→73 thrash, plan-96 next-run already past), and recovered by reading current state directly. Recovery succeeded: 2 chain-strike kills on Yeahta@73 with 11224 (kills #12 + #13), netting +2 obols + 2025 MUSU on 16.36M gas (best sub-segment ratio 0.122 obols/Mgas, new doctrine: same-striker chain-kill via mid-feed).
+
+**Lesson — session length budgeting**: Multi-hop travel (60→9 = 6+ hops, 9→73 = 7+ hops) plus harvest-cycle waits (80–195s × multiple) plus strike+stop flows can collectively exceed the 30-min cap. If a planned action sequence is likely to exceed ~25 min wall-clock from cron tick, **trim scope or commit interim state** between phases. Plan-98 carries this forward as a "Hard limit" entry: budget aware of timeout, pivot before exceeding.
+
+**Action**: no harness change yet (the timeout cap exists for runaway-loop safety and shouldn't simply be raised). The fix is plan-side discipline. If this recurs across sessions 98–101, escalate to founder via `ideas_to_founder.md` to consider raising cap or adding mid-session checkpointing.
+
 ### 2026-05-02 17:15 UTC (session 83) — Oracle service down two consecutive sessions
 
 `oracle_health` and `oracle_sql("SELECT 1 AS ok")` both errored this session.

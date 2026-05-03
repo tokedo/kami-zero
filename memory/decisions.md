@@ -3365,3 +3365,52 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 - Off-cluster ripening: needs fresh watcher refresh next session.
 
 **Next session (97)** — Re-wake **+15 min** (~03:08 UTC, timestamp 1777777656), pinned to: "Watcher refreshes every 5 min; in 15 min should show whether new TC kamis cycled in or whether stefan97/Yeahta/other clusters have ripened. If TC node 60 has fresh +30+ candidates → strike again zero-travel. If dry → assess migration vs wait. Strikers near-max post-cookie; cooldowns clear by then."
+
+
+## 2026-05-03 03:53 UTC — session 97 (3 KILLS across 2 sub-segments, ~36M gas; NEW DOCTRINE: same-striker chain-kill with mid-feed)
+
+**ETH balance**: not measured.
+
+**Anomaly at session start**: a prior session-97 attempt fired at ~03:13 UTC (cron tick after plan-96's next-run-at 03:08 cleared), did partial work, and FAILED TO COMMIT before timeout (likely 30-min `timeout 30m` cap in run-session.sh hit during multi-hop travel). No commit means no state snapshot — I recovered by reading chain + watcher + git status. Logged to `alerts.md`.
+
+**Prior partial sub-session (03:13–03:35)**:
+- 03:13:55 12649 harvest_start at node 60 → 03:17:30 liquidate (kill #11 production, +843 MUSU spoils + 1 obol). Target unknown without target_kami_id resolve.
+- 03:18:52 feed; 03:20:12 stop +410 MUSU pool.
+- Traveled 60→9 (mistake — node 9 has 1 non-guild candidate at +13 below gate; misread cluster).
+- 03:21:19 / 03:22:29 11224 + 12649 harvest_start at 9 (the 03:20:54 batch start reverted, then per-kami starts succeeded).
+- 03:35:10 stop both at 9 +4/+4 MUSU (no productive harvest).
+- 03:35:45 attempted batch start at 73 — REVERTED (kami harvest entities still show node 9 reset_ts 03:21:19/03:22:29).
+- Estimated ~20M gas wasted on 60→9→73 travel + thrash.
+
+**My recovery sub-session (03:43–03:51)**:
+- Plan-97 Scenario C trigger fired: Yeahta node 73 fresh with 6485 (+73, 11224) + 1847 (+69, 11224).
+- `travel_to_room(73)` → noop (already at 73 from prior session's last hop).
+- `harvest_start([11224], 73)` 1.34M (single-striker doctrine — 12649 had no in-margin target at this node since both top Yeahta targets were SCRAP-body, 11224-only).
+- `liquidate(6485, 11224, "Yeahta")` at 30s post-deploy → REVERTED 0.28M (kami cooldown lock — 80s minimum after harvest_start; mis-judged the wait).
+- Waited 60s, retried `liquidate(6485, 11224, "Yeahta")` 4.38M → **kill #12 production +736 MUSU spoils + 1 obol** (margin +73).
+- Waited 85s kami strike cooldown.
+- `feed_kami(11224, cookie 11304)` 1.81M — restored HP for chain strike.
+- `liquidate(1847, 11224, "Yeahta")` 4.40M → **kill #13 production +603 MUSU spoils + 1 obol** (margin +69) — **SAME-STRIKER CHAIN-KILL via mid-cycle feed**.
+- Waited 85s; `feed_kami(11224, cookie)` 1.81M; `stop_harvest_batch([11224])` 2.34M INACTIVE +686 MUSU pool.
+
+**Result**:
+- **3 kills total session 97**: 12649@60 (#11, prior segment), 11224 vs 6485@73 (#12), 11224 vs 1847@73 (#13).
+- 3 obols, 3286 MUSU gross (843+410 prior + 8 trash + 736+603+686 mine).
+- Productive sub-session (mine alone): 16.36M gas, 2 obols + 2025 MUSU = **0.122 obols/Mgas (NEW BEST sub-segment ratio)**.
+- Total session including prior wasted travel: ~36M gas estimated for 3 obols → ~0.083 obols/Mgas (mid-pack).
+
+**New doctrine: SAME-STRIKER CHAIN-KILL WITH MID-FEED**: when a single striker has ≥2 high-margin targets and other strikers don't qualify, deploy the single striker → strike target1 → wait 80s kami cooldown → feed cookie (restores HP to max — 11224 went from 140/140 → recoil → fed back to 140/140) → strike target2 (effectively first-strike-equivalent with full HP) → feed → stop. Adds ~3.6M gas (extra strike + feed) for +1 obol + ~600 MUSU. Net +0.18 obols/Mgas marginal — better than dual-kami batch.
+
+**Anomalies**:
+- 30-min timeout drop on prior session — `alerts.md` entry written. Long sessions with multi-hop travel + harvest cycles can blow the cap.
+- Watcher snapshot showed 11224 as a victim at node 73 elapsed_h=0.07, but `kami_state_slim` showed 11224 INACTIVE at node 9. Watcher data was based on a transient/reverted harvest_start tx that oracle ingested but didn't reflect actual chain state. **Distrust watcher's `v_acct=bpeon` entries when they conflict with direct-chain reads.**
+
+**Inventory consumed**: 3 cookies (11304) — 1 by prior session 12649 feed, 2 by my 11224 feeds.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at room 73.
+- 11224 sync 140/140 (just-fed full, post-strike recoil restored).
+- 12649 sync 99/170 (58%, RESTING since 03:35 — should regen by next session).
+- Yeahta cluster post-haircut: 3699 (+14, 12649 striker), 2836 (+13, 11224 striker), 3470 (+9, 11224 striker) — all below gate, need ripening.
+
+**Next session (98)** — Re-wake **+30 min** (~04:23 UTC, timestamp 1777782192), pinned to: "Yeahta 3699 ripening at +14 watcher, observed strain rate ~18 HP/hr from kill targets — needs ~+16 HP drop to cross +30 gate ≈ 50-60 min from watcher snapshot. Re-wake +30 min as midpoint. If 3699 crossed +25-30 → strike with 12649. Else extend wait or pivot to node 30 kingisonchain 9901 (+52, 12649 striker, 8-hop migration via stamina-tight path)."

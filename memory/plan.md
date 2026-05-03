@@ -1,87 +1,80 @@
-# Plan for session 97 — fresh watcher scan, strike if any cluster ripens
+# Plan for session 98 — wait Yeahta ripening or pivot
 
-## Context (post-session 96)
+## Context (post-session 97)
 
-**Total kills: 10** (2 this session). Session 96 net: **2 obols + 2263 MUSU gross at 18.62M gas (0.107 obols/Mgas — NEW BEST, beat session 92's 0.103)**.
+**Total kills: 13** (3 this session: 1 from prior partial sub-segment at 60, 2 from same-striker chain-kill at 73). NEW doctrine codified: SAME-STRIKER CHAIN-KILL with mid-feed restores chain-strike margin to first-strike-equivalent — +0.18 obols/Mgas marginal.
 
-**Doctrine confirmed**:
-- **Watcher-pivot rule**: when refresh shows 2nd target across +30 gate that wasn't there at plan time, dual-strike pays — marginal ~5M gas for +1 obol +636 MUSU.
-- **+30 first-strike gate empirically validated** at margin +39 (9839 kill clean). Below this: chain-strike skipped.
-- **TC profile 5-session lock (92→96)**: pure 7-9h auto-cycler, ~30 min between cycles, no defensive evolution. Trust the locked archetype.
-
-**End state**: operator + 11224 + 12649 RESTING at room 60. Both fed cookie post-strike. Full HP at next session's perceive step (RESTING regen).
+**End state**: operator + 11224 (140/140) + 12649 (~58%, regen-ing) at room 73. 480+ cookies remaining. Cooldowns long-cleared by re-wake.
 
 ---
 
 ## Priority 0 — Read before acting
 
-1. **Watcher snapshot** — `predator/world_targets.json` `generated_at` (cron */5). Scan for any cluster with margin ≥+30 candidate.
-2. **Spot-check oracle** — TC activity past 60 min (cycle pattern detection); if stefan97 or Yeahta cluster appears in watcher, check their last-action timestamps for monitoring signature.
-3. **Re-quote cooldowns**: 180s operator deploy, ~80s kami strike. Last 11224/12649 strike block 28317035/28317037 (02:51 UTC) — cooldowns long-cleared by ~03:08 UTC session start.
+1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. Scan for any +30+ candidate. Distrust `v_acct=bpeon` victim entries (session 97 lesson — can be transient/reverted).
+2. **Spot-check Yeahta activity past 30 min** — if bulk-stop pattern emerges (defensive shift after 2 dual-kills), halt + `alerts.md`.
+3. **Re-quote cooldowns**: **80s kami cooldown after harvest_start** (re-validated session 97 by 0.28M revert), ~80s after strike.
 
 ---
 
 ## Priority 1 — Strike scenarios by watcher state
 
-### Scenario A: TC node 60 has fresh +30+ candidate
-- 6032 was at +28 in session 96 watcher. Will ripen further over 15 min — could cross +30. Striker: 12649.
-- New TC kamis cycle in (saw 11319 start 01:48, 17177 start 02:35, more pending) — start times mean their +30 gate crosses at 7-9h elapsed (so not for ~5h).
-- **Action**: zero-travel single or dual strike with 11224/12649.
+### Scenario A: Yeahta node 73 fresh +30+ candidate
+- 3699 ripens at ~18 HP/hr observed → from +14 → ~+29 at +50 min, ~+32 at +60 min from session-97 watcher.
+- 2836 (+13 → ~+25 at +50 min) and 3470 (+9 → ~+19) — slower.
+- **Action**: zero-travel single-strike with 12649 if 3699 ≥ +30. If 12649 sync still <80% max, pre-feed cookie first.
 
-### Scenario B: stefan97 node 86 has fresh +30+ candidate
-- Travel cost 60→86: ~16 hops ~10M gas. Net negative unless 2+ kills.
-- stefan97 archetype: real-time room-arrival monitor, bulk-stops within 38s. Risky.
-- **Action**: only if watcher shows ≥3 candidates +30+ with idle (≥10 min) farmer scan; otherwise skip.
+### Scenario B: kingisonchain 9901 at node 30
+- Watcher: +52 margin, 12649 striker, 11.87h+ elapsed (12+ hours uninterrupted now).
+- Travel 73→30 = 8 hops, stamina 40 needed (had 41 — barely; may need ice cream).
+- ~5M travel + 1.34M deploy + 4.5M strike + 1.8M feed + 2.34M stop = ~15M for 1 obol + ~150-200 MUSU. Ratio ~0.067 obols/Mgas (below recent baseline).
+- **Action**: pivot only if Yeahta still dry AND no closer cluster surfaces.
 
-### Scenario C: Yeahta node 73 ripens
-- 6485 +42 (11224 striker), 1847 +38 (11224 striker) per session 95 close-out off-cluster scan.
-- Travel 60→73: ~hops. Yeahta has not been observed defensive — session 92 dual-kill held.
-- **Action**: dual-strike if both still listed. Need fresh watcher confirm.
+### Scenario C: TC node 60 cycled in fresh candidates
+- Travel 73→60 = 8+ hops similar. Requires fresh watcher confirmation of ≥2 in-margin TC candidates.
+- **Action**: pivot if ≥2 in-margin candidates AND travel < 6M est.
 
-### Scenario D: Cluster dry (most likely)
-- All known +30+ candidates either cycled out or below gate.
-- **Action**: stay at room 60, set re-wake +30-45 min for natural ripening.
+### Scenario D: Cluster dry — wait
+- Stay at 73, re-wake +30 min for further ripening.
 
 ---
 
 ## Priority 2 — Striker prep
 
-- 12649 at session-96 close: just-fed cookie post-strike. Sync should regen to ~170 max during RESTING by session 97 (15 min).
-- 11224 at session-96 close: fed cookie. Same regen profile.
-- No pre-feed needed unless oracle shows sync <80% max_hp.
+- 11224: 140/140 sync at session-97 close, RESTING regen → max maintained.
+- 12649: 99/170 (58%) at close. Estimated regen ~150-160/170 by next session.
+- Pre-feed cookie only if either striker sync <80% max_hp at session-98 start.
 
 ---
 
 ## Priority 3 — Hard limits
 
-- **Total gas budget**: 20M (single-cluster zero-travel session).
+- **Total gas budget**: 16M zero-travel, 22M for 73→30, 30M for 73→60.
 - **No tx if striker HP <80% max_hp** unless 1 cookie feed first.
 - **2 reverts in a row → end session**.
-- **+5 HP margin revert → halt + post-mortem**.
-- **TC/stefan97 bulk-stop signal during scan → halt** (defensive shift = invalidates archetype).
+- **Yeahta bulk-stop signal during scan → halt + alerts.md** (defensive shift = invalidates archetype).
+- **80s kami cooldown after harvest_start** — strict.
+- **Session length cap awareness**: if action-plan exceeds ~25 min wall-clock budget (tx + waits), trim scope or commit interim state to avoid 30-min timeout drop (see alerts.md).
 
 ---
 
 ## Priority 4 — Post-session
 
 - Append `predator/metrics.md`.
-- If sessions 92-96 trend holds (5 clean sessions, 0.072–0.107 obols/Mgas), **write TC profile to `predator/learnings.md` § "Farmer profiles"** — defer this to session 97 if strike-busy.
-- If 2 days of zero-travel single-cluster runs sustains 0.09+ ratio, propose to founder (`ideas_to_founder.md`) the doctrine: "stay parked at hot cluster until exhausted, only migrate on full depletion + watcher confirms next cluster has ≥3 in-margin candidates".
+- If session 98 confirms Yeahta non-defensive after 2 consecutive dual-kills → write Yeahta profile to `predator/learnings.md` § "Farmer profiles" alongside TC.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Cluster largely depleted post-dual-strike. Watcher cron refreshes every 5 min — in 15 min the cron will have refreshed 3 times, showing whether 6032 crossed +30 (likely, was +28 at plan-96 watcher) or whether other clusters ripened. Strikers near-max HP via RESTING regen. Cooldowns long-cleared. +15 min balances ripening watch vs not over-waiting on a likely-quiet world."
+**Pin**: "Yeahta 3699 at +14 watcher (5.15h elapsed), ~18 HP/hr strain → ~50-60 min to cross +30 gate. Re-wake +30 min as midpoint check. Watcher cron */5 will refresh 6 times in window. Strikers near-max HP."
 
-**Re-wake**: +15 min (~03:08 UTC, timestamp 1777777656).
+**Re-wake**: +30 min (~04:23 UTC, timestamp 1777782192).
 
 ---
 
 ## Out of scope
 
-- Migration off node 60 unless Priority 1 Scenario B/C fires AND target cluster has ≥3 in-margin candidates.
-- Reviving 4 stale strikers on room 86. Dead-kami harvest_id check still pending design.
-- Modifying canonical kill_threshold formula — production-validated 10/10 first-strikes.
-- 11224 SP allocation (3 unspent SP). Wait for more data.
+- 4 stale strikers (6058, 12225, 15540, 10705) presumably orphaned at room 86 — investigate when migration leads us there.
+- Modifying canonical kill_threshold formula — production-validated 12/13 first-strikes + 1/1 chain-strike.
+- 11224 SP allocation (3 unspent SP).
 - Quest progression, kamibots state reads, force-flush.
