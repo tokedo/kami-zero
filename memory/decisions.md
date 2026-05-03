@@ -3536,3 +3536,54 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: none. Plan-99 P0 heat-check executed cleanly, prevented re-entering session-98 trap. New dual-striker chain doctrine first-attempt success.
 
 **Next session (100)** — Re-wake **+15 min** (~05:38 UTC), pinned to: "Watcher refreshes every ~5 min — 3 cycles in 15 min. Will show: (1) post-quad-kill Yeahta state (cluster largely depleted, may need 30+ min for new ripening); (2) TC node 60 cluster freshness (3334+49/126+46 still ripening or cycled); (3) any other emerging clusters. If Yeahta has 2+ ripening or TC has 3+ above-gate, plan strike. If dry, re-wake +30 min. **DO NOT engage stefan97**. Strikers max HP, cooldowns clear by re-wake."
+
+
+## 2026-05-03 05:48 UTC — session 100 (2 KILLS, ~17.35M gas, 0.115 obols/Mgas — same-striker chain on Yeahta +31/+31)
+
+**ETH balance**: not measured.
+
+**Perceived**:
+- Watcher (6s fresh, gen 05:40:04Z) showed **2 above-gate Yeahta @ node 73**: 1500 (+31, 11224, SCRAP), 4722 (+31, 11224, SCRAP). Other Yeahta below gate (1374 +17). TC node 60 had 2 above-gate (3334 +56, 126 +54) but plan-100 P2.B requires ≥3 to justify travel.
+- Both strikers RESTING at room 73 from session 99 end-state. 11224 sync=100/140 (71%, below 80% plan-99 P3 gate). 12649 sync=102/170 (60%). Cooldowns clear (16+ min past last touch).
+- Pre-pivot heat-check on Yeahta: 164 min idle (last action 02:56:43), 13 active kamis past 24h — decisive pass on plan-100 P0.
+
+**Decided**:
+- Plan-100 Scenario A trigger: zero-travel single-striker chain on 11224. Both above-gate targets are 11224-strikable; 12649 has no above-gate target at this node → skip 12649 deploy (saves ~1.3M gas).
+- Pre-deploy feed 11224 to clear 80% gate before chain.
+
+**Acted**:
+- 05:42 `feed_kami(11224, 11304 cookie)` 1.26M — pre-deploy HP restore.
+- `harvest_start([11224], 73)` 1.23M — solo deploy.
+- Wait 85s deploy cooldown.
+- `liquidate(1500, 11224, "Yeahta")` 4.44M → **kill #18 production** (+505 MUSU spoils + 1 obol, margin +31).
+- Wait 85s kami strike cooldown.
+- `feed_kami(11224, cookie)` 1.89M (mid-feed restore).
+- `liquidate(4722, 11224, "Yeahta")` 4.39M → **kill #19 production** (+378 MUSU spoils + 1 obol, margin +31 — same-striker chain).
+- Wait 85s.
+- `feed_kami(11224, cookie)` 1.81M (close-feed).
+- `stop_harvest_batch([11224])` 2.34M INACTIVE +460 MUSU pool.
+
+**Result**:
+- **2 kills, 0 reverts, 0 nonce mismatches** in 17.36M gas.
+- Net: 2 obols, 883 MUSU spoils (505+378) + 460 MUSU close-pool = 1343 MUSU gross.
+- **Obols/Mgas = 0.115** — best ratio since session 96's 0.107; top-tier productive sub-session ratio.
+- Lifetime kills: 17 → **19**.
+
+**Gas notes**:
+- 1.26 (pre-feed) + 1.23 (deploy) + 4.44 (strike#1) + 1.89 (mid-feed) + 4.39 (strike#2) + 1.81 (close-feed) + 2.34 (stop) = 17.36M.
+- Every tx productive — zero waste.
+- Pre-deploy feed (1.26M) was protocol-required (sync 71% < 80% gate) and enabled clean +31 chain — would have been false economy to skip.
+
+**Doctrine confirmations**:
+- **+31 watcher margin = empirically validated chain-strike gate** (re-confirmed; first proven on session 99's 14081 strike, now 2nd validation on 1500/4722).
+- **Single-striker chain economics**: skipping 12649 deploy when no in-margin target saved ~1.3M deploy + ~1.8M close-feed + ~1M batch overhead = ~4M gas for zero opportunity cost.
+- **Yeahta archetype** (7 kills across sessions 91/92/97/99/100): pure auto-cycler, no defensive bulk-stop, no auto-restart. 4-session lock — confidence very high.
+
+**Inventory consumed**: 3 cookies (11304).
+
+**End state**:
+- Operator + 11224 (140/140 close-fed, sync resyncing in RESTING) + 12649 (170/170, never deployed) RESTING at room 73.
+- Stamina ~23 (unchanged — zero travel).
+- Plenty of inventory.
+
+**Next session (101)** — Re-wake **+30 min** (~06:18 UTC, timestamp 1777789080), pinned to: "1374 ripening from +17 toward gate at observed Yeahta strain ~18 HP/hr. In 30 min from watcher snapshot (05:40Z → 06:10Z), 1374 should ripen to ~+26-28 — still under +31 chain-gate but approaching single-strike viability. Watcher refreshes 6 times in window. Re-evaluate full Yeahta state + TC freshness + new cluster emergence. If 1374 reaches +25+ AND fresh Yeahta ripening above +30 → chain-strike. If only TC has 3+ above-gate → migration justified. If dry → +30 min more."
