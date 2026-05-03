@@ -769,3 +769,45 @@ The watcher snapshot was 12 min stale by the third strike, but more importantly 
 3. **Watcher killable_clean for stefan97 should be hidden by default**. Add an owner-blacklist in the watcher cron to drop stefan97 entries unless an "idle override" condition is present. (Build task — see ideas_to_founder.md.)
 
 **Cost**: 19.72M gas, 0 kills, 0 obols, 0 spoils. Worst session ratio yet (undefined / Mgas).
+
+---
+
+## Session 119 (2026-05-03) — strain-model back-fit on 52 kills + 1 revert
+
+**Setup**: Plan-119 P2 build-mode investigation triggered when killable_v2 had no V≥22 candidates (max V=19 across 41 candidates). Goal: validate or correct `compute_current_hp` strain coefficient using past-kill ground truth.
+
+**Method**: queried oracle for all 52 successful bpeon liquidates (last 28d) plus the session-118 6996 revert. Joined `kami_action.harvest_id` between liquidate (operator-side) and harvest_start (victim-side) to recover victim kami. Pulled victim stats from `kami_static`, ran `projected_bounty()` + `strain_from_bounty()` + `kill_threshold()` for each, tabulated margin and `liq_musu / projected_pool` ratio.
+
+**Results**:
+
+| Bucket | n | avg margin | avg pool_ratio | gate-explained |
+|---|---|---|---|---|
+| V 10–12 | 32 | +44.2 | 1.044 | 100% |
+| V 13–15 | 12 | +40.0 | 1.077 | 100% |
+| V 16–19 | 7 | +28.4 | 1.152 | 86% (1 kill at –5 margin still fired — pool ratio 1.62, under-projected pool) |
+| V 20+ | 1 | +20.0 | 0.998 | 100% |
+| **All kills** | **52** | **+40.0** | **1.06** | **98.1%** |
+| **Revert (6996)** | 1 | +55 (gate said fire) | 0.99 | — |
+
+**Pool model is accurate.** Avg `liq_musu / projected_pool` = 1.06 across 52 kills; min 0.89, max 1.62. The 723 MUSU projection for 6996 matches the 720 inferred from its post-strike harvest_stop (739 MUSU collected 8 min later) within 1%. The Bug-2 fix (end-of-period × Duration) is confirmed at this scale.
+
+**Strain model: cannot be falsified by past kills, but is falsified by the 6996 revert.** Successful kills only constrain `actual_strain ≥ (max_HP − kz)`; they don't constrain the upper bound. Reverts are the only ground truth on the upper bound. The 6996 revert says actual_strain ≤ 57 (since actual_HP ≥ kz=173) but the formula projected 112 — over-projection of 55 HP if striker atk_s was 0.4 live, or over-projection of 32 HP if atk_s was the oracle-recorded 0.3.
+
+**Halving-coefficient hypothesis falsified by past kills**: if real_strain = proj_strain/2, then for kill 6505 (max=150, kz=114, proj_strain=69) real_strain would be ~35, less than the 36-HP minimum needed for the kill to fire. Kill DID fire. Most past kills similarly require strain to be approximately what the formula says, not half. So the strain coefficient is approximately correct on average.
+
+**Two compatible explanations remain**:
+1. **High-variance strain process**: the formula is correct in expectation but real strain is noisy at the integer-quantized chain level (sub-state ticks, ceiling/floor combinations), and 6996 fell at the unlucky tail. With 1 revert per 53 strikes (~2% rate), the data is consistent with a wide variance distribution centered on the formula.
+2. **Unmodeled state we haven't found**: oracle drill on 6996 between harvest_start (10:01:22) and harvest_stop (17:58:07) found ZERO actions on the kami — no feeds, no item uses, no cycles. So whatever mid-harvest event would have boosted HP didn't appear in `kami_action`. Either the model is missing a non-action source of HP (passive recovery during HARVESTING? a sub-state we don't read?) or the variance hypothesis is right.
+
+**Operational rule (until more revert data narrows the range)**:
+- For low-V (V<22) high-pool (>500 MUSU) targets where pool/(H+20) is high: require margin **≥ 30** before strike, not the canonical ≥5. The 6996 revert had margin +55 (atk_s=0.4 case) which would have been borderline under +30; but +30 is the safer pass. This is still permissive — we accept some reverts, but bound them at one per ~50 strikes.
+- For V≥25 targets: keep canonical ≥5 margin until a V≥25 revert appears.
+- **Don't ship a coefficient correction**. The 6500 numerator is calibrated; one revert is not enough to overrule it.
+- **Pre-strike sanity**: spot-check striker's live `attack_threshold_shift` against what I'm passing into `kill_threshold()`. The 100-bps mystery on session 118's 6996 strike (oracle=300, my computation used 400) suggests my live read may not match oracle, or there's a transient buff source I don't track.
+
+**Carry-forward research items (P2 for session 120+)**:
+- Drill another revert when one occurs — single data point isn't enough.
+- Verify: is there a passive HARVESTING-state HP recovery between strain ticks? Read `systems/health.md` and contract code. If yes, the projection is missing a +recovery term that would offset strain at long elapsed times.
+- Check whether `attack_threshold_shift` in `kami_static` is a snapshot from `build_refreshed_ts` and may lag actual on-chain; if so, the oracle-vs-live discrepancy is a known data-staleness issue, not a model bug.
+
+**Cost**: 0 strikes, 0 obols, 0 gas (build-mode session). Time: ~30 min wall. Output: this finding.

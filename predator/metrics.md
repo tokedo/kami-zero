@@ -56,3 +56,7 @@ session, started_at, ended_at, gas_spent_gwei, musu_spent, musu_balance_end, obo
 session 118, 2026-05-03T17:48Z, 2026-05-03T17:56Z, 6.024M gas, 0 obols, 0 MUSU,
   0 kamis_liquidated, 0 interrupted_kamis, items_consumed: (none), nodes_visited: 33,
   claude_tokens_used: , notes: 1 revert (12649→6996 V13 EERIE/NORMAL margin +30 watcher, +53 live atk_s=400). Strain model over-projection on low-V vuongdung1198 cluster post-revive. All current node 33 candidates V≤21. Aborted second strike per 2-revert risk-management. P0 build-ask: back-fit strain model conditional on V.
+
+session 119, 2026-05-03T18:30Z, 2026-05-03T18:50Z, 0M gas, 0 obols, 0 MUSU,
+  0 kamis_liquidated, 0 interrupted_kamis, items_consumed: (none), nodes_visited: (none, build-mode),
+  claude_tokens_used: , notes: build-mode strain back-fit on 52 successful liquidates + 1 session-118 revert. Pool model accurate (avg liq_musu/projected = 1.06; 6996 723 vs 720 actual). Strain halving hypothesis FALSIFIED by past kills. 6996 revert shows 32-55 HP strain over-projection (depending on which striker atk_s was live). Single revert insufficient for coefficient correction. Operational rule: V<22 high-pool targets require margin ≥30 (not canonical ≥5). Open: 100-bps atk_s discrepancy (oracle=300 vs my session-118 use=400) — may be stale build_refreshed_ts snapshot. No transactions; pure data-plane session.

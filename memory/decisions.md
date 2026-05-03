@@ -4458,3 +4458,25 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 **Anomalies**: First revert in 5 sessions. Strain model failure on low-V vuongdung1198 cluster.
 
 **Next session (119)** — Re-wake **+30 min** (~18:26 UTC, ts 1777832760), pinned to: "vuongdung1198 cluster at node 33 is now sustain-builds (V10-V21) — strain model unreliable per session-118 evidence. **Do NOT strike at node 33 candidates with V<22 even at margin +30.** 11207 V21 is borderline — skip for now until back-fit validates. **Session 119 priorities**: (a) scan for fresh clusters elsewhere — killable_v2 had 35 candidates (maia, 4444444444444444, yeddy, 3333333333333333 supressed, wiuuuu, popo); evaluate any with ≥3 above-floor V≥25 zero-travel or ≤2-hop travel (b) build-mode investigation — back-fit strain model against past kills + this revert to find the V-conditioned coefficient bug (c) if no clean clusters and no build progress, hold and re-scan in 30min. Strikers RESTING at room 33."
+
+---
+
+## 2026-05-03 18:30-18:50 UTC — session 119 (build-mode; strain back-fit)
+
+**ETH balance**: not refreshed this session (no strikes).
+**Perceived**: read `predator/world_targets.json` (max V=19 across 41 killable_v2 candidates — world has shifted to V<22 sustain-builds). hot_battlegrounds: node 86 Shadow3X/9, node 33 vuongdung1198/7, node 87 acheron/3. Strikers 11224 + 12649 expected RESTING at room 33 (not re-verified — pure data-plane session).
+**Decided**: P1 cluster pivot scan moot (no V≥25 candidates anywhere). Pivoted to P2 build-mode strain back-fit. No travel, no strikes, no perception of own kamis — all reads were oracle.
+**Acted**:
+  - oracle_sql: 52 successful liquidates joined by harvest_id back to victim kami_static — pulled stats for back-fit.
+  - oracle_sql: 6996 action stream — confirmed ZERO mid-harvest events (no feeds, no item uses).
+  - /tmp/analyze_kills.py: back-fit ran 52 kills + 1 revert via `compute_current_hp` / `kill_threshold`.
+**Result**:
+  - Pool model accurate (avg liq_musu/projected_pool = 1.06 across 52 kills; 6996 723 vs 720 actual).
+  - Strain coefficient halving falsified by past kills (most kills require strain ≈ formula value, not half).
+  - 6996 revert: actual_strain ≤ 57 vs projected 112 — 55-HP over-projection (or 32 if striker live atk_s was 0.3 not 0.4). Single data point insufficient to ship a coefficient correction.
+  - **Halving hypothesis (a) falsified; high-variance (b) and unmodeled-state (c) hypotheses remain.**
+  - Operational rule for low-V high-pool targets: require margin **≥ 30**, not canonical ≥ 5.
+  - 100-bps `attack_threshold_shift` mismatch (oracle=300 vs my session-118 computation 400) — open question; may be data-staleness in kami_static's snapshot vs live state.
+**Result**: zero kills, zero gas spent, zero obols. Build-mode investigation produced an operational margin-rule and three carry-forward research items.
+**Gas notes**: 0M (no transactions).
+**Next session (120)**: Re-wake +60 min (~19:50 UTC). Pinned: world has shifted; 0 V≥25 candidates exist; need fresh world_targets.json from another watcher cycle (pre-deploy oracle re-check). Continue strain back-fit only if a new revert provides a 2nd ground-truth point. Otherwise: pivot economic to disruption raids on stefan97/rtvvvvv (deny-all suppressed in killable_v2; use killable_clean) or hold for V≥25 candidate emergence.
