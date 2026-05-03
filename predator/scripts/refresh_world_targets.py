@@ -28,15 +28,21 @@ ORACLE_TOKEN = "pV6WYI4HUSLWK95cSg_YJbDlD6rTdCDaYCCMqhQvTl8"
 OUTPUT_PATH = REPO_ROOT / "predator" / "world_targets.json"
 GUILD_PATH = REPO_ROOT / "predator" / "guild-no-touch.csv"
 
-# Hot-list nodes to scan. Update via CLI flag or expand here.
-# Note: nodes the operator can travel to + currently-hunting clusters.
-# Expanded session 106: dropped node 30 (1 row in 24h, dead). Added high-traffic
-# missing nodes from oracle_top_nodes 3d window — covers more SCRAP/EERIE/
-# INSECT/NORMAL biomes for hot-node expansion (Plan-106 P4 build-ask).
-HOT_NODES = [
+# FLOOR_NODES = always-watch set used as a safety floor when oracle is down
+# OR as a baseline that dynamic discovery merges on top of. Player traffic
+# shifts continually; a static list goes blind to new clusters (Sacrarium /
+# acheron / Assassins, observed 2026-05-03).
+FLOOR_NODES = [
     86, 60, 73, 25, 62, 9, 82,           # original (minus dead node 30)
     16, 88, 89, 10, 15, 83, 33, 76, 35, 34,  # session-106 additions
+    87,                                  # Sacrarium (added 2026-05-03 R1.5)
 ]
+MAX_ACTIVE_NODES = 50
+ACTIVITY_WINDOW_HOURS = 6
+
+# HOT_NODES is populated at runtime by discover_active_nodes(); kept as a
+# module-level mutable for backward compatibility with helpers that read it.
+HOT_NODES = list(FLOOR_NODES)
 
 # bpeon's striker roster (kept here for tactical-decision speed; refresh on respec).
 STRIKERS = [
@@ -408,9 +414,112 @@ def owner_heat_check(owners):
     return out
 
 
+def discover_active_nodes():
+    """Replace the hardcoded HOT_NODES with a dynamic merge of FLOOR_NODES
+    and any node with harvest_start activity in the last ACTIVITY_WINDOW_HOURS.
+
+    Round 1.5 (2026-05-03): static HOT_NODES went blind to Sacrarium / acheron
+    despite that node having 23 harvest_starts in 24h; dynamic discovery makes
+    the watcher self-correcting.
+
+    Returns FLOOR_NODES on oracle failure so the watcher always produces a
+    snapshot.
+    """
+    try:
+        rows = oracle_sql(
+            "SELECT node_id, COUNT(DISTINCT kami_id) AS harvesters "
+            "FROM kami_action "
+            "WHERE action_type='harvest_start' "
+            f"  AND block_timestamp > NOW() - INTERVAL {ACTIVITY_WINDOW_HOURS} HOUR "
+            "GROUP BY node_id "
+            "ORDER BY harvesters DESC",
+            limit=200,
+        )
+        active = []
+        for r in rows:
+            nid = r.get("node_id")
+            if nid is None:
+                continue
+            try:
+                active.append(int(nid))
+            except (TypeError, ValueError):
+                continue
+    except Exception as e:
+        print(f"discover_active_nodes oracle error: {e}; falling back to FLOOR_NODES", file=sys.stderr)
+        return list(FLOOR_NODES)
+    # Merge: FLOOR_NODES first (so they always appear), then active not already in floor.
+    merged = list(FLOOR_NODES) + [n for n in active if n not in FLOOR_NODES]
+    return merged[:MAX_ACTIVE_NODES]
+
+
+def get_hot_battlegrounds(window_hours=3, top_n=20):
+    """Recent liquidations world-wide, grouped by node, with attacker /
+    victim attribution. Surfaces clusters where OTHER predators are succeeding
+    so we can follow the heat instead of grinding our own cluster.
+
+    Recovers node_id via self-join to harvest_start (harvest_liquidate.node_id
+    is NULL — see ideas_to_founder.md item 4b). Returns [] on oracle failure.
+    """
+    sql = (
+        "WITH liq AS ("
+        "  SELECT harvest_id "
+        "  FROM kami_action "
+        f"  WHERE action_type='harvest_liquidate' AND harvest_id IS NOT NULL "
+        f"    AND block_timestamp > NOW() - INTERVAL {window_hours} HOUR"
+        "), "
+        "start_ranked AS ("
+        "  SELECT h.harvest_id, h.node_id, h.kami_id, "
+        "    ROW_NUMBER() OVER (PARTITION BY h.harvest_id ORDER BY h.block_timestamp DESC) AS rn "
+        "  FROM kami_action h "
+        "  WHERE h.action_type='harvest_start' "
+        "    AND h.harvest_id IN (SELECT harvest_id FROM liq)"
+        "), "
+        "start_resolved AS ("
+        "  SELECT s.harvest_id, s.node_id, ks.account_name AS victim_account "
+        "  FROM start_ranked s "
+        "  LEFT JOIN kami_static ks ON ks.kami_id = s.kami_id "
+        "  WHERE s.rn = 1"
+        ") "
+        "SELECT sr.node_id, "
+        "  COUNT(*) AS kills, "
+        "  COUNT(DISTINCT sr.victim_account) AS distinct_victims, "
+        "  MAX(sr.victim_account) AS sample_victim "
+        "FROM liq l "
+        "JOIN start_resolved sr ON sr.harvest_id = l.harvest_id "
+        "WHERE sr.node_id IS NOT NULL "
+        "GROUP BY sr.node_id "
+        "ORDER BY kills DESC "
+        f"LIMIT {top_n}"
+    )
+    try:
+        rows = oracle_sql(sql, limit=top_n)
+    except Exception as e:
+        print(f"get_hot_battlegrounds oracle error: {e}", file=sys.stderr)
+        return []
+    out = []
+    for r in rows:
+        nid = r.get("node_id")
+        if nid is None:
+            continue
+        try:
+            out.append({
+                "node_id": int(nid),
+                "kills_in_window": int(r.get("kills") or 0),
+                "distinct_victims": int(r.get("distinct_victims") or 0),
+                "sample_victim": r.get("sample_victim"),
+                "window_hours": window_hours,
+            })
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
 def main():
     t0 = time.time()
     handles, accs = load_guild()
+    # Round 1.5: dynamic node discovery replaces static HOT_NODES.
+    global HOT_NODES
+    HOT_NODES = discover_active_nodes()
     node_meta = get_node_affinities()
 
     by_node = {}
@@ -461,12 +570,20 @@ def main():
     # killable_v2: heat-check filtered. Removes defensive-cycle owners.
     killable_v2 = [c for c in killable if not c["heat"].get("defensive_cycle")]
 
+    # Round 1.5: competitor-predator activity feed. Where are OTHER hunters
+    # succeeding right now? Independent signal from where harvesters happen
+    # to be in our HOT_NODES.
+    hot_battlegrounds = get_hot_battlegrounds(window_hours=3, top_n=20)
+
     out = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "scan_duration_sec": round(time.time() - t0, 2),
         "hot_nodes": HOT_NODES,
+        "hot_nodes_source": "dynamic_discovery_v1",
+        "floor_nodes": FLOOR_NODES,
         "guild_blacklist_size": len(handles) + len(accs),
         "by_node": by_node,
+        "hot_battlegrounds": hot_battlegrounds,
         "killable_clean": killable[:50],  # top 50 across all nodes (legacy field)
         "killable_v2": killable_v2[:50],  # heat-check filtered (defensive owners removed)
         "owner_heat": heat,  # per-owner heat-check signals
@@ -479,7 +596,8 @@ def main():
     n_killable = len(killable)
     n_v2 = len(killable_v2)
     n_defensive_owners = sum(1 for h in heat.values() if h.get("defensive_cycle"))
-    print(f"world_targets.json refreshed: {n_killable} killable ({n_v2} after heat-check), {n_defensive_owners} defensive owners, across {len(HOT_NODES)} nodes in {out['scan_duration_sec']}s")
+    n_battlegrounds = len(hot_battlegrounds)
+    print(f"world_targets.json refreshed: {n_killable} killable ({n_v2} after heat-check), {n_defensive_owners} defensive owners, {n_battlegrounds} hot battlegrounds, across {len(HOT_NODES)} nodes in {out['scan_duration_sec']}s")
     return 0
 
 
