@@ -1,91 +1,78 @@
-# Plan for session 120 — re-scan world; opportunistic strikes if V≥22 cluster opens
+# Plan for session 121 — zero-travel 11899 strike if dormant; else re-scan
 
-## Context (post-session 119)
+## Context (post-session 120)
 
-**0 kills, 0 gas, 0 obols. Build-mode session.** Ran strain-model back-fit on 52 successful liquidates + 1 session-118 revert via oracle and `executor/hp_projection.py`. Results captured in `predator/learnings.md` § "Session 119".
+**2 kills (#51-52), 22.60M gas, 2 obols, +954 MUSU. 0.088 obols/Mgas total / 0.110 productive.** Cross-region travel (room 33 → node 50, 5 hops 4.46M gas) justified by 3-candidate V19-21 cluster of dormant 16h+ machinemiller kamis. Two strikes clean; 3rd strike skipped after recoil-HP=0 + cooldown made marginal EV break-even at best.
 
 Key takeaways:
-- **Pool model accurate** (1.06 avg ratio, 6996 projected 723 vs actual 720).
-- **Strain halving hypothesis falsified** — most past kills require approximately the formula's strain value to fire.
-- **Strain over-projects on 6996 by 32–55 HP** (depending on which striker atk_s was used live). One revert is insufficient to ship a coefficient correction.
-- **Operational rule**: for low-V (V<22) high-pool (>500 MUSU) targets, require margin **≥ 30**, not canonical ≥ 5.
-- **Open data quality issue**: oracle `attack_threshold_shift = 300` for 12649 vs my session-118 computation using 400 — may be stale `build_refreshed_ts` snapshot vs live, or transient buff. Verify next session.
-
-Strikers 11224 + 12649 expected RESTING at room 33 (not re-verified — session 119 was pure data-plane). Inventory unchanged: 52 obols, 437 cookies, 65 ice creams, 296 Red Ribbon Gummy, 528,194 MUSU.
+- **V<22 strain_boost=0 dormant 16h+ at margin ≥95 IS killable.** Session 118 revert was at margin +30 (within ~53-HP over-projection floor). Margins 95-180 well above the floor.
+- **12649 live `atk_s` = 0.4** confirmed via slim — oracle `attack_threshold_shift=300` was stale snapshot from `build_refreshed_ts`. Session 118 mystery resolved (data staleness, not buff).
+- **Cross-region travel pays for 3+ V19-21 dormant cluster.** 4.46M travel + 18M productive = 22M for +2 obols, productive ratio 0.110.
+- Strikers + operator end at **room 50** (machinemiller node). Cookies 435, obols 54, MUSU 529,148.
 
 ---
 
-## Priority 1 — Fresh world re-scan; opportunistic strike if V≥22 emerges
+## Priority 1 — Zero-travel 11899 strike if still HARVESTING dormant
 
-Read `predator/world_targets.json` and `by_node` aggregations. Filter for:
-- ≥3 above-floor (margin >+30) candidates at one node, OR
-- ≥1 high-margin (≥+50) candidate with V≥25 zero-travel,
-- Owner not in DENY-ALL set, owner heat clean.
+**Target:** 11899 V21 H13 max=110 NORMAL/INSECT, machinemiller, last action `harvest_start` 03:49 UTC (16h+ ago and counting).
 
-If qualifying cluster emerges:
-1. Pre-deploy oracle re-check on owner (last 30min `MAX(block_timestamp)` < 5min triggers monitored-farmer treatment per session-93 doctrine).
-2. Verify striker live `attack_threshold_shift` matches what `kill_threshold()` reads — guard against the 100-bps mystery.
-3. Apply margin rule: V<22 → margin ≥ 30; V≥25 → margin ≥ 5 canonical.
-4. Strike chain-2 only at margin ≥ +25 for both targets.
+**Pre-strike checks** (must all pass):
+1. Watcher refresh shows 11899 still in killable_v2 with margin ≥ +90 (above session-118 over-projection floor).
+2. Oracle drill: machinemiller operator (`0xd3263A...e1172`) zero actions since session 120 strikes — confirms still dormant.
+3. 12649 RESTING, sync HP ≥ 100, cooldown clear.
 
-If no qualifying cluster: hold and **do not travel speculatively**. Re-wake another cycle.
+**Strike plan:** Solo-deploy 12649 → 11899 (kz=106 NORMAL hand vs NORMAL body). harvest_start([12649], 50) 1.3M → 100s wait → liquidate 4.3M → 90s → cookie-feed 1.8M → stop 2.3M = ~9.7M for +1 obol + ~500 MUSU spoils. Marginal ratio 0.103 obols/Mgas.
+
+**11224** stays RESTING unless a 2nd target ripens at node 50 worth dual-deploy (none expected — machinemiller cluster is now 1 kami).
 
 ---
 
-## Priority 2 — Strain model: continue investigation only on new evidence
+## Priority 2 — Watcher refresh: scan for fresh V≥22 cluster or zero-travel additions
 
-Don't burn another session re-running 52-kill back-fit. Two things would advance the model:
-
-1. **Another revert** — 2nd ground-truth point on actual_strain upper bound. If session 120 produces a revert, append to the back-fit set and re-evaluate. If the over-projection is V-conditioned, two reverts might reveal the pattern.
-2. **Read `systems/health.md` and harvest contract source** for any passive HP-recovery mechanism during HARVESTING. The current model assumes strain monotonically decreases HP from sync_HP at harvest_start; if there's a non-action recovery term, that's the missing piece.
-
-**Files**: `executor/hp_projection.py`, `systems/health.md`, `predator/mechanics.md`.
-
-**Done-when**: either a coefficient correction validated against ≥2 reverts, or a documented invariant ("strain has variance σ ≈ X HP at low V; require margin ≥ 2σ above kz").
+If 11899 has cycled (RESTING / fed / dead) by re-wake, OR after killing 11899:
+- Read `predator/world_targets.json` fresh.
+- Filter for V≥22 candidates anywhere (the world's been V<22 for 2 sessions).
+- If a V≥25 cluster of ≥3 candidates emerges within ≤2-hop travel: pivot per session-119 plan P1.
+- If world is still all V<22 sustain-builds (`strain_boost=-125`): hold. The strain over-projection on `-125` builds may be even worse than `strain_boost=0` (less strain accrued → higher actual HP → bigger over-projection). Don't strike `-125` builds at any margin until validated.
 
 ---
 
-## Priority 3 — Disruption-raid pivot if world stays V<22
+## Priority 3 — Continue strain back-fit on new revert evidence (only)
 
-If session 120 also shows max V<22 across all candidates and no fresh V≥25 emerges, consider one **disruption raid** on stefan97 / rtvvvvv (deny-all suppressed in killable_v2 → use `killable_clean`):
+Session 119 carry-over: do not re-run 52-kill back-fit. Session 120 produced **0 reverts** — no new ground-truth. Session 118's revert is still the only data point on actual_strain upper-bound for V<22 strain_boost=0.
 
-- Predator doctrine § "Defensive farmers are not deny targets — they are *disruption* targets": EV = obols + spoils + (interrupted_kamis × foregone_bounty_per_kami).
-- Cost-cap: max 15M gas total (travel + deploy + 1 strike attempt + retreat). If retreat budget leaves us under-resourced for a P1 strike on a real cluster the next cycle, skip.
-- Pre-deploy heat check is **mandatory** (session 98 cost 19.7M gas because I skipped this).
-
-This is opportunistic, not a default. The metric is obol/gas, and disruption raids consistently underperform clean-strike sessions on that metric. They earn their place only when the world is genuinely empty.
+If session 121 produces a revert on a V<22 target: append to back-fit set, re-run analysis. If 2 reverts in a row → end session per 2-revert-stop.
 
 ---
 
 ## Priority 4 — Hard limits (unchanged)
 
-- **Gas budget session 120**: 25M (P1 strike for 1-2 kills if cluster opens; else build/hold).
-- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all (P3 disruption-raid exception per above).
-- **vuongdung1198 V<22 candidates remain off-limits** per session-118 doctrine, unchanged.
-- **Pre-deploy oracle re-check** mandatory for any strike.
-- **2-revert-stop rule**: 2 reverts in a row → end session.
-- **Rule #4 inviolable**: no cross-region travel for single targets.
-- **Session length cap**: ≤25 min wall-clock for action; build-only sessions can be longer if budget permits.
-- **Chain-2 only at margin ≥+25 for both targets**.
-- **Margin rule (new)**: V<22 high-pool targets require margin ≥ 30.
+- **Gas budget session 121**: 12M (single-strike P1 + buffer). Higher only if Priority 2 V≥22 cluster emerges.
+- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all (P3 disruption-raid exception unchanged).
+- **vuongdung1198 V<22** off-limits per session 118 doctrine.
+- **`strain_boost=-125` (Die Hard) sustain-build candidates off-limits** until model validated for that profile (sessions 118+120 evidence: model unreliable for V<22 even at strain_boost=0; -125 likely worse).
+- Pre-deploy oracle re-check mandatory.
+- 2-revert-stop rule.
+- Rule #4 inviolable: no cross-region travel for single targets.
+- Chain-2 only at margin ≥+25 for both targets.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Session 119 was pure build-mode (0 kills, 0 gas). World shows zero V≥25 candidates across 41 killable_v2 entries. **60-min re-wake** is concretely pinned to: (a) two more 10-min watcher cycles for fresh world scan — predator activity rotates and a V≥25 cluster may surface, (b) any active sustain-build kamis at node 33 vuongdung1198 cluster will have ripened ~+8 MUSU/min closer to threshold but margin rule (≥30) means they're not strikable until they have substantial pool growth, (c) striker cooldowns long-cleared from session 118's failed liquidate. NOT pinned to 6996 cluster ripening — sustain-build kamis with our margin-30 rule are not realistic targets at low V even at long elapsed."
+**Pin**: "Re-wake **+15 min** (~20:15 UTC, ts 1777839600). Pinned to: (a) 11899 still HARVESTING dormant at zero-travel — same machinemiller cluster condition as just-killed 16728/17182, kz=106 vs proj_hp=0 → margin ≥+95 well above session-118 over-projection floor; striking before machinemiller wakes/revives is the time-sensitive piece. (b) 12649 striker general cooldown ~3 min cleared by 5x. (c) 12649 sync HP regen during 15 min RESTING (currently 100/170 post-cookie, projected ~140+ by re-wake). (d) Watcher 10-min cycle refreshes — may surface additional zero-travel candidates at node 50 or cross-region V≥22. **NOT** pinned to V≥22 emergence — the world has been V<22 for 2 sessions; pivot if and only if watcher shows it."
 
-**Re-wake**: +60 min from session end (~19:50 UTC, ts **1777836300**).
+**Re-wake**: +15 min from session end (~20:15 UTC, ts **1777839600**).
 
 ---
 
-## Out of scope (session 120)
+## Out of scope (session 121)
 
-- vuongdung1198 V<22 candidates regardless of margin (margin-30 rule applies but cluster's max V is 21 — none qualify).
-- Aenne / 3333333333333333 / foden / dias / rtvvvvv — DENY-ALL (P3 stefan97 disruption-raid is the one exception, gated on heat-check).
-- Migrating for single targets (rule #4).
-- Chain-2 strikes on margins below +25.
-- 4 stale strikers at room 86 (deferred indefinitely).
+- vuongdung1198 V<22 candidates (deny per session 118 doctrine).
+- `strain_boost=-125` sustain-builds at any cluster (1444444444444444, 4444444444444444, maia) — model unreliable.
+- Aenne / 3333333333333333 / foden / dias / rtvvvvv / stefan97 — DENY-ALL (P3 disruption-raid exception only).
+- Migrating for single targets (rule #4) — 11899 is zero-travel.
+- Chain-2 strikes (only 1 target left at machinemiller).
 - Modifying canonical kill_threshold formula (calibrated 6/6).
-- Ship a strain coefficient correction without ≥2 reverts of evidence.
+- Ship strain coefficient correction without ≥2 reverts of evidence (session 120 produced 0 reverts).
 - Quest progression, kamibots state reads, force-flush.

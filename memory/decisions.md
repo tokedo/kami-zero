@@ -4480,3 +4480,56 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 **Result**: zero kills, zero gas spent, zero obols. Build-mode investigation produced an operational margin-rule and three carry-forward research items.
 **Gas notes**: 0M (no transactions).
 **Next session (120)**: Re-wake +60 min (~19:50 UTC). Pinned: world has shifted; 0 V≥25 candidates exist; need fresh world_targets.json from another watcher cycle (pre-deploy oracle re-check). Continue strain back-fit only if a new revert provides a 2nd ground-truth point. Otherwise: pivot economic to disruption raids on stefan97/rtvvvvv (deny-all suppressed in killable_v2; use killable_clean) or hold for V≥25 candidate emergence.
+
+
+## 2026-05-03 19:50-20:00 UTC — session 120 (2 KILLS at machinemiller node 50; cross-region travel justified)
+
+**ETH balance**: not measured (skipped).
+
+**Perceived (watcher 8s fresh, gen 19:50:12Z)**:
+- killable_v2 50 / killable_clean 50. World shifted: top 20 by margin all V≤21, none V≥22. ALL `1444444444444444`/`4444444444444444`/`maia` candidates have `strain_boost=-125` (Die Hard maxed = sustain build).
+- **machinemiller cluster (node 50)**: 3 candidates, ALL `strain_boost=0`, dormant 16h+:
+  - 16728 V21 H10 max=180 INSECT/EERIE — margin 162 (kz=162, proj_hp=0)
+  - 17182 V19 H16 max=130 NORMAL/INSECT — margin 107
+  - 11899 V21 H13 max=110 NORMAL/INSECT — margin 95
+- machinemiller operator (`0xd3263A...e1172`): zero actions since `harvest_start` at 03:49 UTC (16h ago). Account fully dormant. No defensive automation.
+- `hot_battlegrounds`: node 33 vuongdung1198 5-kills/3h (other predators productive there) — but our V<22 doctrine bans low-V vuongdung1198 candidates.
+- Strikers 11224 (V36 H11 atk_s=0.28 atk_r=0.5 EERIE-hand) + 12649 (V34 H12 atk_s=0.4 atk_r=0.5 NORMAL-hand) RESTING at room 33, sync 107 each. Cooldowns long-cleared.
+- **12649 atk_s live=0.4 confirmed** (oracle's `attack_threshold_shift=300` was stale snapshot — session 118 100-bps mystery resolved as oracle data staleness).
+
+**Decided**: Travel 33→50 (5 hops, 25 SP, ~5M gas) justified by 3-candidate V19-21 cluster all dormant 16h+. Plan.md P1 criteria met: ≥3 above-floor margin >+30 (all margins +95 to +162). Strike pairing computed via `executor/hp_projection.kill_threshold`:
+- 12649 → 16728 kz=180 (= max_hp, virtually guaranteed)
+- 11224 → 17182 kz=106 (NORMAL/NORMAL match)
+- (potential 3rd) 12649 → 11899 kz=106
+
+**Acted**:
+- travel_to_room(50) → 4.458M gas (5 hops 33→9→48→35→10→50, 25 SP).
+- harvest_start([11224, 12649], 50) → 2.018M.
+- 105s post-deploy cooldown wait.
+- liquidate(16728, 12649, machinemiller) → **kill #51** +1 obol (V21 INSECT/EERIE, kz=180 max-hp guaranteed), 4.314M.
+- liquidate(17182, 11224, machinemiller) → **kill #52** +1 obol (V19 NORMAL/INSECT via NORMAL hand, kz=106), 4.307M.
+- 60s cooldown wait (feed reverted at 50s — both still on cooldown post-strike).
+- feed_kami(12649, 11304) 1.797M (HP 0 → 100); feed_kami(11224, 11304) 1.812M.
+- stop_harvest_batch([11224, 12649]) 3.615M → both INACTIVE clean.
+- harvest_start([12649], 50) for 3rd strike → **REVERTED 0.279M** (post-stop cooldown still active). Aborted 3rd strike attempt; marginal EV was already negative (~9M cost for +1 obol after recoil).
+
+**Result**: **2 KILLS, 1 minor revert**. Lifetime kills 50 → **52**. Obols 52 → **54**. Cookies 437 → **435**. MUSU 528,194 → 529,148 (+954 gross). **Total gas 22.60M. 2 obols / 22.60M = 0.088 obols/Mgas; productive sub-session (excl 4.46M travel) = 2/18.14M = 0.110/Mgas (matches sessions 117/116/114 productive baseline).**
+
+**Doctrine validated**:
+- **V<22 strain_boost=0 dormant 16h+ at margin ≥95 IS killable.** Session 118 revert was at margin +30 (within over-projection envelope). Margins 95-180 sit well above the ~53-HP over-projection floor observed in session 118.
+- **Cross-region travel for 3-candidate cluster pays.** 4.46M travel + 18M productive = 22M total for 2 kills. Vs holding empty session-119 (0 kills 0 gas) — net +0.088 obols/Mgas this session vs 0 last session.
+- **Oracle `attack_threshold_shift` can be stale.** 12649 live atk_s=0.4 vs oracle 300 (×1000). Use slim `bonuses.attack.threshold.shift` for any margin-critical projection — not kami_static.
+- **Marginal 3rd-strike EV: NEGATIVE after striker recoil.** 12649 sync HP=0 post-strike → cookie feed (1.8M) + re-deploy (1.3M) + cooldown wait (~3min wall) + strike (4.3M) + close-feed (1.8M) = ~9M for +1 obol = 0.11/Mgas — same as productive baseline so technically break-even, but post-stop cooldown blocks re-deploy without 2-3 min wait, eats wall-clock budget. Cleaner to bank +2 and re-strike 11899 next session at zero-travel.
+
+**Gas notes**: 22.60M total. ~0.28M wasted on re-deploy revert (post-stop cooldown). Cookie consumption 2 (435 left).
+
+**Inventory**: **54 obols**, 435 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,148 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 50**.
+- Stamina 75/100 (post-travel; will regen to ~90+ in 30 min).
+- Lifetime kills: **52**.
+
+**Anomalies**: Re-deploy revert (post-stop cooldown). Minor — 0.28M tax on the optional 3rd strike attempt.
+
+**Next session (121)** — Re-wake **+15 min** (~20:15 UTC, ts ~1777838700+900=1777839600). Pinned to: "(a) 11899 V21 H13 max=110 still HARVESTING dormant at machinemiller node 50 ZERO-TRAVEL — same condition as just-killed 16728/17182, kz=106 with 12649 means proj_hp=0 → margin +95 well above session-118 over-projection floor. (b) 12649 striker cooldown (~3 min, long-cleared by re-wake). (c) 12649 sync HP regen during 15 min RESTING (currently 100/170 post cookie-feed, will be ~140+/170 by re-wake). (d) 11224 also RESTING at room 50 — available if a 2nd target ripens elsewhere. (e) Watcher 10-min cycle will refresh world view. **If 11899 still HARVESTING and watcher confirms margin ≥+90: solo-strike 12649 → 11899 zero-travel.** If machinemiller has revived/cycled: hold and re-evaluate."
