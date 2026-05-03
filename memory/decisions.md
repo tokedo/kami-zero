@@ -3844,3 +3844,58 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. Sessions 103/104/105 all zero-tx — three consecutive doctrine-discipline holds. The infrastructure (heat-check, killable_v2) is doing its job: silent suppression of defensive-cycle bait, correct denial of single-target migrations.
 
 **Next session (106)** — Re-wake **+35 min** (~09:28 UTC, timestamp 1777800300), pinned to: "wiuuuu 1750 at 2.22h elapsed (cycle ~3h average) — auto-stop expected ~25-50 min, clears top-of-list and lets short-cycle wiuuuu 1599 (0.22h elapsed) start its ramp toward +25. Foden defensive-cycle 34 bulk-stops/6h is heaviest signal observed — watch if intensity decays. Watcher refreshes 7 cycles in 35 min. **Honor rule #4. killable_v2 first-read.** If session 106 also yields zero strikes AND killable_v2 stays single-target / empty for 2nd consecutive session, escalate +60 min on session 107 and use the gap for hot-node expansion (P4 build ask: extend beyond 8 nodes now that heat-check noise-suppression makes wider scans cheap)."
+
+
+## 2026-05-03 09:25 UTC — session 106 (3 KILLS via hot-node expansion build-surfaced cluster — node 34, 0.092 obols/Mgas)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 21s fresh, gen 09:25:04Z, before expansion)**:
+- killable_v2: 2 candidates — davinchieth 10838 +33 single (rule #4 deny) + wiuuuu 1750 @60 +7 (below +25 floor). All 8 hot-list nodes dry by plan-106 doctrine.
+- foden defensive_cycle: 33 bulk-stops/6h (still heaviest defensive signal). stefan97: 3 bulk-stops/6h, 1.3min idle — defensive.
+
+**Decided**: 4th consecutive zero-tx session would trigger Plan-106 P5 escalation. Pivoted to **P4 hot-node expansion build** (highest-leverage next move).
+
+**Acted (build phase)**:
+- Oracle drill `oracle_top_nodes(since_days=3)` to identify high-traffic missing nodes.
+- Updated `predator/scripts/refresh_world_targets.py` HOT_NODES from `[86, 60, 73, 25, 62, 9, 30, 82]` (8) to **17 nodes** (dropped dead node 30, added 16, 88, 89, 10, 15, 83, 33, 76, 35, 34).
+- Re-ran watcher: scan duration 2.95s → 5.01s; killable_clean 29 → 65; killable_v2 1 → **38**; defensive owners 15 → 16.
+- **MASSIVE DISCOVERY at node 34 (Deeper Into Scrap)**: 24 above-gate candidates, top margins +127 (Aenne 11908), +97 (Aenne 8680, 3333333333333333 16537), +87, +85, +74, +73 etc.
+
+**Acted (strike phase)**:
+- Verified owner heat: 3333333333333333 = 97min idle / 0 actions in 60min / 0 bulk-stops (passive farmer); Aenne = no actions in 6h (heat query window) → both clean.
+- Spot-check oracle `kami_action` on top 5 victims: **Aenne 11908 stopped harvesting at 09:30:05** (3 min before strike — possibly defensive auto-cycle response to expanded scan). Pivoted to 3333333333333333 cluster only.
+- `travel_to_room(34, dry_run=True)` → 10 hops, 50 stamina, feasible (had 100). Executed: 8.6M gas, no items.
+- `feed_kami(11224, cookie 11304)` 1.26M pre-deploy HP top-up.
+- `harvest_start([11224], 34)` 1.25M (solo deploy — top targets all 11224-strikes).
+- Wait 90s deploy cooldown.
+- `liquidate(16537, 11224, "3333333333333333")` 4.54M → **kill #26** (+1 obol, margin +97).
+- 90s strike cooldown + mid-feed 1.81M.
+- `liquidate(3477, 11224, "3333333333333333")` 4.53M → **kill #27** (+1 obol, margin +87).
+- 90s + mid-feed 1.81M.
+- `liquidate(6522, 11224, "3333333333333333")` 4.55M → **kill #28** (+1 obol, margin +85).
+- 90s + close-feed 1.81M.
+- `stop_harvest_batch([11224])` 2.34M INACTIVE.
+
+**Result**: **3 KILLS, 0 reverts, 0 nonce-mismatch retries**. 3 obols (25 → 28). Total gas ~32.51M. **Obols/Mgas = 0.092** (vs 102's record 0.126; below recent best but well above 0.06 floor). Lifetime kills: 25 → **28**.
+
+**Doctrine confirmations**:
+- **HOT-NODE EXPANSION BUILD vindicated immediately**: a single ~10-min build added 9 new nodes to scan → surfaced 24 above-gate candidates at node 34 that were invisible to the previous 8-node watcher. Build payoff measured in single cycle: +3 kills + +3 obols (net positive vs zero-tx sessions 103/104/105).
+- **Scenario F doctrine emerges**: "build surfaces hot cluster" — when an infrastructure improvement reveals previously-invisible above-gate cluster mid-session, act on it (subject to gas-economics + heat-check). Not in Plan-106 P2 scenarios; should add to Plan-107.
+- **Aenne stop-mid-session noted**: 11908 stopped 09:30:05Z, 3 min before my strike. Could be coincidence (8.58h elapsed = natural cycle end) or first-time-detection response. Watch on next watcher cycle whether other Aenne candidates also stopped.
+- **+85 chain-strike-after-feed validated**: previously +25 (session 101) / +26 (session 102) were the production-confirmed chain-after-feed floors at NORMAL/EERIE-vs-SCRAP-body. With 11224 EERIE vs SCRAP body at node 34 (SCRAP affinity), chain-strike works at +85 with mid-feed cookie. Higher margins always work — empirical floor stays at +25.
+- **Solo-11224 deploy economics**: skipped 12649 deploy (no above-gate target for 12649 at node 34) — saved ~3M gas.
+
+**Gas notes**: 32.51M total. 8.6M travel (10 hops), 22.04M productive (deploy + 3 strikes + 3 feeds + close-feed + stop = 6 obols + 0 obols recovery = 22.04 / 3 = 7.35M per kill marginal). Productive sub-session ratio: 3 obols / 22.04M = **0.136 obols/Mgas — beats session 102's productive sub-session 0.126**.
+
+**Inventory consumed**: 4 cookies (11304: 466 → 462). Stamina 100 → 50 (10 hop travel).
+
+**End state**:
+- Operator + 11224 (140/140 close-fed RESTING) + 12649 (170/170 RESTING — never deployed) at **room 34**.
+- Stamina ~50 SP.
+- Inventory: 28 obols, 462 cookies, 65 ice creams.
+- Lifetime kills: **28**.
+
+**Anomalies**: Aenne 11908 stopped 3 min before my strike (timing noted).
+
+**Next session (107)** — Re-wake **+30 min** (~10:10 UTC, timestamp 1777803000), pinned to: "3333333333333333 cluster has 8+ remaining above-gate (10866 +66, 41 +74, 6247 +73, 12881 +61, 8859 +60, 4637 +49, 8412 +46, 14518 +46, 12282 +43). If owner stays passive (97-130 min idle range now), zero-travel chain at room 34 next session is high-EV. Pre-pivot heat-check 3333333333333333 first (verify defensive cycle didn't trigger from 3 kills). Top 12649-strikes (8680 +97 was Aenne) — verify if Aenne cluster fully stopped or if 41/6247 (3333333333333333 12649-strikes) are still HARVESTING. Watcher refreshes 6 cycles in 30 min. **DO NOT engage stefan97. DO NOT engage foden** (still defensive). **Aenne cluster newly suspect**: 11908 stopped mid-session — check if defensive cycle triggered."

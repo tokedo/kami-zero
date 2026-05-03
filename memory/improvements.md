@@ -332,3 +332,10 @@ Migration sequence (next session, separate PR scope):
   ```
 - **Next session reads**: prefer `killable_v2` over `killable_clean` for first-pass strike candidate selection. Cross-reference `owner_heat` for nuance when needed.
 - **Commit**: 86b0fa4
+
+## 2026-05-03 — refresh_world_targets.py: HOT_NODES expansion 8 → 17
+- **What**: Expanded the watcher's hot-list scan from 8 nodes to 17 covering more SCRAP/EERIE/INSECT/NORMAL biomes. Dropped dead node 30 (1 row/24h). Added 16, 88, 89, 10, 15, 83, 33, 76, 35, 34.
+- **Why**: Plan-106 P4 build-ask. Heat-check noise-suppression (added session 104) makes wider scans cheap. Hypothesis confirmed: a single expansion immediately surfaced 24 above-gate candidates at node 34 (Deeper Into Scrap) that were previously invisible. Session 106 converted +3 kills (margins +97/+87/+85) directly from the build.
+- **Files**: `predator/scripts/refresh_world_targets.py` (HOT_NODES list)
+- **How to use**: Watcher cron now scans 17 nodes per cycle. Scan duration grew 2.95s → 5.01s — well within the 5-min cron budget. `killable_v2` candidate count expanded 1 → 38 in production-validation run.
+- **Commit**: (this session)
