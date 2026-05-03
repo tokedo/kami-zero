@@ -315,3 +315,20 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py`
 - **How to use**: Watcher runs every 5 min via cron. No callsite change. Re-validation: post-fix node 73 killable went 6→2 (correctly excluded 4 dead Yeahta kamis from sessions 91+92).
 - **Commit**: (this session)
+
+## 2026-05-03 — Watcher heat-check (per-owner defensive-cycle detection)
+- **What**: Added `owner_heat_check()` to `predator/scripts/refresh_world_targets.py`. For every owner appearing in the candidate pool, queries oracle for 6h action stream and computes minutes_idle, distinct_kamis_5min, distinct_kamis_60min, bulk_stop_windows_6h. Marks `defensive_cycle: bool` per Plan-104 P0 v2 criteria. Adds `killable_v2` field (heat-check filtered) and per-owner `owner_heat` map.
+- **Why**: Sessions 102-104 each ran the same stefan97 6h bulk-stop drill. System Thinking trigger (3+ same-derivation = build). Previously, 17/31 of `killable_clean` was stefan97 noise; the heat-check pre-filters this. Real test: 31 killable → 2 after filter; 15 defensive owners auto-suppressed.
+- **Files**: `predator/scripts/refresh_world_targets.py`.
+- **How to use**:
+  ```python
+  import json
+  with open("predator/world_targets.json") as f: snap = json.load(f)
+  # Use heat-check filtered list (defensive owners removed):
+  for c in snap["killable_v2"][:10]:
+      print(c["v_idx"], c["v_acct"], c["margin"], c["heat"])
+  # Inspect owner heat directly:
+  print(snap["owner_heat"]["stefan97"])  # {minutes_idle, bulk_stop_windows_6h, defensive_cycle, ...}
+  ```
+- **Next session reads**: prefer `killable_v2` over `killable_clean` for first-pass strike candidate selection. Cross-reference `owner_heat` for nuance when needed.
+- **Commit**: 86b0fa4

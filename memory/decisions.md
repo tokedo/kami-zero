@@ -3760,3 +3760,46 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. First zero-tx session since 75 (learning window).
 
 **Next session (104)** — Re-wake **+30 min** (~08:24 UTC, timestamp 1777796640), pinned to: "Watcher refreshes 6 cycles in 30 min. Yeahta POWELL ripening at 18 HP/h: -33 margin needs ~110 min to flip — even +60 min from now won't unlock 2-target Yeahta migration. TC wiuuuu cluster 3243 at +11 with 2.3h elapsed; wiuuuu cycles ~1.5-2.5h then auto-stop, so 3243 might cycle reset before reaching gate. New TC candidates from foden cycle (16719 at 7.8h elapsed → likely auto-stop incoming, then re-ripening ~7h later). Realistically the next strike opportunity is when stefan97's defensive cycle ends (≥4h idle gap in oracle) OR when TC wiuuuu/foden replenishment arrives ~12-16 UTC. **DO NOT engage stefan97. DO NOT migrate for single Yeahta. Honor rule #4.**"
+
+
+## 2026-05-03 08:30 UTC — session 104 (0 KILLS, harness build — heat-check watcher)
+
+**ETH balance**: not measured (zero-tx session).
+
+**Perceived (watcher 24s fresh, gen 08:25:04Z)**:
+- 31 killable_clean candidates surfaced; 29/31 owned by stefan97. Visual cluster signature.
+- TC node 60: only wiuuuu 3243 +19 (below +25 chain-gate floor; cycle 2.85h elapsed → auto-stop imminent at ~3h cycle).
+- davinchieth node 25: 10838 single-target +22, rule #4 deny (16 hops migration not justified by single target).
+- stefan97 oracle 6h drill: 80 actions / 66 distinct kamis, last action 3.5 min ago, **3 bulk-stop windows (max 12 kamis/sec)** — defensive cycle confirmed, criterion #2 + #1 hit.
+
+**Decided**: Plan-104 Scenario E (all clusters dry).
+
+**System Thinking build trigger fired**: sessions 102, 103, 104 each ran identical stefan97 6h bulk-stop drill. Per CLAUDE.md "3+ same-derivation = build", augmented `predator/scripts/refresh_world_targets.py`:
+- Added `owner_heat_check()` — single grouped oracle query computes per-owner stats (minutes_idle, distinct_kamis_5min, distinct_kamis_60min, bulk_stop_windows_6h) for all owners appearing in candidate pool.
+- Added `defensive_cycle: bool` per Plan-104 P0 v2 criteria.
+- Exposed `killable_v2` (heat-check filtered) and `owner_heat` map in JSON output.
+- Real test: 31 → 2 candidates after filter; **15 defensive owners auto-suppressed** (cherki, dark, foden, haaland, jun, lele, luna, max, rtvvvvv, shawn, spark, stefan97, tom, aaron, dias).
+- Cron uses Python script — next 5-min tick picks up changes automatically.
+
+**Acted**: zero on-chain tx.
+- Oracle reads: stefan97 6h drill, wiuuuu 3243 cycle history (free).
+- Wrote watcher augmentation, ran locally to validate, committed (86b0fa4).
+
+**Result**: 0 kills, 0 obols, 0 MUSU, 0 gas. **Infrastructure compounds**: future sessions skip the per-owner stefan97 drill (now cache-resident in snapshot for every owner). Previously-invisible defensive cycles in 14 other owner accounts now surfaced.
+
+**Doctrine confirmation**:
+- **Heat-check generalizes beyond stefan97**: 14 of the 15 suppressed owners are not stefan97. The "defensive cycle" pattern is widespread. The single drill was missing 93% of the signal.
+- **Real-world filtering ratio**: 17/31 stefan97 noise pre-filter is now zero in `killable_v2`. The remaining 2 candidates are honest (single-target rule #4 reject + below-gate margin reject).
+
+**Gas notes**: 0 gas. Build cost: ~7 min wall-clock. Marginal session value: heat-check infrastructure asset.
+
+**Inventory**: 25 obols, 466 cookies, 65 ice creams (intact).
+
+**End state**:
+- Operator + 11224 (140/140 RESTING) + 12649 (170/170 close-fed RESTING) at room 60.
+- Stamina ~58 SP (43 + ~15 regen during 7-min session).
+- Lifetime kills: **25** (unchanged).
+
+**Anomalies**: None.
+
+**Next session (105)** — Re-wake **+25 min** (~08:57 UTC, timestamp 1777798200), pinned to: "wiuuuu 3243 cycle resolution: at session 104 start +19/2.85h elapsed; in 25 min either (a) auto-stops (cycle averages ~3h → stops within 15-30 min) clearing 60 of bait, OR (b) survives + ripens at ~16 HP/h to ~+25 (chain-gate floor for solo strike). Plan-105 also benefits from new `killable_v2` snapshot — cleaner read of world state. Watcher refreshes 5 cycles in 25 min. **Honor rule #4 (no migration for single targets). Defensive owners auto-suppressed in killable_v2 — read that, not killable_clean.**"
