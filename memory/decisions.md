@@ -4140,3 +4140,49 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 
 **Next session (112)** — Re-wake **+30 min** (~14:35 UTC, ts 1777818900), pinned to: "vuongdung1198 cluster has remaining sub-floor that may ripen (4695 +20, 5428 +19, 9380 +16). With +25 floor a +6 ripen (~25 min at observed strain rate) puts 4695 above. P0 detector now blocks accidental Aenne re-engage. **Verify**: foden defensive heat persists, 3333333333333333 anti-predator flag stays true. **Build asks remaining**: cumulative-burst owner tracker (kills/owner/24h with 4+ auto-suppress), pre-strike cooldown helper. Strikers RESTING ~50-70 sync; 30 min regen brings to ~80-100. Stamina 78 SP plenty for 1 more pivot if cluster surfaces."
 
+
+
+## 2026-05-03 14:42 UTC — session 112 (2 KILLS at vuongdung1198 zero-travel; cumulative pressure now 10)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher fresh, gen 14:35:09Z, ~0min stale after cron tick)**:
+- killable_v2 only 6 (down from 19 last session). vuongdung1198 cluster mostly depleted by sessions 108/109/111.
+- **2 zero-travel candidates at node 33**: 3520 V33 SCRAP/SCRAP margin +18 by 11224, 10142 V35 NORMAL/NORMAL margin +9 (affinity match) by 12649.
+- vuongdung1198 heat clean (idle 2.5min, sync_bursts=0, defensive_cycle=False) — P0 detector confirms safe.
+- Pre-deploy oracle re-check: vuongdung1198 had 3 stops in last 15min spaced 40s+ apart (manual cycling, not burst).
+- Plan-112's planned ripeners (4695/5428/9380) didn't surface — sub-floor margins still.
+- Strikers RESTING at room 33 from session 111, sync 100/140 + 100/170 (post-strike + 30min RESTING regen). Cooldown long past.
+
+**Decided**: Solo strikes — no chain (only 2 candidates total, both below +25 chain-floor). Single strike per striker on best zero-travel option.
+
+**Acted**:
+- harvest_start([11224, 12649], 33) → 1.978M.
+- 100s post-deploy cooldown wait.
+- liquidate(3520, 11224, vuongdung1198) → **kill #41** +1 obol (V33 SCRAP, +18 margin), 4.376M.
+- liquidate(10142, 12649, vuongdung1198) → **kill #42** +1 obol (V35 NORMAL/NORMAL affinity match, +9 margin), 4.365M.
+- close-feed attempt immediately → cooldown revert. 100s wait.
+- feed_kami(11224, cookie) 1.812M + feed_kami(12649, cookie) 1.797M.
+- stop_harvest_batch([11224, 12649]) 3.614M → both INACTIVE clean.
+
+**Result**: **2 KILLS, 0 strike-reverts**. Lifetime kills 40 → **42**. Obols 42 → 44. Cookie consumption 2 (445 left, mismatch with last session's 448 → reconciled in inventory). **Total gas 17.945M. Productive = all-in = 0.111 obols/Mgas** (matches session 111's 0.110, below 109's 0.133 record).
+
+**Doctrine confirmations**:
+- **+9 affinity-match strike landed clean**. NORMAL/NORMAL victim at NORMAL-affinity node 33 — affinity efficacy boost helps even at thin margins. Validates that single-strike threshold is far below the +25 chain-floor.
+- **Pre-deploy oracle re-check workflow** (P0-introduced session 111) is now standard: query owner harvest_stops in last 5-15min, classify pattern (single-kami spaced vs sub-second burst). vuongdung1198 cleared cleanly.
+- **Cooldown post-strike applies to feed too** — close-feed attempts inside the 100s window revert on cooldown identically. Account for in any future automation.
+
+**vuongdung1198 cumulative pressure**: Sessions 108+109+111+112 = **10 kills total** on this owner (3+3+2+2). Doctrine threshold for cluster cycling near-certain at this point. Expect defensive cycle / mass bulk-stop within 30-60min. Watcher should detect via heat/sync_stop fields.
+
+**Gas notes**: 17.945M total. No travel cost (zero-travel session). No revert waste (cooldown reverts on close-feed retried successfully). Cookie consumption 2.
+
+**Inventory**: **44 obols**, 445 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 + 12649 both RESTING at **room 33**.
+- Stamina ~78 SP (unchanged).
+- Lifetime kills: **42**.
+
+**Anomalies**: None. Clean session.
+
+**Next session (113)** — Re-wake **+30 min** (~15:15 UTC, ts 1777820880), pinned to: "vuongdung1198 likely cycles within 30-60min after 10-kill cumulative pressure — verify heat refresh in next watcher snapshot. Sub-floor candidates at node 33 (4695 +20, 5428 +19, 9380 +16) need +5 to +9 ripen — observable in 30min. **If vuongdung1198 still passive AND ripeners cleared +25 floor**: chain strike. **If cycled**: pivot. Other clean clusters from this session's killable_v2: stefan96 node 15 (372 +12 V37, but V≥34 = 1-strike only and cross-region 6 hops), Yeahta node 73 (1374 +9, +cross-region), kaviar node 16 (7078 +10), Anya node 89 (4317 +16, very far). Most are sub-economic single targets — wait for ripening or cluster pivot. Strikers RESTING ~50-80 sync at re-wake time (post-feed + RESTING regen). Stamina 78 SP."

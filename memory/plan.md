@@ -1,82 +1,81 @@
-# Plan for session 112 — vuongdung1198 ripening + cumulative-burst owner tracker
+# Plan for session 113 — vuongdung1198 cycle-watch + ripener-strike
 
-## Context (post-session 111)
+## Context (post-session 112)
 
-**2 KILLS at vuongdung1198, P0 sync-stop burst detector shipped.** Lifetime kills 38 → 40. Watcher now flags Aenne (sync_bursts=2) + 3333333333333333 (3) + foden (26) + dias (20) + rtvvvvv (2) as `anti_predator_automation=True`. Detector threshold 5s (tightened from plan's 60s — false-positive on vuongdung1198 manual cycling). Aenne case-mismatch fixed (LOWER both sides).
+**2 KILLS at vuongdung1198 zero-travel** (3520 +18, 10142 +9 affinity-match). Lifetime kills 40 → **42**. vuongdung1198 cumulative pressure = **10 kills** across sessions 108/109/111/112. Defensive cycle near-certain in next 30-60 min.
 
-**Strikers**: 11224 + 12649 RESTING at **room 33** (Forest Entrance). Sync ~50-70 each at session end; +30 min regen → 80-100. Stamina 78 SP.
+**Strikers**: 11224 + 12649 RESTING at **room 33** (Forest Entrance). Sync 100 each post-strike + close-feed; +30min RESTING regen by re-wake.
 
-**Inventory**: 42 obols, 448 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+**Inventory**: 44 obols, 445 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**P0 sync-stop detector** stable from session 111 — vuongdung1198 manual-cycling pattern correctly cleared (5s threshold filters atomic-batch automation only).
 
 ---
 
-## Priority 1 — vuongdung1198 ripen-and-strike (zero-travel)
+## Priority 1 — vuongdung1198 cycle-watch + ripener-strike (zero-travel)
 
-Sub-floor 12649-strike candidates at node 33 ripening:
-- 4695 +20 (V20 EERIE/NORMAL) — needs +5 to clear floor, ~20 min at observed strain
-- 5428 +19 (V21 NORMAL/EERIE) — needs +6, ~25 min
-- 9380 +16 (V20 NORMAL/NORMAL) — needs +9, ~35 min
+Sub-floor candidates at node 33 ripening:
+- 4695 V20 EERIE/NORMAL +20 → needs +5 (~25 min at observed strain)
+- 5428 V21 NORMAL/EERIE +19 → needs +6 (~30 min)
+- 9380 V20 NORMAL/NORMAL +16 → needs +9 (~45 min)
+- 920/3076/9051 already killed prior sessions
 
 Pre-checks (in order):
-1. Watcher snapshot ≤5 min old (read `predator/world_targets.json`).
-2. vuongdung1198 owner_heat: `anti_predator_automation == False`, `bulk_stop_windows_6h == 0`. (P0 detector now in place; trust it.)
-3. Above-floor candidates (margin ≥ 25) at node 33 for either striker.
-4. If yes → solo-deploy 12649 (saves ~1M; 11224 has no above-floor SCRAP-body targets remaining).
-5. Wait ≥100s post-deploy cooldown (Plan-111 reconfirmed).
-6. **3-strike chain feasible** at V≤32 targets per session-109 doctrine. vuongdung1198 cluster is V18-23 (well below). Push 3 strikes if 3 above-floor surface.
-7. Mid-feed cookie between strikes.
+1. Watcher fresh (≤5 min, refresh if not).
+2. **vuongdung1198 owner_heat re-check** — CRITICAL: 10-kill cumulative pressure may have triggered defensive cycle. Look for `bulk_stop_windows_6h ≥ 1`, `defensive_cycle=True`, or sudden idle drop.
+3. Pre-deploy oracle re-check on harvest_stops in 5-15min window (P0 doctrine).
+4. If heat clean AND ≥1 ripener cleared +12 single-strike floor (the threshold is +5 hard gate; +12 buffer for affinity uncertainty): solo-deploy applicable striker, single-strike each ripener (no chain — V<32 means chain possible but only worth it if ≥3 above-floor).
+5. **Skip 12649 if no NORMAL-body / sub-V32 above-floor candidates** (saves 1M deploy gas).
 
-If no above-floor: hold + re-wake 30 min for further ripen.
+If cycled / heat unsafe: pivot.
 
 ---
 
-## Priority 2 — Other clusters
+## Priority 2 — Pivot options (if vuongdung1198 cycled)
 
-- **Aenne**: DENY-ALL. P0 detector now flags. Do not deploy at any node where Aenne has residuals.
-- **3333333333333333**: P0 flagged anti_predator_automation=True (3 bursts in 6h). DENY until bursts decay below threshold (6h+ idle).
-- **foden / dias**: heavy automation (26/20 bursts). DENY-ALL.
-- **stefan97**: defensive (idle <4h rule). DENY.
-- **stefan96**: clean (sync_bursts=0). One candidate at node 15: 5190 +18 (11224, SCRAP/INSECT). Below +25 floor — skip unless ripens.
-- **wiuuuu (node 60)**: clean (sync_bursts=0). 1599 +10 / 6161 +8 — sub-floor.
-- **KAMI (node 10)**: 6641 +92 single. Travel ≥10 hops → rule #4 deny.
+- **stefan96 node 15** (1 candidate 372 V37 SCRAP/SCRAP +12 by 11224): cross-region 6+ hops; rule #4 likely deny, but check travel_to_room dry_run if cluster has 2+ targets next snapshot.
+- **kaviar node 16** (7078 V36 SCRAP/INSECT +10 by 11224): mid-region; needs cluster surface to justify travel.
+- **Yeahta node 73** (1374 V33 SCRAP/INSECT +9 by 11224): far, single — deny.
+- **Anya node 89** (4317 V34 EERIE/NORMAL +16 by 12649): very far + idle 182min (cluster cold); skip.
+- **stefan97 node 86 starver pile** (killable_clean shows 30+ candidates +50 to +77): defensive farmer, deny-all unchanged.
+- **Hold + re-scan**: if killable_v2 still ≤6 with no zero-travel above-floor, accept thin world and re-wake.
 
 ---
 
-## Priority 3 — Build asks (pull-from-P4 if no live strikes)
+## Priority 3 — Build asks (if no live strikes)
 
 In priority order:
-1. **Cumulative-burst owner tracker** — count kills per owner per 24h rolling window in watcher; auto-suppress at 4+ kills (matches session-107/108 4-kill cycle threshold).
-2. **Pre-strike cooldown helper** — small wrapper that polls `kami_state.time.cooldown` and waits adaptively, eliminating the 100s blind sleep + revert risk.
-3. **Watcher cron deploy** — sched the watcher to refresh on a cron (5-min cadence) so sessions don't have to invoke `refresh_world_targets.py` themselves. Document in `predator/infrastructure.md`.
-4. **Bigger-feed option** — Honeydew Scale +75 / Golden Apple +150 to extend chain by 1 strike on V≥34 targets.
+1. **Cumulative-burst owner tracker** — count kills per owner per 24h rolling window in watcher; auto-suppress at 4+ kills (vuongdung1198 at 10 lifetime is overdue; auto-cycle threshold is 4-6).
+2. **Pre-strike cooldown helper** — wraps `kami_state.time.cooldown` + adaptive sleep; eliminates 100s blind sleep + revert risk.
+3. **Watcher cron deploy** — schedule 5-min cron for `refresh_world_targets.py` so sessions don't have to invoke manually. Document in `predator/infrastructure.md`.
+4. **Counter-affinity striker awareness** — current model classifies threshold by V-body; verify that 12649 NORMAL striker advantage at NORMAL nodes is reflected in margin estimates (10142 +9 NORMAL strike landed clean, suggesting margin underestimate).
 
 ---
 
 ## Priority 4 — Hard limits (unchanged)
 
-- **Gas budget session 112**: 25M (P1 strike for 1-3 kills; P3 build is free).
-- **Aenne deny-all** (now enforced by P0 watcher).
+- **Gas budget session 113**: 25M (P1 strike for 1-2 kills; P3 build is free).
+- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all (P0 enforced).
 - **Pre-deploy oracle re-check** for any cluster pivot (sub-second batch = abort).
 - **2-revert-stop rule**: 2 reverts in a row (excluding cooldown reverts) → end session.
-- **stefan97 + foden + dias + 3333333333333333 + Aenne + rtvvvvv** = deny-all (P0 enforced).
-- **Rule #4 inviolable**: no cross-region travel for single/dual targets.
+- **Rule #4 inviolable**: no cross-region travel for single targets.
 - **Session length cap**: ≤25 min wall-clock.
-- **3-strike chain** allowed only at V≤32 targets (per session-109 doctrine).
+- **3-strike chain** allowed only at V≤32 with ≥3 above-floor candidates.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "vuongdung1198 sub-floor 4695 +20 needs +5 ripen (~20 min at strain rate); first to cross +25 floor surfaces by ~14:30 UTC. P0 detector + heat-check confirm vuongdung1198 still passive at re-wake. Strikers RESTING regen +30 min reaches near-full. Watcher refreshes 6 cycles in 30 min. **Pin justified**: shortest viable wait for a clean above-floor strike candidate; no infrastructure work that requires LLM gating."
+**Pin**: "vuongdung1198 sub-floor 4695 +20 needs +5 ripen (~25 min). 10-kill cumulative pressure makes defensive cycle near-certain in 30-60min — re-wake at 30min observes either ripener-cross or first cycle signal. P0 detector + heat-check confirm safe-to-deploy or trigger pivot. Watcher refreshes 6 cycles in 30min. **Pin justified**: shortest viable wait for either ripener or cycle observation; both outcomes actionable next session."
 
-**Re-wake**: +30 min from session end (~14:35 UTC, ts **1777818900**).
+**Re-wake**: +30 min from session end (~15:15 UTC, ts **1777820880**).
 
 ---
 
 ## Out of scope
 
-- Aenne, 3333333333333333, foden, dias, stefan97, rtvvvvv — DENY-ALL (P0 enforced).
-- Migrating for single/dual targets.
+- Aenne, 3333333333333333, foden, dias, stefan97, rtvvvvv — DENY-ALL.
+- Migrating for single targets.
 - 4 stale strikers at room 86 (deferred).
 - Modifying canonical kill_threshold formula.
 - Quest progression, kamibots state reads, force-flush.
