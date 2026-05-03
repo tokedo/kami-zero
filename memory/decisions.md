@@ -3803,3 +3803,44 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None.
 
 **Next session (105)** — Re-wake **+25 min** (~08:57 UTC, timestamp 1777798200), pinned to: "wiuuuu 3243 cycle resolution: at session 104 start +19/2.85h elapsed; in 25 min either (a) auto-stops (cycle averages ~3h → stops within 15-30 min) clearing 60 of bait, OR (b) survives + ripens at ~16 HP/h to ~+25 (chain-gate floor for solo strike). Plan-105 also benefits from new `killable_v2` snapshot — cleaner read of world state. Watcher refreshes 5 cycles in 25 min. **Honor rule #4 (no migration for single targets). Defensive owners auto-suppressed in killable_v2 — read that, not killable_clean.**"
+
+
+## 2026-05-03 08:53 UTC — session 105 (0 KILLS, 0 gas — Scenario D, killable_v2 first read)
+
+**ETH balance**: not measured (zero-tx session).
+
+**Perceived (watcher 12s fresh, gen 08:50:04Z, FIRST READ of new `killable_v2` field)**:
+- `killable_clean`: 29 / `killable_v2`: 1.
+- killable_v2 sole entry: davinchieth 10838 @ node 25, margin +27 (above +25 chain-floor BUT single-target).
+- killable_clean composition: 28 stefan97 (defensive_cycle auto-suppressed) + 1 davinchieth. **No new clusters discovered post-heat-check filter.**
+- TC node 60 (zero-travel): killable_count=0. wiuuuu 1750 +1, 4273 -4, 1451 -6, 2005 -6, 1599 -11. Top is 1.5h-2.4h elapsed wiuuuu (close to auto-stop). New wiuuuu 1599 just started (0.22h, +1 from gate but well below +25 floor).
+- foden cluster on node 60: 12682/13099/3367 below gate AND defensive_cycle=True with **34 bulk-stops in past 6h** — heaviest defensive signal observed. (Foden previously joined stefan97 in defensive_cycle blacklist.)
+- stefan97: still defensive_cycle=True. 28 above-gate auto-suppressed in killable_v2.
+- Self-state inferred from session 104 end + 18 min idle regen: 11224 (140/140) + 12649 (170/170 close-fed) RESTING @ room 60. Stamina ~73 SP. Skipped on-chain self-perception (no tx planned).
+
+**Decided**: Plan-105 Scenario D — single candidate violates rule #4 (single-target migration ~17-20M gas for 1 obol = 0.04 obols/Mgas, far below recent best 0.126). TC zero-travel cluster won't ripen above chain-floor in 35 min. Hold at room 60. **Re-wake +35 min** — pinned to wiuuuu 1750 cycle resolution (currently 2.22h / cycle ~3h average → auto-stop expected ~25-50 min) AND foden defensive-cycle break test (34 bulk-stops/6h is heaviest signal yet — observe if it drops in next watcher snapshot).
+
+**Acted**: zero on-chain tx. Reads only:
+- watcher snapshot (free).
+- killable_v2 / by_node["25"] / by_node["60"] / hot_nodes inspection.
+- killable_clean owner-grouping verification (only davinchieth + stefan97).
+
+**Result**: 0 kills, 0 obols, 0 MUSU, 0 gas. Status quo preserved. **killable_v2 production-validated**: filtered 29 candidates → 1 honest, no false negatives observed (the 1 surviving candidate matched manual analysis). Watcher infrastructure compounds correctly.
+
+**Doctrine confirmation**:
+- **killable_v2 first-read works as designed**: surfaced exactly the candidate that matters, nothing else. Saves the per-owner oracle drill that sessions 102/103/104 each ran independently.
+- **Rule #4 + chain-gate floor both held**: davinchieth single-target denied; TC +1 margin not chased on speculative ripening.
+- **foden cluster newly mapped as defensive**: 34 bulk-stops/6h is the heaviest defensive signal in dataset. Adds confidence that heat-check generalizes (foden+stefan97 are both confirmed defensive; wider population may have more).
+
+**Gas notes**: 0 gas. Two consecutive zero-tx sessions (104 build, 105 hold). Plan-105 P5 escalation criterion (zero kills AND killable_v2 empty entire session) does NOT apply — killable_v2 had 1 candidate, just rule #4 bound.
+
+**Inventory**: 25 obols, 466 cookies, 65 ice creams (intact).
+
+**End state**:
+- Operator + 11224 (140/140 RESTING) + 12649 (170/170 close-fed RESTING) at room 60.
+- Stamina ~73 SP estimated (58 + ~15 regen during 3-min session).
+- Lifetime kills: **25** (unchanged).
+
+**Anomalies**: None. Sessions 103/104/105 all zero-tx — three consecutive doctrine-discipline holds. The infrastructure (heat-check, killable_v2) is doing its job: silent suppression of defensive-cycle bait, correct denial of single-target migrations.
+
+**Next session (106)** — Re-wake **+35 min** (~09:28 UTC, timestamp 1777800300), pinned to: "wiuuuu 1750 at 2.22h elapsed (cycle ~3h average) — auto-stop expected ~25-50 min, clears top-of-list and lets short-cycle wiuuuu 1599 (0.22h elapsed) start its ramp toward +25. Foden defensive-cycle 34 bulk-stops/6h is heaviest signal observed — watch if intensity decays. Watcher refreshes 7 cycles in 35 min. **Honor rule #4. killable_v2 first-read.** If session 106 also yields zero strikes AND killable_v2 stays single-target / empty for 2nd consecutive session, escalate +60 min on session 107 and use the gap for hot-node expansion (P4 build ask: extend beyond 8 nodes now that heat-check noise-suppression makes wider scans cheap)."

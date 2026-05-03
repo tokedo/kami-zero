@@ -1,96 +1,99 @@
-# Plan for session 105 — TC bait-or-clear, killable_v2 first read
+# Plan for session 106 — TC ripening + foden cycle break test, killable_v2 P0
 
-## Context (post-session 104)
+## Context (post-session 105)
 
-**0 KILLS, 0 gas — Scenario E wait + System Thinking build session.** Augmented `refresh_world_targets.py` with per-owner heat-check; new `killable_v2` field auto-suppresses defensive-cycle owners. Real impact: 31 killable → 2 honest candidates. 15 owners auto-blacklisted (not just stefan97 — 14 others previously invisible).
+**0 KILLS, 0 gas — Scenario D doctrine-discipline hold (3rd consecutive zero-tx).** killable_v2 surfaced exactly 1 candidate (davinchieth 10838 +27 single-target) — rule #4 deny. TC node 60 zero-travel cluster has wiuuuu 1750 +1 ripening but won't cross +25 chain-floor in 35 min. foden cluster on node 60 newly mapped as defensive (34 bulk-stops/6h — heaviest signal).
 
 **Lifetime kills: 25 (unchanged).**
 
-**End state**: operator + 11224 (140/140 RESTING) + 12649 (170/170 close-fed RESTING) at room 60. Stamina ~58 SP. Inventory: 25 obols, 466 cookies, 65 ice creams.
+**End state**: operator + 11224 (140/140 RESTING) + 12649 (170/170 close-fed RESTING) at room 60. Stamina ~73 SP. Inventory: 25 obols, 466 cookies, 65 ice creams.
 
 ---
 
-## Priority 0 — READ killable_v2 FIRST (new doctrine, session 104 build)
+## Priority 0 — READ killable_v2 FIRST (now production-validated)
 
-`predator/world_targets.json` now exposes:
-- `killable_clean` — legacy (margin ≥ +5, no guild, no soft-NT, no feed). **Includes defensive-cycle owners.**
-- `killable_v2` — same filter PLUS heat-check (defensive_cycle=False). **First-pass list.**
-- `owner_heat` — per-owner {minutes_idle, distinct_kamis_5min, distinct_kamis_60min, bulk_stop_windows_6h, defensive_cycle, defensive_reasons}. Inspect when nuance is needed.
+`predator/world_targets.json`:
+- `killable_v2` — heat-check filtered (defensive_cycle=False). **First-pass list — used in session 105.**
+- `killable_clean` — legacy. Use only if killable_v2 empty AND specific edge-case applies.
+- `owner_heat` — per-owner heat map. Inspect when nuance is needed.
 
-**Hard rule**: when iterating candidates, prefer `killable_v2`. Fall back to `killable_clean` only if `killable_v2` is empty AND you have a specific reason to believe a flagged owner is borderline (e.g. owner_heat shows minutes_idle climbing toward 240).
+**Hard rule (production-validated session 105)**: iterate `killable_v2` first. Session 105 confirmed it surfaces exactly the honest candidates. Trust the filter.
 
-**Pre-pivot heat-check v2** (kept as discipline): even if `killable_v2` shows a candidate, if it's the first kill on a new dominant farmer in 24h, re-check `owner_heat` for that owner before committing the migration tx. Snapshot is 5-min cache; live state may have shifted.
+**Pre-pivot heat-check v2** still applies: even if killable_v2 shows a candidate, if it's the first kill on a new dominant farmer in 24h, re-check `owner_heat` for that owner before committing the migration tx.
 
 ---
 
 ## Priority 1 — Read before acting
 
 1. **Watcher snapshot** — `predator/world_targets.json` `generated_at`. Should be ≤5 min old.
-2. **TC cluster (node 60)** — track wiuuuu 3243. At session-104 start: +19 / 2.85h elapsed. Wiuuuu cycle ~3h average → auto-stop expected ~08:30-08:45 UTC. If stopped, 60 is bait-empty until next ripening (~12-16 UTC). If still alive at +25+, single-strike viable at zero-travel cost.
-3. **Yeahta cluster (node 73)** — POWELL kamis at margin -33 to -37 in session 103; at 18 HP/h would reach +25 in ~3-5h. Check `killable_v2` for any new Yeahta entries.
-4. **stefan97** — `owner_heat["stefan97"]` should still be defensive_cycle=True. If it flips False (≥4h idle gap + no recent bulk-stops), Scenario D unlocks (16+ above-gate cluster).
-5. **Stamina** — ~58 SP. Natural regen ~0.5/min → ~73 in +30 min, ~88 in +60 min.
+2. **TC cluster (node 60)** — wiuuuu 1750 cycle resolution: at session 105 start +1 / 2.22h elapsed → cycle ~3h average → expected auto-stop ~09:00-09:25 UTC. If stopped, room for new wiuuuu cycle entries (1599 at 0.22h elapsed → ~3h to ripen). If alive at +6+ margin, still below chain-floor — wait.
+3. **foden cluster** (node 60, defensive_cycle=True session 105) — check if `owner_heat["foden"].defensive_cycle` flips False or bulk_stop_windows_6h drops below 3. 34 bulk-stops/6h is highest signal observed; sustained or decaying?
+4. **stefan97** — `owner_heat["stefan97"].defensive_cycle` should still be True. If flips False (≥4h idle gap + no bulk-stops), Scenario D unlocks for stefan97 cluster.
+5. **Stamina** — ~73 SP. Natural regen ~0.5/min → ~88 in +30 min, +100 in +60 min.
 
 ---
 
-## Priority 2 — Strike scenarios by `killable_v2` state at session 105 start
+## Priority 2 — Strike scenarios by `killable_v2` state at session 106 start
 
 ### Scenario A: TC @ node 60 has ≥1 above-gate (margin ≥ +25)
-- Zero-travel. Pre-pivot heat-check v2 should auto-pass (TC's auto-cycle).
-- Single-strike or chain — apply session-102 +26 chain-gate floor.
+- Zero-travel. Pre-pivot heat-check v2 should auto-pass for TC (auto-cycle pattern).
+- Single-strike (margin ≥ +25 floor). Chain-strike if 2nd target also above +26 (production-confirmed gate).
 - Gas budget: ~10-12M for 1-kill, ~17-22M for 2-kill chain.
 
-### Scenario B: ≥2 above-gate at any other reachable cluster (e.g. Yeahta, davinchieth)
-- Migrate cost ~15-20M (16 hops + 1-2 ice creams).
+### Scenario B: ≥2 above-gate at any other reachable cluster
+- Migration ~15-20M (16 hops + 1-2 ice creams).
 - Single-target → reject (rule #4).
-- 2+ above-gate clean candidates → migrate.
+- 2+ above-gate clean candidates → migrate AFTER computing total-tx cost ratio (must clear ~0.06 obols/Mgas to avoid degrading rolling avg).
 
-### Scenario C: stefan97 deny clears (owner_heat flips defensive_cycle=False)
-- Re-evaluate. If criterion #2 (bulk-stop) cleared AND minutes_idle ≥ 240, stefan97 = highest-EV cluster ever (16+ above-gate).
-- Migrate 60→86 (~16 hops, ~17-19M travel + ice creams).
-- Live re-check `owner_heat` immediately before strike (defensive cycle could resume mid-migration).
+### Scenario C: foden defensive cycle clears
+- foden has been a node 60 fixture; if defensive_cycle flips False AND bulk_stops drop < 3, scan top10 for above-gate kills. Zero-travel (already at 60).
+- Same gate rules apply.
 
-### Scenario D: All clusters dry (`killable_v2` empty or all single-target / below-gate)
-- Wait at 60. Re-wake +25-45 min. Use `owner_heat` to pre-decide if stefan97 looks like it's calming (minutes_idle climbing).
+### Scenario D: stefan97 defensive cycle clears
+- Re-evaluate full stefan97 above-gate cluster at node 86. Migrate 60→86 (~16 hops, ~17-19M travel).
+- Live re-check `owner_heat["stefan97"]` immediately before strike.
+
+### Scenario E: All clusters dry (`killable_v2` empty or single-target only)
+- Wait at 60. Re-wake +60 min (escalate from +35) AND use the time for hot-node expansion build (P4).
 
 ---
 
 ## Priority 3 — Hard limits
 
-- **Gas budget session 105**: 25M (zero-travel scenarios). Migration scenarios 30M ceiling.
+- **Gas budget session 106**: 25M (zero-travel scenarios). Migration scenarios 30M ceiling.
 - **No tx if striker HP <80% max_hp** unless 1 cookie pre-feed first.
 - **2 reverts in a row → end session.**
-- **stefan97 deny-all** until `owner_heat["stefan97"].defensive_cycle == False`.
+- **stefan97 + foden deny-all** until `owner_heat[X].defensive_cycle == False`.
 - **Read `killable_v2` first** (P0).
 - **Cooldown discipline**: read `kami_state.time.cooldown` before any post-harvest_start action.
 - **Session length cap**: ≤25 min wall-clock.
 - **Rule #4 inviolable**: no cross-region travel for a single target.
+- **3+ consecutive zero-tx sessions = consider hot-node expansion build** (P4 ask).
 
 ---
 
 ## Priority 4 — Build asks (deferred, async)
 
-- ~~**Watcher: heat-check v2 drill snapshot**~~ — **DONE 2026-05-03 (session 104)**.
-- ~~**Watcher: stefan97 owner-blacklist**~~ — **DONE 2026-05-03 (session 104)**, generalized to all owners.
-- **Stale-cycle detection in heat-check** — current criterion #2 is "≥3 bulk-stop windows in past 6h". After ≥4h of no bulk-stops, the 6h window naturally drops the count back below 3. But for an owner who had 1 bulk-stop 5h ago and continues with low-density activity, the heat-check might un-blacklist prematurely. Consider a `cooling_cycle` field that tracks the time-since-last-bulk-stop separately. Defer until we observe a misfire.
+- **Hot-list expansion** — current 8 nodes (86, 60, 73, 25, 62, 9, 30, 82). After 3 consecutive Scenario D/E sessions, this is the highest-leverage next build. Heat-check noise-suppression makes wider scans cheap. Target: extend to 15-20 nodes covering more SCRAP/EERIE/SPECTRAL biomes. Implementation: add to `predator/scripts/refresh_world_targets.py` `HOT_NODES` list.
+- **Stale-cycle detection in heat-check** — current criterion #2 is "≥3 bulk-stop windows in past 6h". Consider `cooling_cycle` field for owners trending toward un-blacklist. Defer until misfire observed.
 - **Cooldown probe helper** — small utility that polls `kami_state.time.cooldown` and waits exactly until clear.
 - **VIPP/MUSU tracking fix** — metrics column should record actual spoils currency.
-- **Hot-list expansion** — current 8 nodes (86, 60, 73, 25, 62, 9, 30, 82). Worth adding more once `killable_v2` filter is proving its worth, since the noise-suppression makes wider scans cheaper.
+- **A/B test infrastructure** — split kamis between TC stake-out vs. roving-strikes once Scenario E runs become routine.
 
 ---
 
 ## Priority 5 — Post-session
 
 - Append `predator/metrics.md` and `memory/decisions.md`.
-- If session 105 also yields zero kills AND `killable_v2` was empty for entire session, escalate to longer re-wake (+45-60 min). Don't keep waking on dry world state — use the time for further build work.
+- If session 106 also yields zero kills AND killable_v2 single-target/empty entire session, escalate to +60 min re-wake AND devote session 107 wall-clock to hot-node expansion build (P4 top item).
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "wiuuuu 3243 cycle resolution by ~08:45 UTC: either (a) auto-stops (clearing 60 of bait) which informs whether to migrate or wait, OR (b) survives past 3h + ripens to +25 from current +19 at 16 HP/h. Watcher refreshes 5 cycles in 25 min. New `killable_v2` view will be cleaner-by-design — first session reading the new field. If snapshot still empty after heat-check, escalate +45 min on session 106."
+**Pin**: "wiuuuu 1750 cycle approaching 3h elapsed (auto-stop expected ~09:00-09:25 UTC) clears bait + lets short-cycle wiuuuu 1599 ramp from 0.22h elapsed. foden defensive-cycle test: 34 bulk-stops/6h is heaviest signal — observe decay (or persistence) at next watcher cycle. Watcher refreshes 7 cycles in 35 min. killable_v2 second-read."
 
-**Re-wake**: +25 min from session end (~08:57 UTC, timestamp 1777798200).
+**Re-wake**: +35 min from session end (~09:28 UTC, timestamp 1777800300).
 
 ---
 
@@ -101,4 +104,5 @@
 - 11224 SP allocation (3 unspent SP) — defer until next strategy review.
 - Quest progression, kamibots state reads, force-flush.
 - Engaging stefan97 absent owner_heat clearance.
+- Engaging foden absent owner_heat clearance.
 - Migrating for single targets.
