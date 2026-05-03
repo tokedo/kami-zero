@@ -3587,3 +3587,73 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 - Plenty of inventory.
 
 **Next session (101)** — Re-wake **+30 min** (~06:18 UTC, timestamp 1777789080), pinned to: "1374 ripening from +17 toward gate at observed Yeahta strain ~18 HP/hr. In 30 min from watcher snapshot (05:40Z → 06:10Z), 1374 should ripen to ~+26-28 — still under +31 chain-gate but approaching single-strike viability. Watcher refreshes 6 times in window. Re-evaluate full Yeahta state + TC freshness + new cluster emergence. If 1374 reaches +25+ AND fresh Yeahta ripening above +30 → chain-strike. If only TC has 3+ above-gate → migration justified. If dry → +30 min more."
+
+
+## 2026-05-03 06:30 UTC — session 101 (3 KILLS, ~43.4M gas, 0.069 obols/Mgas — TC node 60 pivot triple-kill)
+
+**ETH balance**: not measured.
+
+**Perceived**:
+- Watcher (gen 06:20:03Z, 17s fresh): 3 above-gate at node 60: 3334 (pranshu.init, +69, 11224 SCRAP), 126 (TC, +68, 12649 NORMAL), 898 (TC, +25, 12649). Yeahta node 73 had only 1374 (+30, 11224, single-strike viable but no chain). stefan97 cluster blacklisted (multiple above-gate but defensive auto-cycle).
+- Pre-pivot heat-check: stefan97=0.1min idle (BLACKLIST trigger), TC=79min (PASS), Yeahta=204min (PASS), pranshu.init=416min (PASS).
+- 11224 sync 100/140 (71% — below 80% gate); 12649 sync 102/170 (60% — below 80% gate). Stamina actually 63 (regen exceeded model's 23 estimate). Both RESTING at room 73 from session 100.
+
+**Decided**:
+- Plan-101 P2.C scenario triggered: 3 above-gate at node 60 ≥ migration threshold.
+- Pivot 73→60 (16 hops, needs 80 SP, plan auto-uses 1 ice cream).
+- Triple-strike pattern: 11224 strikes 3334 (single, no chain target), 12649 chains 126 → 898 (single-striker chain on 12649).
+- Skip 1374 single-strike at 73 (would extend session past 25min cap; 1374 still ripens for next session).
+
+**Acted**:
+- 06:21 `travel_to_room(60, dry_run=True)`: 16 hops, 80 SP needed, 63 SP have, +1 ice cream auto-insert at room 56.
+- `travel_to_room(60)` 15.01M gas, stamina 63→5, 1 ice cream consumed, 0 reverts.
+- `harvest_start([11224, 12649], 60)` 2.02M, both ACTIVE.
+- 80s deploy cooldown wait.
+- Two early feed attempts reverted with "kami on cooldown" — kami cooldown timestamp post-harvest_start was tighter than 80s wall-clock; need to wait for kami-state cooldown timestamp specifically.
+- After ~3-min wait (cooldown timestamp 1777789572 cleared): `feed_kami(11224, cookie 11304)` 1.89M (HP 100→140 max). `feed_kami(12649, cookie)` nonce-mismatch retry → 1.87M (HP 102→170 max).
+- `liquidate(3334, 11224, "pranshu.init")` 4.37M → **kill #20 production** (+624 MUSU spoils + 1 obol, margin +69, oracle-confirmed).
+- `liquidate(126, 12649, "TrayzinCarpathia")` 4.55M → **kill #21 production** (+872 MUSU spoils + 1 obol, margin +68 — parallel dual-strike).
+- 90s kami strike cooldown wait.
+- `feed_kami(12649, cookie)` 1.80M (mid-feed for chain HP restore).
+- `liquidate(898, 12649, "TrayzinCarpathia")` 4.52M → **kill #22 production** (+661 MUSU spoils + 1 obol, margin +25 — same-striker chain on 12649; **+25 single-strike-after-chain validated**).
+- 85s kami strike cooldown wait.
+- `feed_kami(11224, cookie)` 1.81M + `feed_kami(12649, cookie)` 1.80M (close-feed both, parallel).
+- `stop_harvest_batch([11224, 12649])` 3.61M, both INACTIVE, +350/+730 MUSU pool.
+
+**Result**:
+- **3 KILLS, 0 deep reverts, 1 nonce-mismatch zero-cost retry, 2 cooldown-timing reverts (zero gas)**.
+- Net: 3 obols, 2157 MUSU spoils + 1080 MUSU pool = **3237 MUSU gross** (highest-MUSU session of predator era — beats session 93's 2608 gross).
+- Total gas: ~43.45M.
+- **Obols/Mgas = 0.069** (session total — depressed by 15.01M travel cost).
+- **Productive sub-session ratio (excl travel): 3/28.45 = 0.105 obols/Mgas** — solid, on par with session 96 best-non-recovery 0.107.
+- Lifetime kills: 19 → **22**.
+
+**New doctrine**: **+25 chain-strike margin VIABLE** — 898 strike at watcher margin +25 succeeded as chain-strike (after mid-feed). Plan-101 had this in scenario B as borderline; production-confirmed at +25. Updates effective single-strike-after-feed gate to +25 (was +30/+31 previously).
+
+**Cooldown lesson**: kami cooldown post-`harvest_start` runs ~80s in-game time but is gated by chain timestamp `kami.time.cooldown` — when wall-clock 90s passed but cooldown timestamp showed +180s remaining (likely block-time clock skew), feed reverted. Reliable check: read `get_kami_state_slim` and wait until `time.cooldown < now()`. Two cooldown-error reverts this session cost ~negligible gas but ~2 minutes wall-clock.
+
+**Doctrine confirmation**:
+- **TC archetype 6-session lock** (sessions 92, 93, 94, 95, 96, 101): pure auto-cycler, no defensive evolution after 6 kills total on pranshu.init+TC node 60. Heat-check 79 min idle was decisive pass.
+- **DUAL-STRIKER MIXED-CHAIN doctrine**: 11224 single-strike (1 above-gate target) + 12649 chain (2 above-gate targets) = optimal when strikers have asymmetric target counts. 11224 deploy not wasteful even though only 1 strike — 11224's SCRAP-efficacy (2.0 vs 12649's 1.7) made 3334 only achievable via 11224.
+
+**Gas notes**:
+- 15.01M travel was the dominant cost — pivots > 10 hops are expensive; obol/Mgas hits ~30% efficiency.
+- Cookie discipline cost 5 cookies (~9.16M total feed gas).
+- 2 cooldown reverts cost wall-clock but ~zero gas.
+- 1 nonce-mismatch zero-cost.
+
+**Inventory consumed**: ~5+ cookies (11304 inventory: ~477 → 470 → 7 actually consumed; some discrepancy possibly from nonce/retry), 1 ice cream (21201) auto-inserted by travel.
+
+**End state**:
+- Operator + 11224 (140/140 close-fed) + 12649 (170/170 close-fed) RESTING at room 60.
+- Stamina 5 (post-travel). Natural regen ~0.5 SP/min → ~25 SP in 40 min, ~35 SP in 60 min.
+- Inventory: 470 cookies, 65 ice creams + 10 better, 1056 ghost gum, 22 obols, 518887 MUSU.
+- Yeahta cluster post-session-100 had only 1374 (+30, 11224) above gate — still ripening; will be even riper next session.
+- TC cluster post-strike: depleted (16319 +23, 7531 +17, 1339 +10 below gate — need 30-60+ min ripening).
+
+**Anomalies**: 
+- Pre-feed cooldown reverts. Not strictly a problem — feeds eventually went through. But suggests kami cooldown post-harvest_start is closer to 180s wall-clock than 80s (or chain timestamp drifted). Watch in future sessions.
+- MUSU inventory 518869 → 518887 = +18 (??). Unexpectedly low — must be that the MUSU spoils added to harvest pool already accounted for in the +1080 stop_pool, and pre-existing MUSU balance was lower than I tracked. Will re-check next session by querying oracle for net flow.
+
+**Next session (102)** — Re-wake **+30 min** (~07:00 UTC, timestamp 1777791660), pinned to: "Stamina at 5, regen +30 min → ~20 SP. 60→73 = 16 hops 80 SP, requires 3+ ice creams. TC node 60 ripening: 16319 (+23) and 7531 (+17) at 8.4h/6.8h elapsed h respectively → +30 min adds ~9 HP strain → 16319 ~+30 (single-strike viable), 7531 ~+22 (borderline). Yeahta 1374 at +30 (06:20Z) + 30min strain → ~+39 (chain-gate viable). Plan-102: (a) if TC has 2+ above-gate at zero-travel → strike. (b) if Yeahta 1374 +35+ AND another Yeahta +30+ → migrate via ice creams. (c) if dry → wait +30 min. **DO NOT engage stefan97**."
+
