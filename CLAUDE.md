@@ -131,6 +131,14 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 
 **Starvation hunting is healthy.** Accounts farming with no protection are valid targets — pressure on them is good for the game economy. Do not over-weight risk against unprotected farms.
 
+**Defensive farmers are not "deny" targets — they are *disruption* targets.** Some accounts (stefan97, foden, dias, rtvvvvv, etc.) run synchronized bulk-stop-on-arrival defenses that pull high-pool kamis the moment a non-guild operator enters the room. The watcher's `killable_v2` filter auto-suppresses these owners. **That filter is for clean-strike planning only.** For disruption raids, use `killable_clean` (the unfiltered view) and reframe the objective:
+
+- A bulk-stop triggered by your arrival is a win even with zero kills. Every interrupted starver loses accumulated bounty (their pool resets toward zero on stop, reducing the MUSU they would have minted). Macroeconomically you remove MUSU from supply, making every MUSU bpeon farms elsewhere more valuable in real terms.
+- A single kill that triggers a 10-kami bulk-stop is worth far more than the obol + spoil. EV = obols + spoils + (interrupted kamis × estimated foregone bounty per kami).
+- A periodic disruption raid on a known defensive farmer is a valid play in itself. Bring the full team, walk in, accept that most strikes will revert, and harvest the disruption value.
+
+Track `interrupted_kamis` per session (proxy: count of `harvest_stop` actions by the target node's dominant farmer within 60s of your room-arrival, minus their 6h baseline rate). Imprecise but directionally honest — log it in metrics.md so disruption EV stays visible separately from clean-strike EV.
+
 **Cluster economics.** A single distant target rarely justifies a move. A cluster of many targets does. There is no magic number — let the obol-per-tx metric over rolling windows tell you when a move pays off. Write that math to `decisions.md` before any cross-region move.
 
 **Items are tools, not luxuries.** Predator kamis recover HP via consumables, not via rest cycles. Use them. Track consumption in `predator/metrics.md`. If item supply is the limiter, escalate via `ideas_to_founder.md`.
@@ -140,6 +148,8 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 **Targeting heuristic — by current HP, not base stats.** The kill gate is a strict `current_HP < threshold`. Base stats determine the *threshold*; current HP determines whether today's strike fires. A V13/H21 farmer with `def_shift=0` at 90% HP can still revert; the same kami at 40% HP after a long uninterrupted harvest can be cracked by a much weaker striker. Filter target lists by *projected current HP*, then live-spot-check before strike. Do not blacklist owners purely on past reverts at high HP — re-evaluate when their farms have run uninterrupted long enough that strain has bitten.
 
 **Predator deployment.** Predators are not deploy-and-forget. Liquidation requires `operator.room == target.node.room` — a predator HARVESTING on node X while the operator is at room Y can never fire `liquidate`. When the operator moves, **all predators move with it**. Standard sequence: `harvest_stop` every predator → travel → `harvest_start` at destination. If a session ends with operator-room ≠ any predator's node, that's an anomaly — log to `alerts.md` and reunite next session before any strike. There are no realistic scenarios where partial-team moves are correct.
+
+**Full team on soft nodes.** When a node has ≥3 starve-killable targets (projected `current_HP ≤ 20`, i.e. starvers — sync close to zero with no recent feed), deploy the entire available striker roster in a single batch, not just the calibrated headliners. Calibrated kill_threshold formulas matter only at threshold; starvers sit far below kill_zone for any attacker with V > H. Leaving 4 idle full-HP killers in party while 11224 chains alone on a starver-rich node is a doctrinal failure — starvers can cycle to RESTING within minutes, and every minute of delay is foregone obols. Pattern: scan node → if ≥3 sub-20-HP targets → `harvest_start` all available strikers in one batch → fire strikes in parallel before the cluster cycles → close-feed → batch-stop. Threshold-target chain-strike rules unchanged for the calibrated pair.
 
 ## Predator Hard Rules (do not violate without founder approval)
 
@@ -158,8 +168,8 @@ At end of every session, append a row to `predator/metrics.md`:
 
 ```
 session, started_at, ended_at, gas_spent_gwei, obols_earned, musu_earned,
-kamis_liquidated, items_consumed (key:count;…), nodes_visited, claude_tokens_used,
-notes
+kamis_liquidated, interrupted_kamis, items_consumed (key:count;…), nodes_visited,
+claude_tokens_used, notes
 ```
 
 `claude_tokens_used` is best-effort — pull from harness telemetry if the executor exposes it; if not, leave blank and add a note. Do not invent numbers.
