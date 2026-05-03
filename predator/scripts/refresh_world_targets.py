@@ -52,6 +52,12 @@ STRIKERS = [
 # Soft no-touch: not guild, but defended too well to chase.
 SOFT_NO_TOUCH_OWNERS = {"rtvvvvv"}
 
+# Known suspect owners — always heat-checked so the snapshot exposes their
+# anti_predator_automation status even when they have no HARVESTING candidates
+# at scan time (their automation often empties the node before we look).
+# Aenne added session 111 after the session-110 22-second sync-stop discovery.
+ANTI_PREDATOR_WATCH = {"aenne", "stefan97", "stefan96", "foden", "dias", "rtvvvvv"}
+
 
 def oracle_sql(sql, limit=4000):
     body = json.dumps({"q": sql, "limit": limit}).encode()
@@ -232,29 +238,36 @@ def scan_node(node_id, node_meta, handles, accs):
 
 
 def owner_heat_check(owners):
-    """For each owner, compute heat-check signals used by Plan-104 P0 v2:
+    """For each owner, compute heat-check signals used by Plan-104 P0 v2 +
+    Plan-111 P0 sync-stop burst detector:
       - minutes_idle: minutes since last action
       - distinct_kamis_5min: how many distinct kamis acted in the past 5 min
       - distinct_kamis_60min: ditto past 60 min
       - bulk_stop_windows_6h: count of 1-second windows with >=5 kamis
         starting or stopping a harvest
+      - sync_stop_bursts_6h: count of clusters where 3+ harvest_stops fall
+        inside a 60-second window (Aenne automation signature, session 110)
+      - anti_predator_automation: True if sync_stop_bursts_6h >= 1
 
-    Returns: { owner_lower: {minutes_idle, distinct_kamis_5min,
-               distinct_kamis_60min, bulk_stop_windows_6h, defensive_cycle} }
-    Defensive cycle (per Plan-104 P0 v2) = blacklist if ANY:
+    Returns: { owner_lower: {…, anti_predator_automation: bool} }
+    Defensive cycle = blacklist if ANY:
       - minutes_idle < 10 AND distinct_kamis_5min >= 3
       - bulk_stop_windows_6h >= 3
+      - anti_predator_automation == True (sync_stop_bursts_6h >= 1)
       - owner == 'stefan97' AND minutes_idle < 240 (4h)
     """
     if not owners:
         return {}
     quoted = ",".join(f"'{o}'" for o in sorted(set(owners)))
+    # NOTE: lowercase compare on both sides — owners are normalized to
+    # lowercase upstream but oracle stores names with original case
+    # (e.g. 'Aenne'), so a strict-equality filter would silently miss them.
     sql = f"""
     WITH a AS (
-      SELECT ks.account_name AS owner, a.action_type, a.kami_id, a.block_timestamp
+      SELECT LOWER(ks.account_name) AS owner, a.action_type, a.kami_id, a.block_timestamp
       FROM kami_action a
       JOIN kami_static ks ON a.kami_id = ks.kami_id
-      WHERE ks.account_name IN ({quoted})
+      WHERE LOWER(ks.account_name) IN ({quoted})
         AND a.block_timestamp >= NOW() - INTERVAL 6 HOUR
     ),
     bulk AS (
@@ -264,6 +277,41 @@ def owner_heat_check(owners):
       WHERE action_type IN ('harvest_start','harvest_stop')
       GROUP BY 1, 2
       HAVING n_kamis >= 5
+    ),
+    -- Sync-stop burst detector (Plan-111 P0, tightened session 111):
+    -- count clusters where 3+ distinct kamis are harvest_stop'd by the
+    -- same owner within a 5-second window. The Aenne automation pattern
+    -- is sub-second (span_sec=0.0); a 60s window incidentally caught
+    -- normal manual cycling (3 stops over 59s). 5s threshold cleanly
+    -- isolates atomic-batch automation.
+    stops AS (
+      SELECT owner, kami_id, block_timestamp AS ts
+      FROM a
+      WHERE action_type = 'harvest_stop'
+    ),
+    burst_windows AS (
+      SELECT s1.owner, s1.ts AS anchor_ts,
+             COUNT(DISTINCT s2.kami_id) AS n_kamis_in_window
+      FROM stops s1
+      JOIN stops s2
+        ON s1.owner = s2.owner
+       AND s2.ts BETWEEN s1.ts AND s1.ts + INTERVAL 5 SECOND
+      GROUP BY s1.owner, s1.ts
+      HAVING COUNT(DISTINCT s2.kami_id) >= 3
+    ),
+    -- Collapse overlapping anchors: keep only anchors that are NOT within
+    -- 5s of an earlier anchor (gap-based island detection).
+    burst_islands AS (
+      SELECT owner, anchor_ts,
+             LAG(anchor_ts) OVER (PARTITION BY owner ORDER BY anchor_ts) AS prev_anchor
+      FROM burst_windows
+    ),
+    burst_count AS (
+      SELECT owner, COUNT(*) AS sync_stop_bursts_6h
+      FROM burst_islands
+      WHERE prev_anchor IS NULL
+         OR anchor_ts > prev_anchor + INTERVAL 5 SECOND
+      GROUP BY owner
     )
     SELECT
       a.owner,
@@ -273,7 +321,9 @@ def owner_heat_check(owners):
                           THEN a.kami_id END) AS distinct_kamis_5min,
       COUNT(DISTINCT CASE WHEN a.block_timestamp >= NOW() - INTERVAL 60 MINUTE
                           THEN a.kami_id END) AS distinct_kamis_60min,
-      (SELECT COUNT(*) FROM bulk b WHERE b.owner = a.owner) AS bulk_stop_windows_6h
+      (SELECT COUNT(*) FROM bulk b WHERE b.owner = a.owner) AS bulk_stop_windows_6h,
+      COALESCE((SELECT sync_stop_bursts_6h FROM burst_count bc WHERE bc.owner = a.owner), 0)
+        AS sync_stop_bursts_6h
     FROM a
     GROUP BY a.owner
     """
@@ -285,6 +335,8 @@ def owner_heat_check(owners):
         distinct_5 = int(r.get("distinct_kamis_5min") or 0)
         distinct_60 = int(r.get("distinct_kamis_60min") or 0)
         bulk_6h = int(r.get("bulk_stop_windows_6h") or 0)
+        sync_bursts = int(r.get("sync_stop_bursts_6h") or 0)
+        anti_predator = sync_bursts >= 1
 
         defensive = False
         reasons = []
@@ -294,6 +346,9 @@ def owner_heat_check(owners):
         if bulk_6h >= 3:
             defensive = True
             reasons.append(f"bulk_stop_x{bulk_6h}_in_6h")
+        if anti_predator:
+            defensive = True
+            reasons.append(f"anti_predator_automation(sync_bursts={sync_bursts})")
         if owner_lower == "stefan97" and minutes_idle < 240:
             defensive = True
             reasons.append(f"stefan97_idle_lt_4h({minutes_idle:.0f}min)")
@@ -303,6 +358,8 @@ def owner_heat_check(owners):
             "distinct_kamis_5min": distinct_5,
             "distinct_kamis_60min": distinct_60,
             "bulk_stop_windows_6h": bulk_6h,
+            "sync_stop_bursts_6h": sync_bursts,
+            "anti_predator_automation": anti_predator,
             "defensive_cycle": defensive,
             "defensive_reasons": reasons,
         }
@@ -334,9 +391,11 @@ def main():
         all_candidates.extend(cands)
 
     # Heat-check pass: gather signals for every owner present in the candidate
-    # pool, then annotate each candidate.
+    # pool plus a fixed watch list of known-suspect owners (so their
+    # automation status is visible even when they have no HARVESTING
+    # candidates at scan time).
     owners_in_pool = {(c["v_acct"] or "").lower() for c in all_candidates if c["v_acct"]}
-    heat = owner_heat_check(owners_in_pool)
+    heat = owner_heat_check(owners_in_pool | ANTI_PREDATOR_WATCH)
     for c in all_candidates:
         owner_lower = (c.get("v_acct") or "").lower()
         h = heat.get(owner_lower)

@@ -339,3 +339,10 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py` (HOT_NODES list)
 - **How to use**: Watcher cron now scans 17 nodes per cycle. Scan duration grew 2.95s → 5.01s — well within the 5-min cron budget. `killable_v2` candidate count expanded 1 → 38 in production-validation run.
 - **Commit**: (this session)
+
+## 2026-05-03 — Watcher: sync-stop burst detector (anti-predator automation)
+- **What**: Extended `predator/scripts/refresh_world_targets.py` heat-check with `sync_stop_bursts_6h` (count of clusters where 3+ kamis are harvest_stop'd by the same owner within a 5-second window over the last 6h) + `anti_predator_automation` flag (true if `sync_stop_bursts_6h ≥ 1`). Added `ANTI_PREDATOR_WATCH = {aenne, stefan97, stefan96, foden, dias, rtvvvvv}` always heat-checked even when no candidates in pool. Fixed case-mismatch: SQL now LOWER()s both sides (oracle stores 'Aenne' with capital A; lowercase watch-set entry was previously invisible).
+- **Why**: Session 110 lost 10.2M gas + 0 kills when Aenne synced-stopped 3 residual kamis within 22s of my deploy at node 34, before strike cooldown opened. The pattern is sub-second atomic batch (span_sec=0); a 5s window catches it cleanly while leaving normal manual cycling untouched (60s window caught vuongdung1198 false-positives).
+- **Files**: `predator/scripts/refresh_world_targets.py`
+- **How to use**: Run `python3 predator/scripts/refresh_world_targets.py` as before — output JSON at `predator/world_targets.json` now includes `owner_heat[name].sync_stop_bursts_6h` and `anti_predator_automation` per owner. `killable_v2` already filters by `defensive_cycle` which now incorporates the new flag. Validation set: Aenne sync_bursts=2, 3333333333333333=3, foden=26, dias=20, rtvvvvv=2 — all properly flagged. vuongdung1198 sync_bursts=0 (false-positive cleared at 5s threshold).
+- **Commit**: (this session)
