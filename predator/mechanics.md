@@ -1044,3 +1044,71 @@ implicitly via session 111 plan)**:
    flag. Detect 3+ harvest_stops by same owner within 60-second windows
    over last 6h. Owners flagged → mark `anti_predator_automation: true`
    in heat. World_targets.json `killable_v2` should exclude those owners.
+
+## REVIVE-burst vs HEAL-burst — session 116 doctrine correction
+
+**Session 115 misclassified vuongdung1198's 15-feed burst at 16:10 UTC
+as a defensive cycle.** It was not. The corrected interpretation is
+critical because it flips the action from "pause hunting" to "continue
+hunting" on this owner-class.
+
+**The mechanic**:
+- Item 11001 (Red Ribbon Gummy) is `Type=Revive`, effect
+  `STATE-RESTING, HP+10`. Per CLAUDE.md "REVIVE-type items only fire on
+  DEAD targets." (catalogs/items.csv is authoritative.)
+- A 15-burst of item 11001 at one timestamp = 15 dead kamis being
+  revived from RESTING(HP=0) back to RESTING(HP=10). Not heals on
+  HARVESTING kamis.
+- Session 116 empirical: at the time of the burst, vuongdung1198 had
+  14 cumulative kills against bpeon (sessions 108-114). 15 ≈ 14 + 1
+  trailing → consistent with batch-revive of every recent kill.
+
+**Why this is recovery, not defense**:
+- Revive does NOT prevent future kills. The same kamis can be killed
+  again once they re-deploy (they re-enter HARVESTING with fresh sync
+  but same base stats; strain accumulates from zero).
+- The 5 surviving kamis still on node 33 at session 116 (11134, 5100,
+  6044, 5371, 9553) all had `fresh_feed_since_start: False` — they
+  were NEVER fed. They kept harvesting through the burst.
+- After session 116's kills (11134, 6044), the cluster is still alive
+  with 3 more above-floor candidates.
+
+**Detection signature**:
+- REVIVE burst: ≥3 `feed` actions within 5s, all using item 11001 or
+  11002 (Type=Revive). Targets are DEAD/RESTING. Not defensive — it
+  is post-kill cleanup.
+- HEAL burst (genuine defense): ≥3 `feed` actions within 5s using
+  food items (11301-11314, etc.) that heal HARVESTING kamis above the
+  kill threshold. Targets are HARVESTING. This IS defensive.
+- STOP burst (genuine defense): ≥3 `harvest_stop` actions within 5s
+  pulling kamis off-node. This IS defensive (Aenne pattern).
+
+**Watcher detector update needed (deferred)**:
+The current `sync_feed_bursts_6h` field flags ALL feed-bursts including
+revive-only. Refine to split:
+- `sync_revive_bursts_6h`: feed-bursts where ALL items are 11001/11002.
+  Informational only — does NOT contribute to `defensive_cycle`.
+- `sync_heal_bursts_6h`: feed-bursts using food items (any non-revive).
+  Contributes to `defensive_cycle` and `anti_predator_automation`.
+
+**Updated doctrine on vuongdung1198-class owners (passive-revivers)**:
+- Continue hunting. Revive bursts are sunk cost on the owner's side,
+  not a threat to our EV.
+- The "cumulative kill threshold for cycle" (~14 kills before
+  vuongdung1198 reacted) is a REVIVE threshold, not a STOP threshold.
+  Owner waited until 14 kills had accumulated, then did one batch
+  revive — which is just recovering from the spend, not preventing
+  further loss.
+- Real defensive triggers for these owners are still TBD (sync-stop
+  burst, sync-heal burst). Watch for those, not revive bursts.
+
+**Action items for this doctrine**:
+1. Watcher detector refinement: distinguish REVIVE vs HEAL bursts by
+   item type. Until shipped, treat `defensive_cycle: True` due to
+   `sync_feed_bursts(xN)` as advisory only and verify the burst's
+   item-type via oracle before pausing the hunt.
+2. Standing rule: when an owner is flagged `defensive_cycle` via
+   sync-feed only, run pre-strike check: `SELECT item_index FROM
+   kami_action WHERE action_type='feed' AND ks.account_name='<owner>'
+   AND block_timestamp >= burst_window_start;` — if all in {11001,
+   11002}, override the flag and proceed.

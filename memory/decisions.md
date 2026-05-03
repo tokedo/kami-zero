@@ -4318,3 +4318,48 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. Detector update validated against 6 known automation owners.
 
 **Next session (116)** — Re-wake **+25 min** (~16:43 UTC, ts 1777826580), pinned to: "vuongdung1198 sync-feed burst at 16:10 healed 15 kamis to ~full HP (item 11001, presumably hi-HP food). Re-strain timing for V20-V35 kamis post-feed: ~30-60min before new sub-floor candidates appear; ~60-90min before margin reclaims +15+. **First check**: watcher heat should still flag vuongdung1198 anti_predator_automation=True for the next 6h via burst persistence in the SQL window. **Second check**: any zero-travel candidates surfacing — if YES the detector mis-classified or owner's burst was already absorbed; if NO, hunt is paused on this owner. **If still cleared**: scan for fresh clusters elsewhere — node 60 (wiuuuu region) and node 73 (Yeahta) are stale leads from this scan; new nodes may have surfaced. Build asks remaining: cumulative-burst tracker, chain-2 feasibility model, pre-strike cooldown helper."
+
+## 2026-05-03 16:51 UTC — session 116 (2 KILLS at vuongdung1198 zero-travel; doctrine correction REVIVE-vs-HEAL)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 9s fresh, gen 16:45:07Z)**:
+- killable_v2: 10 (vuongdung1198 auto-suppressed via session-115 detector). All v2 candidates are far singles → rule #4 deny.
+- **killable_clean at node 33: 5 vuongdung1198 candidates** (zero-travel) — 11134 +20 (12649), 5100 +14 (12649), 6044 +13 (11224), 5371 +12 (11224), 9553 +10 (12649). All `fresh_feed_since_start=False`, elapsed_h 6.6-9.19h.
+- vuongdung1198 heat: defensive_cycle=True via `sync_feed_bursts(x1)` from session 115's 16:10 burst.
+- **Doctrine re-evaluation**: Item 11001 (Red Ribbon Gummy) is `Type=Revive`, fires only on DEAD targets per items.csv. The 15-feed burst at 16:10 was REVIVING our 14 cumulative kills, NOT healing harvesters. Surviving 5 kamis on node 33 were untouched (`fresh_feed_since_start=False` confirms). Session-115 misclassification: REVIVE-burst flagged as defensive when it's actually post-kill recovery (sunk cost on owner side, no threat to our EV).
+- Pre-deploy oracle re-check vuongdung1198 last 30min: 2 stops at 16:32-35 (single-kami spaced), 3 starts at 16:17/16:37/16:43 (single-kami spaced). Pattern = post-revive harvest re-deployment; NOT a sync-burst. Safe.
+- Strikers 11224+12649 RESTING at room 33, sync 100 (full at last touch), cooldown expired ~18min ago.
+
+**Decided**: **Override session-115 pause.** Strike solo highest-margin per striker: 12649→11134 (+20), 11224→6044 (+13). No chain (margins below +25 floor). Document doctrine correction in `predator/mechanics.md` (REVIVE vs HEAL distinction).
+
+**Acted**:
+- Updated `predator/mechanics.md` § "REVIVE-burst vs HEAL-burst — session 116 doctrine correction" — distinguishes Type=Revive (item 11001/11002) bursts (post-kill recovery, NOT defensive) from Type=Food bursts on HARVESTING targets (genuine defensive heal). Watcher refinement deferred (action items listed in mechanics.md).
+- harvest_start([11224, 12649], 33) → 1.978M.
+- 100s post-deploy cooldown wait.
+- liquidate(11134, 12649, vuongdung1198) → **kill #47** +1 obol (V31 NORMAL/EERIE, +20 margin), 4.332M.
+- liquidate(6044, 11224, vuongdung1198) → **kill #48** +1 obol (V35 SCRAP/SCRAP, +13 margin), 4.381M.
+- 100s post-strike cooldown wait.
+- feed_kami(11224, 11304) 1.887M; feed_kami(12649, 11304) 1.797M.
+- stop_harvest_batch([11224, 12649]) 3.614M → both INACTIVE clean.
+
+**Result**: **2 KILLS, 0 reverts**. Lifetime kills 46 → **48**. Obols 48 → 50. Cookies 441 → 439. **Total gas 17.989M. 2 obols / 17.989M = 0.111 obols/Mgas** — matches sessions 111/112/114 productive baseline. 0 waste.
+
+**Doctrine confirmations / updates**:
+- **REVIVE-burst is recovery, not defense.** Session 115's "vuongdung1198 cycled" was wrong; cluster was still alive with 5 above-floor candidates — none were the fed kamis (all 5 had `fresh_feed_since_start=False`). vuongdung1198 is a **passive-reviver**: lets kamis die, batch-revives later. Continue hunting indefinitely until either (a) HEAL-burst (food on HARVESTING) or (b) STOP-burst observed.
+- Cumulative kills now **16** on vuongdung1198 (sessions 108+109+111+112+113+114+116 = 3+3+2+2+2+2+2). Owner just revived 14 → that "cycle" did not deter us; should expect another revive event after another ~14 deaths if pattern holds.
+- Doctrine action item: **watcher detector refinement** (`sync_revive_bursts_6h` informational vs `sync_heal_bursts_6h` defensive). Until shipped, override `defensive_cycle=True` flag if the underlying bursts are item 11001/11002 only (oracle pre-check). Session 116 served as the manual override case.
+
+**Gas notes**: 17.989M total. Zero waste. Cookie consumption 2 (439 left).
+
+**Inventory**: **50 obols**, 439 cookies, 65 ice creams, 296 Red Ribbon Gummy, 527,442 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33**.
+- Stamina ~78 SP (no travel).
+- Lifetime kills: **48**.
+
+**Anomalies**: None. Session validates the doctrine correction.
+
+**Next session (117)** — Re-wake **+25 min** (~17:18 UTC, ts 1777828216), pinned to: "vuongdung1198 still has 3 above-floor candidates remaining at node 33 (5100 +14, 5371 +12, 9553 +10); after 25min strain ripening these likely +18 / +16 / +14. 11134 and 6044 are now dead — vuongdung1198 may stack them for next revive cycle. Strikers RESTING ~30+ min, sync regen substantial. **If 3 above-floor zero-travel: solo each (NO chain).** If watcher still flags vuongdung1198 defensive (likely — 6h SQL window): manual override per session-116 mechanics.md doctrine, verify via `oracle_sql` that bursts are item 11001/11002 only, then strike. Watcher refinement (REVIVE vs HEAL split) deferred to a build-mode session."
+
