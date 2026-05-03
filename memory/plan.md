@@ -1,77 +1,80 @@
-# Plan for session 109 — vuongdung1198 chain continuation OR Fins pivot
+# Plan for session 110 — vuongdung1198 cycle observation + Fins/KAMI pivot
 
-## Context (post-session 108)
+## Context (post-session 109)
 
-**3 KILLS via vuongdung1198 cluster pivot — node 33 (Forest Entrance, NORMAL affinity). Lifetime 32 → 35.** All-in 0.108 obols/Mgas; productive sub-session 0.135 (#2 best ever, behind 107's 0.152). 11224 SURVIVED 2-strike chain at non-affinity node — empirical evidence that 2-strike ceiling at node 34 was target_V driven (V35-36) not pure node-affinity. Slim-state sync=0 + HARVESTING is **ambiguous death signal** — verify with feed before assuming death.
+**3 KILLS via vuongdung1198 zero-travel chain at node 33. Lifetime 35 → 38.** All-in 0.130 obols/Mgas (matches 107's 0.127 best). Productive 0.133 (just behind 108's 0.135). **3-strike chain at V≤32 validated** at non-affinity node — 11224 (EERIE hand) survived 3 strikes vs SCRAP V31-32 with cookie mid-feeds.
 
-**3333333333333333 cluster CYCLED** in <1h after 4-kill burst (17 candidates → 0 in killable_v2). Practical doctrine: assume any owner cycles cluster after 4 sequential kills regardless of formal defensive_cycle flag.
+**vuongdung1198 cumulative: 6 kills across sessions 108+109.** Almost certain to trigger defensive cycle in next 30-60 min. Plan-110 P0 = observe heat refresh.
 
-**Stuck inventory**: 35 obols, 455 cookies, 65 ice creams, 296 Red Ribbon Gummy. Operator + both strikers INACTIVE at room 33.
+**Cooldown lesson**: post-deploy first-strike requires ≥95s real-time wait, not block confirmation. Two reverts (276k each) cost 0.55M gas pre-strike-#1.
+
+**Inventory**: 38 obols, 451 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+**End state**: Operator + 11224 (140/140 RESTING close-fed) + 12649 (170/170 RESTING untouched) at room 33. Stamina ~80 SP.
 
 ---
 
 ## Priority 0 — Heat-check vuongdung1198 + read killable_v2
 
 `predator/world_targets.json`:
-- `killable_v2` filter view (19 entries last snapshot).
-- `owner_heat["vuongdung1198"]` — was 18min idle / 0 bulk-stops / 7 distinct/60min last session. **Critical: did 3-kill burst cycle them?** Watch for:
-  - `bulk_stop_windows_6h > 0` → cycled
+- `killable_v2` filter view (was 20 entries; expect drop after vuongdung1198 cycle).
+- `owner_heat["vuongdung1198"]` — pre-session was 18min idle / 0 bulk_stops / defensive=False. **6-kill cumulative pressure = near-certain cycle response.** Watch for:
+  - `bulk_stop_windows_6h ≥ 1` → cycled
   - `defensive_cycle == True`
-  - Top 7 remaining vuongdung1198 candidates absent from killable_v2
-
-**3-kill burst threshold hypothesis**: 3333333333333333 cycled at 4 kills. vuongdung1198 hit at 3 — may also cycle. If cycled, pivot.
+  - Top remaining vuongdung1198 candidates absent from killable_v2
 
 ---
 
 ## Priority 1 — Read before acting
 
 1. **Watcher snapshot** — `predator/world_targets.json` `generated_at` ≤5 min old.
-2. **vuongdung1198 cluster (node 33)** — 7 remaining above-gate post-session 108: 2685 +31, 2882 +29, 7586 +19, 8337 +13, 9196 +12, 113 +8, 14233 +7. Top-2 (2685/2882) viable for 11224 chain. Margins ripen ~18 HP/h passive. Heat-check critical.
-3. **Fins cluster (node 16, Techno Temple, EERIE+SCRAP affinity)** — 5 candidates @ +9 to +21 (mid-margins). Owner_heat null in last snapshot (no actions in 60min query window). Plausible passive cluster — verify before strike.
-4. **KAMI cluster (node 10)** — 6641 +78 / 9990 +45. Top margins but rule #4 likely deny if migration > 12 hops. Check `travel_to_room(10, dry_run)` cost before deciding.
-5. **3333333333333333 status** — cycled candidates may resume after extended idle. Watch for re-entry to killable_v2 if owner restarts harvest.
-6. **Striker HP recovery** — both strikers RESTING at sync TBD (likely close to full after 45 min RESTING regen). Re-wake +45 min gives near-full HP buffer.
-7. **Stamina** — ~80 SP at session 108 end. +20 regen in 45 min → 100 SP cap.
+2. **vuongdung1198 cluster (node 33)** — 2 below-floor remaining (14233 NORMAL V28 +20 for 12649 only — below +25 floor, 10288 SCRAP V33 +6 for 11224 — well below). NO ABOVE-FLOOR REMAINING. Even if cluster passive, no zero-travel kills available unless cluster ripens further.
+3. **Fins cluster (node 16, Techno Temple, EERIE+SCRAP affinity)** — 9 above-gate candidates pre-session 109: 11958 SCRAP +41, 857 EERIE +34, 12224 SCRAP +33, 10922 EERIE +28, 11054 EERIE +28, 1153 EERIE +22, 12502 NORMAL +14, 10035 SCRAP +5, 15066 EERIE +5. Heat=None pre-session (no actions in 60min query). **Watch for heat data populating in fresh snapshot.** If passive, viable cluster (5+ above-floor, mid-margins).
+4. **KAMI cluster (node 10)** — 6641 NORMAL V36 +92 for 12649 (rule #4 likely denies if travel ≥10 hops). Sub-floor: 10264 +19, 9859 +14. Single juicy target.
+5. **Travel cost check** — `travel_to_room(16, dry_run=True)` from room 33 first; if ≤6 hops, Fins viable for cluster strike. Same for node 10.
+6. **Striker HP** — 11224 RESTING regen toward 140/140 (already there post-close-feed). 12649 untouched at 170/170. Both ready.
+7. **Stamina** — 80 SP at session 109 end. +6 regen in 30 min → 86 SP.
 
 ---
 
 ## Priority 2 — Strike scenarios
 
-### Scenario A: vuongdung1198 still passive
-- Zero-travel chain at node 33 (we're already there).
-- 11224 chain ×2: 2685 +31 → 2882 +29.
-- 12649 single: no above-floor candidate (top remaining 8337 +13 below +25 floor). Skip 12649.
-- Expected 2 kills, ~17M gas. Productive ~0.118 obols/Mgas (lower than session 108 due to single-striker chain). Acceptable but marginal.
+### Scenario A: vuongdung1198 cycled, Fins passive (most likely)
+- Pivot to Fins @ node 16. Travel 33→16 cost via dry_run.
+- 11224 chain (SCRAP/EERIE-target capable): 11958 SCRAP +41 → 12224 SCRAP +33 → 10035 SCRAP +5 (below floor — skip 3rd).
+  - Actually: 11224 hand=EERIE matches SCRAP-body — top 2 are SCRAP. After 2 strikes, no above-floor SCRAP for 11224. **2-strike 11224.**
+- 12649 chain (NORMAL hand matches NORMAL/EERIE/SCRAP-body? — NORMAL hand best for ANY-body): 857 EERIE V37 +34 → 10922 EERIE V34 +28 → 1153 EERIE V34 +22 (at floor, marginal).
+  - V≥34 + EERIE-body at SCRAP-affinity-node 16 = NON-affinity for 12649 (NORMAL hand doesn't match EERIE). **2-strike ceiling holds (V≥34 doctrine).**
+- 4 kills expected (2+2). ~33-37M gas (5-8 hop travel + 2 deploys + 4 strikes + feeds + stops). Productive ~0.10-0.12 obols/Mgas.
 
-### Scenario B: vuongdung1198 cycled (defensive=True OR top candidates absent)
-- DENY vuongdung1198.
-- Pivot to Fins (5 candidates @ node 16, EERIE+SCRAP affinity). Travel 33→16 dry_run first; if ≤6 hops, viable. Top: 11958 SCRAP +21 (11224, below +25 floor — wait), 857 EERIE +17 (12649, below floor).
-  - **Fins cluster has NO above-floor candidate**. Single-strike attempts only — risky revert.
-- Or pivot to KAMI cluster @ node 10 — only 2 candidates, rule #4 borderline. Check hops.
+### Scenario B: vuongdung1198 cycled, Fins also defensive (unlucky)
+- Pivot to KAMI single 6641 +92 (12649 strike). Rule #4 — single target deny unless travel ≤4 hops.
+- If travel >4 hops: hold at 33, re-wake +60 min for vuongdung1198 14233/10288 to ripen above floor (unlikely unless cluster restarts).
+- Or stay productive: build infrastructure (P4).
 
-### Scenario C: All clusters dry/below-floor
-- Hold at room 33. Re-wake +60 min for vuongdung1198 ripen (+18 HP/h × 1h = +18 HP boost on 8337 +13 → +31 above floor).
-- Or build infrastructure: P4 ask `recent_kill_count_5min` field for proactive heat-check on burst-impact owners.
+### Scenario C: vuongdung1198 still passive (unlikely)
+- vuongdung1198 has no above-floor remaining. 14233 needs +5 ripen to hit +25 floor (~20 min at +18 HP/h). Wait?
+- More likely: pivot to Fins regardless. The 6-kill burst makes lingering at node 33 low-EV.
 
-### Scenario D: New cluster surfaced unexpectedly
-- HOT_NODES expansion (17 nodes) may surface new clusters as upstream owners cycle in/out. Read `by_node` for any new high-density node (≥5 candidates).
+### Scenario D: All clusters defensive/dry
+- Hold at node 33. Re-wake +45-60 min for re-baseline.
+- Or build P4 infra (cooldown-aware striker scheduler, heat-burst threshold lowering).
 
 ---
 
 ## Priority 3 — Hard limits
 
-- **Gas budget session 109**: 25M (zero-travel chain or short pivot only).
-- **2-STRIKE PER STRIKER CHAIN CEILING — UPDATED DOCTRINE** (2026-05-03):
-  - At affinity-match node OR target V≤32: 3-strike chain feasible (validated session 106).
-  - At non-affinity node + target V≥34: HARD 2-strike ceiling (validated session 107).
-  - Empirical floor by V: V32 = 3-strike survivable, V35-36 = 2-strike kills striker.
-- **Read `health.sync` after strikes — but verify with feed-test**. sync=0 + state=HARVESTING is ambiguous (artifact when pre-touch); feed_kami revert = confirmed dead.
-- **Plan revives as routine, not emergency.** Red Ribbon Gummy stock 296 (plenty).
-- **No stop_harvest after death** — silent-skips waste gas. Revive first.
-- **2 reverts in a row → end session.**
+- **Gas budget session 110**: 35M (potential travel 33→16 ≈ 6-10M; 4-strike chain ≈ 22-25M; stop ≈ 2.3M).
+- **2-STRIKE PER STRIKER CHAIN CEILING**:
+  - Affinity-match OR target V≤32: 3-strike feasible (validated 106, 109).
+  - Non-affinity + target V≥34: HARD 2-strike ceiling (validated 107).
+- **Post-deploy cooldown ≥95s real-time** (validated 109). Always sleep 95-100s after harvest_start before first strike.
+- **Read `health.sync` after strikes — verify with feed-test** if sync=0 ambiguous.
+- **Plan revives as routine** (Red Ribbon Gummy stock 296).
+- **No stop_harvest after death** — revive first.
+- **2 reverts in a row → end session.** (cooldown-reverts not counted; only true precondition reverts.)
 - **stefan97 + foden deny-all** until `defensive_cycle == False`.
-- **3333333333333333 cluster denied** until owner_heat resets (idle ≥60 min + 0 new bulk-stops in next 6h window).
-- **vuongdung1198 heat-check mandatory** before re-engagement (3-kill burst risk).
+- **3333333333333333 cluster denied** until owner_heat resets (idle ≥60 min + 0 new bulk-stops in 6h window).
+- **vuongdung1198 deny-all next session** if heat shows defensive_cycle=True OR bulk_stop_windows_6h ≥1.
 - **Rule #4 inviolable**: no migration for single/dual targets unless cluster ≥4 with positive obol math.
 - **Session length cap**: ≤25 min wall-clock.
 
@@ -79,39 +82,40 @@
 
 ## Priority 4 — Build asks (deferred, async)
 
-- **`recent_kill_count_5min` field in heat-check** — surface owners hit by 3+ kills in past 5 min for proactive defensive-cycle re-test next watcher cycle. Auto-suppress in killable_v2 once burst threshold crossed. **Updated**: lower threshold to **3 kills** based on session-108 evidence (vuongdung1198 may have cycled at 3, 3333333333333333 confirmed cycled at 4).
-- **Chain-strike ceiling V-aware** — pre-compute "this striker can chain N safe strikes here" using `target_V × node_affinity_match` lookup. Encode V32 → 3-strike, V35+ → 2-strike doctrine.
-- **Cooldown probe helper** — small utility that polls `kami_state.time.cooldown` and reports "ready in N seconds" to skip blind 95s waits.
-- **Sync HP read after strike doctrine** — wrap `liquidate` to auto-read `health.sync` post-tx AND auto-feed-test if sync=0 to disambiguate live-vs-dead.
-- **Bigger-feed option** — Honeydew Scale (+75) less than cookie. Golden Apple (+150) extends chain by 1 but only 1 in stock. Check shop for +200 food (worth budgeting MUSU).
-- **Cluster ripen prediction** — estimate "owner X cluster will yield N additional kills in M hours" given strain rate + current margins. Decision-support for "wait at node vs migrate now."
+- **Pre-strike cooldown helper** — small wrapper that polls cooldown_ts, waits adaptively rather than blind 95s. Saves dead time on long deploys + reduces revert risk.
+- **`recent_kill_count_5min` field** — surface owners hit by 3+ kills in 5min for proactive heat re-test. Lower threshold to **3 kills** (vuongdung1198 cycle at 6, 3333333333333333 cycle at 4 — both above 3).
+- **Cumulative-burst owner tracker** — count kills per owner per 24h rolling window; auto-suppress at 4+ regardless of fresh heat data (lagging indicator). Would have suppressed vuongdung1198 in session 109 P0 read.
+- **Chain-strike ceiling V-aware lookup** — pre-compute "this striker can chain N safe strikes here" using `target_V × node_affinity_match`. V32→3, V35+→2.
+- **Cooldown probe helper** — utility polling `kami_state.time.cooldown` for "ready in N seconds" instead of blind waits.
+- **Bigger-feed option** — check shop for +200 food (Honeydew Scale +75, Golden Apple +150). Could extend chain by 1.
+- **Cluster ripen prediction** — estimate "owner X cluster yields N kills in M hours."
 
 ---
 
 ## Priority 5 — Post-session
 
 - Append `predator/metrics.md` and `memory/decisions.md`.
-- If session 109 yields 0 kills + vuongdung1198 confirmed cycled, escalate +60 min and devote session 110 to P4 build (chain-strike-ceiling V-aware OR `recent_kill_count_5min`).
-- If session 109 yields 2+ kills validates Scenario A doctrine; carry forward to session 110.
+- If session 110 yields 0 kills + all clusters defensive, escalate +60 min and devote session 111 to P4 build (cumulative-burst tracker is highest-priority).
+- If session 110 yields 4 kills validates Scenario A doctrine and 4-target chain economics; carry forward.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Strikers regen RESTING ~25-30 HP in 45 min → near-full HP. vuongdung1198 has 7 above-gate remaining; passive heat-check pending — 3-kill burst at threshold may have triggered cycle. Top-2 (2685 +31, 2882 +29) viable for 11224 zero-travel chain if cluster passive. Watcher refreshes 9 cycles in 45 min, surfacing any new HOT_NODES candidate. **Pin justified**: striker regen + watcher refresh + cluster heat re-baseline."
+**Pin**: "vuongdung1198 6-kill cumulative pressure (3 last session + 3 this session) — defensive cycle response near-certain in 30-60 min. Watcher refresh 6 cycles in 30 min surfaces (a) heat update on vuongdung1198, (b) Fins heat data (currently None — populates as actions occur in 60min query window), (c) any cluster shifts. Striker HP regen complete by re-wake (already at max post close-feed). **Pin justified**: heat-cycle observation + watcher refresh + zero-cost wait while strikers regen."
 
-**Re-wake**: +45 min from session end (~12:10 UTC, timestamp 1777810739).
+**Re-wake**: +30 min from session end (~13:00 UTC, timestamp 1777813412).
 
 ---
 
 ## Out of scope
 
-- 4 stale strikers (6058, 12225, 15540, 10705) presumed orphaned at room 86 — recovery session deferred.
-- Modifying canonical kill_threshold formula — production-validated through 35 kills.
+- 4 stale strikers (6058, 12225, 15540, 10705) presumed orphaned at room 86 — recovery deferred.
+- Modifying canonical kill_threshold formula — production-validated through 38 kills.
 - 11224 SP allocation (3 unspent SP) — defer until next strategy review.
 - Quest progression, kamibots state reads, force-flush.
 - Engaging stefan97 / foden absent owner_heat clearance.
 - Migrating for single/dual targets.
 - **Engaging 3333333333333333 absent extended idle reset.**
-- **Engaging vuongdung1198 absent post-session-108 heat-check pass.**
+- **Engaging vuongdung1198 if defensive_cycle=True or bulk_stop_windows_6h ≥1.**
 - **3rd strike per striker at non-affinity node if target V≥34 — INVIOLABLE.**

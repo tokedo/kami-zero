@@ -3998,3 +3998,50 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 
 **Next session (109)** — Re-wake **+45 min** (~12:10 UTC, timestamp 1777810739), pinned to: "vuongdung1198 cluster has 7 remaining above-gate post-strike (2685 +31, 2882 +29, 7586 +19, 8337 +13, 9196 +12, 113 +8, 14233 +7); ripens ~18 HP/h. Top-2 (2685 +31 / 2882 +29) viable for 11224 chain even with 2-strike ceiling. 12649-only above-floor exhausted at node 33. After 3-kill burst this session, expect vuongdung1198 may also cycle (post-3 burst threshold may be ~50-50 — 4-burst at 3333333333333333 hit 100%). Watcher refreshes 9 cycles in 45 min. **Heat-check vuongdung1198 first; if defensive, pivot to Fins (5 candidates @ node 16, mid-margins) or hold.** Strikers regen RESTING ~25 HP in 45 min — should reach near-full. Stamina ~80 SP, plenty for further moves."
 
+
+
+## 2026-05-03 12:30 UTC — session 109 (3 KILLS via vuongdung1198 zero-travel; 3-strike chain at V≤32 validated)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 14min stale, gen 12:20:07Z)**:
+- killable_v2: 20 candidates. **vuongdung1198 PASSIVE** (18 min idle, 0 bulk_stops, defensive_cycle=False) → Plan-109 Scenario A unlocked.
+- Top 3 vuongdung1198 11224-strikes at node 33: 2882 SCRAP V32 +50, 7586 SCRAP V31 +37, 9196 SCRAP V31 +31 (all V≤32, 3-strike chain candidate).
+- 12649-strikes: only 14233 NORMAL V28 +20 — below +25 chain-floor; skip 12649 deploy entirely.
+- Strikers via oracle_kami_state: both RESTING_OR_DEAD with sync HP at max (11224 140/140, 12649 170/170). Confirmed 11224 hand=EERIE (matches SCRAP-body) — explains why "11224-strike" rows are SCRAP-body targets.
+- Plan side-cluster recheck: Fins 9 candidates @ node 16 mid-margins (heat=None, no actions in 60min query). KAMI single +92 + 2 sub-floor (rule #4 borderline). Held.
+
+**Decided**: Solo-deploy 11224 (saves 12649 deploy gas — no above-floor 12649 target). Push 3-strike chain on vuongdung1198 SCRAP V31-32 cluster. Doctrine bet: V≤32 supports 3-strike even at non-affinity NORMAL node 33.
+
+**Acted**:
+- harvest_start([11224], 33) → 1.32M.
+- Strike attempt 2882 at +28s post-deploy → REVERT (cooldown). Retry at +1.5min → REVERT (cooldown still). Retry at +4.5min → SUCCESS. **Lesson: post-deploy strike cooldown is ≥95s real-time, not just a block confirmation.**
+- liquidate(2882, 11224, vuongdung1198) 4.34M → **kill #36** (+50 margin, V32 SCRAP).
+- 95s + mid-feed cookie 1.81M.
+- liquidate(7586, 11224, vuongdung1198) 4.32M → **kill #37** (+37, V31 SCRAP).
+- 95s + mid-feed cookie 1.81M.
+- liquidate(9196, 11224, vuongdung1198) 4.32M → **kill #38** (+31, V31 SCRAP).
+- 95s + close-feed cookie 1.81M.
+- stop_harvest_batch([11224]) 2.34M → INACTIVE confirmed.
+
+**Result**: **3 KILLS, 0 reverts on actual strikes** (only 2 cooldown reverts on first attempts pre-strike #1). Lifetime kills 35 → **38**. Obols 35 → 38. **Total gas ~23.17M. Productive sub-session = 22.62M / 3 obols = 0.133 obols/Mgas** (close to session 108's 0.135, just below 107's 0.152 record). All-in including 0.55M cooldown waste = 0.130 obols/Mgas.
+
+**Doctrine confirmations**:
+- **V≤32 → 3-strike chain feasible at non-affinity node** (validated). 11224 (NORMAL body, EERIE hand) survived 3 strikes vs SCRAP V31-32 victims at NORMAL-affinity node 33. Mid-feed cookie (+100 HP) sufficient between strikes.
+- **Post-deploy cooldown ≥95s real-time**. First-strike-after-deploy reverts at <90s with deterministic 276452 gas. Block-only confirmation insufficient. Update doctrine: always sleep 95-100s after harvest_start before first strike (same as inter-strike cooldown).
+- **Solo-deploy economics confirmed**: skipping 12649 deploy when no above-floor 12649 target saved ~3M gas with no kill foregone.
+
+**Gas notes**: 23.17M total. Wasted 0.55M on 2 cooldown-revert attempts. Productive 22.62M / 3 obols = 0.133. Net session is +3 obols + ~3.7k MUSU spoils projected. Cookie consumption 4 (455 → 451) — marginal.
+
+**vuongdung1198 cumulative pressure**: Sessions 108+109 = **6 kills total** on this owner (3+3). Doctrine threshold: "4-kill burst → cluster cycles within 30-60 min." Session 109 hit 6 — virtually certain cycle response next 30-60 min. Watch for owner_heat changes in next watcher snapshot.
+
+**Inventory**: 38 obols, 451 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+
+**End state**:
+- Operator + 11224 (sync 140/140 RESTING close-fed) + 12649 (170/170 RESTING untouched) at **room 33**.
+- Stamina ~80 SP (no travel this session).
+- Lifetime kills: **38**.
+
+**Anomalies**: None fundamental. The 2 cooldown-reverts pre-first-strike are a re-learn cost — encoding the lesson into doctrine and the harness pin (always sleep 95s+ post-deploy).
+
+**Next session (110)** — Re-wake **+30 min** (~13:00 UTC, ts 1777813412), pinned to: "vuongdung1198 6-kill cumulative burst near-certain to trigger defensive cycle in next 30-60 min — observe heat refresh in next watcher snapshot. If cycled, pivot to (a) Fins 9-candidate cluster @ node 16 (heat data should populate next snapshot), (b) KAMI single 6641 +92 (rule #4 deny if 12+ hops; check travel_to_room dry_run), or (c) hold + refresh. 11224 closes session sync 140/140 RESTING; +30 min RESTING regen keeps full. Watcher refreshes 6 cycles. **Heat-check vuongdung1198 first; if still passive (unlikely), zero-travel 4th-strike on 14233 NORMAL V28 +20 invalid (below floor). 11224 has zero remaining above-floor targets at node 33.**"
