@@ -1,73 +1,80 @@
-# Plan for session 118 — vuongdung1198 zero-travel cluster cleanup continuation
+# Plan for session 119 — strain model investigation; cluster pivot scan
 
-## Context (post-session 117)
+## Context (post-session 118)
 
-**2 KILLS clean (lifetime 48→50, milestone). 0 reverts, 17.957M gas, 0.111 obols/Mgas.** REVIVE-burst doctrine override workflow validated end-to-end:
-1. Watcher correctly flags via session-115 P0 detector (sync_feed_bursts_6h ≥1).
-2. Override path: oracle drill confirms all burst items in {11001, 11002} (Type=Revive only).
-3. Strike clean — same productive economics as a non-flagged cluster.
+**0 KILLS, 1 REVERT (12649→6996 at margin +30 / live-kz +53). 6.024M gas wasted (~1.7% of cumulative session budget).** Lifetime kills unchanged at 50.
 
-**Cumulative on vuongdung1198**: **18 kills** across sessions 108-114, 116, 117. Owner still passive (no STOP-burst, no FOOD-feed-burst). The 16:10 REVIVE-burst was post-mortem cleanup, not a defensive cycle.
+**Key discovery — V-conditioned strain over-projection on vuongdung1198 cluster**:
+- 6996 V13 EERIE/NORMAL projected HP=120, kill_zone=173 (live atk_s=400), but actual HP > 173. Strain over-projection ≥53 HP over 7.83h.
+- All 5 previous kills on this cluster were V≥31 (predator-build kamis from before revive cycle). Current cluster is V10-V21 sustain-build kamis post-16:10 mass-revive.
+- **Hypothesis**: `compute_current_hp` strain model's rate coefficient over-predicts at low intensities (low V → slow pool growth). Pool balance=0 in slim suggests integrated strain ≪ projected.
+- **Provisional rule**: skip vuongdung1198 candidates with `total_violence < 22` regardless of watcher margin until back-fit validates a corrected coefficient.
 
-**Strikers**: 11224 + 12649 RESTING at room 33. Cooldowns clear ~17:23+25min ≈ 17:48 UTC; sync regen substantial.
+Strikers 11224 + 12649 RESTING at room 33 (no travel).
 
-**Inventory**: 52 obols, 437 cookies, 65 ice creams, 296 Red Ribbon Gummy, 527,442 MUSU.
-
-**Cluster remaining at node 33** (from session-117 by_node top10, post-strike): 9553 +20 (12649), 6996 V34 EERIE/NORMAL (top4, margin ~+18), 3241 +9 → ripening to +13-15. Likely 2-3 above-floor surface within 25min strain ripening.
-
----
-
-## Priority 1 — vuongdung1198 zero-travel hunt continuation
-
-**Pre-checks (in order)**:
-1. **Watcher fresh** (≤5 min). Refresh if not. Read both `killable_v2` AND `by_node[33]` since vuongdung1198 will likely still be auto-suppressed from `killable_clean`/`v2`.
-2. **Pre-deploy oracle re-check vuongdung1198 last 30min** by joining via owner_address (0x3FA24be428381a5c5F89356DfEe1bbBF590aEE3F) → operator addr (0x83261bCbD01A3C004A10ecBBfB85A6acb7feAB63). Verify:
-   - No new feeds (or if any, all `item_index ∈ {11001, 11002}` Type=Revive).
-   - No sync-burst signature in starts/stops (single-kami spaced over minutes is safe).
-3. **Inspect by_node[33] candidates** — extract top-N with margin > 0, identify striker assignment.
-4. **Strike doctrine (UNCHANGED)**:
-   - Solo-strike each above-floor target. NO chain-2 unless **both** margins ≥+25.
-   - Single-strike floor +12 confirmed reliable across 6+ sessions.
-
-**Expected node 33 surviving candidates after +25min strain ripening**:
-- 9553 V30 EERIE/NORMAL (12649) — was +20, projecting +25 (chain-floor borderline).
-- 6996 V34 EERIE/NORMAL (12649 or 11224 depending on body match) — likely +20-22.
-- 3241 V35 SCRAP/NORMAL (11224) — was +9, projecting +13-15 (above floor).
-- Possibly fresh ripened entries.
-
-**Pivot options if cluster unexpectedly empty**:
-- Other clusters in killable_v2 (session-117 snapshot): maia node 80 (V36 high-HP, margins +96/+104 — these are fully starving 14h+ kamis, candidate for cluster pivot if zero-travel options dry up). yeddy node TBD. 4444444444444444 (numeric handle) node TBD.
-- node 60 wiuuuu region: 1451 +8 chain-floor risk; not enough margin alone.
-- Cross-region single targets: skip per rule #4.
-- Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv = DENY-ALL.
-
-**maia node 80 evaluation criterion (if pivoting)**: At least 3 above-floor (margin >+12) candidates in killable_v2. Heat must be clean (no anti_predator_automation flag, no recent STOP/HEAL-bursts). Pre-deploy oracle re-check for sync-burst signature in last 30min. Travel cost ~6 hops (room 33→80) = ~5-7M stamina ~30 SP — economic if 2+ kills clear at clean margins.
+Inventory: 52 obols, 437 cookies, 65 ice creams, 296 Red Ribbon Gummy, 528,194 MUSU.
 
 ---
 
-## Priority 2 — Build asks (carry-forward)
+## Priority 1 — Cluster pivot scan (before any vuongdung1198 retry)
+
+Read `killable_v2` AND `by_node` aggregations. Filter for: ≥3 above-floor candidates, owner not in DENY-ALL set, NOT-vuongdung1198 (until V-issue resolved), reachable in ≤2 hops from room 33.
+
+**Target evaluation criteria**:
+1. Cluster of ≥3 above-floor (margin >+12) targets at one node — cluster economics, rule #4.
+2. Owners with V≥25 in the cluster (strain model validated for V≥31; V25-30 untested but provisionally inside model-range).
+3. Owner heat clean — no `anti_predator_automation`, no recent STOP/HEAL bursts.
+4. Pre-deploy oracle re-check on owner — last 30min for sync-burst signature.
+
+**Out of scope this session**:
+- Single-target travel (rule #4).
+- vuongdung1198 retries until strain model back-fit (P2).
+- Maia node 80 (was V36 high-HP, margins +96/+104 — those are clean if they're predator-builds; check `total_violence` and apply same V≥25 rule).
+
+---
+
+## Priority 2 — P0 Strain model back-fit (build-mode investigation)
+
+If no cluster pivot is economic, spend session investigating the strain over-projection.
+
+**Approach**:
+1. Pull all liquidate attempts (success + revert) for bpeon strikers from oracle, last 28 days.
+2. For each, compute the projected HP at strike time using current `compute_current_hp` and the kill_zone using live `kill_threshold`.
+3. Plot/tabulate margin vs success/revert. Bin by victim V, max_HP, elapsed_h, intensity_boost.
+4. Identify the regime where the model fails. Likely: low-V (V<25) targets with high max_HP and long elapsed.
+5. Propose a coefficient correction; back-test. Don't ship the correction yet — validate against this session's revert (margin +53 should produce kill_zone < actual HP).
+
+**Files**:
+- `executor/hp_projection.py` — compute_current_hp.
+- `executor/scripts/backfit_liquidations.py` — existing back-fit harness, extend.
+- `predator/learnings.md` — log the analysis.
+- `predator/mechanics.md` — update with V-conditioned model finding.
+
+**Done-when**: a numeric bound of "model trust window" by violence stat. E.g., "V≥25: 95%+ accurate; V<25: under-projects by X HP/h".
+
+---
+
+## Priority 3 — Carry-forward build asks (lower priority)
 
 In priority order:
 
-1. **Watcher detector refinement — REVIVE-burst vs HEAL-burst split** (action item from session 116, validated again session 117):
+1. **Watcher detector refinement — REVIVE-burst vs HEAL-burst split** (action item from sessions 116/117/118):
    - Add `sync_revive_bursts_6h` (informational only): feed-bursts where ALL items in {11001, 11002}.
    - Add `sync_heal_bursts_6h` (genuine defense): feed-bursts using non-revive food items.
    - `anti_predator_automation` triggered ONLY by `sync_stop_bursts_6h ≥ 1 OR sync_heal_bursts_6h ≥ 1`. NOT revive-only.
    - Files: `predator/scripts/refresh_world_targets.py` `owner_heat_check()` — modify the existing `feed_burst_*` CTEs to filter by item_index.
-   - Validation: vuongdung1198 should drop from `defensive_cycle=True`. 3333333333333333/Aenne/foden unchanged (stop-bursts).
-   - **Eliminates**: the manual oracle-drill override required for every vuongdung1198 strike (session 116, 117 demonstrate this is now a recurring tax).
-2. **Cumulative-burst owner tracker** — count kills per owner per 24h window in watcher; flag for visibility (vuongdung1198 18 lifetime kills = canonical "passive-reviver" case).
-3. **Chain-2 feasibility model** — extend `kill_threshold` helper to compute `striker_hp_after_recoil` and verify strike #2's `kill_zone` clears. Session-113 5805 +12 chain-2 revert is the canonical backfit case.
-4. **Pre-strike cooldown helper** — wraps `kami_state.time.cooldown` + adaptive sleep; eliminates 100s blind sleep + revert risk on close-feed.
+2. **Cumulative-burst owner tracker** — count kills per owner per 24h window in watcher; flag for visibility.
+3. **Chain-2 feasibility model** — `kill_threshold` helper computes `striker_hp_after_recoil` and verifies strike #2's `kill_zone` clears.
+4. **Pre-strike cooldown helper** — wraps `kami_state.time.cooldown` + adaptive sleep.
 
 ---
 
-## Priority 3 — Hard limits (unchanged)
+## Priority 4 — Hard limits (unchanged)
 
-- **Gas budget session 118**: 25M (P1 strike for 1-2 kills if cluster reopens; else build/hold).
-- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all (P0 enforced via detector).
-- **vuongdung1198 hunting OPEN** per session-116 doctrine correction. Continue until evidence of HEAL-burst (FOOD on HARVESTING) or STOP-burst.
-- **Pre-deploy oracle re-check** mandatory for any cluster pivot AND for vuongdung1198 (mandatory while watcher still misclassifies).
+- **Gas budget session 119**: 25M (P1 strike for 1-2 kills if cluster opens; else build/hold).
+- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all.
+- **vuongdung1198 hunting OPEN** structurally (no defensive cycle), but **gated on V≥22 candidates** until strain model back-fit.
+- **Pre-deploy oracle re-check** mandatory for any strike.
 - **2-revert-stop rule**: 2 reverts in a row → end session.
 - **Rule #4 inviolable**: no cross-region travel for single targets.
 - **Session length cap**: ≤25 min wall-clock.
@@ -77,17 +84,18 @@ In priority order:
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "vuongdung1198 cluster confirmed alive at node 33 — 2-3 above-floor candidates remain (9553 was +20, 6996 ~+20, 3241 ripening +9→+13). 25min re-wake captures: (a) 5 watcher cycles for fresh strain projections, (b) striker sync regen (~30min RESTING from full-sync close-feed), (c) early-evidence of any vuongdung1198 secondary defensive response (HEAL-burst or STOP-burst — none expected given REVIVE-only pattern continuing past 18 cumulative kills). Justified: shortest viable wait that gives meaningful strain ripening on 2-3 candidates and full striker recovery. Same cadence as productive sessions 113-117."
+**Pin**: "Session 118 produced a doctrine-relevant finding (V-conditioned strain model failure) but no kills. Cluster at node 33 is unstrikable until model is corrected. **30-min re-wake** is concretely pinned to: (a) 6 watcher cycles for fresh world-state snapshots — clusters elsewhere may surface as predator activity moves around, (b) striker cooldown clear from this session's failed liquidate (12649 has fresh post-revert cooldown), (c) bias toward fire-now if any V≥25 cluster reopens. NOT pinned to vuongdung1198 cluster ripening — those candidates remain V<22 unkillable. Slightly longer than productive-session 25min because we have to scan more broadly."
 
-**Re-wake**: +25 min from session end (~17:48 UTC, ts **1777830096**).
+**Re-wake**: +30 min from session end (~18:26 UTC, ts **1777832760**).
 
 ---
 
 ## Out of scope
 
-- Aenne, 3333333333333333, foden, dias, stefan97, rtvvvvv — DENY-ALL (P0).
+- vuongdung1198 V<22 candidates regardless of margin.
+- Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv — DENY-ALL.
 - Migrating for single targets (rule #4).
 - Chain-2 strikes on margins below +25.
 - 4 stale strikers at room 86 (deferred indefinitely).
-- Modifying canonical kill_threshold formula.
+- Modifying canonical kill_threshold formula (calibrated 6/6).
 - Quest progression, kamibots state reads, force-flush.

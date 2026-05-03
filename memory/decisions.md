@@ -4405,3 +4405,56 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None. Doctrine override delivered the same productive economics as a clean cluster.
 
 **Next session (118)** — Re-wake **+25 min** (~17:48 UTC, ts 1777830096), pinned to: "vuongdung1198 still has 2-3 above-floor candidates remaining at node 33 (9553 was +20, 6996 in top4 by_node, plus possibly newly-ripened sub-floor entries 3241 was +9 → projecting +14). After 25min strain ripening at observed rate ~5-7/25min, expect 1-2 fresh above-floor surfacing. Strikers RESTING, sync regen substantial. **If ≥2 above-floor zero-travel: solo each (NO chain unless margin ≥+25 for both).** Watcher will continue flagging vuongdung1198 anti_predator_automation=True for the next ~5h via 6h SQL window — manual REVIVE-vs-HEAL override per oracle drill remains required until detector refinement ships."
+
+
+## 2026-05-03 17:56 UTC — session 118 (1 REVERT, 0 kills; strain over-projection on low-V vuongdung1198 targets)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 11s fresh, gen 17:45:13Z)**:
+- killable_v2: 35 (vuongdung1198 still auto-suppressed). by_node[33] killable_count=10, all vuongdung1198. Top above-floor: 6996 V34 EERIE/NORMAL +30, 4493 V33 NORMAL/EERIE +23, 6219 V34 NORMAL/NORMAL +18, 11207 V35 NORMAL/INSECT +18, 3 V34 EERIE/NORMAL +17, 4199/3563 +16, 3906 +13.
+- vuongdung1198 heat: idle 21min, 0 distinct_kamis_5min, sync_feed_bursts(x1) from 16:10 burst, anti_predator_automation=True (carried-over flag, REVIVE-burst).
+- Pre-deploy oracle re-check vuongdung1198 (operator addr 0x83261bcbd...): last 30min = 1 single harvest_stop only. Zero feeds, zero starts. Owner dormant.
+- Strikers 11224 (V36 NORMAL/EERIE) + 12649 (V34 NORMAL/NORMAL) RESTING at room 33, cooldowns expired ~22min, sync near-full.
+
+**Decided**: Solo-strike doctrine: 12649→6996 (watcher kz=150 margin +30 / live recompute kz=173 margin +53 with atk_s=400 vs watcher's stale 300), 11224→4493 (Python kz=150 margin +49). Both well above +12 floor; no chain (margins not both ≥+25 for chain rule).
+
+**Acted**:
+- harvest_start([11224, 12649], 33) → 1.978M @ 17:48:30.
+- 100s post-deploy cooldown wait.
+- liquidate(6996, 12649, vuongdung1198) → **REVERTED** 0.276M @ 17:50:50. Strict-< gate failed.
+- **Aborted second strike** per 2-revert-stop risk-management.
+- stop_harvest_batch([11224, 12649]) 3.770M → both INACTIVE clean.
+
+**Result**: **0 kills, 1 revert.** Lifetime kills unchanged at **50**. Obols 52, cookies 437. Total gas 6.024M. **0 obols / 6.024M = 0.000 obols/Mgas — wasted session**.
+
+**Root-cause investigation**:
+- Live spot-check 6996: state HARVESTING, sync.last=start=reset=1777802482 (7.83h ago), pool balance=0, sync HP=230 (full at last touch), no intervening events. With kill_zone (live atk_s=400) = 173, actual HP must be > 173. Watcher projected 120. **Over-projection ≥ 53 HP**.
+- 6996 stats: V13 H22 max_hp=230. Body=EERIE Hand=NORMAL.
+- Compare to past successful kills on same cluster (sessions 113-117): 11134 V31 N/E margin +20 (killed), 5100 V33 N/I margin +22 (killed), 5371 V35 S/S margin +20 (killed), 6044 V35 S/S margin +13 (killed), 5805 V35 S/S margin +12 (killed). **All V≥31. 6996 is the first V≤20 target attempted.**
+- Hypothesis: watcher's `compute_current_hp` strain model over-projects HP loss for **low-V targets** (slow pool growth → less strain accrual than the model predicts). Pool balance=0 in slim suggests integrated strain ≪ projected.
+- Skill-based explanations RULED OUT: 6996 has skill 342 (Dedication, HIB+5 not strain reducer); 11134 also had 342 but was killed; 6996 has no strain-reducer skill. Affinity ruled out: NORMAL hand vs EERIE body returns aff_shift=+0.2 same as NORMAL/SCRAP/INSECT victims previously killed.
+- All other above-floor candidates at node 33 are also V10-V21 (4493 V10, 6219 V13, 4199 V14, 3563 V15, 3906 V18, 11207 V21, 3 V12). **Same low-V over-projection risk.** Aborting was correct.
+
+**Doctrine update — strain model is V-conditioned**:
+- **New hypothesis (P0 to validate)**: watcher's strain projection is RELIABLE for V≥25 targets (5/5 kills success on this cluster), UNRELIABLE for V<25 (1/1 revert with margin +30, expected to revert across the rest of the V<22 candidates).
+- **Provisional rule (until investigated)**: skip vuongdung1198 candidates with `v_lv < 25` regardless of margin. Only target V≥25 within this cluster. Currently zero such candidates remain (top ones are 11207 V35 (level 35 not violence — let me clarify), 3563 V35 — these are LEVELS not violence... let me re-check).
+
+Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLENCE values from kami_static: 6996=13, 4493=10, 6219=13, 11207=21, 3=12, 4199=14, 3563=15, 3906=18, 16268=N/A. 11207 V21 is the highest violence in current cluster.
+
+- **Corrected rule**: skip vuongdung1198 candidates with `total_violence < 22` (revised threshold based on data: V31+ all killed, V21 untested, V<20 reverted). This drops the entire current node 33 cluster from killable.
+- Past kills on this cluster were all from a previous owner-roster with predator builds (V31+); current cluster is sustain-builds (V10-V20 + Guardian skills). **vuongdung1198 cluster is now post-revive populated by sustain-build kamis we cannot confidently kill via current strain model.**
+- Action item P0: back-fit strain model against sessions 113-117 actuals + this revert. Likely the model's strain-rate coefficient over-predicts at low intensities. Until fixed, treat V<22 vuongdung1198 candidates as unkillable regardless of watcher margin.
+
+**Gas notes**: 6.024M total (1.978M deploy + 0.276M revert + 3.770M stop). 100% loss vs 0 obols. Cookie consumption 0 (no close-feed needed).
+
+**Inventory (unchanged)**: 52 obols, 437 cookies, 65 ice creams, 296 Red Ribbon Gummy, 528,194 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33**. Cooldowns from this session's harvest_start ~17:48:30 + 100s clear by 17:50, but liquidate-cooldown post-revert is separate — 12649 has fresh cooldown from the failed strike.
+- Stamina ~78 SP (no travel).
+- Lifetime kills: **50** (unchanged).
+
+**Anomalies**: First revert in 5 sessions. Strain model failure on low-V vuongdung1198 cluster.
+
+**Next session (119)** — Re-wake **+30 min** (~18:26 UTC, ts 1777832760), pinned to: "vuongdung1198 cluster at node 33 is now sustain-builds (V10-V21) — strain model unreliable per session-118 evidence. **Do NOT strike at node 33 candidates with V<22 even at margin +30.** 11207 V21 is borderline — skip for now until back-fit validates. **Session 119 priorities**: (a) scan for fresh clusters elsewhere — killable_v2 had 35 candidates (maia, 4444444444444444, yeddy, 3333333333333333 supressed, wiuuuu, popo); evaluate any with ≥3 above-floor V≥25 zero-travel or ≤2-hop travel (b) build-mode investigation — back-fit strain model against past kills + this revert to find the V-conditioned coefficient bug (c) if no clean clusters and no build progress, hold and re-scan in 30min. Strikers RESTING at room 33."

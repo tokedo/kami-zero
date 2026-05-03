@@ -52,3 +52,7 @@ session, started_at, ended_at, gas_spent_gwei, musu_spent, musu_balance_end, obo
 | 115 | 2026-05-03 16:18Z | 2026-05-03 16:25Z | 0 | 0 | ~681 | 0 | 0 | (none) | 33 | n/a | build-only; P0 sync-feed burst detector shipped (vuongdung1198 16:10 mass-heal pattern flagged); 0 strikes (cluster appeared cleared, later corrected as REVIVE not HEAL) |
 | 116 | 2026-05-03 16:51Z | 2026-05-03 16:58Z | 17.99 | 2 | ~681 | 2 | 0 | 11304:2 | 33 | n/a | doctrine correction REVIVE-vs-HEAL (item 11001 Type=Revive fires only on DEAD, NOT defensive); manual override of watcher defensive_cycle=True; 11134 +20 V31 NORMAL/EERIE, 6044 +13 V35 SCRAP/SCRAP; cumulative=16 |
 | 117 | 2026-05-03 17:15Z | 2026-05-03 17:23Z | 17.96 | 2 | ~681 | 2 | 0 | 11304:2 | 33 | n/a | 2 KILLS zero-travel vuongdung1198 (5371 V35 SCRAP/SCRAP +20, 5100 V33 NORMAL/INSECT +22); REVIVE-burst override per session-116 doctrine (oracle-verified all 16 feeds at 16:09-16:11 were item 11001 Type=Revive, no FOOD); cumulative=18 still passive; 0 reverts |
+
+session 118, 2026-05-03T17:48Z, 2026-05-03T17:56Z, 6.024M gas, 0 obols, 0 MUSU,
+  0 kamis_liquidated, 0 interrupted_kamis, items_consumed: (none), nodes_visited: 33,
+  claude_tokens_used: , notes: 1 revert (12649→6996 V13 EERIE/NORMAL margin +30 watcher, +53 live atk_s=400). Strain model over-projection on low-V vuongdung1198 cluster post-revive. All current node 33 candidates V≤21. Aborted second strike per 2-revert risk-management. P0 build-ask: back-fit strain model conditional on V.
