@@ -4363,3 +4363,45 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 
 **Next session (117)** — Re-wake **+25 min** (~17:18 UTC, ts 1777828216), pinned to: "vuongdung1198 still has 3 above-floor candidates remaining at node 33 (5100 +14, 5371 +12, 9553 +10); after 25min strain ripening these likely +18 / +16 / +14. 11134 and 6044 are now dead — vuongdung1198 may stack them for next revive cycle. Strikers RESTING ~30+ min, sync regen substantial. **If 3 above-floor zero-travel: solo each (NO chain).** If watcher still flags vuongdung1198 defensive (likely — 6h SQL window): manual override per session-116 mechanics.md doctrine, verify via `oracle_sql` that bursts are item 11001/11002 only, then strike. Watcher refinement (REVIVE vs HEAL split) deferred to a build-mode session."
 
+
+## 2026-05-03 17:23 UTC — session 117 (2 KILLS at vuongdung1198 zero-travel; doctrine override held)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 6s fresh, gen 17:15:11Z)**:
+- killable_v2 33, killable_clean 50. Top owners in v2: maia, 4444444444444444, yeddy, 3333333333333333, wiuuuu, popo. **Zero vuongdung1198 in killable_clean OR killable_v2** — auto-suppressed by `anti_predator_automation=true` (session-115 P0 detector flagging the 16:10 sync-feed-burst, x1).
+- by_node node 33 top10 has the cluster intact: **5100 V33 NORMAL/INSECT +22 (12649), 9553 V30 EERIE/NORMAL +20 (12649), 5371 V35 SCRAP/SCRAP +20 (11224), 6996 V34 EERIE/NORMAL** in slot 4 — 11 killable rows total at node 33. All `fresh_feed_since_start=False`, elapsed 7-10h.
+- Pre-deploy oracle re-check vuongdung1198: queried by owner_address (0x3FA24be428381a5c5F89356DfEe1bbBF590aEE3F) joined to operator addr (0x83261bCbD01A3C004A10ecBBfB85A6acb7feAB63 — the actor on their kamis). Last 60min: **0 feeds**, 5 single-kami harvest_starts (16:17/16:37/16:43/16:51/17:08), 2 single-kami harvest_stops (16:32/16:35). All single-kami spaced over minutes, NOT a sync-burst. Pattern = post-revive harvest re-deployment.
+- **Verified the 16:09-16:11 burst items**: 16 feed actions, ALL `item_index=11001` (Red Ribbon Gummy, Type=REVIVE per items.csv). Zero FOOD-type items. Confirms session-116 doctrine: this is a REVIVE-burst (post-kill recovery on DEAD targets), NOT a HEAL-burst (food on HARVESTING). Override `defensive_cycle=True` flag manually.
+- Strikers 11224 + 12649 RESTING at room 33. Cooldowns expired ~25min. Inventory: 50 obols, 439 cookies, 65 ice creams, 296 Red Ribbon Gummy, 527,442 MUSU.
+
+**Decided**: Solo-strike highest-margin per striker (NO chain — both margins below +25 floor). 11224→5371 (+20 V35 SCRAP/SCRAP). 12649→5100 (+22 V33 NORMAL/INSECT, affinity-match).
+
+**Acted**:
+- harvest_start([11224, 12649], 33) 1.978M @ 17:18:14.
+- 100s post-deploy cooldown wait.
+- liquidate(5371, 11224, vuongdung1198) → **kill #49** +1 obol (V35 SCRAP/SCRAP, +20 margin), 4.381M @ 17:19:59.
+- liquidate(5100, 12649, vuongdung1198) → **kill #50** +1 obol (V33 NORMAL/INSECT, +22 margin), 4.375M @ 17:20:04.
+- 100s post-strike cooldown wait.
+- feed_kami(11224, 11304) 1.812M; feed_kami(12649, 11304) 1.797M.
+- stop_harvest_batch([11224, 12649]) 3.614M → both INACTIVE clean.
+
+**Result**: **2 KILLS, 0 reverts**. Lifetime kills 48 → **50** (milestone). Obols 50 → **52**. Cookies 439 → **437**. **Total gas 17.957M. 2 obols / 17.957M = 0.111 obols/Mgas** — matches sessions 111/112/114/116 productive baseline. 0 waste.
+
+**Doctrine confirmations**:
+- **REVIVE-burst override workflow validated end-to-end.** Watcher correctly flagged via session-115 P0 detector (sync-feed burst x1). Manual override path: oracle drill confirms all burst items in {11001, 11002} → override safe. Session 117 strike succeeded clean. **Action item**: ship the watcher refinement (sync_revive_bursts_6h informational vs sync_heal_bursts_6h defensive) so this becomes automatic.
+- vuongdung1198 cumulative now **18 kills** (sessions 108+109+111+112+113+114+116+117 = 3+3+2+2+2+2+2+2). Owner still passive — no STOP-burst, no FOOD-feed-burst. The 16:10 REVIVE-burst was the only "response" and it's deterministic post-mortem cleanup.
+- Two more above-floor candidates remain at node 33 after this session: 9553 +20 (12649), 6996 (margin not directly captured but in by_node top4). Cluster has more juice.
+
+**Gas notes**: 17.957M total. Zero waste — 0 reverts, no travel cost. Cookie consumption 2 (437 left).
+
+**Inventory**: **52 obols**, 437 cookies, 65 ice creams, 296 Red Ribbon Gummy, 527,442 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 33**.
+- Stamina ~78 SP (no travel).
+- Lifetime kills: **50** (round-number milestone).
+
+**Anomalies**: None. Doctrine override delivered the same productive economics as a clean cluster.
+
+**Next session (118)** — Re-wake **+25 min** (~17:48 UTC, ts 1777830096), pinned to: "vuongdung1198 still has 2-3 above-floor candidates remaining at node 33 (9553 was +20, 6996 in top4 by_node, plus possibly newly-ripened sub-floor entries 3241 was +9 → projecting +14). After 25min strain ripening at observed rate ~5-7/25min, expect 1-2 fresh above-floor surfacing. Strikers RESTING, sync regen substantial. **If ≥2 above-floor zero-travel: solo each (NO chain unless margin ≥+25 for both).** Watcher will continue flagging vuongdung1198 anti_predator_automation=True for the next ~5h via 6h SQL window — manual REVIVE-vs-HEAL override per oracle drill remains required until detector refinement ships."
