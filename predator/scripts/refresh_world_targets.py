@@ -30,7 +30,13 @@ GUILD_PATH = REPO_ROOT / "predator" / "guild-no-touch.csv"
 
 # Hot-list nodes to scan. Update via CLI flag or expand here.
 # Note: nodes the operator can travel to + currently-hunting clusters.
-HOT_NODES = [86, 60, 73, 25, 62, 9, 30, 82]
+# Expanded session 106: dropped node 30 (1 row in 24h, dead). Added high-traffic
+# missing nodes from oracle_top_nodes 3d window — covers more SCRAP/EERIE/
+# INSECT/NORMAL biomes for hot-node expansion (Plan-106 P4 build-ask).
+HOT_NODES = [
+    86, 60, 73, 25, 62, 9, 82,           # original (minus dead node 30)
+    16, 88, 89, 10, 15, 83, 33, 76, 35, 34,  # session-106 additions
+]
 
 # bpeon's striker roster (kept here for tactical-decision speed; refresh on respec).
 STRIKERS = [
