@@ -1,5 +1,19 @@
 # Alerts
 
+### 2026-05-03 04:35 UTC (session 98) — Mid-session pivot bypassed pre-deploy heat-check; stefan97 cycle defense re-engaged
+
+Plan-98 was Yeahta @ node 73 (wait or zero-travel strike). Watcher snapshot (gen 04:25Z) showed 16 stefan97 candidates +6 to +49 at node 86 — pivoted plan to that cluster mid-session. **Skipped the pre-pivot heat-check** (session-93 doctrine: dominant farmer last-action <5 min + ≥10 active kamis = monitored). Travel 73→86 (9.94M) + deploy (2.02M) + 2 cookie feeds (3.77M) = 15.7M committed before live spot-check.
+
+stefan97 bulk-stopped + bulk-started ~3 min after my deploy (04:31:37 stop / 04:31:46 start; 143 stops + 116 starts past 12h via oracle). 7 prime watcher candidates spot-checked all RESTING/INACTIVE. Single strike fired before diagnosis: REVERTED 0.29M (target not HARVESTING). Stopped batch (3.70M cleanup), capped loss.
+
+**Doctrine fix (now MANDATORY)**: any mid-session plan pivot to a new target node must run an activity-heat oracle query on the dominant farmer BEFORE travel. If `MAX(block_timestamp) > NOW() - INTERVAL '5 minutes'` AND that farmer has ≥10 active kamis at the node, abort the pivot. Plan-99 carries this as a hard precondition.
+
+**Watcher fix (deferred — build task)**: stefan97 should be on an owner-blacklist in the watcher cron, suppressed from `killable_clean` unless their account has been idle ≥4h. See ideas_to_founder.md for the ask.
+
+**Action**: no harness bug, just plan-discipline failure. Documented in predator/learnings.md § "Session 98 (2026-05-03) — stefan97 cycling pattern reconfirmed".
+
+# Alerts
+
 ### 2026-05-03 03:55 UTC (session 97) — 30-min `timeout` cap dropped a partial session
 
 A prior session-97 attempt fired ~03:13 UTC (cron after plan-96's next-run-at 03:08), did substantial on-chain work, and **failed to commit** before the `timeout 30m` cap in `scripts/run-session.sh` killed it. Sequence reconstructed from chain + oracle action stream + git status (no commit = no state snapshot):

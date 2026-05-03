@@ -3414,3 +3414,47 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 - Yeahta cluster post-haircut: 3699 (+14, 12649 striker), 2836 (+13, 11224 striker), 3470 (+9, 11224 striker) — all below gate, need ripening.
 
 **Next session (98)** — Re-wake **+30 min** (~04:23 UTC, timestamp 1777782192), pinned to: "Yeahta 3699 ripening at +14 watcher, observed strain rate ~18 HP/hr from kill targets — needs ~+16 HP drop to cross +30 gate ≈ 50-60 min from watcher snapshot. Re-wake +30 min as midpoint. If 3699 crossed +25-30 → strike with 12649. Else extend wait or pivot to node 30 kingisonchain 9901 (+52, 12649 striker, 8-hop migration via stamina-tight path)."
+
+
+## 2026-05-03 04:35 UTC — session 98 (0 KILLS, ~19.7M GAS — pre-pivot heat-check missed)
+
+**ETH balance**: not measured.
+
+**Perceived**:
+- Plan-98 P1.A (Yeahta @ node 73) — watcher (gen 04:25Z) showed Yeahta candidates all <+30 (3699 +25, 2836 +26, 3470 +25). Plan called wait or +30 ripening check.
+- Watcher also showed 16 stefan97 candidates at node 86 +6 to +49 (top: 9673 +49 SCRAP, 3109 +46 INSECT, 11605 +46 INSECT, 10987 +40 INSECT, 8402 +35 INSECT, 196 +34 EERIE, 12479 +32 EERIE, 17117 +30 INSECT).
+- Both strikers RESTING at room 73: 11224 sync 100/140 (71%), 12649 sync 99/170 (58%).
+
+**Decided**:
+- Pivoted from plan-98 to node 86 stefan97 dual-deploy + chain-strike. Reasoning: 8 above-gate candidates was too rich to wait on Yeahta ripening.
+- **MISTAKE**: did NOT run session-93 pre-deploy heat-check on stefan97 before committing travel. (Doctrine documented in predator/learnings.md § Session 93, plan-94 P1; not echoed in plan-98.)
+
+**Acted**:
+- 04:25 `travel_to_room(86)` — 11 hops 73→74→75→68→67→18→76→77→84→83→85→86, 9.94M gas, stamina 74→20, no items.
+- `harvest_start([11224, 12649], 86)` 2.02M, both ACTIVE.
+- 80s deploy cooldown wait.
+- `feed_kami(11224, cookie 11304)` 1.89M restored 100→140 max.
+- `feed_kami(12649, cookie)` reverted nonce mismatch; retry 1.88M restored 99→170 max.
+- `liquidate(9673, 11224, "stefan97")` **REVERTED 0.29M** — target RESTING/INACTIVE.
+- Spot-checked 6 more stefan97 candidates (3109, 11605, 10987, 196, 8402, 12479, 17117) — **all RESTING/INACTIVE**.
+- Oracle SQL across stefan97: 143 harvest_stops + 116 harvest_starts past 12h. **Most recent cycle: 04:31:37 stop / 04:31:46 start** — 9-second synchronized bulk-stop/restart, ~3 min after my deploy. Same defensive automation as session 93 (room-arrival monitor) but now extended with auto-restart.
+- `stop_harvest_batch([11224, 12649])` 3.70M, both INACTIVE, 0 MUSU pool (no productive harvest time).
+
+**Result**:
+- **0 kills, 0 obols, 0 MUSU spoils, 19.72M gas burnt.** Worst session of the predator era.
+- Doctrine confirmed (re-confirmed): stefan97 has automated room-arrival defense + cycling restarts. Plan-93 doctrine should have prevented this.
+
+**Gas notes**:
+- 9.94M travel + 2.02M deploy + 3.77M cookies + 0.29M revert + 3.70M stop = 19.72M.
+- 1 nonce-mismatch revert on cookie feed (zero-cost retry).
+- Single deep revert 0.29M cooldown-style (target was RESTING — different revert reason than threshold deep revert).
+
+**Anomalies**: stefan97 cycle behavior now includes **automatic bulk-restart after bulk-stop** — every defensive cycle resets all kamis to strain=0 and re-deploys. Session 93's doctrine ("avoid unless asleep ≥30 min") is too generous; stefan97 cycles every <2h, capping max strain accumulation. Effective rule: skip stefan97 entirely until a multi-hour idle gap is observed in oracle.
+
+**Inventory consumed**: 2 cookies (11304).
+
+**End state**:
+- Operator + 11224 (140/140) + 12649 (170/170) RESTING at room 86. Stamina 20 (low — no return travel possible without ice cream restoratives or natural regen).
+- Plenty of inventory: 484 cookies, 66 ice creams + 10 better, 1056 ghost gum, 463 candyfloss.
+
+**Next session (99)** — Re-wake **+45 min** (~05:21 UTC, timestamp 1777785000), pinned to: "stamina at 20 needs ~45 min for natural regen to ~25-30. Watcher refreshes every 5 min — 9 cycles in window. By 05:21: (1) stefan97 will be ~50 min into latest cycle (still strain=0, no candidates); (2) Yeahta cluster ripening ~50+ min beyond watcher's 04:25 snapshot — 3699 may have crossed +30; (3) TC node 60 may have new in-margin candidates from natural ~7-9h cycler. Travel 86→73 = 11 hops back, 86→60 needs stamina restoration. Plan-99 prioritizes (a) pre-pivot heat-check mandatory, (b) Yeahta-back-via-73 if any +30 candidate, (c) wait at 86 if no clean pivot."

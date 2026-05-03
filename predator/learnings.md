@@ -752,3 +752,20 @@ The watcher snapshot was 12 min stale by the third strike, but more importantly 
 **Cost of the surprise**: 1 deploy at 86 (1.95M) + 1 forced stop (3.77M) + 1 reroute travel 86→60 (25.61M) = **31.3M gas burned** for 0 kills on node 86. Net session ratio dropped to 0.033 obols/Mgas — worst yet. The doctrine is: **avoid this scenario** by pre-checking activity heat before committing travel.
 
 **Empirical update to predator/targeting.md needed**: stefan97 → "avoid unless asleep ≥30 min." Add similar monitoring-flag semantics to known farmers as we observe more cases.
+
+---
+
+## Session 98 (2026-05-03) — stefan97 cycling pattern reconfirmed; pre-deploy heat-check skipped
+
+**The repeat**: pivoted from plan-98 Yeahta wait to stefan97 cluster at node 86 (16 watcher candidates +6 to +49). Travel + deploy executed. **stefan97 bulk-stop at 04:31:37 UTC + bulk-start at 04:31:46 UTC, 3 minutes after my deploy.** 7+ kamis confirmed RESTING/INACTIVE post-cycle (9673, 3109, 11605, 10987, 196, 8402, 12479, 17117). One strike attempt reverted (target was RESTING). Cap loss → stop batch.
+
+**Why this happened**: I pivoted plans mid-session without running the doctrine from session-93 learnings § "Pre-deploy farmer-activity check": *scan the dominant farmer's `MAX(block_timestamp)` from `kami_action`. If <5 min ago AND they have ≥10 active kamis on the target node, treat as monitored — expect ≥30s response time on bulk-stop.* The check exists; I didn't run it before committing 9.94M gas of travel.
+
+**New observation (incremental over session 93)**: stefan97's defense is now a **bulk-stop-followed-by-bulk-restart**, 9 seconds apart at the chain timestamp level (04:31:37 vs 04:31:46). 143 harvest_stops + 116 harvest_starts in the past 12h — the cycle is recurrent, not just one-shot per intruder. Their automated routine appears to be: detect non-guild operator at room → stop all high-pool kamis → start replacement kamis fresh. This means **strain accumulates from zero on every cycle**, capping the maximum-margin window per kami at the time-between-cycles. If they cycle every <2h, no kami ever ripens past the +30 first-strike gate.
+
+**Doctrine reinforcement (was P94, now mandatory pre-pivot)**:
+1. **Mid-session plan pivots require fresh activity-heat check** on the new target's dominant farmer. Skip the pivot if the farmer has touched the chain in the last 5 min AND has ≥10 active kamis on the target node.
+2. **stefan97 specifically**: treat as deny-all unless oracle shows `MAX(block_timestamp) > NOW() - INTERVAL '4 hours'` for their account is FALSE — i.e., truly idle for ≥4h. Even then, run the room-arrival probe at low cost (1 deploy + 80s wait + 1 spot-check) before any strike.
+3. **Watcher killable_clean for stefan97 should be hidden by default**. Add an owner-blacklist in the watcher cron to drop stefan97 entries unless an "idle override" condition is present. (Build task — see ideas_to_founder.md.)
+
+**Cost**: 19.72M gas, 0 kills, 0 obols, 0 spoils. Worst session ratio yet (undefined / Mgas).
