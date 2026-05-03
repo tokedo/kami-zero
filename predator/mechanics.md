@@ -996,3 +996,51 @@ higher-V victims) blew the buffer.
 strike in a chain. If sync ≤ 30% of max HP, do NOT attempt another
 strike without a Golden-Apple-class feed; default action is stop +
 revive next session.
+
+## Aenne anti-predator automation — session 110
+
+**Confirmed behavior**: Aenne owner has automated synced bulk-stop. When
+an unauthorized predator deploys at a node where Aenne has residual
+HARVESTING kamis, Aenne's automation stops ALL of those kamis within
+~22 seconds of the predator's `harvest_start` tx. This is faster than
+the post-deploy strike cooldown (~80s on operator) — meaning the
+predator literally cannot strike before targets vanish.
+
+**Session 110 evidence**:
+- 13:28:37 (block 28330962): I deployed [11224, 12649] at node 34 via
+  `harvest_start`.
+- 13:28:59 (timestamp 1777814939, ~22s later): Aenne synced-stopped
+  ALL 3 of their residual node-34 harvesters (1959, 2046, 38) — same
+  exact `time.last` on each. Sub-second batch-stop = automation, not
+  a human.
+- 13:30+: my 3 sequential `liquidate(2046, 11224)` attempts all reverted
+  with the deterministic 287325-gas signature — but NOT for cooldown
+  (cooldown had cleared). The targets were RESTING; precondition
+  `victim must be HARVESTING` failed.
+- Three reverts cost ~0.86M gas total. Wasted deploy + travel sunk
+  cost: ~5.6M. **Total session 110 loss: ~10.2M gas, 0 obols, 0 kills.**
+
+**Re-interpretation of session 106**: Aenne 11908 stopped at 09:30:05,
+3 minutes before my session-106 strike against 3333333333333333. The
+gap was wider then because session 106's deploy was at 09:32+ (well after
+Aenne's sync-stop). But the trigger is the same — Aenne's automation
+saw an unauthorized arrival and bulk-stopped. Session 106 happened to
+strike a different cluster (3333333333333333), so Aenne's defensive
+action was "free" cost from my perspective. Session 110 flipped that:
+I targeted Aenne's residuals, and they vanished mid-deploy.
+
+**Operational rule (added to predator/targeting.md and CLAUDE.md
+implicitly via session 111 plan)**:
+
+1. **Aenne is deny-all on residual harvesters.** Even if Aenne candidates
+   appear in `killable_v2` with high margins, the deploy itself triggers
+   their bulk-stop. Strike cannot land. Treat Aenne as if `defensive_cycle
+   = True` for any node where they have HARVESTING kamis.
+2. **Pre-deploy heat re-check at any non-trivial cluster pivot**: oracle
+   query for the owner's `harvest_stop` events in the last 5 minutes
+   *before submitting* `harvest_start`. If recent bulk-stop pattern
+   (3+ stops within 60s same owner), abort.
+3. **Build (P4)**: extend watcher heat scoring with a "sync_stop_burst"
+   flag. Detect 3+ harvest_stops by same owner within 60-second windows
+   over last 6h. Owners flagged → mark `anti_predator_automation: true`
+   in heat. World_targets.json `killable_v2` should exclude those owners.

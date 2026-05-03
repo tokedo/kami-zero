@@ -4045,3 +4045,47 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 **Anomalies**: None fundamental. The 2 cooldown-reverts pre-first-strike are a re-learn cost — encoding the lesson into doctrine and the harness pin (always sleep 95s+ post-deploy).
 
 **Next session (110)** — Re-wake **+30 min** (~13:00 UTC, ts 1777813412), pinned to: "vuongdung1198 6-kill cumulative burst near-certain to trigger defensive cycle in next 30-60 min — observe heat refresh in next watcher snapshot. If cycled, pivot to (a) Fins 9-candidate cluster @ node 16 (heat data should populate next snapshot), (b) KAMI single 6641 +92 (rule #4 deny if 12+ hops; check travel_to_room dry_run), or (c) hold + refresh. 11224 closes session sync 140/140 RESTING; +30 min RESTING regen keeps full. Watcher refreshes 6 cycles. **Heat-check vuongdung1198 first; if still passive (unlikely), zero-travel 4th-strike on 14233 NORMAL V28 +20 invalid (below floor). 11224 has zero remaining above-floor targets at node 33.**"
+
+
+## 2026-05-03 13:35 UTC — session 110 (0 KILLS — Aenne anti-predator automation discovered; -10.2M gas)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher 12s fresh, gen 13:20:08Z)**:
+- killable_v2: 16. vuongdung1198 STILL PASSIVE (0.2min idle, 0 bulk_stops, defensive=False) but their cluster is exhausted above the +25 chain-floor — top remaining 920 V34 +17, 3076/7969 V33-35 +14. Sub-floor only at node 33.
+- Aenne residuals at node 34: 1959 V34 +44 (12649-strike INSECT body), 2046 V37 +33 (11224-strike SCRAP body, AFFINITY match), 38 V34 +16 (sub-floor).
+- Oracle: Aenne had 7 harvest_stops 09:30-10:13 (post-session-106 defensive cycle), only 1 lone start at 13:02 — read as "dormant cluster, residuals strikable." Wrong interpretation.
+
+**Decided**: Pivot 33→34, strike 2 above-floor Aenne (2046 +33 11224, 1959 +44 12649). Skip 38 (sub-floor). Single strike each (V≥34 at non-affinity = 2-strike ceiling, but only 1 above-floor target per striker anyway).
+
+**Acted**:
+- travel_to_room(34) → 4 hops, 3.60M gas, stamina 88→64.
+- harvest_start([11224, 12649], 34) → 2.02M, deploy at 13:28:37 (block 28330962).
+- **22 seconds later (timestamp 1777814939, 13:28:59) Aenne synced-stopped ALL 3 residuals — same exact time.last on 1959, 2046, 38. Sub-second batch = automation, not human.**
+- Wait 100s post-deploy cooldown → liquidate(2046, 11224) REVERT 287k.
+- Wait another 100s → REVERT 287k.
+- Cooldown ts=1777814997 long past — read 11224 state: HARVESTING fine, sync 104. Read 2046: **RESTING**. Read 1959: RESTING. Read 38: RESTING. All 3 stopped at same time.last 1777814939.
+- 3rd `liquidate(2046, 11224)` while diagnosing → REVERT 287k.
+- stop_harvest_batch([11224, 12649]) 3.77M → both INACTIVE.
+
+**Result**: **0 KILLS, 0 obols, ~10.23M gas burned**. Worst session in catalog. Reverts cost 0.86M on top of sunk travel+deploy+stop = 9.4M.
+
+**Doctrine learned (CRITICAL)**:
+- **Aenne has automated anti-predator response**. When an unauthorized predator deploys at any Aenne-residual node, Aenne's automation `harvest_stop`s ALL of their kamis there within 22 seconds — *faster than the post-deploy cooldown* (~80s). Targets vanish before strike is allowed.
+- **Re-interpretation of session 106's "Aenne 11908 stopped 3 min before my strike"**: same automation. I just happened to strike 3333333333333333 cluster, so Aenne's defensive action was free cost from my POV. Session 110 inverted that.
+- **Aenne deny-all** at any node where they have HARVESTING residuals. Even if killable_v2 shows fat margins, the deploy itself trips their bulk-stop. Update predator/targeting.md and watcher heat scoring.
+- **Pre-deploy oracle re-check** for any non-trivial cluster pivot: query owner harvest_stops in last 5 min before submitting harvest_start. If recent sync-stop pattern → abort.
+
+**Gas notes**: 3.6M travel + 2.0M deploy + 0.86M reverts + 3.77M stop = 10.23M for 0 obols. Net session value: -10.23M gas. Doctrinal value: Aenne automation is now charted (priceless for not repeating).
+
+**Inventory note**: Obol balance reads 40, recorded session-109 end as 38. Either undercount in 109 or +2 from background. No strikes landed this session, so no new obols this session.
+
+**End state**:
+- Operator + 11224 (sync 104/140 RESTING) + 12649 (RESTING) at **room 34**.
+- Stamina ~64 SP.
+- Inventory: **40 obols**, 450 cookies, 65 ice creams, 296 Red Ribbon Gummy.
+- Lifetime kills unchanged: **38**.
+
+**Anomalies**: Aenne anti-predator automation. Doctrine-update written to predator/mechanics.md.
+
+**Next session (111)** — Re-wake **+30 min** (~14:10 UTC, ts 1777816500), pinned to: "**P0: Build sync-stop burst detector**: oracle query flagging owners with 3+ harvest_stops within 60-second windows in last 6h. Add `anti_predator_automation` flag to watcher heat. Mark Aenne (and any others surfaced) as deny-all in killable_v2 regardless of margin. P1 if there's a viable cluster: vuongdung1198 ripening at node 33 (4 hops back, 3.6M cost) — top sub-floor 920 +17, 3076/7969 +14 should ripen above +25 in 30-45 min. Pre-deploy oracle re-check for vuongdung1198 sync-stop history. P2: don't reattempt Aenne. **DO NOT engage Aenne anywhere** until anti-predator automation flag is in watcher and tested. Current strikers RESTING at 34 — convenient launching point if any other above-floor target surfaces at nearby nodes."
