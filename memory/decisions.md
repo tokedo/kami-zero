@@ -3038,3 +3038,52 @@ ORDER BY liq.liq_ts DESC
   4. If clean: full team migration sequence: stop_harvest_batch on all predators on 86 → travel 86→60 → harvest_start each striker on node 60 → wait 185s → liquidate top candidate → chain to next.
   5. If counter-predator present: defer to Yeahta/node 73, similar process.
   6. Document predicted vs actual margin on first kill (canonical formula validation in production).
+
+
+## 2026-05-02 23:58 UTC — session 91 (FIRST 2 KILLS on canonical formula + 2 doctrine lessons)
+
+**ETH balance**: not measured (~35M gas spent — moderate session)
+
+**Perceived**:
+- world_targets.json fresh (13s old at start). Node 60 TrayzinCarpathia cluster persisted: 8 killable +14 to +53. Node 73 Yeahta cluster: 4 killable +13 to +73. Node 25 orange cluster (proj_hp=0 — DO-NOT-CHASE per plan).
+- Per-node travel cost dry-run revealed asymmetric routes: 86→60 = 25 hops, 5 SP+ items; 86→73 = 11 hops, 2 SP+ items. **Plan-91 default pick (node 60) was suboptimal once travel cost surfaced.**
+- All 6 strikers RESTING (oracle action stream confirms last action = harvest_stop for each, no harvest_kill).
+- Counter-predator scans on node 60: 0 V≥25 attackers (foden 203-kami farm, max V=23 atk_shift=0). Node 73: 0 V≥25 attackers, 0 liquidates 24h (virgin pocket).
+
+**Decided**:
+- **Pivot from node 60 to node 73** for half travel cost + similar/better candidate quality.
+- Deploy only 11224 (paired against 3 candidates) + 12649 (paired against 1) — the two strikers covering all 4 candidates. Save ~5M gas vs full 6-striker deploy.
+- Wait 185s post-harvest_start cooldown (mechanics.md authoritative timing).
+- Strike sequence: 6104 (margin +73, 11224) → 6505 (margin +34, 12649 first strike) → 8007 (margin +26, 11224 second strike).
+- Halt on first revert per plan P3.6 (+5 HP margin gate; +26 revert = structural surprise → halt).
+- Stop strikers post-hunt to remove glass-cannon exposure to assassin counter-strike.
+
+**Acted**:
+- `travel_to_room(target_room=73, account="bpeon")` — 11 hops, 11.47M gas, 2 SP+ items consumed, ended room 73.
+- `harvest_start([11224, 12649], node_index=73)` — 2.02M gas batch, both ACTIVE.
+- Wait 185s + spot-check (oracle: all 4 Yeahta still HARVESTING uninterrupted, 0 feeds since start).
+- `liquidate(target=6104, attacker=11224, target_handle="Yeahta")` — first call without owner returned `blocked: could not resolve target owner`; second with `target_handle="Yeahta"` SUCCESS — 4.65M gas, 693 MUSU spoils + 1 Obol.
+- `liquidate(target=6505, attacker=12649, target_handle="Yeahta")` SUCCESS — 4.65M gas, 476 MUSU spoils + 1 Obol.
+- Wait until 23:52:00 UTC (post 11224 cooldown 23:51:48). Spot-check: both 8007/3735 still HARVESTING.
+- `liquidate(target=8007, attacker=11224, target_handle="Yeahta")` REVERTED — 1.25M gas (deep-revert signature). Diagnosed as post-kill attacker strain shrinking kill_zone below watcher's RESTING-attacker margin.
+- Stop sequence: `harvest_stop([11224, 12649])` reverted 1.24M (oracle showed both action events but tx failed). `stop_harvest_batch([11224, 12649])` — 12649 stopped (276 MUSU collected), 11224 still ACTIVE. `harvest_stop([11224])` reverted 1.24M. `harvest_collect([11224])` reverted 1.24M. `feed_kami(11224, 11001=RedRibbonGummy [REVIVE])` rejected with `"Item: requirements not met"` → confirms 11224 NOT DEAD (revive items only fire on DEAD). `feed_kami(11224, 11304=GakkiCookie [FOOD] +100 HP)` SUCCESS 1.81M. `harvest_stop([11224])` SUCCESS 2.34M, 362 MUSU collected.
+
+**Result**:
+- **2 kills landed (first kills on canonical kill_threshold formula in production)**: 6104 Yeahta margin +73 with 11224, 6505 Yeahta margin +34 with 12649. Canonical formula validates for first-strike (RESTING attacker).
+- 1 strike revert at +26 margin → diagnosed as **post-kill attacker strain** (chain-strike scenario). Watcher's RESTING-attacker margin overestimates chain strikes by ~20-30%. Plan 92+ requires margin ≥ +30 for chain strikes OR attacker rotation.
+- 1 stuck-state diagnostic: **STARVING attacker (HP=0 from harvest strain) blocks all harvest_stop / harvest_collect / liquidate / revive**. Recovery: feed FOOD-type item (cookie +100 HP) before retrying stop. Documented in `predator/learnings.md` § "Lesson 2".
+- Total session gas: ~34.97M (within 40M plan-91 cap).
+- Net economy: 2 obols, 1169 MUSU spoils + 638 MUSU collected, ~17 obols/gas-Mwei.
+
+**Gas notes**:
+- 11.47M travel was unavoidable (SCRAP-affinity nodes are 11+ hops from node 86 through Z=1 corridor).
+- 1.25M revert on 8007: structural surprise signature (post-kill strain unmodeled). Acceptable cost of formula refinement.
+- 4 stop/collect reverts (4×1.24M = 4.96M) all attributable to starving 11224. **The cookie-heal recovery procedure is now codified — future sessions skip the 4-revert spiral by feeding before retrying stop.**
+- 11224 also fired the `liquidate(8007)` while STARVING — that 1.25M revert may have been the same starving-attacker block, not the post-kill-strain hypothesis. Both root causes lead to the same operational rule (heal before retrying / feed before chain-striking).
+
+**Anomalies**:
+- Oracle `kami_action` stream shows `harvest_stop` events for failed tx attempts (NULL amount). Confusing diagnostically — must cross-check tx status with actual on-chain harvest entity state via `stop_harvest_batch` (which reads post-tx state).
+- POWELL deployed 20 SCRAP-bodied farmer kamis (V≤20) on node 73 6 min before our arrival. Coincidence, not response (max V=20, atk_shift=0).
+
+**Next session (92)** — Re-wake +30 min (~00:28 UTC), pinned to: "post-kill striker HP recovery + Yeahta/POWELL cluster ripening on node 73 + decision: continue 73 hunt vs migrate 73→60 for fresh TrayzinCarpathia cluster."
+

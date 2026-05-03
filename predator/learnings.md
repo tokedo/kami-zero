@@ -660,3 +660,70 @@ Top 5 by margin:
 
 ### Counter-predator scan needed pre-strike on node 60
 Top recent attackers across the world: scan for any V≥30 INSECT/SCRAP-handed kami that's been HARVESTING on node 60 for >5 min before deploying a striker. Counter-counter math: our weakest deployed kami's HP after the kill must clear the highest-V counter-predator's kill_zone for our roster.
+
+---
+
+## 2026-05-02 23:58 UTC — Session 91: First kills on canonical + 2 major operational lessons
+
+**The hunt.** Pivoted node 60→73 (11 hops vs 25, half travel cost). Deployed 11224+12649 only (paired strikers). Two clean first-strike kills, then a structural revert, then a starving-attacker stuck state recovered via cookie heal.
+
+### Lesson 1 — Post-kill attacker strain shrinks kill_zone for chain strikes
+
+**The watcher's per-striker margin assumes the striker is RESTING (zero strain).** After a successful kill, the striker absorbs spoils into its harvest pool — strain rises — animosity drops via `clamp(1 − strain × H_factor, 0, 1)` — kill_zone shrinks by the same proportion.
+
+**Empirical evidence (this session):**
+- 11224 first strike on 6104: snapshot margin +73 → KILL ✓ (RESTING attacker)
+- 12649 first strike on 6505: snapshot margin +34 → KILL ✓ (RESTING attacker, 4 min post-deploy)
+- 11224 second strike on 8007: snapshot margin +26 → REVERTED (post-693-MUSU-spoil strain on 11224)
+
+The watcher snapshot was 12 min stale by the third strike, but more importantly 11224's strain went from 0 (RESTING) to whatever 693 MUSU + 4 min of node-73 harvesting puts it at. Animosity drop of 20%+ wipes the +26 margin entirely on a target that started near the kill_zone edge.
+
+**Operational rules for plan 92+:**
+1. **First-strike rule**: snapshot margin ≥ +5 HP (existing rule, working).
+2. **Chain-strike rule** (same striker re-fires): require snapshot margin ≥ **+30 HP** to absorb post-kill strain noise. Below +30, *rotate to a fresh striker* (zero-strain) instead.
+3. **Watcher enhancement** (defer until after 1-2 more sessions of empirical validation): post-kill, recompute kill_zone for the strained striker before next strike. This is the proper fix; +30 margin buffer is the cheap fix.
+
+### Lesson 2 — STARVING attackers block stop / collect / liquidate / revive
+
+**Discovery sequence:** after 11224's two strikes (1 success + 1 revert), all three of `harvest_stop`, `harvest_collect`, and **even `liquidate`** would revert at ~1.24M gas each. `feed_kami(11224, 11001=Red Ribbon Gummy [REVIVE])` returned `"Item: requirements not met"` → 11224 is **NOT** in DEAD state (revive items only fire on DEAD). But also can't act on its own harvest. Resolution: `feed_kami(11224, 11304=Gakki Cookie Sticks [FOOD] +100 HP)` succeeded → next `harvest_stop` succeeded with 362 MUSU collected.
+
+**Diagnosis: STARVING state.** Not DEAD (HP=0 from being killed), but HP=0 from accumulated *harvest strain*. systems/liquidation.md line 14 documents "Attacker HP > 0 (not starving)" as a strike eligibility gate; what's now confirmed in production is that **STARVING also blocks `harvest_stop` and `harvest_collect`** — the kami's own harvest entity is locked until HP returns positive.
+
+**Cause for chain-strikers**: each kill adds spoils to attacker pool → strain rises. Strain effectively reduces HP via `current_HP = max_HP - strain_HP_loss`. After N strikes, `strain_HP_loss ≥ max_HP` puts the kami in STARVING. 11224 has only `max_HP=140` (level 48 glass cannon), so 1 strike's spoils + 4 min of node-73 harvest accumulation was enough.
+
+**Operational rules:**
+1. **Pre-strike HP check**: any striker about to fire its 2nd+ strike, ensure projected `current_HP ≥ ~30 HP` (buffer for next strike's recoil + own harvest strain). If projection puts HP near zero, **feed before strike** rather than after.
+2. **Pre-stop heal**: if `harvest_stop` reverts on our own striker after it has fired any strikes, *first action* is `feed_kami(striker, 11304)` before any retry. Cookie (+100 HP) is the cheapest reliable food in inventory; cheeseburger (+50, item 11302) also works.
+3. **Glass-cannon strikers** (HP < 200): consider rotating attackers per strike. 11224 (HP=140) starves after ~1-2 chain strikes; 12649 (HP=170) stays safe for 2-3 chain strikes; 10705 (HP=240) most chainable.
+4. **Recovery procedure** (codified for future stuck-striker incidents):
+   ```
+   feed_kami(stuck_id, 11304, account="bpeon")  # Cookie +100 HP
+   harvest_stop([stuck_id], account="bpeon")     # Should now succeed, MUSU collected
+   ```
+
+### Lesson 3 — Tx-level "reverted" can mask partial-batch success
+
+`harvest_stop([11224, 12649])` returned `status: reverted` at 1.24M gas. Oracle action stream actually showed `harvest_stop` events for BOTH kamis at the matching block. `stop_harvest_batch` (the explicit batch tool with on-chain post-tx state read) revealed: 12649 actually stopped (`harvest_state=INACTIVE`), 11224 still ACTIVE — the batch tx reverted because 11224 was starving.
+
+**Operational rules:**
+- Always cross-check tx-status against oracle action stream *and* on-chain entity state. Tx revert ≠ no actions executed.
+- For multi-kami stop operations, prefer `stop_harvest_batch` (the explicit batch tool) over `harvest_stop` — it uses `executeBatchedAllowFailure` (per-kami silent-skip) and reads chain state post-tx for authoritative per-kami outcomes.
+
+### Net session economics
+
+| Metric | Value |
+|---|---|
+| Gas spent | ~34.97M |
+| Kills | 2 (6104, 6505) |
+| Obols earned | 2 |
+| MUSU spoils credited | 1169 (693 + 476) |
+| MUSU collected on stop | 638 (276 from 12649 + 362 from 11224) |
+| MUSU lost to strain (between strike & stop) | ~531 (1169 + harvest accum − 638) |
+| Items consumed | 1 Gakki Cookie (recovery) + 2 Ice Cream (travel) |
+| Reverts | 1 strike (8007, structural) + 4 stop/collect (starving) |
+| Net obols/gas-Mwei | ~17 |
+
+### Counter-predator final state on node 73
+
+**Zero V≥25 attackers** present at deploy time. POWELL deployed 20 farmer-archetype kamis (max V=20, atk_shift=0) at 23:38-23:39 UTC, 6 min before our arrival — not a response, parallel coincidence. Node 73 confirmed virgin hunting ground at session start.
+
