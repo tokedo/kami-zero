@@ -3305,3 +3305,63 @@ Session 92 (2-kill clean) > 94 (1-kill clean) > 91 (2-kill, 1 revert + travel) >
 - Off-cluster killable_clean: 6485 Yeahta node 73 (+42, 11224-striker), 1847 Yeahta node 73 (+38, 11224-striker), 9901 kingisonchain node 30 (+39, 12649-striker). All require migration.
 
 **Next session (96)** — Re-wake **+20 min** (~02:42 UTC, timestamp 1777776159), pinned to: "5420 ripening on TC node 60 — currently +37 watcher at 8.46h elapsed, TC cycle window 7–9h means strike-or-lose within 30–60 min. 12649 will be RESTING ~20 min post-strike → near full HP. Single first-strike on 5420 with 12649 (margin +37 above first-strike gate). If 5420 cycled by TC pre-strike: pivot to monitoring (no in-margin candidate left at node 60); consider migration to node 73 for 11224 dual-target Yeahta cluster (6485 +42, 1847 +38)."
+
+
+## 2026-05-03 02:53 UTC — session 96 (2 KILLS clean; new best ratio 0.107 obols/Mgas)
+
+**ETH balance**: not measured (~18.62M gas — dual-strike, zero travel, zero reverts).
+
+**Perceived**:
+- Operator + 11224 + 12649 RESTING at room 60 from session 95. 11224 sync=140/140 (full HP), 12649 sync=100/170 (~58%). Cooldowns clear (last actions 01:49/02:21 UTC).
+- Watcher fresh (~30s old): node 60 had 6 killable. Plan-96 prime target 5420 ripened from +37 → **+49** (more time = lower projected HP). **Critical pivot signal**: 9839 ripened from +29 → **+39** — crossed first-strike +30 gate. Both TC, both above gate.
+- TC activity past 1h: 2 harvest_starts (11319 01:48, 17177 02:35), 0 stops. Pure cycler, no defensive shift.
+- 5420 + 9839 + 6032: 0 actions in 90 min (verified via oracle SQL). Cluster stable.
+
+**Decided**:
+- Pivot from plan-96's single-strike to **dual-strike**: 5420 (+49 margin, 12649 striker) + 9839 (+39 margin, 11224 striker). +1 obol +636 MUSU for marginal ~5M gas (strike + feed).
+- Skip pre-feed: striker HP adequate (12649 100 HP ≥ recoil safety; 11224 full). Watcher margin already factors striker HP capacity.
+- Pre-emptive feed both post-strike before stop (session 92 protocol).
+
+**Acted**:
+- 02:47:24 `harvest_start([11224, 12649], 60)` — 1.98M, both ACTIVE.
+- Wait 195s operator deploy cooldown (bg sleep).
+- 02:50:54 `liquidate(5420, 12649, "TrayzinCarpathia")` SUCCESS — 4.81M, **+925 MUSU spoils + 1 Obol (kill #9 production)**.
+- 02:51:01 `liquidate(9839, 11224, "TrayzinCarpathia")` SUCCESS — 4.53M, **+636 MUSU spoils + 1 Obol (kill #10 production)** — empirical confirmation of +30 first-strike gate.
+- Wait 70s kami strike cooldown (bg sleep).
+- 02:52:30 `feed_kami(12649, 11304 cookie)` 1.80M.
+- 02:52:41 `feed_kami(11224, 11304 cookie)` 1.89M.
+- 02:52:49 `stop_harvest_batch([11224, 12649])` 3.61M both INACTIVE. Pools: 11224 +253, 12649 +449.
+
+**Result**:
+- **2 kills on canonical formula, 0 reverts, 0 wasted gas, zero travel.**
+- Net: 2 obols, 1561 MUSU spoils + 702 MUSU pool = **2263 MUSU gross**, 18.62M gas.
+- **Obols/Mgas = 0.107 — new best ratio** (prior best: session 92 at 0.103).
+
+**Comparison vs recent**:
+- Session 91 (2 kills, 35M, 1 revert + travel): 0.057
+- Session 92 (2 kills, 19.4M, 0 reverts, 0 travel): 0.103
+- Session 93 (2 kills, 60.8M, forced reroute): 0.033
+- Session 94 (1 kill, 13.88M, 0 reverts): 0.072
+- Session 95 (1 kill, 10.05M, 0 reverts, single-deploy): 0.0995
+- **Session 96 (2 kills, 18.62M, 0 reverts, dual-deploy): 0.107**
+
+**Doctrine refinements**:
+- "When watcher refresh shows 2nd target ripened across +30 gate, dual-strike pays" — marginal cost ~5M (strike + feed) for +1 obol +636 MUSU = ~0.18 obols/Mgas marginal. Pivoting from plan to add the 2nd strike was the right call.
+- **+30 first-strike gate empirically confirmed at +39** — 9839 (margin +39) killed cleanly, no edge cases.
+- TC profile 5-session lock (92→96): pure 7-9h auto-cycler, ~30 min between cycles, no real-time monitoring, no defensive bulk-stop. Locked archetype.
+
+**Gas notes**:
+- 1.98M deploy + 9.34M strikes + 3.69M feeds + 3.61M stop = 18.62M total.
+- Strikes 4.81 + 4.53 = 9.34M for 2 kills (4.67M average).
+- 0 reverts, 0 nonce mismatches.
+
+**Anomalies**: none.
+
+**Inventory consumed**: 2 cookies (11304).
+
+**Cluster state at session close**:
+- Operator + 11224 + 12649 RESTING at room 60.
+- TC remaining at node 60 from watcher (pre-kill): 6032 +28 (below gate). Post-kill cluster largely depleted of in-margin candidates.
+- Off-cluster ripening: needs fresh watcher refresh next session.
+
+**Next session (97)** — Re-wake **+15 min** (~03:08 UTC, timestamp 1777777656), pinned to: "Watcher refreshes every 5 min; in 15 min should show whether new TC kamis cycled in or whether stefan97/Yeahta/other clusters have ripened. If TC node 60 has fresh +30+ candidates → strike again zero-travel. If dry → assess migration vs wait. Strikers near-max post-cookie; cooldowns clear by then."

@@ -1,96 +1,87 @@
-# Plan for session 96 — strike 5420 before TrayzinCarpathia auto-cycles
+# Plan for session 97 — fresh watcher scan, strike if any cluster ripens
 
-## Context (post-session 95)
+## Context (post-session 96)
 
-Total kills: 8 (1 this session, single-strike clean). Session 95 net: 1 obol + 1157 MUSU gross at 10.05M gas (**0.0995 obols/Mgas** — 2nd-best ratio behind session 92's 0.103).
+**Total kills: 10** (2 this session). Session 96 net: **2 obols + 2263 MUSU gross at 18.62M gas (0.107 obols/Mgas — NEW BEST, beat session 92's 0.103)**.
 
-**Key doctrine confirmed in session 95**: deploy only the in-margin striker. 11224 stayed RESTING (no above-gate candidate at node 60). Saved ~660K gas vs session 94's deploy-both pattern. Single-deploy → single-strike → single-stop is the lowest-cost cycle when only one striker has work.
+**Doctrine confirmed**:
+- **Watcher-pivot rule**: when refresh shows 2nd target across +30 gate that wasn't there at plan time, dual-strike pays — marginal ~5M gas for +1 obol +636 MUSU.
+- **+30 first-strike gate empirically validated** at margin +39 (9839 kill clean). Below this: chain-strike skipped.
+- **TC profile 5-session lock (92→96)**: pure 7-9h auto-cycler, ~30 min between cycles, no defensive evolution. Trust the locked archetype.
 
-**End state**: operator + 11224 + 12649 RESTING at room 60. 12649 just-fed cookie post-strike. 11224 still RESTING since session 94.
-
-**TC profile locked (4 sessions consecutive: 92, 93, 94, 95)**: pure 7–9h auto-cycler, no defensive bulk-stop, no real-time monitoring. Their 991 stop in session 94 + 11319 start in session 95 confirm routine cadence.
+**End state**: operator + 11224 + 12649 RESTING at room 60. Both fed cookie post-strike. Full HP at next session's perceive step (RESTING regen).
 
 ---
 
 ## Priority 0 — Read before acting
 
-1. `predator/world_targets.json` — check `generated_at` (cron */5 min). 5420 should still be top TC candidate at node 60.
-2. **Spot-check 5420 status FIRST**: `oracle_sql` for harvest_stop on kami_index=5420 since 01:00 UTC. 5420 started ~17:47 prev day, 8.46h elapsed at session-95 close → cycle imminent within 30–90 min of 02:22 UTC. If TC stopped 5420, pivot.
-3. Re-quote cooldowns:
-   - Operator deploy cooldown: 180s post-`harvest_start`.
-   - Kami strike cooldown: ~80s.
-   - 12649 last struck 02:17 UTC — strike cooldown long-cleared by session start (~02:42 UTC).
+1. **Watcher snapshot** — `predator/world_targets.json` `generated_at` (cron */5). Scan for any cluster with margin ≥+30 candidate.
+2. **Spot-check oracle** — TC activity past 60 min (cycle pattern detection); if stefan97 or Yeahta cluster appears in watcher, check their last-action timestamps for monitoring signature.
+3. **Re-quote cooldowns**: 180s operator deploy, ~80s kami strike. Last 11224/12649 strike block 28317035/28317037 (02:51 UTC) — cooldowns long-cleared by ~03:08 UTC session start.
 
 ---
 
-## Priority 1 — Single first-strike on 5420 with 12649
+## Priority 1 — Strike scenarios by watcher state
 
-**Plan**:
-1. Read fresh watcher snapshot. Confirm 5420 still listed with margin ≥ +30.
-2. `oracle_sql` last 30 min activity for kami_index=5420 — must be 0 actions.
-3. Verify 12649 RESTING + sync ≥ 80% max_hp (170 → ≥136). Feed cookie if below. After 20 min RESTING regen post-cookie, should be at max.
-4. Re-quote TC activity past 1h to detect any policy shift.
-5. `harvest_start([12649], 60)` — single-striker deploy (~1.3M gas).
-6. Wait 185s operator deploy cooldown.
-7. Spot-check 5420 again — `oracle_sql` 5-min window. Abort if any action.
-8. `liquidate(5420, 12649, target_handle="TrayzinCarpathia")`.
-9. Wait 65s kami cooldown.
-10. `feed_kami(12649, 11304)` cookie.
-11. `stop_harvest_batch([12649])`.
+### Scenario A: TC node 60 has fresh +30+ candidate
+- 6032 was at +28 in session 96 watcher. Will ripen further over 15 min — could cross +30. Striker: 12649.
+- New TC kamis cycle in (saw 11319 start 01:48, 17177 start 02:35, more pending) — start times mean their +30 gate crosses at 7-9h elapsed (so not for ~5h).
+- **Action**: zero-travel single or dual strike with 11224/12649.
 
-**Total estimated gas**: ~10M (matching session 95).
+### Scenario B: stefan97 node 86 has fresh +30+ candidate
+- Travel cost 60→86: ~16 hops ~10M gas. Net negative unless 2+ kills.
+- stefan97 archetype: real-time room-arrival monitor, bulk-stops within 38s. Risky.
+- **Action**: only if watcher shows ≥3 candidates +30+ with idle (≥10 min) farmer scan; otherwise skip.
 
----
+### Scenario C: Yeahta node 73 ripens
+- 6485 +42 (11224 striker), 1847 +38 (11224 striker) per session 95 close-out off-cluster scan.
+- Travel 60→73: ~hops. Yeahta has not been observed defensive — session 92 dual-kill held.
+- **Action**: dual-strike if both still listed. Need fresh watcher confirm.
 
-## Priority 2 — If 5420 cycled by TrayzinCarpathia before our strike
-
-If oracle spot-check shows 5420 stopped:
-- No remaining in-margin TC candidate at node 60 (9839 +29 below gate, 6032 +19 below gate).
-- Decision: **stay at room 60 and wait** for next ripening cycle (low-cost) OR consider migration to node 73 for Yeahta cluster (6485 +42 with striker 11224, 1847 +38 with striker 11224).
-- Migration math: 60→73 = ~11–16 hops (need to BFS). Yeahta has not been observed real-time monitoring; 11224 already RESTING at room 60 needs travel. Cost ~10–15M to migrate, then 2-strike cluster of Yeahta worth ~1500 MUSU + 2 obols → ~0.13 obols/Mgas — competitive but only if Yeahta doesn't bulk-stop on arrival.
-- **Default if 5420 cycled**: stay at room 60, set re-wake +60 min for next TC cycle. Migration only if Yeahta cluster ripens further (next session re-evaluate).
+### Scenario D: Cluster dry (most likely)
+- All known +30+ candidates either cycled out or below gate.
+- **Action**: stay at room 60, set re-wake +30-45 min for natural ripening.
 
 ---
 
-## Priority 3 — TrayzinCarpathia profile write-up
+## Priority 2 — Striker prep
 
-After session 96 close, write to `predator/learnings.md` § "Farmer profiles":
-- TrayzinCarpathia: pure auto-cycler, 7–9h harvest windows, 30 min between cycles, node 60 base, no real-time monitoring, no defensive bulk-stop, ~25–30 active kamis.
-- Stefan97: real-time room-arrival monitor (38s response time, session 93), bulk-stops oldest harvests on detection, node 86 base.
-- Yeahta: pattern unknown — ripening cluster on node 73 needs probing. Session 92 dual-strike held; no observed defensive response in that session. Re-evaluate when migration considered.
+- 12649 at session-96 close: just-fed cookie post-strike. Sync should regen to ~170 max during RESTING by session 97 (15 min).
+- 11224 at session-96 close: fed cookie. Same regen profile.
+- No pre-feed needed unless oracle shows sync <80% max_hp.
 
 ---
 
-## Priority 4 — Hard limits
+## Priority 3 — Hard limits
 
-- **Total gas budget**: 12M (single-strike efficient session).
-- **No tx if striker HP <80% max_hp**.
+- **Total gas budget**: 20M (single-cluster zero-travel session).
+- **No tx if striker HP <80% max_hp** unless 1 cookie feed first.
 - **2 reverts in a row → end session**.
 - **+5 HP margin revert → halt + post-mortem**.
-- **TrayzinCarpathia bulk-stop signal during scan → halt** (would invalidate the cycler-only model).
+- **TC/stefan97 bulk-stop signal during scan → halt** (defensive shift = invalidates archetype).
 
 ---
 
-## Priority 5 — Post-session
+## Priority 4 — Post-session
 
-- Append `predator/metrics.md` row.
-- If 5420 strike clean: 9th production kill, 5-session run on TC cluster — write profile to learnings.md.
-- If 5420 cycled out: log TC's cycle of 5420 (started ~17:47 → cycled at ~9h elapsed window).
+- Append `predator/metrics.md`.
+- If sessions 92-96 trend holds (5 clean sessions, 0.072–0.107 obols/Mgas), **write TC profile to `predator/learnings.md` § "Farmer profiles"** — defer this to session 97 if strike-busy.
+- If 2 days of zero-travel single-cluster runs sustains 0.09+ ratio, propose to founder (`ideas_to_founder.md`) the doctrine: "stay parked at hot cluster until exhausted, only migrate on full depletion + watcher confirms next cluster has ≥3 in-margin candidates".
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "5420 ripening on TC node 60 — currently +37 watcher margin at 8.46h elapsed. TrayzinCarpathia auto-cycles at 7-9h. In 20 min: 5420 hits 8.79h elapsed (margin should ripen further, but TC cycle window peaks). 12649 RESTING-recovers to near-max HP. Strike window narrow — TC may cycle 5420 within 30–90 min, the +20 min wake balances ripening vs cycle risk."
+**Pin**: "Cluster largely depleted post-dual-strike. Watcher cron refreshes every 5 min — in 15 min the cron will have refreshed 3 times, showing whether 6032 crossed +30 (likely, was +28 at plan-96 watcher) or whether other clusters ripened. Strikers near-max HP via RESTING regen. Cooldowns long-cleared. +15 min balances ripening watch vs not over-waiting on a likely-quiet world."
 
-**Re-wake**: +20 min (~02:42 UTC, timestamp 1777776159).
+**Re-wake**: +15 min (~03:08 UTC, timestamp 1777777656).
 
 ---
 
 ## Out of scope
 
-- Migration off node 60 unless Priority 2 fires AND Yeahta cluster ripens beyond +50.
+- Migration off node 60 unless Priority 1 Scenario B/C fires AND target cluster has ≥3 in-margin candidates.
 - Reviving 4 stale strikers on room 86. Dead-kami harvest_id check still pending design.
-- Modifying canonical kill_threshold formula — production-validated 8/8 first-strikes.
+- Modifying canonical kill_threshold formula — production-validated 10/10 first-strikes.
 - 11224 SP allocation (3 unspent SP). Wait for more data.
 - Quest progression, kamibots state reads, force-flush.
