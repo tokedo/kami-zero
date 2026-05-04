@@ -4885,3 +4885,48 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) 3203 maia projected +27 margin (+7/h × 30min = +24-25, close to +25 V≥22 floor) — borderline strike candidate; owner cycle still passive.
 - (d) Strikers cooldown long-clear by then; operator stamina partial regen ~70-80 SP.
 - **Out of scope**: 13688 strike at margin <+25 (sub-floor); cross-region travel back to room 50 (operator stays at 76 to monitor next wave).
+
+## 2026-05-04 05:30 UTC — session 128 (0 KILLS, pure HOLD; PuppyPriestess passive confirmed)
+
+**ETH balance**: not measured (zero on-chain transactions).
+
+**Perceived (watcher gen 05:30:12Z fresh, 10s old)**:
+- killable_v2: 27 / killable_clean: 50.
+- **All non-guild V≥22 sb=0 above floor**: only 3203 maia node 80 V32 H18 margin **+25** (borderline single, exactly at floor). Up from +20 last session (+7/h trajectory holds).
+- **All other V≥22 sb=0 ≥+30 are guild_blocked**: thebasement node 89 (8581 +110, 9559 +73, 1443 +63), Gunnar node 31 (13640 +40, 9272 +30, 10266 +29), bb node 10 (926 +32 + def_cycle). DENY.
+- **PuppyPriestess heat reaction confirmed passive**: 13688 V28 H20 sb=0 still HARVESTING node 76 elapsed 8.04h, margin **+18** (was +12 last session, +6 in 40min = +9/h). Oracle action histogram shows 3 stops + 1 start in 24h — all pre-21:27 UTC May 3 (current cycle started 8h ago). minutes_idle=207, anti_predator_automation=False. **Owner did NOT pull 13688 after 3-kill cluster strike** — passive farmer confirmed.
+- **POWELL HEAT-ACTIVE node 76**: `sync_active(idle=0.2min, kamis_5min=22)`, `bulk_stop_x56_in_6h`, `sync_stop_bursts(x29)`. New defensive farmer presence at our current room. Note for future raids on POWELL kamis specifically — cluster-defense automation, but does NOT trigger on PuppyPriestess attacks.
+- **hot_battlegrounds**: node 76 (3 kills / 3h — my session 127) + node 33 (discoverfrank, 2 kills / 3h — fresh hunter activity).
+- Strikers verified RESTING room 76: 11224 + 12649 (no oracle drift check needed; sb both 0, atk_s.shift unchanged from session 127).
+
+**Decided**: HOLD. P1 dry (no non-guild V≥22 sb=0 above +25 floor with ≥+5 buffer). P2 dry (no V<22 sb=0 ≥+95). P3 (3203 ripen) at +25 borderline single = HOLD per plan rule. P4 confirmed passive (PuppyPriestess no automation). P5 deferred (no clean potion-trial target).
+- 13688 in-room sub-floor strike rejected per plan "13688 strike at margin <+25 out of scope".
+- 3203 single-target borderline rejected per plan "Margin +25 to +39 → BORDERLINE single target. Hold unless 2nd V≥22 sb=0 on same node."
+- Operator + strikers stay at room 76 (zero-travel staging for any node-76 emergence; 13688 trajectory likely crosses +25 floor in ~45-60 min).
+
+**Acted**: zero on-chain tx. Read-only verification of watcher freshness, oracle action history for 13688, striker state via `get_account_kamis`.
+
+**Result**: 0 kills, 0 reverts, 0 obols, 0 gas. 4th read-only-or-zero-tx HOLD session in 5 (124=craft, 125=harness, 126=hold, 127=KILL×3, 128=hold). Honest signal of dry world. Doctrine constraint check passed: borderline single rule held even with operator+strikers in-room and free travel.
+
+**Doctrine confirmation**:
+- World V<22 + sb≤−25 dominant for 9 sessions running (118 → 128).
+- PuppyPriestess passive farmer pattern verified post-kill: 4 surviving cluster kamis (13311, 15465, 13767, 12420) all RESTING/HARVESTING-fresh, no defensive cycle. Future PuppyPriestess raids = clean.
+- Non-guild V≥22 sb=0 supply remains thin: 1-3 candidates per scan in 9 of last 10 sessions. Cluster-of-3+ event at PuppyPriestess (session 127) was outlier, not pattern.
+
+**Gas notes**: 0M on-chain. ETH unchanged.
+
+**Inventory (unchanged this session)**: 58 obols, 432 cookies, 65 ice creams, 296 Red Ribbon Gummy, 530,179 MUSU, 4 Apology Letters, 1 Hostility Potion, 1 Empty Cup, 1750 Sanguineous Powder, 1250 Resin Tincture.
+
+**End state**:
+- Operator + 11224 + 12649 + 5 other RESTING kamis at room 76.
+- Operator stamina partial regen (~70-85 SP est. — 30 min idle since session 127's depletion).
+- Lifetime kills: **56** (unchanged).
+
+**Anomalies**: none. World still V<22 / sb≤−25 dominant. POWELL bulk-stop heat at node 76 is new info but doesn't impact PuppyPriestess targets.
+
+**Next session (129)** — Re-wake **+45 min** (~06:15 UTC May 4, ts **1777875322**). Pinned to:
+- (a) **13688 ripen check** — at +9/h trajectory, +45min → margin ~+25-26 (right at floor, still sub-buffer). +60min → +27 (clears floor with ≥5 buffer). Strike-window opens ~06:30 UTC if trajectory holds. **In-room zero-travel** strike on this candidate is valid even as single-target — cross-region rule doesn't apply.
+- (b) 3203 maia projected +30-32 margin (still borderline single, plan rule holds).
+- (c) Watcher refresh × 4 cycles catches any new V≥22 sb=0 cluster emergence at non-guild owners.
+- (d) Operator stamina full (~100 SP) by then; strikers cooldown long-clear; arsenal full (4 letters + 1 potion).
+- **Out of scope**: 3203 single-target +25-39 strike (borderline rule); 13688 sub-+25 strike; POWELL kami strikes (heat-active bulk-stop); cross-region travel; Apology Letter manufacturing (4 in stock, 1 trial done, hoarding above current need).
