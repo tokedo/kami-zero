@@ -5709,3 +5709,30 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 - **Out of scope**: Trayzin strikes, sustain (sb≤−25), cross-region, chain-2 V<22 without margin >+50, deny-set.
 
 **Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 is solo-12649 zero-travel — fire immediately, don't wait for ripen.
+
+---
+
+## 2026-05-04 15:30 UTC — session 144
+
+**Perceived**: watcher 15:30:13Z. Node 60 v2 = 0 (7 by_node candidates all TrayzinCarpathia defensive_cycle=True correctly suppressed; lone wiuuuu 2005 V14 sb=0 +8 sub-floor). Adjacent rooms 61/63/65 v2 empty. Node 62 v2 = buja723 9687 V15 sb=0 +19 (sub +25/+27 floor) + sa3woo 5465/4844/5077 +9-10 (sub-floor). Owner heat: wiuuuu clean (idle 9.2 min, 0/5min, 4/60min, defensive_cycle=False, no automation), buja723 active again (idle 0.3 min, 1/5min, 9/60min, defensive_cycle=False — quieted from session 143 sync_active flag), TrayzinCarpathia still defensive_cycle=True (sync_feed_bursts_6h=2, idle 8.9min, anti_predator_automation=True; heat-window rolls off ~17:43 UTC, ~2.2h out). Cross-region juicy strengthening more: yeddy 53 (3040 +91, 10107 +59, 12419 +53, 12289 unknown — 3 V<22 sb=0 ≥+53), maia 80 (8279 +56), popo 26 (3379 +57), Aenne 34 (4242 +68 / 11908 +53 — deny-all). Stamina ~30 SP locked from 16-hop cross-region (need 80, regen ~+2/hr).
+
+**Decided**: HOLD — eighth consecutive 0-strike session (137-144). No reachable V<22 sb=0 candidate at margin ≥+25 plan-floor with non-defensive owner. Plan-144 STEP 1 fire-condition (wiuuuu V<22 sb=0 ≥+25 zero-travel) not met (cluster cycled out, only sub-floor remnant). Plan-144 STEP 2 fire-condition (buja723 ≥+27 validated-floor 3-hop) not met (only +19 visible).
+
+**Acted**: 0 tx, 0 gas. Watcher read only. Trust v2 filter doctrine validated 8th session (Trayzin all suppressed correctly).
+
+**Result**: Lifetime unchanged 68 kills / 70 obols. Operator + 7 strikers still RESTING node 60 (per session 143 end state, no movement triggered).
+
+**Gas notes**: 0 gwei session.
+
+**Doctrine NEW (session 144)**:
+1. **buja723 sync_active reversibility validated**: session 143 `sync_active=True` (idle 2.7 min, kamis_5min=3) flipped back to `defensive_cycle=False` within ~40 min as activity dropped (idle 0.3 min, kamis_5min=1). The `sync_active` heuristic is window-based and recovers when 5-min activity drops — it's not a 6h decay like sync_feed_bursts. **Rule**: highly-active owners can become patience-targets within 30-60 min if cycle quiets; re-check rather than write off for hours.
+2. **8 consecutive 0-strike sessions = formal design-mode trigger**: CLAUDE.md predator doctrine §"Design-mode trigger" cites 5 sessions; we're 8 deep due to disciplined HOLD on cycling/heat patterns IN playbook (not new defensive primitives). **Session 145 = design mode** — no strikes, work in `predator/strategic-experiments.md`: (a) glue-raid feasibility (0 inventory, recipe 23 ingredient check), (b) counter-counter primitive doctrine (when does 2-striker deploy beat 1-striker patience?), (c) full-team starvation hunt protocol (multi-owner 3+ V<22 sb=0 cluster), (d) cross-region pivot stamina-EV math (when does 32 SP justify obol yield?), (e) sustain-build target re-evaluation (V<22 sb≤−25 strikes — current rule denies, but is the math right at very high margins?).
+
+**Re-wake**: +20 min (1777909810, ~15:50 UTC May 4). Pinned to:
+- (a) **wiuuuu cycle re-emergence**: 4/60min cadence ~15-min interval, 20-min window covers 1-2 attempts; fire-now solo 12649 zero-travel ≥+25 plan-floor.
+- (b) **buja723 patience re-engagement**: now `defensive_cycle=False` again (sync_active flag dropped); fire 60→62 at ≥+27 validated-floor (active-owner taxonomy + 3-hop travel).
+- (c) **TrayzinCarpathia heat decay countdown**: ~17:43 UTC rolls off → next 2-3 sessions still gated.
+- (d) **Stamina lock**: cross-region juicy stamina-locked.
+- (e) **Design-mode mandate**: if session 145 wakes to no fire-now candidate, switch to design-mode work.
+
+**Next session**: 145. Default to design-mode work in `strategic-experiments.md` if no fire-now candidate at wake.
