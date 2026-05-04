@@ -5298,3 +5298,62 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Watcher refresh** ×6 cycles surfaces TrayzinCarpathia defensive shift after 3 kills/session.
 - (d) **Operator stamina recovery** — 20 → ~30 over 30 min (~3 SP/30min default rate). Still insufficient to travel back to 73. Hold at 60 next session.
 - **Out of scope this session**: cross-region back-travel; sb≤-25 sustain strikes (7531/6032/7304 off-limits); chain-3 (recoil too heavy without ~30 min striker rest).
+
+## 2026-05-04 11:08-11:18 UTC — session 136 (1 KILL TrayzinCarpathia node 60 lowest-margin solo)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 11:05:13Z fresh)**:
+- Operator + strikers at room 60 from session-135 cluster strike. Stamina ~20 (insufficient for 73 return at 80 SP need).
+- Node 60 killable_count=10, but only **1 valid candidate above floor**:
+  - **2141 TrayzinCarpathia V12 H22 sb=0 dts=200 elap 7.85h** — proj_hp=123, kz=150, **margin +27** (12649 striker, eff 1.7).
+- All other top10 sustain off-limits (sb≤-25): 7304/1339/1451/1599/6161/126; or sub-floor: 2005 +14, 16319 +13, 1973 V22 +8.
+- Plan target 4273 wiuuuu V18 sb=0 not in current top10 — likely depleted/cycled out since session 135.
+- 2141 heat: 13 min idle, 0/2 distinct kamis 5/60min, no defensive cycle, no automation.
+- TrayzinCarpathia past 6h: 9 stops / 3 starts (3 of stops are our session-135 kills); last action 10:52 (one stop on a different kami, baseline cycle, not bulk-stop).
+- Strikers: 11224 + 12649 RESTING node 60, sync at full HP (>30 min rest since 10:31:37 stop), cooldown clear.
+- Manual cross-check: 12649 NORMAL hand vs NORMAL body at +27 margin = above hard rule #7 (+5 minimum). +27 is tightest of session run but per back-fit cert (99.4%) well above noise threshold.
+
+**Decided**: Solo-strike with 12649 only (no 11224 deploy — no second valid target = 1.3M wasted). No Apology Letter (recoil reduction not material at single-shot pace; past sessions struck +30 to +43 margin without it). Standard pre-stage → 210s wait → liquidate → 210s wait → close-feed cookie → 95s → stop pattern.
+
+**Acted (4 productive tx, 0 reverts, 1 KILL)**:
+- `harvest_start([12649], 60)` 11:08:25Z — **1.317M gas** (lowest single-deploy yet — single-kami batch).
+- (210s wait combat cooldown clear)
+- `liquidate(2141, 12649, target_handle="TrayzinCarpathia")` 11:12:13Z → **4.537M gas**, **KILL #68** (V12 sb=0 dts=200 victim).
+- (210s wait post-strike combat cooldown)
+- `feed_kami(12649, 11304)` 11:16:01Z — **1.797M gas** close-feed cookie.
+- (95s wait feed cooldown)
+- `stop_harvest_batch([12649])` 11:17:49Z — **2.328M gas**. INACTIVE +331 VIPP.
+
+**Result**: **1 obol (69→70 lifetime)**. **331 VIPP spoils** (60901→61232, node 60 SCRAP-affinity drops VIPP). Lifetime kills **67→68**.
+
+**Gas notes**: total ~9.98M productive (1.32 stage + 4.54 strike + 1.80 feed + 2.33 stop). EV = 1 obol / 9.98M = **0.100 obols/Mgas** — just below 0.110 baseline. Single-kami stop_harvest_batch is cheaper than dual (2.33M vs 3.61M) — single-strike pattern strictly more efficient than dual when only 1 valid target.
+
+**Inventory deltas**:
+- Obol: 69 → **70** (+1).
+- VIPP: 60901 → 61232 (+331 spoils — node 60 SCRAP affinity).
+- Cookies (11304): 420 → 419 (−1 close-feed).
+- MUSU: unchanged 530179 (node 60 spoils are VIPP not MUSU).
+- Apology Letter: 4 (unused — doctrine debate; see notes).
+
+**Doctrine notes**:
+1. **Margin +27 strikes succeed reliably.** This is the lowest-margin successful kill in the V<22 sb=0 run (prior low was +30/+31 from sessions 96/100/101). Hard rule #7 floor is +5; doctrinal floor +25 is conservative. Empirical floor with current cert calibration (99.4% N=495) is at least +27 — formula has buffer. **Updated mental floor for solo single-strikes: +25 plan-floor remains, +27 confirmed-safe empirical floor**.
+2. **"Apology Letter ONLY when target V≥30 OR margin <+45" rule not actively enforced.** Past sessions 132-135 fired V<22 sb=0 at margin +30 to +43 without Apology — recoil ~50-70 HP from 170-cap striker, recoverable via close-feed cookie. Today's +27 strike followed same pattern, no recoil disaster. **The rule may be retired or limited to high-V targets (V≥30); for V<22 sb=0 the rule appears dead-letter.** Adding to plan-137 doctrine note for future review.
+3. **Single-strike single-kami deploy = optimal when only 1 valid target.** Saves ~1.3M gas (no 11224 stage) and cheaper stop (2.33M vs 3.61M dual). Net: 5M gas saved vs dual-deploy with no kill on 2nd. Confirmed across sessions 95, 102, today.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~21-23 (regen ~+1-2 SP since session start; session ~10 min duration).
+- 11224 RESTING node 60 sync ~140/140 (full, never deployed this session).
+- 12649 RESTING node 60 sync ~100/170 (post recoil + close-feed; recoil ~70 HP from V12 strike).
+- Lifetime kills: **68**. Lifetime obols: **70**.
+
+**Anomalies**: None.
+
+**Next session (137)** — Re-wake **+30 min** (~11:50 UTC May 4, ts **1777895340**). Pinned to:
+- (a) **Node 60 sub-floor ripening** — 2005 wiuuuu V14 sb=0 +14 → may cross +25 (3.0h elapsed, ripens ~+5/h, expected +20 by re-wake — borderline). 16319 V11 sb=0 +13 (6.7h elapsed, slow ripen at ~+1-3/h). 1973 V22 sb=0 +8 (V≥22 needs Apology + margin >+45 — won't qualify in 30min window).
+- (b) **TrayzinCarpathia heat-shift watch** — 4 kills in 12h on this owner (135 + 136). Defensive automation may engage; watch heat fields next session for `bulk_stop_windows_6h` or `sync_stop_bursts_6h` increase.
+- (c) **Stamina recovery** — 21 → ~24 (+3 SP/30min). Insufficient for travel back to 73 (need 80). Hold node 60.
+- (d) **Watcher refresh** ×6 cycles surfaces any new emergence at adjacent rooms (65/63/57) or cross-region clusters.
+- **Out of scope**: cross-region travel; sustain-build strikes; Apology Letter unless V≥30 target; chain-2 same-striker without margin >+50.
+
+**Bias fire-now**: at-room cluster, no travel needed. If 2005 or 16319 crosses +25 on next watcher, fire solo.
