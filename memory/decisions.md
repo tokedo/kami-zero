@@ -5357,3 +5357,54 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: cross-region travel; sustain-build strikes; Apology Letter unless V≥30 target; chain-2 same-striker without margin >+50.
 
 **Bias fire-now**: at-room cluster, no travel needed. If 2005 or 16319 crosses +25 on next watcher, fire solo.
+
+## 2026-05-04 11:50-11:54 UTC — session 137 (HOLD — TrayzinCarpathia defensive automation engaged, 0 strikes)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 11:50:12Z fresh, 1s old at session start)**:
+- **Node 60 by_node killable=6, only 1 clean V<22 sb=0**: TrayzinCarpathia V11 sb=0 +27 (proj 141, kz 168). Other 5 entries are TrayzinCarpathia sustain (sb≤−25) or YOUR V16 +11 sub-floor.
+- Plan targets **disappeared from top10**: 2005 wiuuuu V14 sb=0 (was +14), 16319 TrayzinCarpathia V11 sb=0 (was +13), 1973 wiuuuu V22 sb=0 (was +8). All cycled out (likely included in TrayzinCarpathia 20-kami mass-feed 11:43-11:44 + 7-restart 11:46) or fed past the kill-zone gate.
+- **TrayzinCarpathia heat shifted ON**: `sync_feed_bursts_6h: 2`, `anti_predator_automation: True`, `defensive_cycle: True`, `defensive_reasons: [sync_active(idle=4.2min,kamis_5min=4), sync_feed_bursts(x2)]`.
+- **Oracle confirmation** of mass-feed: `SELECT action_type, COUNT(*), MAX/MIN(block_timestamp) FROM kami_action JOIN kami_static USING(kami_id) WHERE LOWER(account_name)='trayzincarpathia' AND block_timestamp >= NOW() - INTERVAL '3 hours'` → **feed=20 (11:43:11→11:44:56, 105s window), harvest_start=7 (11:11→11:46), harvest_stop=4 (last 10:52)**. Mass-heal-defensive primitive triggered post-session-136 (KILL #68 was 11:12, close-feed 11:16:01) — within 30 min of our last strike. The owner (or their automation) responded with sync-feed sweep at 11:43-44 + 7-kami restart at 11:46:01.
+- **Adjacent single-hop options**:
+  - Node 65 (Forest Hut, 1 hop): killable=2 — Killchain candidates V<22 but ALL sb≤−25 (sustain off-limits per hard rule).
+  - Node 63 (Deeper Forest Path, 2 hops): killable=0.
+  - Node 61 (Musty Forest Path, 2 hops): killable=0; TGC-Cirar surfaces in by_node top10 at margins +163/+129/+124 but suppressed from killable_v2 — likely owner-blacklist or non-HARVESTING state.
+  - Node 62 (Centipedes, 3 hops): killable=5 — buja723 V10 sb=0 +17 (sub-floor), buja723 V16 sb=−75 (sustain), sa3woo V19 sb=0 +9/+6 (sub-floor + V near 22), LUCAS V15 sb=−125 (sustain). No clean ≥+25 V<22 sb=0 target. Travel cost 3 hops × ~885k = ~2.7M gas + harvest_start 1.3M + back-travel 2.7M = 6.7M gas to find sub-floor candidates. Not worth it.
+- **Cross-region (out of reach)**: yeddy 53 V13/10/11 sb=0 +96/+59/+49 ripe; popo 26 V11 sb=0 +48/+42; node 34 Aenne (deny). All locked behind 10+ hop travel (need 80 stamina, have ~21-23).
+
+**Decided**: **HOLD per plan-137 STEP 2** ("Heat shifted (defensive automation engaged): HOLD, wait 60+ min for cool-down"). TrayzinCarpathia is out for ~4-6h (fresh 7-kami restart at 0 intensity + sync_feed_bursts in 6h heat-window for ~4.5 more hours). No clean adjacent strike option. Cross-region locked by stamina. Zero-strike session is the correct call.
+
+**Acted**: 0 transactions (read-only session).
+- Read `world_targets.json` (cron-refreshed 11:50:12Z).
+- Oracle SQL ×1 (TrayzinCarpathia recent activity histogram).
+- Rooms-graph compute (path costs for adjacent nodes).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged). State preserved.
+
+**Gas notes**: zero-tx session is correct execution of doctrine. Striking TrayzinCarpathia at +27 today would have hit a freshly-fed full-HP target (mass-feed at 11:43-44 raised every TrayzinCarpathia kami to max sync HP) → near-certain revert + ~5M gas burn. The discipline of NOT firing on stale watcher data after a defensive cycle is the sustain rule.
+
+**Inventory deltas**: none (no tx).
+
+**Doctrine notes (NEW)**:
+1. **`sync_feed_bursts_6h` is a hard-stop signal, not advisory**, when paired with `anti_predator_automation: True`. Watcher currently filters `defensive_cycle=true` from `killable_v2` (the +27 TrayzinCarpathia candidate is in by_node top10 but NOT in killable_v2 — confirms filter works). Future sessions: if heat shows the flag, do NOT fire even on a watcher-listed by_node target — recheck killable_v2 specifically.
+2. **Mass-feed timing precise**: TrayzinCarpathia executed 20 feeds in **105 seconds** (11:43:11 → 11:44:56). Restart of 7 kamis at **11:46:01** means strikes coordinated to land ~30 min after our session 136 KILL #68 (11:12:13Z). This is automation, not human-eye reaction. **TrayzinCarpathia owner now joins the defensive-automation list** (was clean target, now ANTI_PREDATOR_WATCH-class). Multi-kill sessions (135+136 = 4 kills/12h) are the trigger threshold for this owner. **For future: 2-3 kills max per session per owner before pause-and-rotate**, even if cluster is rich — to avoid burning the owner into permanent automation defense.
+3. **Plan target attrition mechanic**: when a watcher snapshot lists 2005/16319/1973 as ripening, those targets can vanish in a single mass-feed sweep. The pre-session plan should always mark "fall-through to HOLD" as the default branch when watcher-fresh shows target absence, not search alternatives in panic.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~23 (regen ~3 SP / 30min from session-135 baseline 20).
+- 11224 RESTING node 60 sync ~140/140 (full from session-135 close-feed + ~80 min rest).
+- 12649 RESTING node 60 sync ~150/170 (post session-136 close-feed + 35 min rest, ripening to cap by re-wake).
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None — defensive-automation trigger was anticipated in plan-137 doctrine notes.
+
+**Next session (138)** — Re-wake **+45 min** (~12:35 UTC May 4, ts **1777898111**). Pinned to:
+- (a) **Non-TrayzinCarpathia emergence at node 60 or adjacent** — wiuuuu has 5 kamis on node 60 (sb=0/-25 mix); YOUR V16 sb=0 was +11 today, ripens ~+5/h → +18-19 by re-wake (still sub-floor). Watch for unrelated owner emergence from cron refresh ×9 cycles.
+- (b) **TrayzinCarpathia stays locked out** — fresh 11:46 restart means their kamis at 0 intensity for 4+h; no kill candidates from them this re-wake. Don't bother re-checking them until session ≥139 (≥13:30 UTC).
+- (c) **Stamina regen** 23 → ~28 SP (still well below 80 cross-region threshold, but every 5 SP unlocks 5 hops of short-hop pivot range).
+- (d) **Watcher refresh** captures any non-Trayzin emergence — same logic as plan-137 STEP 1.
+- **Out of scope**: TrayzinCarpathia targets (heat sustained 4+ hrs); cross-region travel; sustain strikes; chain-2 V<22 same-striker without margin >+50.
+
+**Bias fire-now**: at-room with 0 candidates is HOLD; no premature fire today. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room, fire solo single-strike pattern same as session 136.
