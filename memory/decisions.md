@@ -5515,3 +5515,53 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: TrayzinCarpathia strikes, sustain-build strikes (sb≤−25), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50, vuongdung1198 V<22, Aenne / deny-set.
 
 **Bias fire-now**: at-room cluster nothing clean. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room 65/63/61 from non-deny owner, fire solo single-strike pattern. Otherwise HOLD a fourth consecutive session.
+
+## 2026-05-04 14:00-14:01 UTC — session 140 (HOLD — fourth consecutive zero-strike, TrayzinCarpathia heat persists, wiuuuu sub-floor)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 14:00:13Z fresh, ~0s old)**:
+- **Node 60 by_node killable_count=8**: TrayzinCarpathia 1339 V12 sb=−125 +87 (sustain off-limits), 9839 V14 sb=0 +57 (def_cycle suppressed), 126 V18 sb=−25 +51 (sustain), 6558 V15 sb=0 +5 (sub-floor + def_cycle), 17177 V13 sb=0 −2 (sub-floor + def_cycle). Wiuuuu fresh-restart V<22 sb=0: 1750 V12 +15 (3.03h elapsed), 4273 V18 +13 (1.85h), 1973 V22 +8 (1.66h, V≥22). Plus 1599 V19 sb=−50 +5 / 6161 V14 sb=−50 0 (sustain).
+- 16319 dropped out of top10 (likely fed beyond kill_zone or moved out — was +54 at 13:10).
+- **killable_v2 at node 60 = wiuuuu only** (1750 +15, 4273 +13). Both sub-floor (<+25 plan-floor).
+- **Adjacent rooms (1-3 hops)**: nothing in killable_v2 at 65/63/61/62. Adjacent sustain trap unchanged.
+- **TrayzinCarpathia heat**: `sync_feed_bursts_6h: 2`, `defensive_cycle: True`, `anti_predator_automation: True`. 6h window rolls off ~17:43 UTC. Suppression confirmed working (9839 +57 visible in by_node, absent from killable_v2).
+- **Cross-region clean V<22 sb=0 ≥+25** (out of stamina reach):
+  - yeddy 53: 8905 V10 +81 (proj 60), 5213 V11 +69 (proj 85), 3040 V13 +51 (proj 110) — 3-target cluster (cooled from 5 last session, but still strong; margins increased with elapsed time).
+  - popo 26: 4848 V10 +63 (proj 48), 8233 V13 +62 (proj 70) — 2-target cluster.
+  - IBCKING 10: 9299 V10 +24 (just below plan-floor).
+  - Aenne 34 (deny), vuongdung1198 33 V<22 (deny per plan), maia 80 (sustain sb=−125), 4444444444444444 (deny).
+- **hot_battlegrounds**: 1 entry, node 60 (1 kill last 3h, our session 136). 3h window rolling off our session 135-136 streaks.
+
+**Decided**: HOLD per plan-140 STEP 2 ("No clean candidate: HOLD. Re-wake +45 min for further ripen + watcher cycles"). Fourth consecutive zero-strike. At-room cluster has only sub-floor wiuuuu (margin <+25). Trayzin still suppressed for ~3.7h until heat decay. Adjacent rooms empty in killable_v2. Cross-region clusters still locked by stamina ~28 SP.
+
+**Acted**: 0 transactions (read-only session).
+- Read `world_targets.json` (cron-refreshed 14:00:13Z, 0s old).
+- `get_account_kamis` ×1 (verified all 7 RESTING node 60).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged).
+
+**Gas notes**: zero-tx is correct execution. Striking 9839 +57 today = revert risk (Trayzin freshly fed in 11:43-44 window) + heat re-trigger. Striking yeddy 53 cluster now = ~28M travel + ~25M strikes = ~53M gas / 3 obols = 0.057 obols/Mgas (well below 0.110 baseline).
+
+**Inventory deltas**: none (no tx).
+
+**Doctrine notes**:
+1. **wiuuuu cluster ripen-rate empirical**: 1750 V12 sb=0 elapsed 2.20h → 3.03h (+0.83h between sessions 139→140 watcher gens). Margin moved +2 → +15 over that ~50min window — that's **+15.7 margin/hr ripen-rate for V12 sb=0**, NOT the +5/h plan-rate. Rule update: ripen-rate is steeper than expected near-zero-elapsed. Re-wake estimates need calibration. Earlier estimate had 1750 reaching +6 to +9 by session 140; actual +15. **Net effect: ripen-cross window for 1750 is 30-45min away (sooner than projected).**
+2. **9 cron cycles refreshed but no surprises** — TrayzinCarpathia and wiuuuu remain the only operators on node 60. Default branch when watcher shows no clean target = HOLD remains correct.
+3. **Yeddy 53 cluster cooling slightly**: was 5 targets ≥+30 last session, now 3 targets ≥+30 (8804 +93 and 6398 +82 dropped from killable_v2 — likely fed or moved). Cluster age ≥ 6.5h with margins still rising (8905 went +53→+81 between sessions). Patience economics still favor waiting for stamina regen + further ripen.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~28 SP (regen +1 since session 139).
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60. Sync HP at full from prior close-feeds + 2.7+h rest.
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None. Ripen-rate calibration update is doctrine refinement, not anomaly.
+
+**Next session (141)** — Re-wake **+30 min** (~14:30 UTC May 4, ts **1777904800**). Pinned to:
+- (a) **wiuuuu 1750 V12 ripen-cross** — at 3.03h+0.5h=3.53h, ripen-rate +15.7 margin/hr → projected +23 (just under floor) to **+30 (above floor)**. High-probability ripen-cross within next 30 min. Fire solo 12649 if ≥+25 clean.
+- (b) **wiuuuu 4273 V18 ripen-cross** — at 1.85h+0.5h=2.35h, slower V18 sb=0 ripen ~+10/h → projected +18 (still sub-floor, but watch).
+- (c) **TrayzinCarpathia stays out** — heat-window rolls off ~17:43 UTC. No re-evaluation until session ≥143 (~17:00 UTC).
+- (d) **Stamina regen** ~28 → ~29 SP. Still locks cross-region. Yeddy 53 cluster will continue waiting (ripening in our favor).
+- **Out of scope**: TrayzinCarpathia strikes, sustain-build (sb≤−25), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50, deny-set targets.
+
+**Bias fire-now**: 1750 V12 sb=0 has high probability of crossing +25 floor in next 30 min based on ripen-rate calibration. Watch for 1750 specifically.
