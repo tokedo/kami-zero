@@ -6097,3 +6097,72 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 **Pin justification (Cadence Discipline)**: 60-min wait pinned to a specific cluster ripening event (898 needs ~24 min to cross +50 chain-3 floor; +60 gives buffer for variance and lets 5420 also ripen for chain-2). Multi-signal pin amortizes the cache miss. Below 90-min upper bound.
 
 **Bias fire-now (session 152)**: 898 strike with 11224 (or any V<22 sb=0 ≥+50) is THE play. If cluster has shrunk further (other hunters, own-cycle), assess and pivot.
+
+
+## 2026-05-04 21:50 UTC — session 152 (DOCTRINE-COST — 0 kills / 2 reverts; watcher proj_hp model BROKEN by continuous-sync defense pattern)
+
+**Perceived (watcher gen 21:50:12Z, ~0s old at start)**:
+- Cluster at node 60: 898 V14 sb=0 +57 (ripened from +32) / 5420 V15 sb=0 +47 (ripened from +26) / 2644 V10 sb=−25 +71 (E006 floor unmet) / sustain sub-floor.
+- TrayzinCarpathia heat: empty {} — apparently fully passive.
+- `hot_battlegrounds` node 60 kills_in_window=5 (3 s150 + 1 inter-session 6558 + 1 s151 2141).
+- **Acheron node 87 cluster** in killable_v2: 17 V<22 sb=0 candidates margin +33 to +132, all elapsed_h ~6.5h, def_s=80-100 — looked extremely juicy.
+
+**Decided**:
+- Strike 898 with 11224 per plan-152 (chain-3 rotation, watcher-margin +57 ≥ floor).
+
+**Acted**:
+- `liquidate(target=898, attacker=11224, target_handle="TrayzinCarpathia")` → tx 0x29151f…, **status=reverted**, block 28370045, gas **1,254,054 burned**.
+- Diagnosis hypothesis: striker-mismatch (watcher's striker_idx=12649, not 11224 — atk_s 280 vs 400 → ~22 HP threshold gap → real margin closer to +35 not +57).
+- `liquidate(target=898, attacker=12649, target_handle="TrayzinCarpathia")` (corrected striker per watcher recommendation) → tx 0x6058df…, **status=reverted**, block 28370058, gas **1,234,883 burned**.
+
+**Striker-mismatch hypothesis FALSIFIED.** 12649 is the optimal striker per watcher AND s150/s151 successfully killed 12649@2141 V12 +56. So +57 with 12649 should kill 898 V14. Reverted anyway.
+
+**Diagnosis (slim reads on 898, 5420, acheron-7505)**:
+- 898 slim: `harvest.balance = 0`, `harvest.time.last = time.reset = time.start = 1777907009 = 15:43:29 UTC` (all three identical), `stats.health.sync = total = 190` (FULL HP). Watcher computed proj_hp=78 from elapsed_sec=24393 (6h47m). Real HP = 190.
+- 5420 slim: same pattern — balance=0, all-three-times equal at 14:33:18 UTC, sync=180=total (FULL HP). Watcher proj_hp=70. Real HP = 180.
+- **Acheron 7505 slim**: SAME PATTERN — balance=0, all-three-times equal at 16:04:08 UTC, sync=160=total (FULL HP). Watcher proj_hp=3 / margin +132 was ENTIRELY illusory.
+
+**SYSTEMIC FINDING — watcher's proj_hp model is broken for ALL kamis in continuous-sync defense state.** The pattern (`harvest.balance == 0 && time.start == time.last == time.reset && state == "ACTIVE"`) signals a defensive automation that periodically resets the harvest entity (likely via a cheap sync-action that updates time fields without showing as harvest_start in oracle's action log). Result: kami appears HARVESTING with elapsed_h, but actual HP = full sync HP, balance never grew, watcher's strain-from-elapsed-time formula produces phantom "ripened" margins.
+
+**Why s150/s151 strikes WORKED on TrayzinCarpathia**: at s150 (3 kills) and s151 (1 kill 2141), we got lucky — kamis happened to have non-zero balance / ongoing strain when struck. Sync timing is variable; some moments expose true low-HP, most don't. **All four prior Trayzin kills were timing luck, not exploitable doctrine.**
+
+**ABORT pivot to acheron** — same defense pattern present (verified on 7505). Pivoting would burn ~25M gas on 3+ guaranteed reverts.
+
+**Result**: 0 kills / 0 obols / 2 reverts. Total session burn: **2,488,937 gwei (~2.49M)** all on doctrine-cost reverts. **0 obol/Mgas this session.**
+
+**Inventory deltas**: zero — no successful strikes, no consumables used. Spirit Glue 6, Rock Candyfloss 459 unchanged.
+
+**Lifetime: 72 kills (unchanged) / 74 obols (unchanged) / 4 reverts (+2).**
+
+**Doctrine NEW (session 152)**:
+1. **Continuous-sync defense pattern is systemic, not Trayzin-specific.** Detected on TrayzinCarpathia AND acheron (different region, different node, different owner) — strongly suggests a popular defensive automation script (or copy-paste meta) rather than one-off behavior. Watcher's elapsed-based proj_hp model produces phantom margins for these kamis.
+2. **Pre-strike `health.sync` verification is mandatory** for any candidate margin ≥ ~+30. Cost: one `get_kami_state_slim` call per candidate before strike (~free, ~15s API cache). Read victim's `stats.health.sync` directly. **If sync HP ≥ kill_threshold − 5, abort the strike** — watcher margin is illusory. This is the new pre-flight gate above margin floor checks.
+3. **Slim signal for continuous-sync defense**: `harvest.balance == 0` AND `harvest.time.last == harvest.time.start == harvest.time.reset` AND `harvest.state == "ACTIVE"`. When this triplet matches, kami's HP is **at full sync**, NOT at watcher-projected strain HP. Watcher's proj_hp is meaningless.
+4. **TrayzinCarpathia, acheron, and likely many other "passive farmer" classifications need re-validation.** All prior "passive" assessments via `owner_heat` were checking for sync_stop_bursts / bulk_stop_windows — these miss the continuous-sync pattern entirely. Owner heat tells you about HARVEST_STOP automation, not HEAL/SYNC automation.
+5. **Striker-mismatch hypothesis FALSIFIED for 898 specifically** — even optimal striker 12649 reverts at watcher-claimed +57. The doctrine is sync HP, not striker pairing.
+6. **Watcher patch needed**: either (a) ingest `health.sync` from web3 direct reads (5-min cron over killable_v2 candidates only), OR (b) detect the continuous-sync triplet via web3 and disqualify those kamis from killable lists. Track in `ideas_to_founder.md` for visibility.
+
+**End state**:
+- Operator at room 60 (no move tx).
+- 12649, 11224, 10705 still HARVESTING node 60 since 17:54:43 UTC (~4h elapsed; intensity continues; warm-up clock still running).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- HP recoil from 2 reverts: ZERO (reverts deduct nothing). 12649 + 11224 should still be at whatever HP they were at session start.
+- Lifetime: **72 kills / 74 obols / 4 reverts**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 spoils still pending in 12649 from s151 2141 strike).
+
+**Anomalies**: 2 reverts informative — surfaced systemic watcher bug. No HP discrepancies (we tracked correctly), no unexpected state changes beyond the watcher revelation.
+
+**Gas notes**:
+- 2 reverts × ~1.24M = 2.49M gas burned on doctrine-cost. Not a budgetary problem — well within session-152 budget — but a real opportunity-cost loss vs the 1-2 obols that were "expected".
+- No batch waste, no speculative tx, no over-fire. Per-MCP-rule honored (one liquidate per response). 2-deep-revert-stop fired correctly after second revert; no further strikes attempted.
+
+**Next session (153)** — Re-wake **+30 min** (~22:20 UTC May 4, ts **1777933200**). Pinned to:
+- (a) **Slim spot-check pattern adoption**: implement pre-strike `get_kami_state_slim(victim)` check. For any candidate with watcher margin ≥+30, fetch slim and compute `actual_margin = kill_threshold − stats.health.sync`. Strike only if actual_margin ≥+30 AND continuous-sync triplet absent.
+- (b) **Re-scan for genuinely starving clusters**: continuous-sync defense is widespread but not universal. `hot_battlegrounds` may surface real targets where competitor predators are landing kills. Walk each non-self kill in `world-liquidations.jsonl` last 6h — those victims were in the *strain* state at strike-time, indicating genuine starvation; their owner's other kamis are likely also genuinely starving.
+- (c) **Watcher patch (next 2-3 sessions)**: add a sync-state verifier sub-cron that fetches `health.sync` for killable_v2 candidates (small set, ~50/cycle) and emits a `actual_proj_hp` field. Disqualify candidates where actual_proj_hp ≥ kill_threshold − 5.
+- **Plan 153 actions in order**: (1) re-read watcher; (2) for top 3-5 V<22 sb=0 candidates margin ≥+50, slim spot-check `health.sync`; (3) strike only the ones passing the actual-margin gate; (4) update `ideas_to_founder.md` with the watcher patch ask + diagnostic finding.
+- **Out of scope**: glue-raid (no automation to disrupt that we currently understand), force-flush, kamibots state reads, cross-region without sync-verified cluster.
+
+**Pin justification (Cadence Discipline)**: 30-min wait pinned to specific signals: (a) cluster turnover may reveal kamis temporarily out-of-sync (catchable mid-cycle), (b) slim verification doctrine is concrete next-action, (c) cache miss accepted (>300s) — investigation time amortizes. Not waiting on a heuristic "things might change" — waiting on a concrete next-action and giving 30 min of cluster-state evolution.
+
+**Bias fire-now (session 153)**: walk top 5 candidates per slim spot-check. Strike only if actual_margin ≥+30. If ALL fail, harvest_stop strikers (mint pending 688 MUSU) and propose watcher patch in ideas_to_founder.md as session 154 build target.
+

@@ -398,3 +398,15 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py` (added CTE + LEFT JOIN, parsed `sec_since_revive`, surfaced `recent_revive` + `sec_since_revive` on candidate dict).
 - **How to use**: No API change. `world_targets.json` rows now include `recent_revive: bool` and `sec_since_revive: int|None`. E006 test-strike gate: `recent_revive == False AND not fresh_feed_since_start AND not heat.defensive_cycle AND v_strain_boost ≤ −25 AND v_V < 22 AND margin ≥ +95`. Validated this session: 0 candidates show `recent_revive=True` in current snapshot (clean baseline); maia 80 surfaces 6 V<22 sb≤−25 candidates ≥+50 margin all with `recent_revive=False` (test pool ready when opportunity aligns).
 - **Commit**: (this session)
+
+## 2026-05-04 — Doctrine: continuous-sync defense systematically breaks watcher proj_hp
+- **What**: Discovered in session 152 — kamis in continuous-sync defense state appear HARVESTING with elapsed_h but actual `health.sync = total` (full HP). Watcher's elapsed-based proj_hp produces phantom margins. Two reverts (898 with both 11224 and 12649) at watcher-claimed +57 margin.
+- **Slim-detectable signal** (4-tuple — all must be true): `harvest.balance == 0` AND `harvest.time.last == harvest.time.start == harvest.time.reset` AND `harvest.state == "ACTIVE"` AND `stats.health.sync == stats.health.total`. When matched, watcher's proj_hp is meaningless.
+- **Confirmed across owners**: TrayzinCarpathia (898, 5420) at node 60 AND acheron (7505) at node 87. Different region, different owner, same pattern. Not Trayzin-specific — likely a popular defensive automation script meta.
+- **Doctrine**: Pre-strike `get_kami_state_slim(victim)` is mandatory for any candidate margin ≥+30. Read `stats.health.sync`, compute actual_margin. Strike only if actual_margin ≥+30. Cost: ~free (one slim call ~1s, no gas).
+- **Why**: 2.49M gas burned this session on doctrine-cost reverts. Without sync verification, every candidate at this kind of node is a coin-flip on whether watcher's proj_hp is right. The continuous-sync triplet is a deterministic disqualifier.
+- **Files**: implicit doctrine — captured in plan.md and decisions.md. Watcher-side patch pending (next 2-3 sessions): add `actual_proj_hp` field that ingests `health.sync` via slim-cron sub-process for top-30 killable candidates.
+- **How to use**: At plan time, walk top 3-5 V<22 sb=0 candidates margin ≥+30; for each, slim spot-check; strike only if `kill_zone − sync_HP ≥ +30` AND continuous-sync-triplet absent. The watcher's `margin` field is now a candidate-filter (narrows search), not a strike-authority (says "this will land").
+- **Related**: Skill 342 (Hardiness?) appears on multiple defensive kamis — possibly part of the meta. Not sure if relevant.
+- **Commit**: (this session)
+
