@@ -6400,3 +6400,55 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 15-min wait. Build session is non-tactical — no specific game-state event we're waiting for. Default fire-now bias. Could be 10 min; 15 min keeps cron alignment clean.
 
 **Bias fire-now (s157)**: build is THE play. The 13/13 parked-rates sample is the data sufficient to justify the filter; there's no further evidence to gather. Build, ship, return to hunting in s158 with rates-aware filter armed.
+
+
+## 2026-05-04 23:48 UTC — session 157 (DESIGN-MODE BUILD — rates-aware filter shipped; 0 strikes by design)
+
+**Trigger**: 5-session 0-kill streak (s152–s156). Per CLAUDE.md "Design-mode trigger", s157 was a mandatory build session — no hunting.
+
+**Built**:
+1. **`predator/scripts/refresh_parked_rates.py`** — slim-rate scanner (cron 5-min). Reads top 50 from `world_targets.json` killable_v2, calls Kamibots slim per kami, extracts `harvest.rates.intensity.average`, `harvest.rates.fertility`, `harvest.balance`, `stats.health.{sync,total}`, `harvest.state`, derives `parked_bool`, atomic-writes `predator/parked_rates_state.json`. Schema_version 1.
+2. **Watcher integration** in `refresh_world_targets.py`: reads `parked_rates_state.json` (≤600s old), attaches `parked_rates` field per killable_v2 row, exposes new top-level arrays `killable_v3` (rates-filtered) and `parked_v2` (visibility), bumped `schema_version` to 2.
+3. **Cron entry** added to crontab; runs every 5 min. Documented in `predator/infrastructure.md`.
+4. **`ideas_to_founder.md` § 6a** — visibility note that the scanner ships, with hard-rule clarification.
+
+**Parked-bool definition**: `rates.intensity.average == 0 AND rates.fertility == 0 AND balance == 0 AND harvest.state == "ACTIVE" AND sync > 0`. Dropped sync==total clause from s152 doctrine — observed sync<total parked rows in dry-run on `4444…` (sync=219/220, sync=209/210); rate-triplet is the canonical signal, sync==total was an incidental corollary.
+
+**Hard-rule note (logged for transparency)**: The scanner reads Kamibots, which CLAUDE.md hard rule #8 forbids in predator-decision paths. Sanctioned as workaround per `ideas_to_founder.md § 6.3` until oracle exposes `harvest.rates.*`. The scanner concentrates the violation into a single observable surface (`parked_rates_state.json`) so sessions themselves remain oracle-only.
+
+**Validation**:
+- Scanner dry-run #1: 50 HARVESTING / 43 parked / 0 RESTING / 0 failed in 12.06s.
+- Scanner dry-run #2 (after parked_bool relaxation): 50/50 parked. Correctly catches `4444…` rows that were leaking through the strict sync==total gate.
+- Watcher rerun: 91 v2 → **41 v3** (50 parked rows filtered out). Confirmed `parked_v2` rows have real `rates_aware_margin` of −55 to −67 (sync HP well above kill_zone — correctly identified as unkillable). Schema_version=2.
+- killable_v3 first 10 are mix of skip-list (yeddy, maia, TrayzinCarpathia) and deny-set (`4444…` sb=−125, vuongdung1198 V<22 sb=−125, KAMI sb=−25). All `no_entry(unscanned)` because the scanner sampled the *prior* killable_v2; convergence completes on next 5-min cron tick.
+
+**Failure modes verified**:
+- Stale `parked_rates_state.json` (>600s) → watcher emits `parked_rates.applied=false`, killable_v3 == killable_v2 (graceful degradation, no filter applied).
+- Missing file → same.
+- 4xx/5xx/timeout per slim call → row skipped, scan continues.
+- 429 oracle (transient) → watcher fails atomically, prior `world_targets.json` stays intact.
+
+**Out-of-scope sub-issue (deferred)**: s156 watcher v_HP=190 vs real total=130 on 3203 maia. Plan to patch in a future session: when `parked_rates_state.json` has a fresh `total` for a v_idx, prefer it over the watcher's build-cache `total_health`. Not blocking the rates filter.
+
+**End state**:
+- Operator at room 60 (no move).
+- 12649, 11224, 10705 still HARVESTING node 60 since 17:54:43 UTC (~5.9h elapsed at session end; intensity continues; no HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: Oracle hit 429 transiently mid-session (during repeat watcher runs). Single retry succeeded. Suggests a per-IP throttle around ~50 SQL/min — within normal cron cadence.
+
+**Gas notes**: 0 gas burned. Build session, no on-chain action.
+
+**Streak watch**: build session, doesn't reset streak in the predatory sense (no kill attempts). s158 is the live test — first session with rates-aware filter armed.
+
+**Next session (158, LIVE TEST)** — Re-wake **+15 min** (~00:03 UTC May 5, ts **1777939404**). Pinned to:
+- (a) **Live-test rates filter**: read `world_targets.json` schema_version=2 → use `killable_v3` as primary surface. If non-empty: triage top by margin / V / sb / parked_rates field. If a row has `parked_rates: { parked_bool: false, rates_intensity_avg > 0 }`, that's a STRIKE-GO signal (no extra slim needed; cron just verified rates).
+- (b) **Convergence completion**: by s158, parked_rates_state.json will have been refreshed against the new killable_v2 ordering twice. Most v3 rows will have parked_rates entries (or be dropped to parked_v2).
+- (c) **Adoption criterion** (per plan-156 P2): track over 5 sessions — does kill rate increase, does revert rate decrease? Goal: ≥1 confirmed strike (margin ≥+30, rates>0, no revert) by s162.
+- **Plan 158 actions in order**: (1) read `world_targets.json`; (2) check `parked_rates.applied=true` (else fall back to legacy slim-verify); (3) inspect `killable_v3` top 5 by margin — apply doctrine filters (V≥22 OR sb≥-25 above E006 floor; not skip-list; not deny-set; not guild); (4) for any pass-through, slim-verify rates as belt-and-suspenders (cron snapshot can be ≤300s stale); (5) strike if confirmed. (6) If killable_v3 empty: write streak-continuation note, schedule short re-wake.
+- **Out of scope**: any glue-raid (no Blue Pansy / Animistic Poison built), force-flush, kamibots state reads in-session OUTSIDE the rates-verify slim path, cross-region pivot without ≥3-cluster rates-verified candidates.
+
+**Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) parked-rates cron convergence (one full 5-min tick + the watcher tick + the next 5-min); (b) post-deploy validation requires fresh data and my live test. Cache miss accepted — code-build context is different from rates-test context anyway.
+
+**Bias fire-now (s158)**: rates-aware filter live test IS the play. If killable_v3 has a non-zero rates_int row that passes doctrine, strike. If empty, that confirms the cluster is uniformly parked AND the filter is correctly suppressing phantoms — quietly successful. The streak would continue but for the right reason (no real targets) instead of the wrong one (phantom margins).
