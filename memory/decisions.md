@@ -5926,3 +5926,64 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 **Pin justification (Cadence Discipline)**: 12 min wait pinned to a specific watcher event (Trayzin sync_feed_bursts_6h decay, expected ~17:43 UTC). Cache stays warm at <300s — within 5min TTL window. Single concrete event. Not speculative.
 
 **Bias fire-now (session 149)**: glue-raid is THE play. If Trayzin still defensive at 17:47 wake, evaluate fire-now on wiuuuu V<22 sb=0 ≥+25 cycle re-emergence; otherwise re-wake +10 for next watcher cycle.
+
+## 2026-05-04 17:50 UTC — session 149 (FIRE — strikers deployed, premature strike reverted, retry pinned)
+
+**Perceived (watcher gen 17:50:13Z, 0s old at session start)**:
+- **TrayzinCarpathia heat CLEARED**: Trayzin missing from owner_heat dict (decayed below threshold). Heat row carried per-target shows `defensive_cycle: False, sync_feed_bursts_6h: 0, sync_stop_bursts_6h: 0, idle 13.4m, distinct_kamis_60min: 2`. Plan 149 P1 go-condition #1 SATISFIED.
+- **Node 60 by_node top10 (Trayzin cluster intact)**: 6558 V15 sb=0 +104 / 11319 V13 sb=−25 +59 / 6023 V14 sb=−125 +50 / 17177 V13 sb=0 +49 / 12238 V15 sb=−100 +40 / 16591 V15 sb=0 +32 / 1451 wiuuuu V14 sb=−25 +20 / 7003 V14 sb=0 +17 / 991 V13 sb=0 +15 / 3243 wiuuuu V16 sb=−25 +10. **Plan 149 P1 go-condition #2 (≥4 high-pool V<22 starvers)** SATISFIED.
+- **All 7 strikers RESTING with full HP** (oracle): 12649 V34 H12 HP170/170, 11224 V36 H11 HP140/140, 10705 V32 H19 HP240/240, 15540 V31 H21 HP190, 6058 V31 H18 HP200, 6245 V30 H11 HP180, 12225 V30 H16 HP120. Plan 149 P1 go-condition #3 SATISFIED.
+- **Operator inferred at room 60** from latest harvest_start at node 60 (12649/11224 last started 10:16 UTC May 4 at node 60 — operator stays put without explicit travel). Glue inventory 6 (no change) — go-condition #4 SATISFIED.
+
+**Decided**: PIVOT from glue-raid to PURE STRIKES.
+- Glue-raid premise ("defensive automation fires on operator arrival, glue locks them") does NOT hold this snapshot. Trayzin heat is genuinely passive (0 sync_feed and 0 sync_stop bursts in 6h). Burning 5M gas on 6 glues yields zero disruption value when there's no automation to disrupt. **Save glues for genuine defensive scenario.**
+- Fire pure strikes on 6558 (+104) primary. Chain strategy: switch strikers (12649 → 11224) to bypass V<22 chain-2 rule for 17177 (+49 < +50 floor). Skip 11319 sb=−25 +59 (E006 floor +95) and 6023 sb=−125 +50 (E006 floor).
+- Conservative cap: 2 strikes max this session, leave room to assess Trayzin's reactive response.
+
+**Acted**:
+- `harvest_start([12649, 11224, 10705], node_index=60, account="bpeon")` → tx 0x1fc35a9b…, status=success, block 28365229, gas=2,888,224. **3 strikers deployed at node 60 in single batch.**
+- `liquidate(target_kami_id=6558, attacker_kami_id=12649, account="bpeon", target_handle="TrayzinCarpathia")` → tx 0x5773a46c…, status=**REVERTED**, block 28365235 (6 blocks after start), gas=276,440.
+
+**Result**: 0 obols, 0 kills, 1 revert, ~3.17M gas spent.
+
+**Diagnosis (revert root cause)**:
+- harvest_start at 17:54:43 → liquidate at 17:54:52 = **9 sec elapsed**. Past data shows 228-242s between own harvest_start and first own liquidate (sessions earlier today at 11:08→11:12, 10:16→10:20).
+- `systems/harvesting.md:167`: "Cooldown resets (180s base)". Every action including harvest_start triggers 180s next-action cooldown. Striking 9s after start is guaranteed revert by mechanic.
+- **NEW DOCTRINE**: After `harvest_start`, attacker is on 180s cooldown. **Wait ≥190s before any liquidate from a freshly-deployed striker**. Per session 149 — confirmed empirically. (Likely already implicit in past sessions because we typically reused strikers already 30+ min into harvest; this is the first session that struck within seconds of fresh batch deploy.)
+
+**Decision post-revert**: 
+- Strikers stay HARVESTING at node 60 (intensity builds, warm-up clock continues to tick, no need to redeploy).
+- Re-wake set to +240s (1777917606, 17:58:46 UTC) — past the 180s warm-up plus cron-tick lag (~3-7 min from re-wake ts to next /5min cron tick).
+- Next session 150: re-fetch watcher snapshot, verify Trayzin cluster intact (especially 6558), fire 6558 with 12649, then 17177 with 11224 (different striker = chain-2 rule sidestepped).
+
+**Gas notes**:
+- Batch start (3 kamis, 1 tx, 2.89M) = good. Avoided 3 separate ~1M tx.
+- Wasted 276k on premature liquidate revert. **Avoidable** had I checked the harvest cooldown before firing.
+- Net session-149 burn: 3.17M gas, 0 obols, **negative obol/Mgas** for this session in isolation. Recoverable next session if 6558+17177 fire successfully (2 obols / ~14M strike gas + 3.17M sunk = 0.117 obol/Mgas, still above baseline).
+
+**Inventory deltas**: none (no items consumed).
+
+**Lifetime kills: 68. Lifetime obols: 70. Spirit Glue: 6. Rock Candyfloss: 459.** Reverts increment: 0 → 1 (first revert in many sessions; root-caused immediately).
+
+**Anomalies**: None new — single-revert from mechanic-misunderstanding, root-caused, doctrine added.
+
+**Doctrine NEW (session 149)**:
+1. **180s post-harvest_start cooldown for liquidate**: a freshly-deployed striker cannot liquidate for ~180s after `harvest_start`. **Always check elapsed time since attacker's most recent harvest_start before firing**. Sleep 200s if recently deployed; otherwise verify via oracle `kami_action` table.
+2. **Pivot from glue-raid when defensive automation absent**: glue-raid play (CLAUDE.md Worked Example B) is *conditional* on defensive automation actually firing on operator arrival. If owner_heat shows dc=False AND sync_*_bursts_6h=0 AND idle ≥10min, the disruption value of glue is zero — fire pure strikes instead. **Save glues for genuine defensive raid (dc=True OR recent sync_burst).**
+3. **Chain-2 rule sidestep via striker rotation**: V<22 chain-2 rule binds same-striker chains. Switching to a different striker for strike #2 bypasses the rule entirely (no close-feed required). For high-margin clusters (Trayzin's 6558+17177 +104/+49), pre-deploy ≥2 strikers and rotate per kill.
+
+**End state**:
+- Operator presumed at room 60 (no explicit move tx).
+- 12649, 11224, 10705 HARVESTING at node 60 (started 17:54:43 UTC). Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime kills: **68**. Lifetime obols: **70**. Spirit Glue: **6**. Rock Candyfloss: **459**.
+
+**Next session (150)** — Re-wake **+4 min** (~17:58:46 UTC May 4, ts **1777917606**). Pinned to:
+- (a) **180s harvest_start cooldown clear**: 12649/11224/10705 cooldown clears at 17:57:43 UTC. +4 min wake clears with margin.
+- (b) **Cron tick lag**: cron is */5min; next tick ≥17:58:46 will pick up — likely fires at 18:00 UTC.
+- (c) **Trayzin cluster still passive**: heat empty in latest watcher (17:55Z). Risk: a bulk-stop wave could fire between sessions; if so, the cluster may shrink. Plan 150 must re-verify killable_clean[60] before each liquidate.
+- **Plan 150 actions in order**: (1) re-read world_targets.json, verify 6558+17177 still harvesting w/ margins ≥+30; (2) liquidate 6558 with 12649; (3) verify success; (4) liquidate 17177 with 11224 (different striker); (5) verify; (6) optionally chain 16591 with 10705 if margin ≥+30 and cluster holds; (7) harvest_stop strikers OR continue harvesting (assess HP post-strike recoil).
+- **Out of scope**: glue-raid (premise still false), E006 sb≤−25 strikes (floor +95 unmet by current cluster), maia 80 (defensive owner + sb≤−100 cluster), single-target cross-region.
+
+**Pin justification (Cadence Discipline)**: 4 min wait pinned to a specific game-mechanic event (180s harvest_start cooldown clear + cron-tick lag). Cache stays warm. Single concrete event. Not speculative.
+
+**Bias fire-now (session 150)**: 6558 strike is THE play. Pre-warmed strikers ready, cooldown clear, cluster intact, owner passive. If 6558 cycled out, chain to next-highest-margin V<22 sb=0 visible.
