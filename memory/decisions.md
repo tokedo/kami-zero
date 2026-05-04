@@ -4785,3 +4785,46 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) 10907 / 10544 may re-emerge with 25 min of fresh harvest accumulated (currently fully restored from this-session cycle); if their owners run uninterrupted overnight, projection will recover toward ripeness in ~6-8h. Not a near-term pin but watcher will catch it.
 - (d) Operator stamina regen ~70-80 SP available — sufficient for 2 batched Apology Letters or 1 Hostility Potion brew if no strike fires.
 - **Build candidate**: items-arsenal.md update (corrected inventory + amount=N batched-craft leverage discovery from session 124) — defer to a session with no other action.
+
+## 2026-05-04 03:25-03:30 UTC — session 126 (0 KILLS, pure HOLD; 3203 maia ripen-watch)
+
+**ETH balance**: not measured (zero on-chain transactions).
+
+**Perceived (watcher gen 03:25:11Z fresh, 18s old at decision time)**:
+- killable_v2: 25 / killable_clean: 50.
+- **Only V≥22 sb=0 candidate world-wide**: 3203 maia V32 H18 NORMAL/INSECT node 80, margin **+11** (up from +8 last session, +3/25min trend = +6/h). Sub-floor +25.
+- 10907 / 10544 (last session's V24 sb=0 ripeners): both still RESTING/HARVESTING-FRESH from this morning's cycle — oracle confirms `harvest_start` action on 10907 in last 24h. Won't re-ripen for 6-8h.
+- Top non-deny non-sustain V<22 sb=0: stefan96 10108 V11 +18, IBCKING 9299 V10 +12, popo 9508 V11 +12 — all way below +95 V<22 floor.
+- Top "high-margin" deny/sustain (off-limits): Aenne 8680 +117 (DENY), KAMI 8040 V16 sb=−125 +114, maia 11814 V13 sb=−125 +94, etc.
+- hot_battlegrounds: node 50 (machinemiller, 1 kill — likely my session-121 #53) + new node 33 (discoverfrank, 1 kill / 3h).
+- Strikers verified: 11224 V36 H11 atk_s.shift=0.28 RESTING room 50 cooldown clear; 12649 V34 H12 atk_s.shift=0.40 RESTING room 50 cooldown clear (last action 1777855021, well past 80s cd).
+- 3203 owner heat (maia): daily 18h-on / 5.5h-off cycle — auto-stops ~14:30 UTC. Current harvest started 20:04 UTC May 3. Owner pattern is passive (zero feed-action in 24h).
+
+**Decided**: HOLD. P1 dry (no V≥22 sb=0 ≥+25 in world). P2 dry (no V<22 sb=0 ≥+95). P3 (3203 ripen) needs +14 more margin = ~2.3h to floor; cross-region single-target borderline at +25, justified at +40 (~4.8h). P4 (Hostility Potion test) deferred — no clean V<22 passive starver candidate. P5 (craft top-up) — 5 Apology Letters in stock with **0 in-vivo trials done**; manufacturing more reagent before validating ARB−25% effect = inventory hoard, not leverage. Pure ripen-watch session.
+
+**Acted**: zero on-chain tx. Read-only verification of striker state, oracle action history for 3203, watcher freshness check.
+
+**Result**: 0 kills, 0 reverts, 0 obols, 0 gas. Honest signal of dry world. 3rd consecutive 0-tx session (124 was 13 tx, 125 was 0 tx harness, 126 is 0 tx HOLD). Founder doctrine "don't over-build at hunt expense" → bias to wait for ripening rather than craft more buffer.
+
+**Doctrine confirmation**:
+- World V<22 + sb≤−25 dominant for 8 sessions running (118 → 126).
+- 3203 maia is the world's lone V≥22 sb=0 in the watcher's reachable set; ripening trajectory is real (+3/25min, owner passive).
+- Cluster-of-1 cross-region travel doctrine holds: single V32 target at <+40 = wait, ≥+40 = strike.
+
+**Gas notes**: 0M on-chain. ETH unchanged.
+
+**Inventory (unchanged this session)**: 55 obols, 434 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,612 MUSU, 5 Apology Letters, 1 Hostility Potion, 1 Empty Cup, 1750 Sanguineous Powder, 1250 Resin Tincture.
+
+**End state**:
+- Operator + 11224 + 12649 + 5 other RESTING kamis at room 50.
+- Operator stamina partial-to-full regen (~80-100 SP est. — 1h+ idle since session 124's depletion plus 0-tx session 125).
+- Lifetime kills: **53** (unchanged).
+
+**Anomalies**: none. World remains V<22 / sb≤−125 dominant.
+
+**Next session (127)** — Re-wake **+75 min** (~04:44 UTC May 4, ts **1777869864**). Pinned to:
+- (a) **3203 maia ripen check** — 75 min × +6 margin/h = ~+19-21 margin (still sub-floor but trend confirms acceleration or stalling). If margin ≥+25 then it cleared floor early, plan cross-region travel decision.
+- (b) Watcher refresh × 7-8 cycles catches any NEW V≥22 sb=0 emergence — fields are visibility-corrected.
+- (c) 10907 / 10544 won't re-ripen by next session (need 6-8h fresh harvest); not a pin.
+- (d) Operator stamina at full cap by then — ready for any strike + close-feed combo.
+- **Out of scope**: Apology Letter manufacturing without trial-validation (inventory ≥5 unused = hoarding, not leverage); cross-region travel to node 80 at margin <+40.
