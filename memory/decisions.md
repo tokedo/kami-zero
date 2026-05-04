@@ -5181,3 +5181,58 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Watcher refresh** ×5 cycles surfaces any defensive shift on Yeahta or new cross-region V≥22 emergence.
 - (d) **Disregard cross-region yeddy/popo** — only 2 clean sb=0 targets per cluster, cross-region cluster math marginal.
 - **Out of scope**: chain-2 same-striker (still forbidden V<22 without close-feed); cross-region commit on <3 sb=0 cluster.
+
+## 2026-05-04 09:30-09:42 UTC — session 134 (2 KILLS Yeahta cluster, different-striker pair, no chain)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 09:30:12Z fresh)**:
+- Yeahta cluster ripened across 25-min gap. Node 73 killable_count=7 on top10. Two clean sb=0 V<22 above floor:
+  - 6104 V13 H22 sb=0 — proj_hp 119, watcher striker 12649, kz 162, margin **+43**.
+  - 6485 V11 H22 sb=0 — proj_hp 116, watcher striker 12649, kz 154, margin **+38** (dts=40 reduces kz vs 6104).
+- Yeahta heat: **146.3 min idle**, distinct_kamis 0/0, no bursts, no defensive automation. Cluster fully passive after session-133 strikes.
+- Strikers (slim): 11224 RESTING node 73 sync 126/140 cooldown clear (-28 min ago); 12649 RESTING node 73 sync 100/170 cooldown clear.
+- Cross-check via `executor.hp_projection.kill_threshold` revealed 11224 (EERIE hand vs SCRAP body, efficacy 2.0) is competitive despite lower atk_s: 11224→6104 kz=157 margin +38; 11224→6485 kz=150 margin +34.
+- Optimal pairing for max-min margin: 11224→6104 (+38) / 12649→6485 (+38) — both equal, both above +25 floor, no chain needed.
+
+**Decided**: Different-striker no-chain pair — 11224→6104, 12649→6485. Pre-stage both → 200s wait → fire pair → 200s wait → close-feed both → 90s → stop.
+
+**Acted (6 productive tx + 1 nonce-collision retry, 2 KILLS)**:
+- `harvest_start([11224, 12649], 73)` 09:31:30Z — 1.978M gas success.
+- (210s wait for combat cooldown clear)
+- `liquidate(6104, 11224, target_handle="Yeahta")` 09:36:39Z → 4.429M gas, **KILL #63** (V13 sb=0 victim).
+- `liquidate(6485, 12649, target_handle="Yeahta")` first attempt **nonce collision** (parallel-tool race): "account sequence mismatch, expected 3531, got 3530". Retry 5s later 09:36:56Z → 4.472M gas, **KILL #64** (V11 sb=0 victim).
+- (200s wait for post-strike combat cooldown)
+- `feed_kami(11224, 11304)` 09:40:39Z — 1.812M gas.
+- `feed_kami(12649, 11304)` 09:40:43Z — 1.797M gas.
+- (95s wait for feed cooldown)
+- `stop_harvest_batch([11224, 12649])` 09:42:29Z — 3.614M gas. Both INACTIVE.
+
+**Result**: **2 obols (64→66 lifetime)**, MUSU spoils gross ~600-1000 not yet indexed (530179 unchanged at session-end snapshot, will surface). Lifetime kills **62→64**.
+
+**Gas notes**: total ~18.10M productive (1.98 pre-stage + 8.90 strikes + 3.61 feeds + 3.61 stop). EV = 2 obols / 18.10M = **0.110 obols/Mgas** — consistent with recent baseline.
+
+**Inventory deltas**:
+- Obol: 64 → **66** (+2)
+- Cookies (11304): 425 → 423 (−2 close-feeds)
+- MUSU: unchanged in snapshot (spoils not yet indexed)
+
+**Doctrine notes (NEW)**:
+1. **MCP parallel-tool race causes nonce collisions on bulk-strike paths.** Two `liquidate` calls dispatched in the same response block submitted with the same nonce — blockchain returned "account sequence mismatch" on the second. **Always sequence multi-tx strike volleys** (one tool call, await result, then next call). The 5-second retry was lossless (no gas wasted on the rejected first attempt — geth refused at mempool admission). Worth a harness improvement: serialize `_send_tx` calls per-account internally so MCP callers can fire in parallel safely.
+2. **EERIE hand vs SCRAP body = 2.0 efficacy.** 11224's hand affinity gives a higher efficacy multiplier than 12649's NORMAL/SCRAP 1.7 — partially offsetting 11224's lower atk_s (0.28 vs 0.40). For Yeahta cluster (all SCRAP body), 11224 is much more competitive than the watcher's static striker_idx assignment suggests. Watcher always picks 12649 because its higher atk_s wins the comparison after composing both factors, but 11224 is a viable pair partner — opens different-striker no-chain plays that the watcher's single-striker assignment hides. Update plan template to manually compute alternate striker margin when chain opportunity exists.
+
+**End state**:
+- Operator at room 73 (Broken Tube z=3).
+- 11224 RESTING node 73 sync 100/140 (post recoil + close-feed; recoil ~25 HP from V13 strike).
+- 12649 RESTING node 73 sync 100/170 (post recoil + close-feed; recoil ~50 HP from V11 strike — surprisingly heavy, may be EERIE/NORMAL hand mismatch interaction).
+- Yeahta cluster remaining clean: only **1500 V12 H24 sb=0 margin +33** (sb=0 V<22 candidate above floor) + sub-floor 1374 V15 H19 sb=0 margin +15 (ripening). Sustain off-limits unchanged: 6505 sb=-50, 3699 sb=-50, 1847 sb=-25.
+- Lifetime kills: **64**.
+
+**Anomalies**: nonce collision (mitigated by retry, no gas wasted). Will draft harness fix in `ideas_to_founder.md` next session if pattern recurs.
+
+**Next session (135)** — Re-wake **+25 min** (~10:07 UTC May 4, ts **1777889254**). Pinned to:
+- (a) **Yeahta solo-strike candidate** — 1500 V12 sb=0 margin +33 (above floor; 12649 striker per watcher fix). Solo-fire-and-feed, ~7-8M gas, 1 obol.
+- (b) **Sub-floor ripen check** — 1374 V15 sb=0 +15 may cross to +20 (still sub-floor at +25 strict), so likely still passive.
+- (c) **Striker rest** — 12649 100/170 needs ~12 min rest to top off; 11224 100/140 needs ~7 min. 25-min re-wake ample.
+- (d) **Watcher refresh** ×5 cycles surfaces any new cluster emergence elsewhere or Yeahta defensive shift.
+- **Out of scope**: chain-2 (only 1 valid candidate); cross-region (in-room cluster still active); sustain-off-limits strikes.

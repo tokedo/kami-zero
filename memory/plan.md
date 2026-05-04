@@ -1,83 +1,78 @@
-# Plan for session 134 — Yeahta sub-floor ripen-watch (in-room)
+# Plan for session 135 — Yeahta solo-finisher (in-room)
 
-## Context (post-session 133)
+## Context (post-session 134)
 
-**Session 133 = 2 KILLS Yeahta cluster (lifetime 60→62)** + **WATCHER STRIKER-CONFIG BUG FIX**:
-- 3735 → killed by 11224 (V16 H20 sb=0, margin +36, planned-pair primary).
-- 2836 → killed by 12649 (V14 H22 sb=0, margin +38, planned-pair secondary; possible only after watcher fix surfaced 12649 as superior striker for both).
-- Pre-stage [11224, 12649] + chain-2 different-striker pair + post-strike close-feed both + stop. ~17.85M gas / 2 obols = **0.112 obols/Mgas**.
+**Session 134 = 2 KILLS Yeahta cluster (lifetime 64→66)** — different-striker no-chain pair:
+- 11224 → 6104 (V13 H22 sb=0, margin +38, EERIE/SCRAP efficacy 2.0).
+- 12649 → 6485 (V11 H22 sb=0, margin +38, NORMAL/SCRAP efficacy 1.7).
+- Pre-stage + 200s wait + parallel pair (one nonce-collision retry, 5s lossless) + close-feed + stop.
+- ~18.10M gas / 2 obols = **0.110 obols/Mgas**.
 
-**Watcher fix** (`predator/scripts/refresh_world_targets.py` STRIKERS[12649].atk_s 300→400): prior config under-rated 12649's atk_threshold_shift by 0.10. Post-fix margins for 12649 jumped massively across population — yeddy node 53 clean candidates +104/+92, popo node 26 +67/+52, TrayzinCarpathia node 60 +75. Most cross-region with marginal cluster mass (≤2 sb=0 targets), but world view richer.
+**Yeahta cluster remaining clean (post-session 134, snapshot 09:30:12Z then strikes)**:
+- **1500 V12 H24 sb=0 margin +33 elap 4.7h** — sole sb=0 V<22 candidate above floor, 12649 striker per watcher fix.
+- 1374 V15 H19 sb=0 margin +15 elap 2.4h — sub-floor passive, ripening.
+- 6505 V19 H21 sb=-50 — sustain off-limits.
+- 3699 V11 H23 sb=-50 — sustain off-limits.
+- 1847 V10 H20 sb=-25 — sustain off-limits.
 
-**Yeahta cluster remaining (snapshot 09:00:39Z)** — node 73:
-- 6104 V13 H22 sb=0 margin +34 elap 4.0h (above floor, ripening)
-- 6485 V11 H22 sb=0 margin +28 elap 4.0h (above floor, ripening)
-- 1500 V12 H24 sb=0 margin +24 elap 4.3h (right at floor)
-- 6505 V19 H21 sb=-50 margin +53 — sustain off-limits
-- 3699 V11 H23 sb=-50 margin +37 — sustain off-limits
-- 1847 V10 H20 sb=-25 margin +19 — sustain off-limits
-- 1374 V15 H19 sb=0 margin +6 — passive sub-floor
+**Striker state (post-134 stop, ts 1777887754)**:
+- 11224 RESTING node 73 sync 100/140 (rest: ~7 min to top off).
+- 12649 RESTING node 73 sync 100/170 (rest: ~12 min to top off).
 
-**Striker state (post-session 133 stop)**:
-- 11224 RESTING node 73 sync ~134/140 (post close-feed). Cooldown clear.
-- 12649 RESTING node 73 sync ~125/170 (post close-feed). Cooldown clear.
-
-**Arsenal** (after −2 cookies): 425 Gakki Cookie Sticks, 4 Apology Letters, 1 Hostility Potion. 64 Obols. ~530.2k MUSU (+spoils not yet indexed: ~600-1000 from 132 + ~600-1000 from 133).
+**Arsenal**: 423 cookies, 4 Apology Letters, 1 Hostility Potion, 66 Obols, ~530.2k MUSU (+ unindexed spoils ~1800 since session 132).
 
 ---
 
-## Priority 1 — Yeahta sub-floor ripen-watch (in-room)
+## Priority 1 — Yeahta solo-finisher 1500 (in-room)
 
-**Targets at +25 floor entry threshold by 09:26**:
-- 6104 V13 H22 sb=0 — projected margin ~+38-40 by 09:26 (assuming +5-8/h ripen rate)
-- 6485 V11 H22 sb=0 — projected margin ~+33 by 09:26
+**Target**: 1500 V12 H24 sb=0 — projected margin ~+35-40 by 10:07 (assuming +5/h ripen). 12649 likely best striker (kz against H24 should be ~+5 better than 11224 for this stat profile).
 
-Both eligible for V<22 sb=0 doctrine. With watcher fix, 12649 is likely best striker for at least one (was previously assigned to 11224 due to misconfigured atk_s).
-
-### STEP 0 — NO `harvest_start` at session start
-Strikers are RESTING. To strike, EITHER (a) accept 200s wait, OR (b) recognize that pre-stage was NOT done at session 133 end (operator chose immediate fire path). For session 134 strike: must pre-stage in-session and accept 200s wait. Same gas cost as pre-stage at prior end; no regret.
+### STEP 0 — NO `harvest_start` for unused strikers
+Only the chosen striker pre-stages. Solo plan = pre-stage 12649 only → 200s wait → fire → close-feed → stop. ~7.7M gas, 1 obol. Skip 11224 (no chain opportunity, no need to deploy).
 
 ### STEP 1 — Verify state
-- Watcher refresh (cron auto, fresh by 09:26).
-- Read `killable_v2` for node 73. Confirm 6104/6485 still HARVESTING and ripened ≥+30.
-- Yeahta heat re-verify (will be ~30 min idle now after the 2 kills at 08:55 — heat counter restarts).
-- Striker HP via slim — both should be regen'd to 140/170 over 25 min rest + previous close-feed sync.
+- Watcher refresh (cron auto, fresh by 10:07).
+- Read `killable_v2`/`top10` for node 73. Confirm 1500 still HARVESTING and ripened ≥+30.
+- Yeahta heat re-verify (will be ~25-30 min idle after this session's 2 kills at 09:36 — heat counter restart from 0).
+- Striker HP 12649 via slim — should be 100→160-170 over 25 min rest.
 
 ### STEP 2 — Decision tree
-- **Both 6104 + 6485 ≥+30 + heat clean**: pre-stage harvest_start([11224, 12649]) → wait 200s → fire pair (compute optimal striker assignment using corrected watcher) → post-strike close-feed both → stop.
-- **Only 6104 ≥+30, 6485 sub-+30**: solo-strike 6104 with best striker (likely 12649 per fix). Save 6485 for next session.
-- **Heat changed (defensive flag)**: HOLD, vacate at session 135 if persists.
-- **All sub-+30**: HOLD. Re-wake +30 min for next ripen check.
+- **1500 ≥+30 + heat clean + 12649 sync ≥150**: solo strike (pre-stage 12649 → 200s wait → strike → close-feed → stop). ~7.7M gas / 1 obol.
+- **1500 sub-+30 (defensive feed by Yeahta)**: HOLD. Re-wake +30 min for ripen / feed clearance.
+- **Heat shifted (defensive automation engaged)**: HOLD, vacate at session 136.
+- **12649 sync still <150**: solo with 11224 instead (compute margin first; if 11224's kz vs 1500 H24 has margin ≥+25, fire 11224).
 
-### STEP 3 — Striker assignment (use corrected watcher)
-Trust `world_targets.json` `striker_idx` post-fix. For session 134, expect 12649 paired with high-margin sb=0 V<22 target since corrected efficacy gives 12649 better numbers for many V<22 cases.
-
----
-
-## Priority 2 — V≥22 sb=0 emergence + cross-region scan
-
-Watcher refresh ×5 cycles since 133. Read `killable_v2` for any new non-guild V≥22 sb=0 with margin ≥+25. Cross-region single-target threshold unchanged: V≥22 sb=0 ≥+40 + owner-passive-confirmed.
-
-**Post-fix world surfaces (cross-region, NOT actionable as solo)**:
-- yeddy node 53: 4768 V11 sb=0 +104, 7263 V13 sb=0 +92 (2 clean sb=0 — marginal cluster)
-- popo node 26: 13964 V11 sb=0 +67, 8962 V12 sb=0 +52, 7476 V10 sb=0 +44 (3 clean sb=0 — minimum cluster mass)
-- TrayzinCarpathia node 60: 898 V14 sb=0 +75 (1 clean sb=0 — single)
-
-**popo node 26 borderline qualifies as cluster** (3 sb=0 targets). Worth a pre-trip oracle drill on owner heat next session if Yeahta drops below cluster mass first.
+### STEP 3 — Striker choice
+Compute 11224 vs 1500 V12 H24 max_hp ~190 dts=0 BEFORE pre-stage. Pick whichever striker has higher margin AND ≥150 sync. If tie, prefer 12649 (higher max_hp = more recoil tolerance).
 
 ---
 
-## Priority 3 — Self-pace cooldown awareness (carry-over)
+## Priority 2 — Watcher cluster scan (cross-region emergence)
 
-**Strike→next-action cooldown is 180s** (NOT 80s). Budget ≥200s wait between strike and feed. Plan post-strike sequences accordingly. Pre-stage harvest_start at session-end is a valid optimization but only if NEXT session is genuinely committed to firing — otherwise gas waste.
+Read `killable_v2` for any new non-guild clean candidates outside Yeahta. Cross-region cluster threshold unchanged: ≥3 sb=0 V<22 candidates with average margin ≥+30 OR single V≥22 sb=0 ≥+40 + owner-passive.
 
-**Owner-resolver flake**: ALWAYS pass `target_handle` (from watcher `v_acct`) to `liquidate` — saves a likely-failing Playwright resolution call.
+**Carry-over from session 133 watcher fix**:
+- yeddy node 53: 4768 V11 sb=0 +104, 7263 V13 sb=0 +92 (2 clean — marginal).
+- popo node 26: 13964 V11 sb=0 +67, 8962 V12 sb=0 +52, 7476 V10 sb=0 +44 (3 clean — qualifies as cluster).
+- TrayzinCarpathia node 60: 898 V14 sb=0 +75 (single).
+
+**popo node 26** is the next-most-ripe cross-region. Worth a pre-trip oracle drill on owner heat next session if Yeahta cluster exhausts (only 1500 + 1374 left at 73).
+
+---
+
+## Priority 3 — Striker affinity-aware planning (carry-over from 134 doctrine)
+
+**EERIE hand vs SCRAP body = 2.0 efficacy** (vs NORMAL/SCRAP 1.7). 11224 (EERIE) is more competitive vs Yeahta cluster than the watcher's striker_idx assignment suggests. **At plan time, manually compute alternate striker margins using `executor.hp_projection.kill_threshold` when a chain opportunity exists.** Watcher's static `striker_idx` only picks one — it hides pair / chain options.
+
+## Priority 4 — Nonce-serialization harness improvement (deferred, low priority)
+
+If parallel-strike nonce collisions recur (saw 1× this session, 5s retry was lossless), draft harness fix in `ideas_to_founder.md`: serialize `_send_tx` per-account internally so MCP callers can fire in parallel safely. Not blocking — skip for now.
 
 ---
 
 ## Hard limits (unchanged)
 
-- **Gas budget session 134**: ~5M monitor OR ~18M if pair fires (pre-stage + 200s wait + 2 strikes + 2 feeds + stop).
+- **Gas budget session 135**: ~5M monitor OR ~7.7M if solo fires.
 - **NO `harvest_start` if any strike planned same session** unless accepting 200s mid-session wait.
 - **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv / 4444444444444444 / 1444444444444444** = deny-all.
 - **vuongdung1198 V<22** off-limits (session 118 doctrine).
@@ -88,22 +83,23 @@ Watcher refresh ×5 cycles since 133. Read `killable_v2` for any new non-guild V
 - **V<22 chain-2 forbidden** without close-feed-then-strike or margin >+50.
 - **Pre-strike Apology Letter** ONLY when target V≥30 OR margin <+45.
 - **Always pass `target_handle`** to `liquidate` (resolver flake).
+- **NEW (134)**: **never dispatch two `liquidate` (or any state-mutating tx) in the same MCP tool-call response** — sequence them serially to avoid nonce collisions. (Or fix the harness.)
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake **+25 min** (~09:26 UTC May 4, ts 1777886827). Pinned to: (a) Yeahta sub-floor ripening — 6104 + 6485 cross +35/+30 margin window. (b) Striker recovery — 11224 to ~140/140, 12649 to ~140/170 over 25 min rest. (c) Watcher refresh ×5 cycles catches any defensive heat shift on Yeahta after 4 kills/15h. **Bias fire-now**: cluster in-room, only delay is striker-HP wait + ripen window."
+**Pin**: "Re-wake **+25 min** (~10:07 UTC May 4, ts 1777889254). Pinned to: (a) 1500 V12 sb=0 ripening from +33 → +35-40 (cross +35 confidence threshold). (b) Striker recovery — 12649 100→160-170 over 25 min rest, 11224 100→140 over 7 min. (c) Watcher refresh ×5 cycles catches Yeahta defensive heat shift after 4 kills/13h. **Bias fire-now**: in-room cluster, only delay is striker-HP wait + ripen window."
 
-**Re-wake**: ~09:26 UTC May 4, ts **1777886827**.
+**Re-wake**: ~10:07 UTC May 4, ts **1777889254**.
 
 ---
 
-## Out of scope (session 134)
+## Out of scope (session 135)
 
-- Cross-region travel (Yeahta cluster in-room, popo node 26 worth a pre-trip oracle drill but not commit yet).
-- Chain-2 same-striker without close-feed.
-- Sub-floor strikes (1500 V12 sb=0 +24 right at floor — borderline).
+- Cross-region travel (Yeahta still has 1500 in-room; popo node 26 worth a pre-trip oracle drill but not commit yet).
+- Chain-2 (only 1 valid Yeahta candidate; 1374 sub-floor).
+- Sub-floor strikes (1374 +15 ripening but not at floor).
 - sb=-50 / sb=-25 strikes (6505/3699/1847).
 - Quest progression, kamibots state reads, force-flush.
 - POWELL / deny-set strikes.
