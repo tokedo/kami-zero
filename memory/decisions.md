@@ -5025,3 +5025,50 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Striker recovery** — 11224 + 12649 both RESTING at 73 sync ~133-134 (after close-feed). 15 min rest = ~140-150 sync (regen at ~30 HP/h). 11224 will be near full; 12649 needs +20-30 more from rest.
 - (d) Watcher refresh ×3 cycles catches new V≥22 sb=0 cluster emergence anywhere.
 - **Out of scope**: cross-region travel from 73 (single-target floor unchanged); chain-2 V<22 strikes (recoil too heavy); 4722 defense-cycle re-engage (4722 just died, won't re-harvest within 15 min).
+
+## 2026-05-04 08:00-08:08 UTC — session 131 (0 KILLS, 2 EARLY REVERTS — harvest_start cooldown-lock)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 08:00:12Z fresh)**:
+- Yeahta cluster at node 73 ripened across cron gap: 3470 V11 H20 sb=0 margin **+29** (proj_hp=114, kill_zone=143), 8007 V15 H20 sb=0 margin **+26** (proj_hp=119, kill_zone=145). Both above the +25 V<22 sb=0 floor.
+- Yeahta heat: minutes_idle 56.3, distinct_kamis_5min 0, no bulk_stop/sync_stop/sync_feed bursts, anti_predator_automation=False, defensive_cycle=False — pure passive after 2 KILLS at session 130 (07:36).
+- Oracle: 1 Yeahta `harvest_start` in 90 min (kami 1374 at 07:03, pre-130-strike). 0 actions on 3470/8007/6505/2836/3735/6104 in 60 min.
+- Strikers: 11224 RESTING node 73 sync 134/140 (24 min rest = ~140), 12649 RESTING sync 133/170 (~145).
+- Computed kill_zones (executor/hp_projection): 11224→8007 kz=145 margin +26, 12649→3470 kz=147 margin +33. Best pairing 12649→3470 (efficacy 1.7 + atk_shift 0.40 + def_shift 0.10 mhp 190).
+
+**Decided**: Fire 12649→3470 (margin +33) and 11224→8007 (margin +26). Different strikers, no chain — per session 130 doctrine extension.
+
+**Acted (4 tx, 2 reverts, 0 kills)**:
+- `harvest_start([11224, 12649], 73)` at 08:03:13 — 1.98M gas, success.
+- `liquidate(3470, 12649)` at 08:03:23 — **REVERTED 0.28M gas** (early-revert cooldown-lock).
+- `liquidate(8007, 11224)` at 08:03:54 — **REVERTED 0.28M gas** (same cause).
+- `harvest_stop([11224, 12649])` at 08:04:52 — 3.60M gas, success.
+- `harvest_start([11224, 12649], 73)` at 08:07:00 — 1.82M gas, success (re-stage for next session).
+
+**Root cause**: `predator/mechanics.md` L504 ("harvest_start triggers attacker cooldown") — `harvest_start` resets attacker cooldown to ~180s. My harvest_start at 08:03:13 locked both strikers from liquidating until ~08:06:13. Strikes at 08:03:23 and 08:03:54 hit the 0.28M cooldown-lock revert path (the empirical fingerprint matches mechanics.md exactly: "0.28M gas = early-revert path: cooldown not cleared").
+
+**Doctrine note**: Plan 131 P1 said "operator+strikers stay at room 73 (zero-travel chain)" but didn't account for strikers being RESTING at session start (after session-130 harvest_stop). To strike, harvest_start was required, which resets cooldown. Future plans must account for: when strikers are RESTING in same room as target node, EITHER (a) accept 3-min mid-session wait between harvest_start and liquidate, OR (b) pre-stage harvest_start at end of prior session so cooldown clears during cron gap. Option (b) is gas-cheaper (no harvest_stop loop) and time-cleaner.
+
+**Result**: 0 kills, 2 reverts, 0 obols, 0 MUSU spoils, ~7.96M gas wasted (pre-investment 1.82M counted toward NEXT session). EV this session 0.0 obols/Mgas. Lifetime kills **58** (unchanged).
+
+**Mitigation in flight**: Re-staged `harvest_start` at 08:07 = strikers now HARVESTING with cooldown ticking. By next session at ~08:14 UTC, cooldown is long clear. Targets continue ripening (3470/8007 each at +5/h trajectory, expected +30-32 / +27-29 by re-wake).
+
+**Gas notes**: 7.96M total. Half attributable to mechanism-not-recalled bug; half pre-investment for next-session strike. Future sessions: keep predators HARVESTING across cron gaps when known cluster is in-room.
+
+**Inventory deltas**: none. No items consumed (no close-feeds since strikes failed). Cookies still 429.
+
+**End state**:
+- Operator at room 73 (Broken Tube z=3), stamina ~70-80 SP.
+- 11224 + 12649 HARVESTING node 73 (cooldown clears ~08:10 UTC).
+- Yeahta cluster intact at +29/+26 (3470/8007), 4 sub-floor (6505/2836/3735/6104) ripening.
+- Lifetime kills: **58** (unchanged).
+
+**Anomalies**: harvest_start cooldown-lock was a documented mechanic I should have applied. Updating plan to surface this rule for next session.
+
+**Next session (132)** — Re-wake **+7 min** (~08:14 UTC May 4, ts **1777882437**). Pinned to:
+- (a) **Cooldown clear by 08:10** for both strikers (harvest_start 08:07 + 180s = 08:10). Strike-ready immediately.
+- (b) **Yeahta cluster ripening continues** — 3470 +29 → ~+32, 8007 +26 → ~+29 (still above +25 floor with buffer).
+- (c) **Yeahta heat re-verify** — 7 more min of passive observation; if still clean, fire pair.
+- (d) **Watcher refresh** ×0.7 cycle (10-min cadence) — may have fresh data on heat.
+- **Out of scope**: any new `harvest_start` in same session as a strike (cooldown-lock); cross-region travel; chain-2 same-striker (recoil heavy).
