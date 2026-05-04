@@ -8,6 +8,73 @@
 
 ## Pending
 
+### 5. Items arsenal v1 surveyed — high-EV blockers (2026-05-04, session 123)
+
+Full doc: `predator/items-arsenal.md`. Three item-supply blockers limit
+predator playbook expansion:
+
+**5a. Blue Pansy (item 11314) — HIGHEST-EV ask.**
+- Required ingredient (5 per craft) for Animistic Poison (item 19101,
+  STRAIN+50% on enemy harvester).
+- Animistic Poison directly accelerates the strain projection model on
+  enemy kamis — translation: a V<22 sustain-build candidate sitting at
+  margin +50 (sub-floor for our V<22 ≥+95 doctrine) ripens toward our
+  kill window in ⅔ the natural time. World has been V<22 dominant for
+  5 consecutive sessions; this item *is* the unlock for that regime.
+- Current bpeon Blue Pansy stock: 0. Drop source unknown — Blue Pansy
+  is HP+25 food, likely scavengeable from a food-affinity node, but
+  `catalogs/scavenge-droptables.csv` should be checked. If Mina's shop
+  or a vending machine carries it, even at high MUSU price, it's a
+  high-ROI MUSU spend.
+- **Ask**: identify Blue Pansy drop / shop source. If transferable, a
+  starter stock of 50–100 (10–20 craft batches) would unlock
+  experimentation immediately.
+
+**5b. Holy Dust reserve policy.**
+- We hold 4 Holy Dust. Each Holy Dust either renames 1 kami (cost: 1
+  Holy Dust at room 11) OR mints 500 Holy Syrup via recipe 14.
+- Holy Syrup is the bottleneck on three Tier-2 self-buff items:
+  - Cthonic Blight (100 syrup/craft, DTS-5% on enemy)
+  - MUSU Magnet (100 syrup/craft, DSR+25% on us)
+  - Festival Chime (250 syrup/craft, HIB+25 on us)
+- **Ask**: founder direction on reserve policy. Default kami-zero
+  intent absent direction: keep 2 for naming, burn 2 for ~1000 syrup
+  whenever a co-bottlenecked craft (Fetid Egg, Powdered Red Amber)
+  unblocks.
+
+**5c. Fetid Egg (item 11227) drop source unknown.**
+- Required ingredient (1 per craft) for Cthonic Blight (item 19201,
+  DTS-5% on enemy).
+- HP+35 food. We have 0. Without this, Cthonic Blight chain is blocked
+  even if Holy Syrup is unlocked.
+- **Ask**: identify Fetid Egg drop / shop source. Lower priority than
+  Blue Pansy because Cthonic Blight only nets a few HP of effective
+  margin; Animistic Poison is multiplicative on the strain model.
+
+**5d. Curse Tablet (item 19301) — drop-only, no recipe.**
+- ATS-30%_KK on enemy kami — this is *defensive* against enemy
+  predators (e.g., Aenne, 3333333333333333). Throwing it on an Aenne
+  kami before they strike our co-located harvester would shrink their
+  attack threshold by 30%, making us less killable.
+- **Ask**: long-term wishlist. If Curse Tablets surface in any
+  merchant or droptable, they'd materially tilt counter-predator math.
+
+**5e. Inverted Teardrop Jewel (item 11224) — drop-only.**
+- ATR+10%, BYPASS_BONUS_RESET (persistent). Strong striker buff that
+  multiplies our affinity advantage on attacks.
+- **Ask**: drop source unknown. Even 1 jewel per striker would be a
+  permanent EV bump.
+
+**No founder action required to proceed.** kami-zero will:
+1. Next session, grind 5 Sanguine Shrooms → 2,500 Sanguineous Powder
+   (verifies effect string + grant), then batch the rest of 29 if
+   verified. This is a *free* unlock that enables Apology Letter
+   (ARB-25%, recoil reducer) and Hostility Potion (ATS+3%, attack
+   buff) crafting at scale (29 shrooms = 14,500 powder = 116 craft
+   batches of either).
+2. Continue the V<22 dominant world watch with current striker pair
+   (11224, 12649) at room 50.
+
 ### 1. Guild no-touch roster — partial-resolution status (visibility)
 - Founder shipped `predator/guild-no-touch.csv` 2026-05-01 with 82 GUILD-tier
   handles. account_id resolved for **44 / 82** in session 73 via

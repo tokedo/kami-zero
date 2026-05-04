@@ -811,3 +811,7 @@ The watcher snapshot was 12 min stale by the third strike, but more importantly 
 - Check whether `attack_threshold_shift` in `kami_static` is a snapshot from `build_refreshed_ts` and may lag actual on-chain; if so, the oracle-vs-live discrepancy is a known data-staleness issue, not a model bug.
 
 **Cost**: 0 strikes, 0 obols, 0 gas (build-mode session). Time: ~30 min wall. Output: this finding.
+
+---
+
+2026-05-04 — Items arsenal v1 surveyed, 14 tactical items catalogued across 4 tiers (active disruption, self-buff, close-feed, operator stamina); 5 supply blockers identified (Blue Pansy, Holy Dust reserve, Fetid Egg, Curse Tablet, Inverted Teardrop Jewel) and propagated to `ideas_to_founder.md` ask 5. Free-unlock craft batch identified for next session: 29 Sanguine Shrooms → 14,500 Sanguineous Powder → 116 Apology Letter + Hostility Potion crafts. See `predator/items-arsenal.md`.

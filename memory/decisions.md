@@ -4626,3 +4626,47 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 **Anomalies**: none — confirmed world-state pivot; deferred ratings consistent with model.
 
 **Next session (123)** — Re-wake **+35 min** (~01:37 UTC May 4, ts 1777858200). Pinned to: "(a) Watcher 10-min refresh cycle × 3 for any V≥22 strain_boost=0 emergence (current world has zero such candidates; need a new harvester wave or a long-running V≥22 farmer to surface). (b) yeddy 8804 V11 ripening — proj_hp=76 currently, could drop to ~30 in 30min pushing margin from +65 to +110 — but V<22 model risk holds, and node 53 is deep travel. (c) zero-travel zero candidates at room 50; would need cross-region for any strike. (d) If watcher refresh shows any V≥22 strain_boost=0 cluster (≥2 candidates same node margin ≥+30): plan strike. Otherwise hold +30min more and consider building infrastructure: a `total_violence` annotated view in `world_targets.json` so future sessions don't repeat the v_lv-vs-V mistake."
+
+
+## 2026-05-04 01:30-01:36 UTC — session 123 (research; items arsenal v1)
+
+**ETH balance**: not measured (zero transactions).
+
+**Perceived (watcher gen 01:30:11Z, fresh)**:
+- killable_v2: 27. Top non-Aenne above-floor candidates: 8040 KAMI (margin +89, but `strain_boost ≤ -25` sustain-build off-limits), then orange 1622 V36 +84 (proj_hp=0, watcher v_lv=LEVEL though), fluff 234/6307/2009/7230 margins +79–81 (all V<22 actual). All non-Aenne candidates either in deny-all set, sub-+95 V<22 floor, or strain_boost=-25/-125 sustain-build off-limits. **No clean strike opportunity.**
+- World still V<22 dominant (5 sessions running).
+- Strikers 11224 + 12649 RESTING at room 50 (assumed, not re-verified — pure data-plane session).
+
+**Decided**: Execute Plan P0 (founder Round-2 directive) — items arsenal survey. Defer P1 (V≥22 emergence) and P2 (V<22 opportunistic) since neither materialized.
+
+**Acted**:
+- Read `catalogs/items.csv` (178 lines), `catalogs/recipes.csv` (42 lines).
+- `get_inventory(bpeon)` — full snapshot of 56 inventory entries.
+- Wrote `predator/items-arsenal.md` (v1) — 14 tactical items catalogued across 4 tiers (active disruption, self-buff, close-feed, operator stamina).
+- Appended ask 5 to `ideas_to_founder.md` with 5 supply-blocker subitems (Blue Pansy, Holy Dust reserve policy, Fetid Egg, Curse Tablet, Inverted Teardrop Jewel).
+- Appended ship-test note to `predator/learnings.md`.
+
+**Result**: 0 transactions, 0 gas, 0 obols. Research output:
+- **Spirit Glue (19001)** craftable in bulk now (all 3 ingredients in abundance: 9013 plastic / 300k microplastics / 1M berry chalk). Founder priority item — disruption play unlocked at scale.
+- **Animistic Poison (19101)** identified as highest-EV missing item (STRAIN+50% on enemy harvester directly accelerates strain projection model — *the* unlock for the V<22 dominant world). Blocked on Blue Pansy supply (0 in stock).
+- **Free unlock for next session**: grind 5 Sanguine Shrooms (proof) → 25 (full batch) for 14,500 Sanguineous Powder, plus process 3 Resin → 1,500 Resin Tincture. Removes the Apology Letter + (partial) Hostility Potion bottleneck.
+- **Pine Pollen restock blocked**: 0 Pine Cones in inventory. Hostility Potion supply capped at 2 batches even after shroom-grind.
+- **Inventory verified**: 55 obols, 434 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,612 MUSU, 9013 plastic bottles, 300k microplastics, 1M berry chalk, 463 Rock Candyfloss, 29 Sanguine Shrooms, 25 Resin, 4 Holy Dust.
+
+**Gas notes**: 0M total. Pure research session.
+
+**Inventory (unchanged this session)**: 55 obols, 434 cookies, 529,612 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at room 50 (assumed; not re-verified).
+- Stamina full or near-full (no transactions).
+- Lifetime kills: **53** (unchanged).
+
+**Anomalies**: none.
+
+**Next session (124)** — Re-wake **+30 min** (~02:06 UTC May 4, ts 1777860414). Pinned to:
+- (a) **Free unlock craft batch** — proof-of-concept: `craft_item(recipe_index=16, amount=1, account="bpeon")` to grind 1 Sanguine Shroom → verify Sanguineous Powder grant of +500. If clean, batch 4 more (5 total). Stamina 50 SP, gas budget 7M.
+- (b) **Resin processing**: `craft_item(recipe_index=15, amount=1)` ×3 to mint 1,500 Resin Tincture. Removes Apology Letter co-bottleneck.
+- (c) **Watcher refresh** — V≥22 strain_boost=0 emergence watch continues; if a 3+ cluster surfaces, prioritize the strike over crafts (hunt > build).
+- (d) **Empty Cup mint**: 1× Recipe 17 if room 11 reachable from 50 (or defer to next stamina cycle). One cup unlocks the proof-of-concept Hostility Potion craft.
+- **Out of scope**: full 25-shroom batch (defer until proof verifies); Hostility Potion (defer until cup + powder both exist); any V<22 strike at margin <+95.
