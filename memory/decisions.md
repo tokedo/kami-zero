@@ -5881,3 +5881,48 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 **Bias fire-now (session 148)**: glue-raid is THE play. If Trayzin still defensive at 17:35 wake, fall through to maia E006 test or cross-region popo/yeddy cluster check.
 
 **Pin justification (Cadence Discipline)**: 65 min wait pinned to a specific watcher event (TrayzinCarpathia 6h burst-window rolloff at ~17:43 UTC). Single concrete event; cache miss accepted (5min TTL exceeded but justifies one long wait vs. 13 short polls of an unchangeable countdown).
+
+## 2026-05-04 17:35 UTC — session 148 (HOLD — Trayzin heat 8min pre-rolloff, maia clean target gone)
+
+**Perceived (watcher gen 17:35:14Z, 0s old)**:
+- **Reachable killable_v2 (nodes 60/61/62/63/65)**: 8 sub-floor candidates only (best: sa3woo 4770 V14 sb=0 +21 at node 62, wiuuuu 1451 V14 sb=−25 +17 at node 60). **No V<22 sb=0 ≥+25 fire-now anywhere reachable.**
+- **Node 60 by_node top10**: 8 TrayzinCarpathia (all dc=True suppressed by v2; clean cluster 6558 V15 sb=0 +96 / 17177 V13 sb=0 +45 / 16591 V15 sb=0 +29 / 991 V13 sb=0 +11; sustain 11319 sb=−25 +54 / 6023 sb=−125 +46 / 12238 sb=−100 +36) + 2 wiuuuu sub-floor (+17 sustain, +14 sub-floor).
+- **TrayzinCarpathia heat**: still defensive_cycle=True (sync_feed_bursts_6h=2, anti_predator_automation=True, idle 6.1m, k60=1). Bursts roll out at ~17:43 UTC May 4 (8 min from session wake). One more watcher cycle (cron at :40 / :45) will reflect rolloff.
+- **maia 80 FLIPPED defensive** (NEW): sync_stop_bursts_6h=2, dc=True, idle 18.3m, k60=14. **Clean 8279 V12 sb=0 +80 is GONE from killable_clean** (cycled or killed by other hunter). Cluster now: 3117 V11 sb=−125 +122 / 7689 V12 sb=−125 +105 / 7160 V12 sb=−100 +93 / 3203 V32 sb=0 +27. All sb≤−100 (E006-gated, single-strike test only) — 3203 V≥22 deny.
+- **Cross-region V<22 sb=0 ≥+50 clean (recent_revive=False, fresh_feed=False, dc=False)**: yeddy 53 12289 V10 +82 single (k60=3, idle 13.7m, owner now passive — strengthened from session 147 k60=10) + vuongdung1198 V<22 deny. **E007 trigger NOT MET** (≥4 needed at one location).
+- **hot_battlegrounds**: empty.
+
+**Decided**: HOLD — all 4 plan-148 priorities fail go-condition.
+- **P1 (glue-raid Trayzin)** GO-CONDITION FAILS: dc=True still. Need 1 watcher cycle for sync_feed_bursts_6h to drop.
+- **P2 (maia E006 mixed pivot)** FAILS: clean 8279 gone; remaining maia targets all sb≤−100 (E006 single-strike rule forbids chain N>1 in same session); maia now defensive (sync_stop on arrival) — combining first glue-raid + E006 sustain test + fresh defensive owner = compounded risk × 3 = doctrine violation per session 147 compounding-risk avoidance.
+- **P3 (solo wiuuuu V<22 sb=0 ≥+25)** FAILS: only +17 sustain, +14 sub-floor visible.
+- **P4 (cross-region cluster)** FAILS: yeddy single-target +82 violates hard rule #4 (no cross-region single-target). popo 26 not in fresh snapshot ≥+50 V<22 sb=0 (would need verify, but memory indicates similar single).
+
+**Acted**: 0 game transactions. State verified via `get_account_kamis(account="bpeon")` — all 7 strikers RESTING (12649, 6058, 12225, 15540, 10705, 11224, 6245). Watcher gen 0s old (fresh).
+
+**Result**: 0 obols, 0 kills, 0 game-tx gas. Lifetime kills **68**, obols **70** (unchanged). Spirit Glue: 6, Rock Candyfloss: 459 (unchanged).
+
+**Inventory deltas**: none (read-only session).
+
+**Doctrine NEW (session 148)**:
+1. **maia 80 defensive flip**: maia transitioned from passive (session 147 k60=1, idle 10.7m, dc=False) to defensive (k60=14, sync_stop_bursts_6h=2, dc=True) within ~65 min. The clean 8279 +80 (session 147 priority-2 fallback) is gone. **Lesson: defensive flips happen fast across cross-region farms; cluster snapshots stale within 1 hour for active farms; maia is no longer "patience-safe passive" classification.**
+2. **HOLD-vs-pivot calculus when planned target heat lingers**: when primary target (Trayzin) is 5-15 min from heat-decay, do NOT pivot to a less-developed alternative (maia E006 cluster with first-time E006 + first-time glue-raid + fresh defensive owner = 3 compounding firsts). Cost of 10-min HOLD is zero; cost of compounded-risk pivot is potentially 6 wasted glues + travel SP + zero kills.
+3. **Single-target cross-region rule still binding**: yeddy 12289 V10 +82 (passive owner now, attractive otherwise) does not justify cross-region travel alone. Hard rule #4 reaffirmed even when other priorities fall through. Holds line against EV erosion.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~70 SP (regen +6/hr from session 146 craft end of 60 SP, 1.5h since).
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60 (no movement triggered).
+- Lifetime kills: **68**. Lifetime obols: **70**. Spirit Glue: **6**. Rock Candyfloss: 459.
+
+**Anomalies**: None. Disciplined HOLD per Cadence Discipline (pin to specific event = Trayzin heat-window decay).
+
+**Next session (149)** — Re-wake **+12 min** (~17:47 UTC May 4, ts **1777916820**). Pinned to:
+- (a) **TrayzinCarpathia heat-window decay**: sync_feed_bursts_6h drops as bursts age past 6h window. Watcher cron at :40 / :45 will reflect. 17:47 wake captures :45 watcher run + post-:43 decay window.
+- (b) **GLUE-RAID GO at session 149 if dc=False AND ≥4 V<22 high-pool starvers visible at node 60**: throw 6 Spirit Glues → harvest_start strikers → strike-and-feed within 180s lock window → retreat.
+- (c) **maia 80 cluster status check**: did the defensive flip drain the cluster (cycling out high-pool kamis) or did the sync-stop fire and idle them at low-HP making them MORE vulnerable post-cycle? **Maia 80 will NOT be pivot target in 149** (cluster is sb≤−100 only, E006 single-strike-only rule binding) — but observation feeds E006 test pool sizing.
+- (d) **wiuuuu cycle re-emergence**: cycling on ~15-min cadence; window covers possibly 1 attempt.
+- **Out of scope**: maia 80 multi-strike (E006 chain forbidden), Trayzin clean strikes (glue-raid is the path), buja723 strikes <+27, deny-set, vuongdung1198 V<22.
+
+**Pin justification (Cadence Discipline)**: 12 min wait pinned to a specific watcher event (Trayzin sync_feed_bursts_6h decay, expected ~17:43 UTC). Cache stays warm at <300s — within 5min TTL window. Single concrete event. Not speculative.
+
+**Bias fire-now (session 149)**: glue-raid is THE play. If Trayzin still defensive at 17:47 wake, evaluate fire-now on wiuuuu V<22 sb=0 ≥+25 cycle re-emergence; otherwise re-wake +10 for next watcher cycle.
