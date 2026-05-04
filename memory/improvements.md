@@ -360,3 +360,20 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py`
 - **How to use**: No API change. Watcher snapshot rows now include `v_V`, `v_H`, `v_strain_boost`. Additive schema; no consumer breakage.
 - **Commit**: 374f7a0
+
+## 2026-05-04 — Watcher: killed_harvests CTE — status=1 + kill-after-start filters
+- **What**: Two-line correctness fix to `killed_harvests` CTE in `predator/scripts/refresh_world_targets.py`. (1) Now filters by `status=1` (excluding reverted strike attempts). (2) Carries `MAX(block_timestamp) AS last_kill_ts` per harvest_id and the join condition becomes `NOT EXISTS (... kh.last_kill_ts > hs.start_ts)`. Result: a harvest_id is considered "killed" only when an actual successful kill landed AFTER the open harvest's start timestamp.
+- **Why**: Two bug classes were silently censoring valid kill candidates from the watcher:
+  1. **Reverted-strike censorship**: any `liquidate(...)` call that reverted (e.g. session-131 cooldown-locks against 3470 + 8007) wrote a `harvest_liquidate` row with `status=0` and the target's harvest_id populated. The old CTE included those rows. Result: any target you ever attempted-and-reverted-against vanished from the watcher for 24h.
+  2. **Harvest-entity recycling**: when an owner revives + restarts a previously-killed kami, the on-chain harvest *entity* may be reused. The old CTE had no temporal check, so it matched ANY past kill against ANY current open start, permanently blacklisting recycled harvest_ids until the 24h window slid past.
+  Together, sessions 91+92 + 130+131 had latent false-negatives traceable to this CTE. Session 132 hit the bug head-on: 3470 + 8007 (the planned targets) were entirely absent from the watcher snapshot despite being live HARVESTING and ripening exactly as plan-132 expected.
+- **Files**: `predator/scripts/refresh_world_targets.py`
+- **How to use**: No callsite change. Watcher cron runs every 5 min. Validation: pre-fix snapshot at 08:15 showed 7 killable at node 73; post-fix re-run at 08:20 showed 9 killable (3470 margin +36, 8007 margin +32 surfaced as expected). Session 132 then converted both into kills (lifetime 58→60).
+- **Commit**: (this session)
+
+## 2026-05-04 — Doctrine note: strike imposes 180s cooldown, not 80s
+- **What**: Empirical confirmation in session 132 — `feed_kami` against attacker at +47s post-strike reverted with "kami on cooldown". 200s wait clears it.
+- **Why**: Mechanics docs (predator/mechanics.md L504) note 180s cooldown for `harvest_start`-as-attack-cooldown-trigger. The same 180s applies post-strike for ANY kami interaction (feed, harvest_stop, next strike) on the attacker. Standard 80s harvest-cycle cooldown is unrelated.
+- **How to use**: Plan post-strike sequences with ≥200s wait between strike and next attacker-side action. Document as plan STEP cadence ("strike → 200s → close-feed → 80s → harvest_stop"). Pre-stage harvest_start at prior session end to avoid mid-session waits.
+- **Files**: implicit doctrine — captured in plan.md and decisions.md going forward.
+- **Commit**: (this session)

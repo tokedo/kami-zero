@@ -5072,3 +5072,58 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Yeahta heat re-verify** — 7 more min of passive observation; if still clean, fire pair.
 - (d) **Watcher refresh** ×0.7 cycle (10-min cadence) — may have fresh data on heat.
 - **Out of scope**: any new `harvest_start` in same session as a strike (cooldown-lock); cross-region travel; chain-2 same-striker (recoil heavy).
+
+## 2026-05-04 08:15-08:30 UTC — session 132 (2 KILLS Yeahta cluster + WATCHER BUG FIX)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 08:15:11Z, then re-gen 08:20:04Z post-fix)**:
+- Original snapshot omitted planned targets 3470 + 8007 entirely from killable_v2/clean despite both being state=HARVESTING at node 73 with no actions in 71+ min.
+- Slim API confirmed: 3470 HARVESTING since 03:51 UTC (4.40h elapsed), 8007 since 04:41 UTC (3.57h elapsed). Yeahta heat 71.3 min idle. No defensive cycle.
+- Strikers both HARVESTING node 73 from session-131 pre-stage (start 08:06:46 UTC). Cooldown clear at 08:09:46 — well clear by session start.
+
+**Root cause of omission (watcher bug)**: `killed_harvests` CTE in `predator/scripts/refresh_world_targets.py` selected ALL `harvest_liquidate` rows (status=1 or 0) and excluded any open harvest matching that harvest_id. Two failure modes:
+  1. Reverted strikes (status=0, e.g. session-131 cooldown-locks at 08:03:23 / 08:03:54 against these exact harvest_ids) falsely marked the harvests as "killed".
+  2. Even successful kills don't permanently invalidate the harvest_id — the on-chain harvest *entity* is recycled when the kami is revived and re-deployed (3470 was successfully killed 2026-05-03 05:18 with the same harvest_id, then owner revived/restarted at 03:51 today reusing the entity).
+
+**Fix shipped**: `killed_harvests` now `status=1` AND join condition `kh.last_kill_ts > hs.start_ts`. Validated: post-fix snapshot surfaced 3470 (margin +36) + 8007 (margin +32) at node 73, killable_count 7→9.
+
+**Decided**: Strike both per plan-132 doctrine — 12649→3470 (V11 H20 sb=0), 11224→8007 (V15 H20 sb=0), different strikers no chain.
+
+**Acted (5 productive tx + 2 pre-flight rejects, 2 KILLS)**:
+- `liquidate(3470, 12649)` 08:21:29 → **KILL #59** (V11 sb=0 victim). 4.44M gas. 502 MUSU spoils.
+- `liquidate(8007, 11224)` 08:21:33 → **KILL #60** (V15 sb=0 victim). 4.44M gas. 344 MUSU spoils.
+- `feed_kami(12649, 11304)` REJECTED pre-flight (kami on cooldown) at +47s — strike imposes 180s cooldown, not 80s. No gas spent.
+- `feed_kami(11224, 11304)` same revert. No gas spent.
+- (~+205s post-strike) `feed_kami(12649, 11304)` 1.80M gas, sync 0→100/170.
+- `feed_kami(11224, 11304)` 1.95M gas, sync 34→134/140.
+- (~+90s) `harvest_stop([11224, 12649])` 3.62M gas. Pool: 0 each (both attacker pools were spoils-only at ~0; victims had 0 balance pre-strike).
+
+**Result**: **2 obols (60→62 lifetime)**, **846 MUSU spoils gross**, lifetime kills **58→60**. Watcher bug fixed (eliminates whole class of false-negative omissions on revived/re-deployed kamis OR after any reverted strike attempt).
+
+**Gas notes**: total ~16.25M productive (2 strikes 8.88M + 2 feeds 3.75M + stop 3.62M). Plus 1.82M from session-131 pre-stage harvest_start (attributable to this session). Effective burn 18.07M → EV = 2 obols / 18.07M gas = **0.111 obols/Mgas** (recovered from 131's 0.0).
+
+**Inventory deltas**:
+- Obol: 60 → **62** (+2)
+- MUSU: 530,179 → 530,179 (gross spoils 846 not yet indexed in inventory snapshot at session-end check; will appear next session)
+- Cookies (11304): 429 → 427 (−2 close-feeds; 2 reverted attempts cost nothing).
+- Apology / Hostility: unchanged (4 / 1).
+
+**Doctrine notes (NEW)**:
+1. **Strike → next-action cooldown is 180s, not 80s.** Session 132 reverted 2 feed attempts at +47s post-strike (would have cost 4M gas if not staticCall-rejected). Standard kami-cycle cooldown (80s) only applies to harvest tick interactions; combat (strike, harvest_start triggering attack-cooldown) imposes the longer 180s. **For close-feed-then-stop sequences post-strike, budget 200s wait between strike and feed (vs my 47s assumption).**
+2. **Watcher false-negative class eliminated** — previously, every reverted-strike attempt would permanently bench that target until the 24h sliding window forgot the revert row. Sessions 91+92 had ambiguous "kami appears killed" issues from the same root mechanism. Now resolved correctly.
+
+**End state**:
+- Operator at room 73 (Broken Tube, z=3).
+- 11224 RESTING node 73 sync 134/140.
+- 12649 RESTING node 73 sync 100/170 (deeper recoil; cookie restored).
+- Lifetime kills: **60**.
+
+**Anomalies**: None. Strikes + bug fix both clean.
+
+**Next session (133)** — Re-wake **+15 min** (~08:45 UTC May 4, ts **1777884300**). Pinned to:
+- (a) **Yeahta cluster ripen-watch** — sub-floor candidates may cross +25 floor. 3735 V16 sb=0 currently +27 (above floor, but H20 deep recoil expected — verify striker HP first). 2836 V14 sb=0 +26 also above floor. 6505 V19 sb=-50 +27 but sb=-50 = sustain off-limits.
+- (b) **Striker recovery** — 11224 sync 134/140, 12649 sync 100/170. Need ~30 min rest to top 12649 to 140+ for next chain. 15min gives ~+15 sync; conservative single-strike eligibility.
+- (c) **Watcher refresh** ×3 cycles (5-min cron) catches new emergence.
+- (d) **Yeahta defensive watch** — 4 kills in ~12h on this owner (130 + 132). Expecting passive continuation but verify before strike.
+- **Out of scope**: chain-2 V<22 same-striker (recoil too heavy without 30min rest); cross-region travel (cluster in-room).

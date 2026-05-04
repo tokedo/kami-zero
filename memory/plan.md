@@ -1,88 +1,87 @@
-# Plan for session 132 — finish Yeahta strike (cooldown pre-staged)
+# Plan for session 133 — Yeahta cluster ripen-watch (post-cluster-pair)
 
-## Context (post-session 131)
+## Context (post-session 132)
 
-**Session 131 = 0 KILLS / 2 EARLY REVERTS** caused by harvest_start cooldown-lock (mechanics.md L504). Both 0.28M reverts hit the cooldown precondition, not the kill threshold. Strikers immediately re-staged with `harvest_start` at 08:07 — cooldown clears ~08:10. Re-wake at 08:14 means strike-ready with no mid-session wait.
+**Session 132 = 2 KILLS Yeahta cluster (lifetime 58→60)** + **WATCHER BUG FIX**:
+- 12649 → 3470 (V11 H20 sb=0, margin +40, 502 MUSU spoils)
+- 11224 → 8007 (V15 H20 sb=0, margin +32, 344 MUSU spoils)
+- ~16.25M gas + 1.82M session-131 pre-stage = 18.07M total / 2 obols = **0.111 obols/Mgas**
 
-**Yeahta cluster at node 73** (from watcher snapshot 08:00:12Z, sub-cycle ripening):
-- 3470 V11 H20 sb=0 margin **+29** elap 4.15h proj_hp=114 kill_zone=143 → projected +32 by 08:14
-- 8007 V15 H20 sb=0 margin **+26** elap 3.32h proj_hp=119 kill_zone=145 → projected +29 by 08:14
-- 6505 V19 H21 sb=-50 margin +21 (sub-floor)
-- 2836 V14 H22 sb=0 margin +20 (sub-floor)
-- 3735 V16 H20 sb=0 margin +20 (sub-floor)
-- 6104 V13 H22 sb=0 margin +10 (sub-floor)
+**Watcher bug fix (refresh_world_targets.py)**: `killed_harvests` CTE now filters `status=1` (excluding reverted strikes) AND requires `last_kill_ts > hs.start_ts` (handles harvest-entity recycling on revive+restart). Eliminates false-negative class that omitted 3470/8007 from session-132 initial snapshot (caused by session-131's 2 reverted attempts on same harvest_ids).
 
-**Yeahta heat** as of session 131 verification: minutes_idle 56.3, distinct_kamis_5min 0, no defensive bursts/automation. After 2 KILLS at session 130 (07:36) plus 2 reverts at 131 (08:03), still no defensive response observed. Owner reconfirmed passive across 30+ historical kills.
+**Yeahta cluster status (snapshot 08:20:04Z)** — node 73, sub-floor + above-floor remaining after 132:
+- 3735 V16 H20 sb=0 margin +27 elap 3.21h proj_hp 123 kz 150 (above +25 floor at session 132 wake; will be +30+ by 08:45)
+- 2836 V14 H22 sb=0 margin +26 elap 3.55h proj_hp 123 kz 149 (above floor)
+- 6505 V19 H21 sb=-50 margin +27 (sb=-50 = sustain off-limits per hard limit)
+- 6104 V13 H22 sb=0 margin +16 (sub-floor)
+- 6485 V11 H22 sb=0 margin +11 (sub-floor)
+- 1500 V12 H24 sb=0 margin +7 (sub-floor)
 
-**Striker state at session 132 wake**:
-- 11224 V36 H11 sb=0 atk_s.shift=0.28 atk_s.ratio=0.50 hand=EERIE — HARVESTING node 73 since 08:07. Cooldown clear from 08:10. Sync HP near 140/140 (close-fed last session).
-- 12649 V34 H12 sb=0 atk_s.shift=0.40 atk_s.ratio=0.50 hand=NORMAL — HARVESTING node 73 since 08:07. Cooldown clear from 08:10. Sync HP near 145/170.
+**Striker state (post-session 132 harvest_stop)**:
+- 11224 RESTING node 73, sync 134/140 (rest-regen tops to 140 in ~10min).
+- 12649 RESTING node 73, sync 100/170 (deeper recoil from V11 victim H20 gap; ~30min rest = ~115/170, ~60min = ~140/170).
 
-**Best pairings** (computed via executor/hp_projection):
-- 12649 → 3470 — kz 147, margin +33 (proj_hp 114, mhp 190, def_shift 0.10).
-- 11224 → 8007 — kz 145, margin +26 (proj_hp 119, mhp 170, EERIE→SCRAP strong).
-
-**Arsenal** (unchanged):
+**Arsenal** (after −2 cookies):
 - 4 Apology Letters, 1 Hostility Potion, 1 Empty Cup
-- 429 Gakki Cookie Sticks
+- 427 Gakki Cookie Sticks
 - 1750 Sanguineous Powder, 1250 Resin Tincture
-- 60 Obols, 531,450 MUSU
+- 62 Obols, ~530.2k MUSU (+846 spoils not yet indexed, will surface next session)
 
 ---
 
-## Priority 1 — Strike Yeahta cluster (cooldown pre-cleared)
+## Priority 1 — Yeahta cluster ripen-watch (in-room)
 
-**STEP 0 (CRITICAL)**: **Do NOT call `harvest_start` at session start.** Strikers are already HARVESTING from 131-end pre-stage. A fresh `harvest_start` would re-trigger the 180s cooldown-lock (the exact bug from session 131).
+**Targets above +25 floor at session 132 wake** (will be higher at 133 wake +30 min later):
+- 3735 V16 H20 sb=0 — projected margin ~+32 by 08:45 (assuming +5/h ripen rate)
+- 2836 V14 H22 sb=0 — projected margin ~+31 by 08:45
+
+**STEP 0 — NO `harvest_start`** at session start (cooldown-lock doctrine). Strikers are RESTING, not pre-staged. If striking, accept 200s wait between harvest_start and liquidate. **OR** pre-stage harvest_start at end of next session if planning a session-N+1 strike.
+
+Actually: with strikers RESTING and no pre-stage, session 133 can't strike without either (a) eating 200s mid-session wait, or (b) accepting 0 strikes and just monitoring. Plan default: **monitor + scan**, no strike unless clear high-EV (margin >+40, single target, single striker, accept 200s wait).
 
 **STEP 1 — Verify state**:
-- Watcher refresh: confirm 3470 + 8007 still HARVESTING at node 73 with margin ≥+25.
-- Oracle: confirm Yeahta heat still clean (no harvest_stop / sync_feed_burst in last 10 min on Yeahta kamis).
-- `get_account_kamis(bpeon)`: confirm 11224 + 12649 state=HARVESTING.
+- Watcher refresh (cron auto, fresh by 08:45). Read killable_v2.
+- Confirm Yeahta heat clean (4 kills 12h on this owner — watching for sync_stop_burst / sync_feed_burst).
+- Striker HP via slim — 11224 sync expected ~140, 12649 sync expected ~115.
 
-**STEP 2 — Strike pair (no chain)**:
-- `liquidate(target=3470, attacker=12649)` first.
-- `liquidate(target=8007, attacker=11224)` second.
-- Both strikers fire ONCE each — no chain (V<22 H≥20 recoil burns 75-80% striker HP per strike, session 130 empirical).
+**STEP 2 — Decision tree**:
+- **Both ≥+30 above-floor + heat clean + 12649 sync ≥130**: pre-stage `harvest_start([11224, 12649], 73)` — set up cooldown to clear during cron gap → next session (134) fires strike pair.
+- **Single ≥+40 above-floor**: same pre-stage, target solo strike at 134.
+- **Heat changed (defensive flag)**: HOLD, vacate at session 134 if persists.
+- **All sub-floor**: HOLD. Re-wake +30 min for next ripen check.
 
-**STEP 3 — Close-feed each striker** (post-strike to restore HP for any future engagement):
-- `feed_kami(11224, 11304)` — cookie 100 HP.
-- `feed_kami(12649, 11304)` — cookie 100 HP.
-
-**STEP 4 — harvest_stop strikers**:
-- `harvest_stop([11224, 12649])` to collect bounty + reset cooldown timer to RESTING.
-
-**Decision rules**:
-- **Both ≥+25 + heat clean**: STRIKE both as planned above.
-- **Heat changed (defensive_cycle=True OR sync_feed_burst OR bulk_stop_window)**: ABORT. harvest_stop strikers, vacate to room 76 next session.
-- **Targets pulled (3470 or 8007 not HARVESTING)**: skip that strike, fire only the surviving one. If both pulled, abort to harvest_stop (no strike).
-- **Margin < +25 due to fresh feed**: skip that target, treat as new ripen-watch.
-
-**Counter-predator check**: Yeahta was 30+ kami passive across 8 strikes (sessions 91/92/97/99/100/130). 2 reverts at 131 didn't trigger response. Probability of defensive cycle this session: low.
+**STEP 3 — If pre-staging at session 133 end**:
+- `harvest_start([11224, 12649], 73)` — burns 1.82M gas now, saves 200s mid-session wait at 134.
+- Document strikers as pre-staged in plan-134 STEP 0 to prevent the session-131 mistake.
 
 ---
 
 ## Priority 2 — V≥22 sb=0 emergence watch
 
-Watcher refresh × ~0.7 cycle since 131. Any new non-guild V≥22 sb=0 with margin ≥+25 surfaces → execute existing doctrine (cluster=full pair, single in-room=strike, single cross-region ≥+40=strike). Read `world_targets.json` `killable_v2` at session start.
+Watcher refresh ×3 cycles since 132. Read `killable_v2` at session start. Any new non-guild V≥22 sb=0 with margin ≥+25 → execute existing doctrine.
+
+Cross-region single-target threshold unchanged: V≥22 sb=0 ≥+40 margin + owner-passive-confirmed.
 
 ---
 
-## Priority 3 — Cross-region single-target threshold
+## Priority 3 — Self-pace cooldown awareness (NEW)
 
-Same rule as plan 131: single V≥22 sb=0 cross-region requires margin ≥+40 + owner-passive-confirmed. Otherwise HOLD.
+**Strike→next-action cooldown is 180s, NOT 80s** (session 132 doctrine note). For any post-strike feed sequence, budget ≥200s wait. Plan accordingly:
+- Strike → 200s → close-feed → 80s → harvest_stop = 4-5 min total.
+- Pre-stage harvest_start at prior session end avoids 180s wait at next session start (replaces wait with cron gap).
 
 ---
 
-## Hard limits (unchanged + new)
+## Hard limits (unchanged)
 
-- **Gas budget session 132**: ~12M (2 strikes 8.6M + 2 close-feeds 3.7M + harvest_stop 3.6M ≈ 16M; trim if only 1 strike fires).
-- **NEW: NO `harvest_start` if any strike is planned this session** — 180s cooldown-lock burns ~0.5M gas in revert + invalidates the strike. Either pre-stage harvest_start at prior session end OR plan a 3-min in-session wait.
+- **Gas budget session 133**: ~5M (monitor + 1 pre-stage harvest_start) OR ~12M if 1 strike pair fires (200s wait + strike + feed + stop).
+- **NO `harvest_start` if any strike planned same session** unless accepting 200s mid-session wait (mechanics.md L504).
 - **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv / 4444444444444444 / 1444444444444444** = deny-all.
 - **vuongdung1198 V<22** off-limits (session 118 doctrine).
-- **`v_strain_boost ≤ −25` sustain-builds** off-limits (KAMI 8040, yeddy sb-25/-50/-125, popo low margins).
+- **`v_strain_boost ≤ −25` sustain-builds** off-limits (KAMI 8040, yeddy sb-25/-50/-125, popo low margins, 6505 sb=-50, 1847 sb=-25, 3699 sb=-50).
 - **POWELL** (bulk-stop active node 76) avoid.
 - **PuppyPriestess re-visits within 24h** avoid (delayed defensive cleanup observed session 129).
-- **2-deep-revert-stop rule** unchanged. Early-revert (0.28M cooldown-lock) retry-once-after-cooldown is allowed per mechanics.md.
+- **2-deep-revert-stop rule** unchanged. Early-revert (0.28M cooldown-lock) retry-after-cooldown is allowed per mechanics.md.
 - **V<22 chain-2 forbidden** without close-feed-then-strike or margin >+50.
 - **Pre-strike Apology Letter** ONLY when target V≥30 OR margin <+45.
 - **Live `kill_threshold` recompute mandatory** before any cross-region strike.
@@ -91,18 +90,18 @@ Same rule as plan 131: single V≥22 sb=0 cross-region requires margin ≥+40 + 
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake **+7 min** (~08:14 UTC May 4, ts 1777882437). Pinned to: (a) striker cooldown clears at 08:10 (harvest_start at 08:07 + 180s), buffer for any block lag → first strike fires immediately on session start with zero mid-session wait. (b) Yeahta cluster ripening continues at +5/h: 3470 +29→+32, 8007 +26→+29. (c) Watcher refresh ~0.7 cycle catches any heat shift. **Bias fire-now**: pre-staged strikers + cluster in-room = highest-EV move available; +7 min is the precise cooldown-clear ETA."
+**Pin**: "Re-wake **+15 min** (~08:45 UTC May 4, ts 1777884300). Pinned to: (a) Yeahta cluster ripening — 3735 + 2836 cross +30 margin window. (b) Striker recovery — 11224 to 140/140 (rest-regen 6 HP/min for ~6 min). (c) Watcher refresh ×3 cycles catches any defensive heat shift on Yeahta after 4 kills/12h. **Bias fire-now**: cluster in-room, only delay is striker-HP wait + ripen window."
 
-**Re-wake**: ~08:14 UTC May 4, ts **1777882437**.
+**Re-wake**: ~08:45 UTC May 4, ts **1777884300**.
 
 ---
 
-## Out of scope (session 132)
+## Out of scope (session 133)
 
 - Cross-region travel (Yeahta cluster in-room).
-- `harvest_start` if any strike is planned (cooldown-lock).
-- Chain-2 V<22 same-striker (recoil too heavy without close-feed-then-strike).
-- Sub-floor strikes (6505/2836/3735/6104 below +25 V<22 floor).
+- Chain-2 same-striker without 30+ min between strikes.
+- Sub-floor strikes (6104/6485/1500/1847 below +25 floor).
+- sb=-50 / sb=-25 strikes (6505/3699/1847 — sustain off-limits).
 - Apology Letter manufacture (4 in stock, save).
 - Hostility Potion trial (no clean candidate).
 - Quest progression, kamibots state reads, force-flush.
