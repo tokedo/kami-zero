@@ -6346,3 +6346,57 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) fresh-harvest opportunism (concrete game event), (b) ~3 watcher cycles + 3 cron ticks, (c) cluster turnover, (d) streak-gate. Cache miss accepted — investigation amortizes.
 
 **Bias fire-now (session 156)**: fresh-bucket scan IS the play. If empty again, that's the trigger to stop hunting and build. The 12/12 parked-rates control sample is now overwhelming evidence — at this point continuing to slim-probe stale candidates is wasted cycles.
+
+
+## 2026-05-04 23:22 UTC — session 156 (DESIGN-MODE-TRIGGER — 0 kills / 0 reverts; 5-session 0-kill streak fired; s157 = mandatory build)
+
+**Perceived (watcher gen 23:20:13Z, ~2 min old at session start)**:
+- killable_v2: 50 rows. Margin ≥+30: 50. **Fresh bucket (eh<0.5h, margin ≥+30): 0 rows. Mid bucket (0.5–2h): 0 rows. Stale (≥2h): 50.**
+- Non-blocked (non-guild, non-no_touch, non-deny acct): 29 rows, all stale.
+- Stale acct distribution: maia 7, vuongdung1198 6, fluff 5, yeddy 4, orange 3, TrayzinCarpathia 2, tamagotcho 1, PuppyPriestess 1.
+- Stale V≥22 sb≥0 (the only "doctrine-permissible" subset): **2 rows**, 3203 maia V32 sb=0 margin +73 node 80 eh=13.58h, 10544 fluff V24 sb=0 margin +35 node 12 eh=9.34h. **fluff is in parked-rates skip-list; maia is heat-window-monitoring (untested for parked-rates).**
+- Recent competitor activity (world-liquidations.jsonl 6h): 4 non-self kills 17:12–17:20 UTC by PuppyPriestess (alexbuyer/Gunnar nodes 31, discoverfrank node 33) and IBCKING (KAMI node 10). All Z=1. ~6h old. No fresh cluster.
+
+**Decided**:
+- Per plan-156 P1 step 4, fresh + mid empty = skip stale probing. Exception: ONE slim probe on maia 3203 — boundary test of the parked-rates hypothesis (maia is the highest-margin sb≥0 V≥22 candidate and was never sampled). VOI is asymmetric: rates>0 = streak-breaker strike; rates=0 = doctrine confirmed across yet another untested account.
+- All other stale candidates skipped.
+
+**Acted (1 slim, 0 tx)**:
+- 3203 (maia node 80, V32 sb=0, watcher margin +73, eh=13.58h): sync=130/total=130 (FULL HP), balance=0, **rates.intensity.avg=0 AND fertility=0**. State=ACTIVE. PARKED. Watcher's v_HP=190 was inflated (real total 130 — stale build refresh on watcher row). Real margin = 130 − 118 (kill_zone) = −12. Even rates>0 wouldn't make this killable.
+- **0 strikes attempted. 0 reverts. 0 obols. 0 gas burned this session.**
+
+**Result — DOCTRINE CONFIRMED + STREAK-GATE FIRED**:
+- **Combined parked-rates sample now 13/13** across 9 owners (TrayzinCarpathia, yeddy, Gunnar, alexbuyer, tamagotcho, orange, fluff, +s155 reconfirms, **+maia s156 NEW**) and 7 nodes (60, 53, 31, 9, 25, 12, 80) spanning ~25h of harvest-start timestamps. **Parked-rates is universal across long-elapsed harvests — population-default state, not per-owner defense.**
+- **5 consecutive 0-kill sessions** (s152+s153+s154+s155+s156). **CLAUDE.md Design-Mode trigger is now FIRED.** s157 is a mandatory build session — no strikes; full session spent on rates-aware filter cron.
+- maia added to skip-list (now **9 owners**).
+- Watcher's `v_HP` inferred from build cache can be inflated by ~46% (190 vs real 130 on 3203). Suggests a separate watcher upgrade: re-validate `v_HP` against `total_health` from a recent slim/oracle read on stale rows.
+
+**End state**:
+- Operator at room 60. **12649, 11224, 10705 still HARVESTING node 60 since 17:54:43 UTC (~5.5h elapsed; intensity continues; no HP loss this session).**
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: 
+1. 3203's watcher v_HP=190 vs real total=130 (38 HP overstated). Build-cache stale for this kami in watcher's v_HP path. Add to s157 build punchlist as a sub-issue worth investigating after rates-filter ships.
+2. None blocking.
+
+**Gas notes**: 0 gas. 1 slim call (read-only).
+
+**Streak**: **s152+s153+s154+s155+s156 = 5 consecutive 0-kill. Design-Mode trigger FIRED.** s157 plan = mandatory build session per plan-156 P2.
+
+**Pre-build punchlist (queued for s157)**:
+1. **`predator/scripts/refresh_parked_rates.py`** — slim-rate scanner cron (~5-10 min interval). Input: top 50 candidates from latest `world_targets.json`. For each: `get_kami_state_slim(victim)` → extract `harvest.rates.intensity.average`, `harvest.rates.fertility`, `harvest.balance`, `stats.health.sync`, `stats.health.total`. Output: `predator/parked_rates_state.json` keyed by `victim_idx` with `{rates_intensity_avg, fertility, balance, sync, total, last_checked_ts, parked_bool}`. Atomic write.
+2. **Watcher integration** — modify `refresh_world_targets.py` to read `parked_rates_state.json` if present and add `parked_rates_state` field per row in `killable_v2`. Optionally exclude rows where `parked_bool == true` from killable count, surface them in a separate `parked_v2` index for visibility.
+3. **`v_HP` validation sub-issue** — when `parked_rates_state.json` has a sync reading newer than the watcher's build refresh, prefer the slim-derived total over the watcher's stale `total_health`. Lower priority than (1)+(2).
+4. **Infrastructure.md** — document the new cron entry + dataflow.
+5. **Counter-mechanism (low priority)** — Animistic Poison (item 19101 STRAIN+50%) un-park hypothesis. Gated on Blue Pansy supply (currently 0; ideas_to_founder § 5a).
+
+**Next session (157, DESIGN MODE)** — Re-wake **+15 min** (~23:35 UTC May 4, ts **1777937713**). Pinned to:
+- (a) **Build session**: s157 builds `refresh_parked_rates.py` + watcher integration. Re-wake is non-tactical; cadence-discipline biases fire-now per CLAUDE.md "Build-phase mode" (sub-10-min sub-15-min re-wakes are normal when meaningful next action exists).
+- (b) **Cache miss accepted** (>300s): build session reads code, not cached game state — context is different anyway.
+- **Plan 157 actions in order**: (1) review `executor/oracle_state.py` and `executor/server.py:get_kami_state_slim` to confirm slim signature; (2) scaffold `predator/scripts/refresh_parked_rates.py` reading top 50 `world_targets.json` candidates; (3) loop through candidates with batched async slim calls if possible; (4) emit `predator/parked_rates_state.json`; (5) add cron entry to crontab + document in `infrastructure.md`; (6) modify `refresh_world_targets.py` to consume parked_rates_state.json on next scan; (7) commit harness improvements separately from session log; (8) optional: dry-run cron once and verify schema; (9) write s158 plan biased toward live testing of the rates-filter.
+- **Out of scope (s157)**: any strikes, any kamibots state reads, glue-raid, force-flush, cross-region pivot. NO HUNTING during design mode.
+
+**Pin justification (Cadence Discipline)**: 15-min wait. Build session is non-tactical — no specific game-state event we're waiting for. Default fire-now bias. Could be 10 min; 15 min keeps cron alignment clean.
+
+**Bias fire-now (s157)**: build is THE play. The 13/13 parked-rates sample is the data sufficient to justify the filter; there's no further evidence to gather. Build, ship, return to hunting in s158 with rates-aware filter armed.

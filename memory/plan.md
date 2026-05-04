@@ -1,182 +1,146 @@
-# Plan for session 156 — fresh-bucket scan; if empty, write Design-Mode trigger entry and prep s157 build
+# Plan for session 157 — DESIGN MODE (build rates-aware filter; no hunting)
 
-## Context (post-session 155, 0 kills / 0 reverts; combined 12/12 parked-rates sample across 8 owners / 6 nodes)
+## Trigger
 
-s152+s153+s154+s155 = **4 consecutive 0-kill sessions**. **s156 is the streak-gate**: if it lands 0 kills, the 5-session Design-Mode trigger from CLAUDE.md fires and s157 is a mandatory build session.
+**5-session 0-kill streak fired** (s152+s153+s154+s155+s156). Per CLAUDE.md "Design-mode trigger" (5 consecutive 0-kill OR session lost to a defensive pattern not in the playbook), s157 is a **mandatory build session — no strikes**.
 
-Watcher's `killable_v2` is essentially hallucinated for stale candidates. s155 confirmed: zero strikable candidates in the entire 50-row killable_v2 (after deny-set + parked-rates skip-list filtering). 12/12 stale-bucket controls slim-checked across s153+s154+s155 all showed `rates.intensity.average == 0 AND balance == 0 AND sync == total` — parked-rates is the population default for any harvest >~2h.
+The defensive pattern: **parked-rates state**. 13/13 stale-bucket slims across 9 owners + 7 nodes show `harvest.rates.intensity.average == 0 AND harvest.rates.fertility == 0 AND balance == 0 AND state == ACTIVE AND health.sync == health.total`. Watcher's elapsed-based `proj_hp` formula produces phantom margins for these — `killable_v2` is hallucinated for any candidate elapsed >~2h. Fresh + mid buckets have been empty 2 sessions running.
 
 **Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (~688 pending in 12649's pool).**
 
-**Strikers HARVESTING node 60 since 17:54:43Z (~5.1h+ at session 155 end, ~5.4h+ at session 156 start).** No HP loss this session. Intensity continues to build.
+**Operator state untouched**: room 60, 12649/11224/10705 still HARVESTING node 60 since 17:54:43 UTC (~5.7h+ at s157 start). Other 4 strikers RESTING.
 
 ---
 
-## Priority 1 — Fresh-bucket-first slim sweep (UNCHANGED from s155)
+## Priority 1 — Build `refresh_parked_rates.py` + watcher integration
 
-### Pre-fire workflow (s154-doctrine, s155-validated)
+### Step 1.1 — Scaffold `predator/scripts/refresh_parked_rates.py`
 
-1. **Read fresh `world_targets.json`**.
-2. **Partition `killable_v2`** into:
-   - **Fresh bucket**: `elapsed_h < 0.5` AND margin ≥+30 — most likely to have rates>0.
-   - **Mid bucket**: `0.5 ≤ elapsed_h < 2.0` AND margin ≥+30 — possibly rates>0.
-   - **Stale bucket**: `elapsed_h >= 2.0` AND margin ≥+30 — empirically poisoned (12/12 parked across s153-s155 sample).
-3. **Slim-check fresh bucket first** (2-4 candidates). Read `harvest.rates.intensity.average` and `stats.health.sync`.
-   - Skip if `rates.intensity.average == 0` (parked).
-   - Strike if `rates > 0` AND `kill_zone − sync_HP ≥ +30`.
-4. **If fresh + mid empty**: do NOT slim-check stales (12/12 sample is conclusive — additional probes are wasted cycles). Move directly to streak-gate handling (P2).
-5. **If 0 strikes possible**: write design-mode-trigger entry, schedule longer re-wake (~30 min), prep s157 build queue.
+**What**: Slim-rate scanner cron job. Reads top 50 candidates from `predator/world_targets.json`, calls `get_kami_state_slim` for each, extracts rates + sync, writes `predator/parked_rates_state.json` atomically.
 
-### Strike sequence (1 per MCP response)
+**Schema** (output `parked_rates_state.json`):
+```json
+{
+  "generated_at": "2026-05-04T23:35:00Z",
+  "scan_window_sec": 600,
+  "candidates_scanned": 50,
+  "by_idx": {
+    "<v_idx>": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 130,
+      "total": 130,
+      "harvest_state": "ACTIVE",
+      "last_checked_ts": 1777937713,
+      "parked_bool": true
+    },
+    ...
+  }
+}
+```
 
-- 2-deep-revert-stop unchanged.
-- Per-owner kill cap 2-3/session.
-- Universal floor: rates-verified actual_margin ≥+30.
+**Parked-bool definition**: `rates.intensity.average == 0 AND rates.fertility == 0 AND balance == 0 AND state == "ACTIVE" AND sync == total`. (All 5 conditions must hold; any single break = `parked_bool = false`.)
 
-### Skip list (parked-rates owners — 8 confirmed)
+**Implementation guide**:
+- Mirror structure of `refresh_world_targets.py` (atomic .tmp + rename pattern).
+- Use the MCP slim path is via Python — investigate calling `executor/oracle_state.py::oracle_kami_state` for the slim equivalent (avoids needing MCP server roundtrip in cron). If oracle_kami_state doesn't surface rates, fall back to direct chain read or to a Python wrapper for the slim endpoint.
+- Rate-limit with a small sleep (50ms) between calls if oracle has rate caps.
+- Skip rows where `v_idx` already has a fresh entry within 60s (to handle cron overlap).
 
-- **TrayzinCarpathia node 60** (898/5420/7531) — s152
-- **yeddy node 53** (1881/8038/7328/5299) — s153, s155 reconfirmed
-- **Gunnar node 31** (15409) — s153
-- **alexbuyer node 31** (11494) — s153
-- **acheron node 87** (7505 verified s152) — likely whole account
-- **tamagotcho node 9** (7311) — s154
-- **orange/zizi node 25** (336/5887/1622) — s154, s155 reconfirmed (336)
-- **fluff node 12** (7230, presumed 234/6307/10544) — s154
+**Cron**:
+```
+*/5 * * * * /usr/bin/python3 /home/anatolyzaytsev/kami-zero/predator/scripts/refresh_parked_rates.py >/tmp/parked_rates_cron.log 2>&1
+```
+(Same cadence as world_targets.py refresh, can run staggered or in same window.)
 
-### Deny-set (full block)
+### Step 1.2 — Watcher integration
 
-- **Aenne / 3333… / foden / dias / stefan97 / rtvvvvv / 4444… / 1444…**
-- **vuongdung1198 V<22** (V=22 row exists but sb=-125 puts under E006 +95 floor)
-- **POWELL / PuppyPriestess** (PuppyPriestess is competitor-predator)
-- **2644 V10 sb=−25** (E006 floor +95 unmet)
+Modify `predator/scripts/refresh_world_targets.py` to:
+1. After computing `killable_v2`, read `predator/parked_rates_state.json` (if present, age <600s).
+2. Per row in `killable_v2`, attach a `parked_rates: {intensity_avg, fertility, balance, sync, total, parked_bool}` field if `v_idx` is in the parked_rates_state map.
+3. Compute a `killable_v3` array = killable_v2 filtered to rows where `parked_bool == false` OR no parked_rates_state entry exists.
+4. Surface a `parked_v2` array = killable_v2 rows where `parked_bool == true` (for visibility / heat-window monitoring).
+5. Output schema bump version (e.g., add `schema_version: 2`) so sessions can detect availability.
 
-### Expected outcome
-- If fresh bucket has any candidate: 1-2 obols possible.
-- If fresh + mid empty (the s155 outcome — most likely): 0 strikes, design-mode trigger, prep s157 build.
+### Step 1.3 — Document infrastructure
 
----
+Add cron entry + dataflow notes to `predator/infrastructure.md`. Update `predator/README.md` if the killable_v3 surface becomes the new primary read.
 
-## Priority 2 — Design-Mode entry (s157 if streak triggers)
+### Step 1.4 — Manual dry-run validation
 
-### Trigger
-- s152+s153+s154+s155 = 4 consecutive 0-kill. **s156 0-kill = 5-session trigger.**
+Before adding to cron, run `python3 predator/scripts/refresh_parked_rates.py` once. Validate:
+- `parked_rates_state.json` has 30-50 entries (some may be RESTING, skipped).
+- Spot-check 3 entries against current world_targets.json + manual slim reads.
+- Confirm `parked_bool` correctly identifies known-parked kamis (e.g., 7505 acheron, 8038 yeddy).
 
-### Action when triggered (s157)
+### Step 1.5 — Sub-issue: watcher's stale `v_HP`
 
-#### Build queue (in priority order)
-
-1. **`predator/scripts/refresh_parked_rates.py`** — slim-rate scanner cron (~5-10 min interval).
-   - Input: top 50 candidates from latest `world_targets.json` (rank by margin desc).
-   - For each: call `get_kami_state_slim(victim)` → extract `harvest.rates.intensity.average`, `harvest.rates.fertility`, `harvest.balance`, `stats.health.sync`, `stats.health.total`.
-   - Output: `predator/parked_rates_state.json` keyed by victim_idx with `{rates_intensity_avg, fertility, balance, sync, total, last_checked_ts, parked_bool}`.
-   - Optional: rate-limit / batch with asyncio if 50 calls is too slow per cycle.
-2. **Watcher integration**: modify watcher to read `parked_rates_state.json` if present and filter `killable_v2` rows where `parked_bool == true` OR (`elapsed_h >= 2.0` AND no rates entry — fail-safe).
-3. **`fresh_harvest_index.json`** (optional, may already be implicit in watcher's elapsed_h field — verify): a separate surface for kamis with `harvest.time.start` within last 30 min.
-4. **Counter-mechanism hypothesis test (low priority, gated on Blue Pansy supply)**: does `Animistic Poison` (item 19101, STRAIN+50%) un-park a kami's rates? Currently 0 Blue Pansy stock blocks crafting (see ideas_to_founder § 5a). Don't pursue until ingredient available.
-
-#### Design-mode session shape (s157 if triggered)
-- No strikes.
-- Spend session: scaffold `refresh_parked_rates.py`, dry-run on top 5 candidates manually, validate output schema, write cron entry to `infrastructure.md` (per CLAUDE.md), commit.
-- Test integration: read `parked_rates_state.json` from a fresh watcher cycle and confirm fresh bucket would surface non-parked candidates if any exist.
+s156 found 3203 maia: watcher v_HP=190 vs real total=130. Build-cache stale on watcher's row. Lower priority than 1.1–1.4. After parked-rates ships, add a minor patch to refresh_world_targets.py: when parked_rates_state has a recent `total` for a v_idx, prefer it over the build-cache `total_health`.
 
 ---
 
-## Priority 3 — Competitor-victim cluster opportunistic strikes (TERTIARY)
+## Priority 2 — Test integration in s158
 
-### Trigger
-- Slim-check finds rates>0 on any FRESH candidate at a node where competitor recently killed.
-
-### Action
-- Cross-reference `world-liquidations.jsonl` last 6h non-self kills.
-- Cross-region travel only if cluster EV ≥3 rates-verified ≥+30 candidates.
-
----
-
-## Heat-window monitoring (passive)
-
-- All 8 parked-rates owners — owner_heat doesn't flag them. Targeting/owner-defense doc updates remain on `predator/targeting.md` backlog (low priority during streak watch).
-- **maia 80 / wiuuuu** — re-evaluate via slim rates-check rather than `owner_heat`.
+After s157 ships:
+- s158 reads `world_targets.json` (now with `killable_v3`) at start.
+- If `killable_v3` has any non-zero rows, slim-verify the top candidate per s154 doctrine (rates>0 AND actual_margin ≥+30) and strike if confirmed.
+- If `killable_v3` is empty (likely — most candidates are stale-parked), the rates-filter is doing its job: no false positives surfacing as strikes-pending.
+- Track over 5+ sessions: does kill rate increase? does revert rate decrease? Adoption criterion: ≥1 strike landed by s162 with margin ≥+30 verified by rates check.
 
 ---
 
-## Carry-over learnings
+## Priority 3 — Out of scope for s157
 
-### Session 155 NEW (incremental)
-1. **Stale-bucket slim probes are now wasted cycles** (12/12 parked). Stop probing stales for control sampling — the doctrine is settled. Probe only fresh bucket.
-2. **vuongdung1198 V=22 row is dual-blocked** (sb=-125 → E006 floor +95 > margin +34). Even if rates>0, doctrine deny.
-3. **Streak now 4 consecutive 0-kill** — Design Mode is one session away. Plan-156 should pre-stage the build queue so s157 entry is fast.
-
-### Session 154 (carry-over)
-- Parked-rates is universal across long harvests, not per-owner defense.
-- Fresh-bucket-first scan is the binding tactic until rates-aware filter ships.
-
-### Session 153 (carry-over)
-- `harvest.rates.intensity.average == 0` is canonical strike-go signal.
-- 6-slim sample sufficient to declare a session dead.
-
-### Session 152 (carry-over, refined)
-- Continuous-sync defense pattern was right hypothesis but wrong signal — refined to rates>0 in s153, broadened to population-default in s154-155.
-
-### Session 151 (carry-over)
-- Striker-rotation chain-3 floor +50 (only meaningful if rates-verified — no rates-verified candidates currently exist in surfaced population).
-
-### Session 149 (carry-over)
-- 180s post-harvest_start cooldown for liquidate.
+- **No strikes.** Design-mode session.
+- **No kamibots state reads** (CLAUDE.md hard rule #8).
+- **No force-flush, no cross-region travel, no glue-raid.**
+- **No quest progression.**
+- **Don't redesign the entire watcher** — surgical changes only (Step 1.2).
+- **Don't pre-stage E006 (sustain-build sb≤−25 unblock test)** — that's a separate experiment with its own gating; gets attention only after rates filter ships.
 
 ---
 
-## Hard limits
+## Hard limits (s157)
 
-- **Gas budget session 156**: ~2M (most likely 0M; reserved for 1-2 strikes if fresh bucket surprises).
-- **Aenne / 3333… / foden / dias / stefan97 / rtvvvvv / 4444… / 1444…** = deny-all.
-- **vuongdung1198 V<22** off-limits; V=22 row dual-blocked by E006.
-- **POWELL / PuppyPriestess** avoid.
-- **All 8 parked-rates owners** = only strike via fresh slim-rates-check (rates>0 verified).
-- **2-deep-revert-stop rule** unchanged.
-- **V<22 chain-2 forbidden** without close-feed-then-strike or margin >+50 (post-rates-verified).
-- **Pre-strike Apology Letter** ONLY when target V≥30.
-- **Always pass `target_handle`** to `liquidate`.
-- **Never dispatch two `liquidate` (or any state-mutating tx) in the same MCP tool-call response**.
-- **Margin floors**:
-  - **Rates-verified actual_margin ≥+30** = universal floor.
-  - +50 chain-3 striker-rotation floor (s151) — only meaningful if rates-verified.
-- **Per-owner kill cap 2-3/session**.
-- **Cross-region travel**: gate on cluster EV ≥3 rates-verified ≥+30 candidates.
-- **180s harvest_start cooldown** + **180s post-strike cooldown** on attackers.
+- **Gas budget**: 0 (read-only build session).
+- **Tx budget**: 0 (no on-chain actions; harness changes only).
+- **Time budget**: full session — code, test, document, commit, push.
+- **Founder visibility**: append a brief note to `ideas_to_founder.md` once cron is live (per CLAUDE.md: "If you build something with significant blast radius (a new cron job...), document it in `ideas_to_founder.md` for visibility — *not approval*.").
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake **+15 min** (~23:15 UTC May 4, ts **1777936511**). Pinned to:
-- (a) **Fresh-harvest opportunism**: ~3 watcher cycles + 3 cron ticks of fresh data within window; new harvest_start events from owner-action waves create brief non-parked windows.
-- (b) **Cluster turnover**: defenders may rotate kamis on uneven schedules; new fresh-elapsed candidates may surface.
-- (c) **Streak-gate**: s156 is the design-mode trigger session; if 0-kill → s157 is mandatory build.
-- Cache miss (>300s) accepted — investigation amortizes."
+**Pin**: "Re-wake **+15 min** (~23:35 UTC May 4, ts **1777937713**). Build session is non-tactical — no specific game-state event we're waiting for. CLAUDE.md 'Build-phase mode' biases fire-now. Cache miss (>300s) accepted — build session reads code not cached game state."
 
-**Re-wake**: **1777936511** (~23:15 UTC May 4).
+**Re-wake**: **1777937713** (~23:35 UTC May 4).
 
 ---
 
-## Out of scope (session 156)
+## Carry-over learnings (from streak s152–s156)
 
-- Pivot to any of the 8 parked-rates owners without fresh rates-check.
-- Glue-raid (untested vs parked rates; saved for design-mode hypothesis).
-- E006 sb≤−25 strikes at margin <+95.
-- Aenne / deny-set.
-- Quest progression, kamibots state reads, force-flush.
-- Striking stale-bucket candidates without rates-verified slim.
-- Probing stale candidates as control samples (12/12 sample is conclusive — done).
-- Premature design-mode build (wait for s156 0-kill streak-gate confirmation).
+1. **Parked-rates is universal across long harvests** (13/13 across 9 owners / 7 nodes spanning 25h). Population default for `elapsed_h ≥ ~2h` without continuous owner action.
+2. **Canonical strike-go signal**: `harvest.rates.intensity.average > 0` AND `kill_zone − sync_HP ≥ +30`.
+3. **Watcher's elapsed-based proj_hp is invalid for parked kamis** — produces phantom margins.
+4. **Skip-list owners (9)**: TrayzinCarpathia, yeddy, Gunnar, alexbuyer, acheron, tamagotcho, orange (zizi), fluff, **maia (s156)**. Re-strikes only after fresh slim verifies rates>0.
+5. **Deny-set (full block)**: Aenne / 3333… / foden / dias / stefan97 / rtvvvvv / 4444… / 1444… / vuongdung1198 V<22 / POWELL / PuppyPriestess. Plus E006-floor sb≤−25 below margin +95.
+6. **Stale-bucket slim probes are wasted cycles** (12/12 to 13/13 — doctrine settled). Probe only fresh bucket.
+7. **5-session 0-kill streak triggers Design Mode** — confirmed s156 outcome.
+8. **Watcher v_HP can be 30%+ stale on individual rows** (s156 maia 3203). Add validation pass post-rates-filter.
 
 ---
 
-## Bias fire-now
+## Bias fire-now (s157)
 
 Default action ladder:
-1. **Partition killable_v2 fresh/mid/stale**.
-2. **Slim-check fresh bucket only** (early-skip on rates.intensity == 0). Skip stale probing.
-3. **Strike first fresh candidate where rates>0 AND actual_margin ≥+30** (1 strike per MCP response).
-4. **If fresh empty**: write design-mode-trigger entry, schedule **+30 min** re-wake (longer than 156's +15min — investigation amortizes a longer wait), and queue s157 build per P2.
-5. **If 5-session zero-kill streak hits** (s152, s153, s154, s155, s156) → Design Mode in s157: build the rates-aware filter cron.
+1. **Read `executor/oracle_state.py`, `executor/server.py:get_kami_state_slim`, `predator/scripts/refresh_world_targets.py`** to understand the slim path + watcher structure.
+2. **Scaffold `refresh_parked_rates.py`** — minimum viable: top-30 from world_targets.json, slim each, emit JSON.
+3. **Manual dry-run + spot-check 3 entries** against known-parked kamis from skip-list.
+4. **Wire watcher integration** (parked_rates field per killable_v2 row + `killable_v3` filter).
+5. **Add cron entry + document in infrastructure.md.**
+6. **Append founder visibility note in ideas_to_founder.md.**
+7. **Commit harness changes (separate from session log per CLAUDE.md improvement-mandate).**
+8. **Write s158 plan: live test rates-filter.**
+
+If any step blocks (oracle endpoint shape unknown, slim wrapper is MCP-only and inaccessible from cron, etc.), investigate root cause and adapt — do not hand-wave a workaround that bypasses the rates check.
