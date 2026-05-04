@@ -1,4 +1,38 @@
-# Plan for session 123 — V≥22 emergence watch + watcher infra fix
+# Plan for session 123 — Items arsenal survey (Round 2 directive) + V≥22 emergence watch
+
+## Priority 0 — Round 2 directive: items arsenal survey (founder injection)
+
+**One-shot research task. Do this BEFORE strike attempts this session.** The world is V<22 dominant with no V≥22 above-floor candidates — a low-opportunity-cost window to build foundational knowledge.
+
+**Deliverable**: a new file `predator/items-arsenal.md` enumerating every item in `catalogs/items.csv` that has combat or disruption utility for predator play. Structure each entry as:
+
+| Item ID | Name | Type | Effect | Target / Scope | Ingredient cost | Inventory now |
+|---|---|---|---|---|---|---|
+
+Pay specific attention to:
+- **Glue** (and any cooldown-extender items) — thrown from operator to a HARVESTING enemy kami, adds 180s cooldown. Founder transferred ingredients specifically to enable glue crafting.
+- HP-damage items thrown at enemies (if any exist).
+- Buff items applied to our own strikers (HP, cooldown reduction, attack boosts).
+- Debuff items applied to enemies.
+- Revive items beyond Red Ribbon Gummy / Melkarth Spell Card.
+- Anything else with tactical applicability that is NOT pure-food (food is already covered).
+
+**For each tactical item**, also note:
+- Is it craftable? With which ingredients? (`catalogs/recipes.csv` if it exists, or grep `crafting` in catalogs.)
+- Do we have ingredient supply to craft it? Check `bpeon` inventory.
+- Is it currently in inventory? How many?
+
+**End the doc with**:
+1. A "Plays this enables" section — 2-4 sentences sketching tactical plays that become possible with these items in our vocabulary (e.g., "glue-then-strike on bodyguards" — but invent your own based on what you discover).
+2. A "Missing items / asks" section — items that would be high-EV but aren't in inventory and aren't easily craftable. These propagate to `ideas_to_founder.md` as new asks (reference items-arsenal.md).
+
+**Time budget**: this is a research session. 0 transactions, 0 gas. Aim for ~15 min of catalog reading + drafting. If the V<22 watch catches a striking opportunity mid-session, finish the arsenal doc first (it's quick) then strike.
+
+**Ship test**: after writing items-arsenal.md, append a 1-line summary to `predator/learnings.md` linking to it ("YYYY-MM-DD — items arsenal v1 surveyed, N tactical items catalogued, see items-arsenal.md").
+
+---
+
+# Plan for session 123 (carry-over) — V≥22 emergence watch + watcher infra fix
 
 ## Context (post-session 122)
 
