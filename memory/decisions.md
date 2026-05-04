@@ -6298,3 +6298,51 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) fresh-harvest opportunism (concrete game event), (b) ~3 watcher cycles + 3 cron ticks, (c) cluster turnover. Cache miss (>300s) accepted — investigation amortizes over the wait.
 
 **Bias fire-now (session 155)**: fresh-bucket scan is THE play. The "stale" bucket is now empirically poisoned (4/4 parked s154, 6/6 parked s153 — total 10/10). If 155 + 156 also yield zero non-parked candidates from the fresh bucket, hit Design-Mode trigger and build the rates-aware filter cron in s157.
+
+
+## 2026-05-04 23:00 UTC — session 155 (DESIGN-COUNTDOWN — 0 kills / 0 reverts; fresh + mid buckets EMPTY; stale parked-rates persistence reconfirmed)
+
+**Perceived (watcher gen 23:00:13Z, ~0s old at session start)**:
+- killable_v2: 50 rows. Margin ≥+30: 40 rows. **Fresh bucket (elapsed_h <0.5, margin ≥+30, non-skip): 0 rows. Mid bucket (0.5-2h): 0 rows. Stale bucket (≥2h, non-skip): 0 rows.**
+- All 40 margin-≥+30 candidates fall into either:
+  - **Deny-set**: 4444… (16 rows, sb=-125 E006 below +95 floor), 3333… (4 rows, sb=-125 same), vuongdung1198 V<22 (8 rows below V floor; V=22 row has sb=-125 margin +34 << +95 E006 floor), PuppyPriestess (1 row, competitor predator).
+  - **Parked-rates skip-list**: yeddy node 53 (3 rows), TrayzinCarpathia node 60 (2 rows), tamagotcho node 9 (1), orange/zizi node 25 (3), fluff node 12 (4).
+- **Zero strikable candidates by doctrine.** No fresh harvests above margin threshold; entire stale population is in skip-list or deny-set.
+
+**Decided**:
+- Per plan-155 P1: fresh bucket empty → slim-check 2-3 stale skip-list candidates as **CONTROL** to confirm parked-rates persistence (informs design-mode urgency). Skip striking entirely.
+
+**Acted (slim spot-checks, 0 tx)**:
+- 8038 (yeddy node 53, +85 watcher margin, elapsed 7.75h): sync=210/total=210 (FULL HP), balance=0, **rates.intensity.avg=0 AND fertility=0**. PARKED. Watcher kill_zone=148 → actual margin = −62. Phantom.
+- 336 (zizi/orange node 25, +47 watcher margin, elapsed 9.01h): sync=170/total=170 (FULL HP), balance=0, rates=0. DTS=0.45+0.20 (heavy threshold). PARKED. Phantom.
+- **0 strikes attempted. 0 reverts. 0 obols. 0 gas burned.**
+
+**Result — TREND CONFIRMATION (not new doctrine)**:
+- Combined sample now **12/12 parked** (s153: 6, s154: 4, s155: 2). Across 8 owners and 6 nodes spanning ~24h of harvest-start timestamps. Parked-rates is **the population default for any non-fresh harvest**, full stop.
+- **Watcher's killable_v2 is a hallucination layer for stale candidates.** Fresh-bucket emptiness this session means *every* scoreable candidate was parked — not just sampled-and-filtered, but the entire surfaced population.
+- **vuongdung1198 V=22 row (V8224 margin +34 sb=-125)** would normally be the only doctrine-permissible target (V≥22 not blocked) — but sb=-125 puts it under E006 floor +95, so even rates>0 wouldn't trigger a strike. Confirmed deny.
+
+**End state**:
+- Operator at room 60 (no move).
+- 12649, 11224, 10705 still HARVESTING node 60 since 17:54:43 UTC (~5.1h elapsed at session end; intensity continues building; no HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: none. Result is exactly what the plan-155 hypothesis predicted: empty fresh bucket → no strikes. The control slims (8038, 336) reconfirm parked-rates persistence on a multi-hour timescale (8038's harvest start 1777907696 = 17:14 UTC, ~5.75h before session — still parked).
+
+**Gas notes**: 0 gas burned. 2 slim calls (read-only).
+
+**Streak**: s152 + s153 + s154 + s155 = **4 consecutive 0-kill sessions**. **One more (s156) hits the 5-session Design-Mode trigger from CLAUDE.md.** Plan-156 should pre-stage Design-Mode entry: if s156 also 0-kill, s157 is mandatory build session — `predator/scripts/refresh_parked_rates.py` cron + watcher rates-filter integration + `ideas_to_founder § 6` oracle ask follow-up.
+
+**Pre-build note (drafted, not shipped)**: rates-aware filter design — every 5 min, slim or web3-direct read top-50 killable_v2 candidates' `harvest.rates.intensity.average` + `health.sync` + `harvest.balance`; emit `predator/parked_rates_state.json`; watcher consumes file to filter killable_v2 by rates>0. Will ship in s157 if streak triggers.
+
+**Next session (156)** — Re-wake **+15 min** (~23:15 UTC May 4, ts **1777936511**). Pinned to:
+- (a) **Fresh-harvest opportunism**: 15-min window = ~3 watcher cycles + 3 cron ticks; brief non-parked windows possible from owner-action waves.
+- (b) **Cluster turnover**: defenders may rotate kamis (stop one, start another); new fresh-elapsed candidates may surface.
+- (c) **Streak gate**: if s156 also 0-kill → DESIGN MODE confirmed for s157 (5-session threshold).
+- **Plan 156 actions in order**: (1) re-read watcher; (2) partition fresh/mid/stale; (3) slim-check fresh bucket first (early-skip on rates.intensity == 0); (4) strike any fresh non-zero-rates ≥+30 candidate; (5) if all empty/parked, write design-mode-ready entry, schedule longer re-wake (~30 min), prep s157 build.
+- **Out of scope**: glue-raid, force-flush, kamibots state reads, cross-region pivot without rates-verified cluster ≥3 candidates, E006 sb≤−125 strikes, Aenne / deny-set, striking any of the 8 confirmed parked-rates owners without fresh slim verification.
+
+**Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) fresh-harvest opportunism (concrete game event), (b) ~3 watcher cycles + 3 cron ticks, (c) cluster turnover, (d) streak-gate. Cache miss accepted — investigation amortizes.
+
+**Bias fire-now (session 156)**: fresh-bucket scan IS the play. If empty again, that's the trigger to stop hunting and build. The 12/12 parked-rates control sample is now overwhelming evidence — at this point continuing to slim-probe stale candidates is wasted cycles.
