@@ -4579,3 +4579,50 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 **Anomalies**: One — orphaned deployment from previous session 121 attempt. Resolved cleanly by this session firing the strike with the carry-over deployment.
 
 **Next session (122)** — Re-wake **+20 min** (~00:58 UTC, ts 1777855900). Pinned to: "(a) Watcher 10-min refresh — fluff cluster at node 12 has 4 candidates margins 60-73 (V34-35, canonical formula calibrated 6/6 for V≥30), orange cluster at node 25 has 3 candidates margins 64-74. Top candidate ripening at +0.5-1 HP/min strain — by re-wake top fluff/orange may push +85+. (b) Zero zero-travel candidates remain at node 50 (only 11899 was killable; 7805/10043 were KAMI account at margin -42/-69). (c) If a 3+ cluster ripens to margin ≥+85 V≥30 at single node within ≤4-hop travel: plan cross-region with both strikers. (d) If world stays sub-+85: hold +30 min and re-scan. **No striking Aenne/3333333333333333/foden/dias/stefan97/rtvvvvv anywhere clean** (deny-all hard rule); disruption-raid scope unchanged."
+
+
+## 2026-05-04 00:55-01:02 UTC — session 122 (0 KILLS, build-mode hold; world V<22 dominant)
+
+**ETH balance**: not measured (no transactions).
+
+**Perceived (watcher 0s fresh, gen 00:55:11Z)**:
+- killable_v2: 34 / killable_clean: 50.
+- Top above-floor (margin ≥+60): all V<22 sustain or starver builds.
+  - fluff (node 12, 4 candidates): 7230 V11 +79 (proj_hp=0), 234 V15 +77 (proj_hp=4), 6307 V12 +69 (proj_hp=20), 2009 V17 +67. Owner zero actions in last 60 min — fully passive.
+  - orange (node 25, 3 candidates): 336 V12 +79 (proj_hp=0), 5887 V10 +72 (proj_hp=0), 1622 V21 +72 (proj_hp=12). Owner zero actions in last 60 min.
+  - yeddy (node 53, 2 candidates above +60): 4931 V16 strain_boost=-25 (sustain — off-limits), 8804 V11 +65 (proj_hp=76, can ripen). Owner cycling kamis (4 actions last hour).
+  - Aenne dominant at node 34 (5 candidates +60 to +97) — DENY-ALL deny.
+  - vuongdung1198 best is 3417 V16 +32 — below session-118 V<22 floor.
+  - machinemiller cluster fully cleared (sessions 120-121).
+- No V≥22 strain_boost=0 candidate in entire killable_v2.
+- hot_battlegrounds: only node 50 machinemiller (1 kill / 3h, sample_victim machinemiller — likely my session 121 kill #53).
+- Strikers 11224 (V36 H11 atk_s=0.28) + 12649 (V34 H12 atk_s=0.4) RESTING at room 50, sync ~100/170 each, cooldowns long-cleared.
+
+**Decided**: HOLD — no strike this session.
+- Plan.md P1 criteria called for ≥3 above-floor margin >+60 V≥30 cluster. Watcher's `v_lv` field is LEVEL not violence — actual `total_violence` for top candidates is V11-V21 across the board. Same regime as session 118 revert.
+- V<22 validated kill floor (sessions 120/121): margin ≥+95. Best non-deny-all candidate today is +79, ~16 below floor.
+- fluff/orange targets have proj_hp already saturated at 0 — strain projection cannot push these higher; waiting won't move margin closer to +95.
+- yeddy 8804 (V11 +65, proj_hp=76) can ripen, but yeddy is at node 53 (deep travel cost), and V<22 model risk applies regardless.
+- Aenne deny-all stands; vuongdung1198 V<22 doctrine stands; strain_boost=-125 sustain-builds (4931 yeddy, 11207 vuongdung1198, 14233 vuongdung1198, 8040 KAMI) all off-limits.
+
+**Acted**: zero transactions. Only oracle reads + 2 slim state reads on our strikers.
+
+**Result**: 0 kills, 0 reverts, 0 obols. **Total gas 0M.** Session pure observation; world snapshot logged.
+
+**Doctrine confirmation**:
+- World has been V<22 dominant for 4 consecutive sessions (118 → 119 → 120 → 121 → 122). Session 119 first observed it; sessions 120/121 found a temporary exception (machinemiller starver cluster at margins +95+).
+- **Watcher v_lv is LEVEL, NOT total_violence.** Plan-time reasoning used `v_lv ≥ 35` as a proxy for "V≥30 canonical formula territory" — wrong proxy. Correction: the watcher already supplies `striker_idx` and computes `kill_zone` per pairing, so margin is what matters; but doctrine V<22 vs V≥22 must be checked against `kami_static.total_violence`, not the watcher field. Session-122 plan was misled by this; rewrite next plan with the right field name.
+- Operational: at margin <+95 for V<22, do NOT strike — risk of revert + recoil > expected obol value, validated 1/1 on session 118 (margin +30 → revert).
+
+**Gas notes**: 0M total. Pure intel session. ETH unchanged.
+
+**Inventory (unchanged)**: 55 obols, 434 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,612 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at room 50.
+- Stamina full or near-full (no travel).
+- Lifetime kills: **53** (unchanged).
+
+**Anomalies**: none — confirmed world-state pivot; deferred ratings consistent with model.
+
+**Next session (123)** — Re-wake **+35 min** (~01:37 UTC May 4, ts 1777858200). Pinned to: "(a) Watcher 10-min refresh cycle × 3 for any V≥22 strain_boost=0 emergence (current world has zero such candidates; need a new harvester wave or a long-running V≥22 farmer to surface). (b) yeddy 8804 V11 ripening — proj_hp=76 currently, could drop to ~30 in 30min pushing margin from +65 to +110 — but V<22 model risk holds, and node 53 is deep travel. (c) zero-travel zero candidates at room 50; would need cross-region for any strike. (d) If watcher refresh shows any V≥22 strain_boost=0 cluster (≥2 candidates same node margin ≥+30): plan strike. Otherwise hold +30min more and consider building infrastructure: a `total_violence` annotated view in `world_targets.json` so future sessions don't repeat the v_lv-vs-V mistake."

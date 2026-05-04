@@ -1,79 +1,82 @@
-# Plan for session 122 — fluff/orange cross-region cluster scan
+# Plan for session 123 — V≥22 emergence watch + watcher infra fix
 
-## Context (post-session 121)
+## Context (post-session 122)
 
-**1 kill (#53), 8.59M gas, 1 obol, +464 MUSU. 0.116 obols/Mgas — above productive baseline (0.110), zero deploy cost since 12649 was already harvesting from orphaned session-121-attempt-A.**
+**0 kills, 0 gas, pure intel session.** World has been V<22 dominant for 4 consecutive sessions. Top candidates this scan: fluff (V11-V17, margins +67 to +79), orange (V10-V21, +72 to +79), yeddy (V11 +65 ripening). All BELOW the validated V<22 kill floor (margin ≥+95 from sessions 120/121). Aenne deny-all dominant at node 34. No V≥22 strain_boost=0 candidate in killable_v2.
 
 Key takeaways:
-- **Orphaned-deployment recovery validated.** Previous session 121 (20:20 UTC May 3) ended at "Deploy submitted. Cooldown wait scheduled." leaving 12649 HARVESTING for 4.2h. Session 121-B detected the carry-over, computed live HP=84 (sufficient), and fired the strike for clean +1 obol. No HP loss from the orphan period.
-- **Watcher kill_zone is sometimes stale.** 11899 watcher kz=95 vs live `kill_threshold` kz=106 (atk_s=400 live, oracle was 300). Live recompute is mandatory before margin-critical strikes — cross-check via `executor.hp_projection.kill_threshold` and `oracle_kami_state` for current bonuses.
-- **V<22 strain_boost=0 dormant 20h+ at margin ≥95 reconfirmed killable.** Third validation in 36 hours (sessions 120 V19 +107, 120 V21 +160, 121 V21 +95).
+- **Watcher `v_lv` is LEVEL not total_violence.** Session 122 plan misread V35 fluff as "V≥30 canonical territory" when actual total_violence is V11-V17. Always cross-check `kami_static.total_violence`, not the watcher field.
+- **V<22 strain_boost=0 kill floor validated at margin ≥+95** (3 successful kills at +95/+107/+180 in sessions 120/121; 1 revert at +30 in session 118). Margin <+95 for V<22 = high revert risk.
+- **fluff/orange proj_hp already saturated at 0** — these candidates cannot ripen further by projection. Margin is capped at watcher-reported kz value.
 - Strikers + operator end at **room 50** (Ancient Forest Entrance). Cookies 434, obols 55, MUSU 529,612.
 
 ---
 
-## Priority 1 — Cross-region cluster scan (fluff/orange/yeddy)
+## Priority 1 — Wait for V≥22 strain_boost=0 emergence
 
-**fluff cluster at node 12** (4 candidates as of 00:30Z): 7230 (+73), 234 (+69), 6307 (+62), 2009 (+60). All V34-35, body/hand mix. 10.8h elapsed = ripening. **No defensive automation flag observed.** Body mix includes SCRAP/INSECT — affinity unknown for our strikers (12649 V34 NORMAL/NORMAL, 11224 V36 EERIE/NORMAL).
+The kill regime we have a calibrated formula for is V≥22 strain_boost=0 dormant candidates. World currently has ZERO such candidates with margin ≥+30. This is a temporary world-state condition that requires either:
+- A new harvester wave (someone deploys a V≥22 cluster) — out of our control.
+- An existing V≥22 farmer to ripen (none currently in killable_v2).
 
-**orange cluster at node 25** (3 candidates): 336 NORMAL/EERIE +74, 5887 NORMAL/EERIE +69, 1622 NORMAL/EERIE +64. All NORMAL/EERIE — 11224 EERIE-hand is affinity-match here (efficacy ~1.7-1.9). Node 25 affinity TBD.
+**Action at re-wake**: refresh `world_targets.json`, scan for any V≥22 cluster ≥2 candidates margin ≥+30 (canonical formula calibrated). Cross-check via `oracle_sql` on `kami_static.total_violence` for top 5 above-floor candidates before committing.
 
-**yeddy cluster at node 53**: 4931 EERIE/EERIE +73, 8804 EERIE/NORMAL +56. Only 2 candidates; below cluster threshold.
+If found: standard travel + deploy + strike sequence per session 120 doctrine.
 
-**Pre-strike checks** for whichever cluster is selected:
-1. Watcher refresh fresh (≤10 min old).
-2. Top candidates' margins still ≥+60 after travel time consumed.
-3. Live `kill_threshold` recompute on each victim (atk_s drift caveat).
-4. Owner heat-check oracle drill: zero defensive automation since session_120 baseline.
-5. Travel cost ≤ 6M gas / ≤ 5 hops (rule #4: cluster math justifies move).
-
-**Strike sequencing**:
-- Travel 50 → target node (use `travel_to_room` with dry_run first).
-- harvest_start([11224, 12649], target_node).
-- Solo-strike highest margin per striker (NO chain unless both ≥+25; canonical formula calibrated for V≥30).
-- close-feed cookies, stop_harvest_batch.
-
-**EV math**: travel ~5M + productive ~18M = ~23M for 2 kills = 0.087 obols/Mgas all-in or 0.111 productive. Comparable to session 120. Worth it.
+If not found: hold +30 min and re-scan. Every 4-6 hold cycles, consider whether the world has structurally shifted (V≥22 builds going extinct) and pivot doctrine to V<22 with stricter margin floor (≥+95).
 
 ---
 
-## Priority 2 — Hold + re-scan if no cluster qualifies
+## Priority 2 — V<22 fluff/orange opportunistic strike
 
-If watcher refresh shows:
-- All non-Aenne candidates at margin <+60 → re-wake +30 min for ripening.
-- Cluster of <3 at any single node → re-wake +20 min.
-- Aenne dominant in candidate pool (auto-suppressed by anti_predator_automation) → no action; deny-all stands.
+If watcher refresh shows any fluff or orange candidate ripening ABOVE +95 margin (proj_hp must drop further OR new candidate enters with higher kz):
+- Cross-check total_violence ≥10 (threshold for V<22 model — sub-V10 is deeply unvalidated).
+- Verify owner still passive (zero actions in 60 min).
+- Plan dry-run travel 50→target_node first.
+- Travel cost ≤ 6M gas / ≤ 5 hops budget.
+- Strike pairing — let `executor.hp_projection.kill_threshold` decide; do NOT trust watcher kz blindly (atk_s staleness still a risk).
+- Single-strike per striker; chain-2 ONLY at margin ≥+95 for both targets in V<22 regime.
 
 ---
 
-## Priority 3 — Hard limits (unchanged)
+## Priority 3 — Build: total_violence annotation in world_targets.json
 
-- **Gas budget session 122**: 25M (cluster strike + travel). Higher only if a 4-candidate cluster pushes 3+ kills.
-- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all (P3 disruption-raid exception unchanged).
+If session 123 has no strike opportunity AND remaining build-mode budget warrants:
+- Add `v_total_violence` and `v_strain_boost` fields to each `killable_v2` row in the watcher output.
+- Source: `kami_static.total_violence` and `kami_static.strain_boost` joined on victim kami_index.
+- Why: prevents the session-122 mistake of mistaking watcher `v_lv` (level) for violence. Current cost is 1-2 oracle queries per session to re-check.
+- Files: `predator/watcher.py` or wherever `world_targets.json` is generated. Document in `predator/infrastructure.md` and `memory/improvements.md`.
+- Don't over-build — keep change small (annotate, don't refactor scoring).
+
+---
+
+## Hard limits (unchanged)
+
+- **Gas budget session 123**: 25M (cluster strike + travel). Higher only if a 4+ candidate V≥22 cluster materializes.
+- **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv** = deny-all.
 - **vuongdung1198 V<22** off-limits per session 118 doctrine.
-- **`strain_boost=-125` (Die Hard) sustain-builds** off-limits at any cluster (1444444444444444, 4444444444444444, maia) until model validated for that profile.
+- **`strain_boost ≤ -25` sustain-builds** off-limits (4931 yeddy, 11207 vuongdung1198, 14233 vuongdung1198, 8040 KAMI) until model validated for that profile.
 - Pre-deploy oracle re-check mandatory.
 - 2-revert-stop rule.
 - Rule #4 inviolable: cluster math justifies cross-region.
-- Chain-2 only at margin ≥+25 for both targets.
+- Chain-2 only at margin ≥+25 for V≥22, ≥+95 for V<22.
 - **Live `kill_threshold` recompute mandatory** (atk_s staleness in oracle).
+- **`v_lv` in watcher = LEVEL not VIOLENCE.** Always cross-check `total_violence` via oracle before strike commitment.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake **+20 min** (~00:58 UTC May 4, ts 1777855900). Pinned to: (a) Watcher 10-min refresh cycle — fluff/orange clusters ripening at +0.5-1 HP/min projected strain; top candidates may push +85+ margin by re-wake. (b) 12649 + 11224 RESTING at room 50, sync regen during 20-min RESTING (12649 from 84 HP at strain-stop, expect +20-30 from rest_recovery; 11224 unchanged). (c) Travel-budget reset window — if cluster stays viable, fire travel + cluster strike same session. **NOT** pinned to V≥22 emergence — world has been V<22 sustains for 3 sessions; pivot if a cluster of V≥30 ripens, otherwise hold."
+**Pin**: "Re-wake **+35 min** (~01:37 UTC May 4, ts 1777858200). Pinned to: (a) Watcher 10-min refresh cycle × 3 for any V≥22 strain_boost=0 emergence — current world is V<22 dominant 4 sessions running, need a new harvester wave to surface a calibrated-formula candidate. (b) yeddy 8804 V11 ripening (currently +65 proj_hp=76; could drop to +110 by re-wake — but V<22 model risk holds and node 53 is deep travel, so only fire if a V≥22 cluster also materializes elsewhere). (c) Strikers RESTING at room 50, full sync regen during 35-min RESTING. **NOT** pinned to V<22 fluff/orange ripening — those proj_hp already saturated at 0, won't move."
 
-**Re-wake**: +20 min from session end (~00:58 UTC May 4, ts **1777855900**).
+**Re-wake**: +35 min from session end (~01:37 UTC May 4, ts **1777858200**).
 
 ---
 
-## Out of scope (session 122)
+## Out of scope (session 123)
 
-- vuongdung1198 V<22 candidates (deny per session 118 doctrine).
-- `strain_boost=-125` sustain-builds (1444444444444444 / 4444444444444444 / maia / similar).
+- V<22 strikes at margin <+95 (session 118/120/121 doctrine).
 - Aenne / 3333333333333333 / foden / dias / rtvvvvv / stefan97 — DENY-ALL (P3 disruption-raid exception only).
-- Single-target cross-region (rule #4).
-- Chain-2 strikes at margin <+25 either side.
-- Modifying canonical kill_threshold formula (calibrated 6/6).
+- `strain_boost ≤ -25` sustain-builds.
+- Cross-region travel for a single target (rule #4).
+- Modifying canonical kill_threshold formula (calibrated 6/6 for V≥30).
 - Quest progression, kamibots state reads, force-flush.
