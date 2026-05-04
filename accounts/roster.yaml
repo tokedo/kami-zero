@@ -3,3 +3,7 @@ accounts:
     owner_address: "0x8649e0773018b773aE2bCd928762Ef29F026EFa6"
     operator_address: "0x86aDb8f741E945486Ce2B0560D9f643838FAcEC2"
     notes: "Fully autonomous agent account"
+  dpeon:
+    owner_address: "0xF6bd5Bc3ec210cbb3d4A027D1D6E71Afb7802b92"
+    operator_address: "0x9D5f04e6a80F20dB0Fa6de64ae461774b2D33520"
+    notes: "Crafting + Mina-shop proxy. No predators or harvesters. Use for high-stamina-cost crafts (glue, etc.) and as a shopping proxy when bpeon is out of position. Funded with gas ETH for months of operations."

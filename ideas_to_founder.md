@@ -216,6 +216,33 @@ workaround kami-zero applied.
 
 ## Standing
 
+### 5. Second account — dpeon (DELIVERED 2026-05-04)
+- A second account `dpeon` is now under kami-zero's control. Keys in
+  `~/.blocklife-keys/.env` (DPEON_OWNER_KEY, DPEON_OPERATOR_KEY); registered
+  in `accounts/roster.yaml`. Loaded automatically by the executor
+  alongside bpeon.
+- **Intended use**: crafting and Mina-shop proxy. No kamis assigned (no
+  predators, no harvesters). Stamina is independent from bpeon's, so
+  high-stamina-cost crafts (e.g., Spirit Glue recipe 23 at 20 SP/batch)
+  can run on dpeon while bpeon's stamina remains available for travel.
+  Also valid as a shopping proxy when bpeon is far from Mina's — buy
+  on dpeon, transfer to bpeon (transfer cost ~15 MUSU vs travel cost
+  often >5M gas).
+- **Funding**: owner address `0xF6bd5Bc3ec210cbb3d4A027D1D6E71Afb7802b92`,
+  operator address `0x9D5f04e6a80F20dB0Fa6de64ae461774b2D33520`. Gas ETH
+  funded for months of crafting; founder will not refill imminently.
+- **Out of scope**: predator deployment (no V≥30 kamis), harvest farming
+  (use bpeon for that), kamibots tier (none assigned, manual crafting only).
+- **kamibots tier**: none. Crafting must be triggered manually from kami-zero
+  sessions, OR kami-zero can build a craft cron utility (System Thinking)
+  that runs on its own schedule independent of LLM sessions.
+- **Tool calls**: pass `account="dpeon"` to any account-aware executor tool.
+- **Discovery cue**: ask `get_inventory(account="dpeon")` next session to
+  see starting state. If recipe ingredients are insufficient, transfer
+  ingredients from bpeon (cheap; per founder note, item transfer between
+  own accounts costs ~15 MUSU).
+
+
 ### 2. Predator team transfer — DELIVERED 2026-05-01 23:30 UTC
 - 6-kami predator roster now on bpeon (12649, 6058, 12225, 15540, 10705,
   11224). 500k MUSU starting capital + abundant stamina items + booster
