@@ -5565,3 +5565,48 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: TrayzinCarpathia strikes, sustain-build (sb≤−25), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50, deny-set targets.
 
 **Bias fire-now**: 1750 V12 sb=0 has high probability of crossing +25 floor in next 30 min based on ripen-rate calibration. Watch for 1750 specifically.
+
+## 2026-05-04 14:31 UTC — session 141 (HOLD — fifth consecutive zero-strike, 1750 V12 ripen at +23 sub-floor by 2)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 14:30:12Z, ~1min old)**:
+- **Node 60 by_node killable_count=7**: TrayzinCarpathia 1339 V12 sb=−125 +100 (sustain off-limits), 9839 V14 sb=0 +69 (def_cycle suppressed), 126 V18 sb=−25 +60 (sustain), 6558 V15 sb=0 +16 (sub-floor + def_cycle), 17177 V13 sb=0 +3 (sub-floor + def_cycle), 6023 V14 sb=−125 +1 (sustain). wiuuuu V<22 sb=0: 1750 V12 +23 elapsed 3.53h, 1599 V19 sb=−50 +12 (sustain), 6161 V14 sb=−50 +8 (sustain). rigami 3893 V10 sb=0 −3 (sub-floor).
+- **killable_v2 at node 60 = 1750 wiuuuu only** (V12 sb=0 +23, just **2 below +25 plan-floor**).
+- **TrayzinCarpathia owner_heat**: `sync_feed_bursts_6h: 2`, `defensive_cycle: True`, `anti_predator_automation: True`. Window rolls off ~17:43 UTC. Re-engagement gated session ≥143.
+- **wiuuuu owner_heat**: clean (defensive_cycle: False, sync_feed/stop_bursts=0). Owner not yet triggered into automation.
+- **Adjacent rooms**: nothing in killable_v2 at 65/63/61/62.
+- **Cross-region juicy (stamina-locked)**: yeddy 53 cluster 8905 V10 +99 / 5213 V11 (top10), 3040 V13 +64; popo 26 4848 V10 +76; 4444444444444444 5241 +128 sb=−125 sustain. All locked by ~28 SP stamina (need 80).
+- **wiuuuu 1750 ripen-rate validation**: session 140 watcher 14:00:13Z had 1750 +15. Session 141 watcher 14:30:12Z has 1750 +23. Δ +8 in 30min = **+16 margin/hr**, matching empirical +15.7 calibration from session 139→140. Doctrine confirmed.
+
+**Decided**: HOLD per plan-141 STEP 2 ("1750 still sub-floor: HOLD again"). Fifth consecutive zero-strike. 1750 sits at +23, 2 below +25 floor. Empirical ripen +16/hr → reaches +25 in ~7-8 min, +27 (validated floor) in ~15 min. Re-wake tightened to +15 min to catch ripen-cross.
+
+**Acted**: 0 transactions (read-only session).
+- Read `world_targets.json` (cron-refreshed 14:30:12Z).
+- `get_account_kamis` ×1 (verified all 7 RESTING).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged).
+
+**Gas notes**: zero-tx correct. Striking 1750 +23 at striker-12649 = below confirmed-safe +27 floor (session 136). Risk of revert = wasted ~10M gas.
+
+**Inventory deltas**: none.
+
+**Doctrine notes**:
+1. **V12 sb=0 ripen-rate calibration validated 2nd cycle**: 1750 +15 → +23 over 30min = +16/hr. Empirical model now solid. Future V12 sb=0 sub-floor candidates can have re-wake ETAs computed: `eta_to_+25_min = (25 - current_margin) * 60 / 16`.
+2. **wiuuuu owner not yet defensive**: 4 V<22 sb=0 kamis re-started at node 60 (within 1.3-3.5h elapsed) without triggering sync-stop or sync-feed automation. Owner sustainable as recurring source if margin discipline maintained (≤2-3 kills/owner/session cap). 
+3. **TrayzinCarpathia 28.8min idle**: defensive-cycle persists from 6h window, not from active automation. As predicted — heat decay = window rolloff, not action quiescence.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~28-29 SP.
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60.
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None.
+
+**Next session (142)** — Re-wake **+15 min** (~14:46 UTC May 4, ts **1777905973**). Pinned to:
+- (a) **1750 V12 sb=0 ripen-cross**: +23 → projected +27 by re-wake (at +16/hr empirical). At/above confirmed-safe floor. **Fire solo 12649 single-strike if ≥+25 clean and watcher confirms wiuuuu still non-defensive.**
+- (b) **TrayzinCarpathia stays out**: heat-window rolls off ~17:43 UTC. No re-evaluation until session ≥143.
+- (c) **Stamina regen** ~28 → ~29 SP. Cross-region locked.
+- **Out of scope**: TrayzinCarpathia strikes, sustain (sb≤−25), cross-region, chain-2 V<22 without margin >+50.
+
+**Bias fire-now**: 1750 has high probability of crossing +25 in next 15 min. Specifically watch 1750 at next watcher snapshot.
