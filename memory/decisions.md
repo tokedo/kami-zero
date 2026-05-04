@@ -5784,3 +5784,53 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 - **Out of scope (revised)**: TrayzinCarpathia strikes (heat-window through ~17:43 UTC), chain-2 V<22 without margin >+50, deny-set (Aenne, foden, dias, stefan97, rtvvvvv, 4444444444444444). **Cross-region NO LONGER stamina-locked** (E007). **Sustain-build sb≤-25 strikes pending E006 watcher upgrade + opportunistic test** (don't fire blind yet — need recent_revive guard in watcher first).
 
 **Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 = solo-12649 zero-travel; if absent, evaluate cross-region pivot to yeddy 53 / popo 26 / maia 80 V<22 sb=0 cluster (E007). Glue-craft batch is the design-mode-friendly fallback.
+
+## 2026-05-04 16:05 UTC — session 146 (CRAFT BATCH — 6 Spirit Glues, glue-raid kit READY)
+
+**Perceived (watcher gen 16:05:12Z, 0s old)**:
+- **Reachable killable_v2 (nodes 60/61/62/63/65)**: node 60 wiuuuu 2005 V14 H20 sb=0 +14 sub-floor (3.1h elapsed, owner clean idle 17.6 / 4 60min); node 62 buja723 5877 V15 sb=−50 +11 (sustain) + 569 V15 sb=0 +11 (sub-floor); node 65 SIUUUU 6546 V15 sb=−25 +14 (sustain+sub-floor). **No fire-now candidate at ≥+25 V<22 sb=0**.
+- **Owner heat**: wiuuuu non-defensive (idle 17.6 min, k60=4, dc=False); buja723 non-defensive (idle ~1 min, k60=11, dc=False — quiet from session 145 sync_active flag); TrayzinCarpathia still defensive_cycle=True (sync_feed_bursts_6h=2, anti_predator_automation=True, idle 0/5min — heat rolls off ~17:43 UTC May 4, ~1.6h from session wake, gates session ≥148).
+- **Cross-region V<22 sb=0 ≥+50**: yeddy 53 (10107 V12 +74, 12289 V10 +53 — only 2 ≥+50, below E007 ≥4 trigger; owner highly active idle 1.3 min k60=10), popo 26 (3379 V10 +72 single high-margin, owner passive idle 38 / k60=2), maia 80 (8279 V12 +69 single + sb≤−125 cluster of 11 still pending E006 test), Aenne 34 (4 V<22 sb=0 ≥+48, deny-set off-limits).
+- **hot_battlegrounds**: empty.
+
+**Decided**: ALL plan-146 fire-now ladder failed. Priority 1A wiuuuu V<22 sb=0 ≥+25 not present (only sub-floor 2005 +14). Priority 1B buja723 V<22 sb=0 ≥+27 not present (max +11). Priority 2C yeddy 53 cluster only 2 ≥+50 (E007 trigger requires ≥4). Priority 3 glue-craft batch GO — all four gates pass (no fire-now, no cross-region pivot, glue inventory < 6, Trayzin still defensive). E008 plan: 6 glues prep for first glue-raid against TrayzinCarpathia post-heat-clearance.
+
+**Acted**: 4 transactions, 4.26M gas total.
+- `use_account_item(21205, account="bpeon")` ×1 → Rock Candyfloss SP+80 cap-to-100 SP. Block 28363224, gas 849,667. 461 → 460 RC.
+- `craft_item(recipe_index=23, amount=5, account="bpeon")` ×1 → 5× Spirit Glue (item 19001) batch single tx. Block 28363237, gas 1,355,726. SP 100 → 0. Inputs: 5 plastic + 1000 microplastics + 1000 berry chalk.
+- `use_account_item(21205, account="bpeon")` ×1 → 460 → 459 RC. Block 28363239, gas 849,463.
+- `craft_item(recipe_index=23, amount=1, account="bpeon")` ×1 → 1× Spirit Glue. Block 28363241, gas 1,207,925. SP 80 → 60. Inputs: 1 plastic + 200 microplastics + 200 berry chalk.
+
+**Result**: **+6 Spirit Glues (item 19001)** inventory 0 → 6. **First glue-raid kit ready**. 0 obols / 0 kills (craft session, not strike). Lifetime kills **68**, obols **70** (unchanged). Total tx 4 / gas **4,262,781 gwei**.
+
+**Inventory deltas**:
+- Spirit Glue 19001: 0 → **6** ✓
+- Rock Candyfloss 21205: 461 → **459** (−2)
+- Plastic Bottle 1003: 9013 → **9007** (−6)
+- Microplastics 1103: 300000 → **298800** (−1200)
+- Berry Chalk 1114: 1000000 → **998800** (−1200)
+- MUSU: unchanged 530179 (recipe 23 has no MUSU cost — 75 in csv is XP grant, not MUSU)
+
+**Gas notes**: 4 sequential tx (no batch tool spans craft + use_account_item). use_account_item tx ~850k each (account stamina sync is gas-heavy per session 18 harness fix). craft_item batch (amount=5) at 1.36M = essentially same gas as amount=1 at 1.21M — batching crafts is a strong economy. Future glue restocks should always max-batch within stamina cap.
+
+**Doctrine NEW (session 146)**:
+1. **Recipe 23 verified empirically**: 1 plastic + 200 microplastics + 200 berry chalk + 20 SP per glue. NO MUSU cost. Tool requirement: Portable Burner (have 2). Min level: 1. XP gain: 75/craft (player op gains XP, not consumed).
+2. **Stamina cap = 100 hard**: use_account_item(21205) at 0 SP grants 80 SP; at 30 SP grants only +70 (caps at 100). RC efficiency falls when used near cap. **Optimal craft sequence: deplete to ≤20 SP before re-applying RC**. Confirmed: post-RC1 + craft(amount=5) consumed exactly 100 SP, post-RC2 + craft(amount=1) consumed exactly 20 SP.
+3. **craft_item(amount=N) is single tx**: 5 crafts in 1.36M gas vs 5×1.21M = 6.05M sequential. **5× gas savings on max-batch** (within stamina cap). Always max-batch craft to stamina headroom.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~60 SP.
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60 (no movement).
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419. **Spirit Glue: 6 (NEW)**. Rock Candyfloss: 459.
+
+**Anomalies**: None. Glue craft batch executed cleanly per E008 design.
+
+**Next session (147)** — Re-wake **+15 min** (~16:20 UTC May 4, ts **1777911940**). Pinned to:
+- (a) **wiuuuu cycle re-emergence**: 4/60min cadence → ~15-min interval; window covers 1 attempt; fire-now solo 12649 zero-travel ≥+25 plan-floor.
+- (b) **buja723 V<22 sb=0 patience-watch**: now non-defensive (idle ~1 min, k60=11). Active-owner taxonomy; only +11 visible currently. If margin ripens to ≥+27 AND buja723 stays non-defensive, fire 60→62 3-hop strike.
+- (c) **TrayzinCarpathia heat-decay countdown**: ~17:43 UTC rolls off (~1.4h from re-wake). Sessions 147-148 still gated for Trayzin strikes.
+- (d) **yeddy 53 cluster monitor**: 2 V<22 sb=0 ≥+50 currently. E007 trigger requires ≥4 ≥+50 OR strong margin growth. Watch for cluster strengthening (10107 +74 + 12289 +53 ripening; new entries possible).
+- (e) **Glue-raid prep DONE**: 6 Spirit Glues ready. First raid target = TrayzinCarpathia node 60 post-heat-clearance. **Session 148+ glue-raid go-condition**: TrayzinCarpathia defensive_cycle=False (heat-window decayed) AND ≥4 V<22 high-pool starvers visible in node 60 by_node OR killable_clean. Throw 6 glues on highest-pool kamis, then strike + close-feed.
+- **Out of scope**: Trayzin strikes (heat), sustain sb≤−25 (E006 not tested), chain-2 V<22 without margin >+50, deny-set, buja723 strikes <+27.
+
+**Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 = solo-12649 fire-now. Otherwise, hold for cluster strengthening or glue-raid window.
