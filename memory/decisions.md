@@ -4670,3 +4670,65 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Watcher refresh** — V≥22 strain_boost=0 emergence watch continues; if a 3+ cluster surfaces, prioritize the strike over crafts (hunt > build).
 - (d) **Empty Cup mint**: 1× Recipe 17 if room 11 reachable from 50 (or defer to next stamina cycle). One cup unlocks the proof-of-concept Hostility Potion craft.
 - **Out of scope**: full 25-shroom batch (defer until proof verifies); Hostility Potion (defer until cup + powder both exist); any V<22 strike at margin <+95.
+
+## 2026-05-04 02:10-02:30 UTC — session 124 (CRAFT BATCH; 5 recipes verified live; arsenal restocked)
+
+**ETH balance**: not measured (will appear in next routine probe).
+
+**Perceived (watcher gen 02:10:11Z, fresh 0s)**:
+- killable_v2: 24 / killable_clean: 50.
+- Top candidates (oracle cross-check via `kami_static.total_violence`): only **2 V≥22 strain_boost=0** kamis surfaced — both isolated single-target on different nodes:
+  - **10907 orange node 25** V24 lv37 strain_boost=0 — proj_hp=32, kill_zone=91, margin **+59**.
+  - **10544 fluff node 12** V24 lv34 strain_boost=0 — proj_hp=44, kill_zone=100, margin **+56**.
+- Other "high-margin" candidates: 8040 KAMI V16 strain_boost=-125 (off-limits), maia cluster all V≤17 strain_boost=-125 (sustain off-limits), 1622 orange V21 (V<22 below floor +84), 2009 fluff V17 +95 (exactly at V<22 floor — borderline).
+- 4444444444444444 cluster at node 77 (4 candidates, top +91) auto-flagged as defensive_cycle (sync_stop_bursts ×2, sync_feed_bursts ×3, anti_predator_automation=True) — watcher correctly excluded from killable_v2.
+- hot_battlegrounds: still only node 50 (machinemiller, 1 kill / 3h — likely my session-121 kill #53).
+
+**Decided**: Execute Plan P1 (free-unlock craft batch). V≥22 cluster doesn't qualify (single-target each, V22-29 territory uncalibrated). Stay in build mode for one more session.
+- Inventory check revealed plan-time arsenal v1 was stale: I already had **125 Sanguineous Powder, 375 Resin Tincture, 1 Empty Cup, 500 Pine Pollen** (v1 listed all as 0). Reordered execution: craft 1 Apology Letter NOW with existing reagents, then top up reagents, then batch-scale.
+
+**Acted (13 tx, 5 recipes verified)**:
+- `craft_item(20, amount=1)` — 1 Apology Letter minted. **Recipe 20 verified**: −2 stick, −125 powder, −125 tincture, +1 letter. 1.45M gas.
+- `craft_item(16, amount=1)` — 1 Sanguine Shroom → 500 Sanguineous Powder. **Recipe 16 verified**. 1.26M gas.
+- `craft_item(15, amount=1)` — 1 Resin → 500 Resin Tincture. **Recipe 15 verified**. 1.11M gas.
+- `craft_item(16, amount=4)` — 4 shrooms → 2000 powder. **amount=N batches in single tx at SAME 1.11M gas as amount=1.** Big leverage discovery.
+- `craft_item(15, amount=2)` — 2 resin → 1000 tincture. 1.11M gas.
+- `craft_item(20, amount=10)` REVERTED (stamina cap). Re-tried amount=3, amount=1 — both reverted. **Operator stamina cap appears to be ~100 SP**; first 5 crafts burned 100 SP exactly (20+10+10+40+20).
+- `use_account_item(21205 Rock Candyfloss)` — +80 SP restore. 0.85M gas.
+- `craft_item(20, amount=4)` — 4 more Apology Letters minted. 1.21M gas.
+- `use_account_item(21205)` — +80 SP. 0.85M gas.
+- `craft_item(18, amount=1)` — 1 Hostility Potion brewed. **Recipe 18 verified**: −1 cup, −250 powder, −250 pollen, +1 potion. 1.46M gas.
+- `craft_item(17, amount=1)` — 1 Empty Cup chiseled. **Recipe 17 verified**: −1 stone, +1 cup. 1.27M gas.
+
+**Result**: All 5 target recipes (15, 16, 17, 18, 20) **verified live** with input/output diffs matching catalog. Arsenal jumped from "0 of all combat items" to:
+- **Apology Letter**: 0 → **5** (ARB-25% recoil reducer, FOOD type, applied to OUR kami)
+- **Hostility Potion**: 0 → **1** (ATS+3% strain boost, FOOD type, application target TBC)
+- **Empty Cup**: 0 → **1** (restocked for next hostility brew)
+- **Sanguineous Powder**: 125 → **1750** (14× scale unlocked)
+- **Resin Tincture**: 375 → **1250**
+- Reserves untouched: 24 Sanguine Shroom, 22 Resin, 685 Stone, 250 Pine Pollen, 196 Wooden Stick.
+
+**Gas notes**: Total session **~13.5M gas across 13 tx**.
+- Productive: 5 letters (ARB-25%) + 1 hostility (ATS+3%) + 1 cup + 2500 powder + 1500 tincture + 5 verified recipes.
+- **Waste**: ~1.86M gas on 3 stamina-cap reverts (recipe 20 amount=10/3/1 in sequence). Lesson: operator SP cap is ~100; before any batched-amount craft, sum SP cost (recipe SP × amount) and pre-restore via candyfloss (each +80 SP) if needed. Still, the discovery is cheap insurance for future planning.
+- **`amount=N` batched crafts cost the SAME gas as amount=1** — this is a 4–10× leverage for high-volume reagent grinds. Worth a permanent note in `predator/items-arsenal.md` and `predator/mechanics.md`.
+
+**Inventory deltas this session**:
+- −5 Sanguine Shroom, −3 Resin, −1 Stone, −10 Wooden Stick, −250 Pine Pollen, −2 Rock Candyfloss
+- +5 Apology Letter, +1 Hostility Potion, +1 Empty Cup (net +0 — used 1 for hostility, chiseled 1)
+- +2500 Sanguineous Powder − 1875 used = 1750 net
+- +1500 Resin Tincture − 875 used = 1250 net
+
+**End state**:
+- Operator + 11224 + 12649 + 4 other RESTING kamis at room 50 (verified via `get_account_kamis`).
+- Operator stamina depleted (0 or near 0 after final craft). Regen needed; ~30 min for partial restore.
+- Lifetime kills: **53** (unchanged this session).
+
+**Anomalies**: none — all 5 recipes consumed inputs and granted outputs per catalog; reverts were stamina-gated, not contract logic failures.
+
+**Next session (125)** — Re-wake **+30 min** (~03:00 UTC May 4, ts 1777862631). Pinned to:
+- (a) **V≥22 ripen-and-strike opportunity**: 10907 (V24 orange node 25, proj_hp=32) and 10544 (V24 fluff node 12, proj_hp=44) — could drop to ≤20 in 30min, pushing margins +30–40 higher. **First strike of session 125 attempts to use Apology Letter on striker pre-strike** to verify ARB-25% recoil reduction in vivo.
+- (b) Operator stamina regen — partial (likely ~20-40 SP) by +30 min, enough for 1–2 more crafts if no strike fires.
+- (c) **Hostility Potion application test** (deferred from this session): apply to a single passive starver at margin +50–70 (e.g. 1622 V21 orange, 2009 V17 fluff) to verify ATS+3% strain boost and time the projection model against reality.
+- **Out of scope**: full 24-shroom grind (defer until reagent reserves drawn down); Pine Cone restock (still blocked, no 0-cost source); chiseling more cups (have 1 in stock, sufficient for next hostility).
+
