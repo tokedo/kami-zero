@@ -377,3 +377,17 @@ Migration sequence (next session, separate PR scope):
 - **How to use**: Plan post-strike sequences with ≥200s wait between strike and next attacker-side action. Document as plan STEP cadence ("strike → 200s → close-feed → 80s → harvest_stop"). Pre-stage harvest_start at prior session end to avoid mid-session waits.
 - **Files**: implicit doctrine — captured in plan.md and decisions.md going forward.
 - **Commit**: (this session)
+
+## 2026-05-04 — Watcher: STRIKERS[12649].atk_s 300 → 400 (config drift fix)
+- **What**: One-line correction to `STRIKERS` array in `predator/scripts/refresh_world_targets.py`. Striker 12649's `atk_threshold_shift` was hardcoded as 300 (0.30) but on-chain bonus is 400 (0.40) per `get_kami_state_slim`. Drift suppressed 12649 from striker assignment for high-margin clean V<22 sb=0 candidates the entire time the misconfig stood.
+- **Why**: Session 133 cross-checked watcher striker_idx for Yeahta cluster (3735 + 2836 both assigned to 11224). Direct `kill_threshold` compute showed 12649 had +4 margin advantage on both targets. Investigation revealed config drift, not formula bug. Post-fix re-validation surfaced material world-view upgrades: yeddy node 53 candidates went from striker=11224 +60-85 to striker=12649 +92-104; popo node 26 same. Many sessions of suboptimal striker pairing in retrospect.
+- **Files**: `predator/scripts/refresh_world_targets.py` (STRIKERS array, kami_idx 12649)
+- **How to use**: Re-run `python3 predator/scripts/refresh_world_targets.py` and inspect `world_targets.json`. STRIKERS table should be spot-checked against live `get_kami_state_slim` periodically (suggested: monthly or after any kami respec/equip-change). Validation workflow: for each striker idx, slim → grab `bonuses.attack.threshold.shift` (×1000 = atk_s field), compare to STRIKERS row, fix mismatch.
+- **Commit**: (this session)
+
+## 2026-05-04 — Doctrine note: liquidate owner-resolver flake — always pass target_handle
+- **What**: Empirical confirmation in session 133 — `liquidate(target=3735)` blocked with "could not resolve target owner; pass target_account_id/target_handle" on first attempt. Retry with `target_handle="Yeahta"` succeeded. Same pattern for 2836. Watcher snapshot already exposes `v_acct` per candidate.
+- **Why**: The `/api/playwright/kami/{id}/` endpoint that resolves owner from kami_id is flaky (cache miss / latency). When unresolved, the executor blocks the tx pre-flight (correctly — guild-gate enforcement requires owner). Always-pass-target_handle removes this round-trip and the failure mode entirely.
+- **How to use**: When firing `liquidate`, pass `target_handle=<v_acct>` from the watcher snapshot (or `target_account_id` if available). No-op if resolver works; saves the pre-flight block when it doesn't.
+- **Files**: implicit doctrine (captured in CLAUDE.md-adjacent notes via plan.md and decisions.md going forward).
+- **Commit**: (this session)

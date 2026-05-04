@@ -5127,3 +5127,57 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Watcher refresh** ×3 cycles (5-min cron) catches new emergence.
 - (d) **Yeahta defensive watch** — 4 kills in ~12h on this owner (130 + 132). Expecting passive continuation but verify before strike.
 - **Out of scope**: chain-2 V<22 same-striker (recoil too heavy without 30min rest); cross-region travel (cluster in-room).
+
+## 2026-05-04 08:45-09:01 UTC — session 133 (2 KILLS Yeahta cluster + WATCHER STRIKER-CONFIG BUG FIX)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 08:45:13Z fresh)**:
+- Yeahta cluster ripened across cron gap: 3735 V16 H20 sb=0 margin **+36** (proj_hp=114, kz=150), 2836 V14 H22 sb=0 margin **+34** (proj_hp=115, kz=149). Both above +25 floor.
+- Yeahta heat: 101.3 min idle, distinct_kamis_5/60min 0/0, no bulk_stop/sync_stop/sync_feed bursts, no defensive cycle. Pure passive after session-132 strikes.
+- Strikers: 11224 RESTING node 73 sync 134/140 (cooldown clear), 12649 RESTING sync 100/170 (cooldown clear).
+- Watcher striker_idx assigned 11224 to both. **Cross-check via direct kill_threshold compute revealed watcher misconfig**: STRIKERS[12649].atk_s = 300 (0.30), but slim shows 12649.atk_threshold_shift = 0.40 = 400. With corrected stats: 12649→3735 kz=154 margin **+40**, 12649→2836 kz=153 margin **+38**. Both BETTER than 11224.
+- Implication: different-striker no-chain pair beats same-striker chain-2 (no compounding recoil, no need for mid-chain close-feed).
+
+**Decided**: Fire different-striker pair — 11224→3735, 12649→2836 (lower-margin minimum +36 in pair A). Pre-stage both strikers, wait 200s for cooldown, fire pair, post-strike close-feed both, stop.
+
+**Acted (5 productive tx + 2 pre-flight blocks, 2 KILLS)**:
+- `harvest_start([11224, 12649], 73)` 08:51:55Z — 1.978M gas success.
+- (210s wait for attacker cooldown clear)
+- `liquidate(3735, 11224)` first attempt blocked: "could not resolve target owner". Retried with `target_handle="Yeahta"` 08:55:25Z → 4.460M gas, **KILL #61** (V16 sb=0 victim).
+- `liquidate(2836, 12649)` similar block → retry with handle 08:55:27Z → 4.452M gas, **KILL #62** (V14 sb=0 victim).
+- (210s wait for post-strike attacker cooldown)
+- `feed_kami(11224, 11304)` 08:59:17Z — 1.950M gas, sync restored.
+- `feed_kami(12649, 11304)` 08:59:19Z — 1.797M gas, sync restored.
+- (90s wait for feed cooldown)
+- `stop_harvest_batch([11224, 12649])` 09:00:59Z — 3.614M gas. Both INACTIVE.
+
+**Result**: **2 obols (62→64 lifetime)**, MUSU spoils gross ~600-1000 not yet indexed (still 530179 at session-end snapshot, will surface next session). Lifetime kills **60→62**. Watcher striker-config bug fixed.
+
+**Gas notes**: total ~17.85M productive (1.98 pre-stage + 8.91 strikes + 3.75 feeds + 3.61 stop). EV = 2 obols / 17.85M = **0.112 obols/Mgas** (consistent with recent baseline; would be higher had session-132's pre-stage been pre-counted, but it was; this session burned full pre-stage internally).
+
+**Inventory deltas**:
+- Obol: 62 → **64** (+2)
+- Cookies (11304): 427 → 425 (−2 close-feeds)
+- MUSU: unchanged in snapshot (spoils not yet indexed; carry-over from session 132 also pending)
+
+**Doctrine notes (NEW)**:
+1. **`liquidate` may block on owner resolution.** First attempt failed with "could not resolve target owner; pass target_account_id/target_handle". Retried with `target_handle="Yeahta"` succeeded. Empirically the Playwright `/api/playwright/kami/{id}/` endpoint has flake/cache issues. **Always pass `target_handle` explicitly when known** (the watcher snapshot already exposes `v_acct`). Saves a round-trip and the revert risk.
+2. **Watcher STRIKERS config drift**: 12649's `atk_threshold_shift` value in the watcher's STRIKERS array drifted from actual on-chain bonus (300 vs 400). Bug suppressed 12649 from striker assignment for high-margin clean targets — under-utilization for an unknown number of sessions. Spot-check entire STRIKERS table against `get_kami_state_slim` periodically.
+
+**Watcher fix shipped (`predator/scripts/refresh_world_targets.py`)**: STRIKERS[12649].atk_s 300 → 400. Re-validation post-fix at 09:00:39Z surfaced massive margin upgrades for 12649 across the population: yeddy node 53 has clean V<22 sb=0 candidates at margin +104/+92 (4768/7263); popo node 26 +67/+52 (13964/8962); TrayzinCarpathia node 60 +75. Most are cross-region with cluster math marginal (≤2 sb=0 targets per node), but the world view is materially richer.
+
+**End state**:
+- Operator at room 73 (Broken Tube z=3).
+- 11224 + 12649 RESTING node 73 (post-feed; sync ~134/140 + ~125/170 estimated, pending verification next session).
+- Yeahta cluster remaining clean: 6104 V13 sb=0 +34, 6485 V11 sb=0 +28, 1500 V12 sb=0 +24 (right at floor). Sustain off-limits: 6505 sb=-50, 3699 sb=-50, 1847 sb=-25. Passive (1374 V15 +6).
+- Lifetime kills: **62**.
+
+**Anomalies**: Owner-resolver flake (mitigated). Watcher STRIKERS bug (fixed).
+
+**Next session (134)** — Re-wake **+25 min** (~09:26 UTC May 4, ts **1777886827**). Pinned to:
+- (a) **Yeahta sub-floor ripening**: 6104 (+34) + 6485 (+28) — sb=0 V<22 candidates, may cross +35/+30 by next wake at +5/h baseline. Different-striker pair feasible (11224/12649) per corrected watcher.
+- (b) **Striker rest** — 11224/12649 should regen sufficiently in 25 min for another sortie (rest +6 HP/min ≈ +150 sync regen window).
+- (c) **Watcher refresh** ×5 cycles surfaces any defensive shift on Yeahta or new cross-region V≥22 emergence.
+- (d) **Disregard cross-region yeddy/popo** — only 2 clean sb=0 targets per cluster, cross-region cluster math marginal.
+- **Out of scope**: chain-2 same-striker (still forbidden V<22 without close-feed); cross-region commit on <3 sb=0 cluster.
