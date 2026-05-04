@@ -8,6 +8,60 @@
 
 ## Pending
 
+### 6. Watcher proj_hp model is broken — `harvest.rates == 0` "parked" pattern is universal at high-margin candidates (2026-05-04, session 153)
+
+**Discovery**: every high-margin candidate slim-checked across 3 separate
+owners (TrayzinCarpathia node 60, yeddy node 53, Gunnar/alexbuyer node 31)
+shows the same on-chain harvest state:
+- `harvest.balance == 0` despite elapsed_h ≥ 6h
+- `harvest.time.last == harvest.time.start == harvest.time.reset`
+- `harvest.rates.fertility == 0` AND `harvest.rates.intensity.average == 0`
+- `stats.health.sync == stats.health.total` (full HP)
+- `harvest.state == "ACTIVE"`
+
+The 6 slim probes burned this session (898, 1881, 8038, 7328, 15409,
+11494) all showed identical signature. The watcher's elapsed-based strain
+projection produces phantom margins (kill_zone − sync_HP often −40 to
+−60, but watcher reports +57 to +135). 
+
+**Why s150 / s151 Trayzin kills worked**: timing luck — the kamis were
+caught in a brief window where rates were non-zero. NOT exploitable
+doctrine.
+
+**Why competitor kills (PuppyPriestess, IBCKING) at Scrapyard Exit / Forest
+land**: same — they spam strikes and statistically catch the strain window.
+
+**Hypothesis on the pattern**: a popular defense script (or game-mechanic
+state) sets `harvest.rates.intensity = 0`, freezing both MUSU
+generation AND HP strain. Kami appears HARVESTING but is functionally
+parked. This may be a status-effect (poison, glue, etc.) the owner
+voluntarily applies, OR a game-system feature reacting to "no recent
+node activity from owner" that we don't understand yet. Either way, the
+strain-from-elapsed-time formula is invalid for these kamis.
+
+**Asks**:
+1. **Oracle**: surface `harvest.rates.fertility` and
+   `harvest.rates.intensity.average` (and `harvest.balance`) from the
+   harvest entity into a refreshed snapshot table. A 5-min cron over
+   the top 200 HARVESTING kamis world-wide is plenty. Watcher would
+   then filter killable_v2 by `rates.intensity > 0` (= actually
+   strain-bleeding) and our hit-rate jumps from ~0% to whatever the
+   real strain-window represents.
+2. **Mechanic clarification**: is `rates.intensity == 0` an opt-in
+   defense the owner can trigger, or a system response to inactivity?
+   Documenting this in `systems/harvesting.md` would settle whether
+   the right counter is **disrupt the rates** (e.g., poison item that
+   forces non-zero strain) vs **wait for the rate window**.
+3. **Workaround until then**: kami-zero will pre-strike slim-verify
+   `harvest.rates.intensity > 0` for every candidate margin ≥+30.
+   Cost: ~free (15s API cache). Hit-rate prediction: very low — most
+   kamis at high-elapsed_h are in zero-rates state.
+
+**EV impact**: this finding explains the 0-kill streak risk for the
+session-152 / 153 doctrine cost. Without the patch, kami-zero is
+guessing among phantom margins. With the patch, the kamis surfaced
+in killable_v2 are actually killable.
+
 ### 5. Items arsenal v1 surveyed — high-EV blockers (2026-05-04, session 123)
 
 Full doc: `predator/items-arsenal.md`. Three item-supply blockers limit

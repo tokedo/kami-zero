@@ -6166,3 +6166,78 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 
 **Bias fire-now (session 153)**: walk top 5 candidates per slim spot-check. Strike only if actual_margin ≥+30. If ALL fail, harvest_stop strikers (mint pending 688 MUSU) and propose watcher patch in ideas_to_founder.md as session 154 build target.
 
+
+
+## 2026-05-04 22:25 UTC — session 153 (DESIGN-MODE — 0 kills / 0 reverts; 6-slim sweep proves "parked-rates" is universal across defenders)
+
+**Perceived (watcher gen 22:20:13Z, ~0s old at start)**:
+- killable_v2 dominated by acheron(17)/4444…(16)/3333…(7)/yeddy(4)/vuongdung1198(3)/TrayzinCarpathia(2)/tamagotcho(1). Top non-deny non-acheron candidates: yeddy 1881 V12 sb=−125 +97 / yeddy 8038 V11 sb=0 +69 / yeddy 5299 V10 sb=0 +55 / yeddy 7328 V13 sb=−25 +52 (all node 53). At our node 60: 898 V14 sb=0 +71 / 7531 V12 sb=−125 +42 (E006 floor unmet).
+- world-liquidations last 6h: 4 self-kills (matched s150/s151), 5 non-self kills all clustered at 17:12-17:20 UTC (~5h ago) by PuppyPriestess (Scrapyard Exit + Forest) and IBCKING (Forest: Insect Node). Genuine-victim cluster surfaced at node 31 (Scrapyard Exit) — Gunnar/alexbuyer top10 with watcher margins +103 to +141.
+
+**Decided**:
+- Per plan-153 P1: pre-strike slim-verify `stats.health.sync` and the continuous-sync triplet for every candidate ≥+30 margin. Slim-check 6 candidates spanning 3 owners + 3 nodes before considering any strike or pivot.
+- If sync-state pattern is universal (predicted from s152): no strikes, document the systemic finding, write watcher-patch ask, schedule next session.
+
+**Acted (slim spot-checks, 0 tx)**:
+- 898 (TrayzinCarpathia node 60): sync=190/total=190, balance=0, time triplet=1777907009, **rates.fertility=0 AND rates.intensity.avg=0**. Watcher kill_zone=135 → actual margin = −55. Phantom.
+- 1881 (yeddy node 53): sync=200/total=200, balance=0, triplet=1777905495, rates=0. kill_zone=159 → actual margin = −41. Phantom.
+- 8038 (yeddy node 53): sync=210/total=210, balance=0, triplet=1777907696, rates=0. kill_zone=148 → actual margin = −62. Phantom.
+- 7328 (yeddy node 53): sync=200/total=200, balance=0, triplet=1777916201, rates=0. kill_zone=162 → actual margin = −38. Phantom.
+- 15409 (Gunnar node 31): sync=220/total=220, balance=0, triplet=1777882829 (~8h old), rates=0. kill_zone=178 → actual margin = −42. Phantom.
+- 11494 (alexbuyer node 31): sync=240/total=240, balance=0, triplet=1777848618 (~17h old), rates=0. kill_zone=144 → actual margin = −96. Phantom.
+- **0 strikes attempted. 0 reverts. 0 obols. 0 gas burned this session.**
+
+**Result — DOCTRINE (systemic, replaces s152's tentative "continuous-sync" framing)**:
+
+**Parked-Rates defense pattern (RENAMED from continuous-sync)**: a harvesting kami can have `harvest.rates.intensity.average == 0 AND harvest.rates.fertility == 0` while `state == "ACTIVE"`. In this state:
+- Kami earns 0 MUSU/sec.
+- Kami loses 0 HP/sec.
+- `stats.health.sync` stays at `total_health` (full HP) indefinitely.
+- Watcher's elapsed-based strain projection is meaningless (formula assumes non-zero intensity → strain). Phantom margins surface.
+
+**Universality**: 6/6 high-margin candidates checked across 3 owners (TrayzinCarpathia, yeddy, Gunnar/alexbuyer) AND 3 nodes (60, 53, 31) AND 4 different harvest-start timestamps (1777848618 to 1777916201, spanning 19h) all showed identical pattern. This is NOT account-specific automation — it's either (a) a meta-defense script everyone is running, or (b) a game-system response (poison, status effect, inactivity timeout) that "parks" harvests at zero rates. Mechanism unverified — writing diagnostic to `ideas_to_founder.md` for founder visibility.
+
+**Triplet timing field equality** (s152 doctrine signal `time.last == time.start == time.reset`) is **NOT a sync-defense signal**: it's the natural state of a kami harvesting uninterrupted (no other actions touching the entity). The actual signal is `rates.fertility == 0 AND rates.intensity.average == 0`.
+
+**Why competitors land non-self kills (PuppyPriestess Scrapyard Exit/Forest, IBCKING Forest)**: spam-strikes catch the brief windows where rates flip non-zero. Our 6/6 sample at 22:20-22:25 UTC was uniformly parked.
+
+**ABORT all strikes this session** — no candidate has positive actual margin. Continued striking would burn ~7-15M gas on guaranteed reverts.
+
+**Strikers stay HARVESTING node 60** since 17:54:43 UTC (~4.5h elapsed at session start, ~4.6h at end). Per s149 doctrine, strikers don't lose HP from idle harvesting and intensity continues to build. No reason to harvest_stop. The 688 MUSU pending in 12649's pool from s151 2141 spoils mints when we eventually stop — not urgent.
+
+**Inventory deltas**: zero — no successful strikes, no consumables used, no tx submitted. Spirit Glue 6, Rock Candyfloss 459, MUSU 530179 unchanged.
+
+**Lifetime: 72 kills (unchanged) / 74 obols (unchanged) / 4 reverts (unchanged).**
+
+**Doctrine NEW (session 153)**:
+1. **`harvest.rates.intensity.average == 0` is the canonical "parked / unkillable" signal**, not the time-triplet equality. Pre-strike slim-verify rates, NOT just sync HP. Cost: ~free per call.
+2. **Watcher's proj_hp is invalid** for the (apparently universal) population of high-elapsed_h kamis with parked rates. Until oracle surfaces `rates.intensity` per harvest entity, killable_v2 should be treated as a candidate-filter only — strike-authority requires per-strike slim verification.
+3. **The "competitor predator landed kills 5h ago at Scrapyard Exit" signal does NOT mean Scrapyard Exit cluster is currently killable**. Owners' OTHER kamis may be parked even though the kill-victims weren't. Parked-rates flip is opportunistic, not persistent.
+4. **6-slim sample is sufficient to declare a session dead** when 6/6 show parked rates. Don't burn more slim cycles probing every candidate; pivot to next-action (write log, schedule short re-wake, build).
+5. **Updated the slim-defense triplet from s152 doctrine**: the rates field, not the time-equality, is the strike-killer. Time-equality is incidental.
+6. **Skip-list expanded**: yeddy added as universal parked-rates account (4/4 kamis sampled showed pattern).
+
+**End state**:
+- Operator at room 60 (no move tx).
+- 12649, 11224, 10705 HARVESTING node 60 since 17:54:43 UTC (now ~4.6h elapsed, intensity continues, no HP loss).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- HP: strikers untouched this session; presumed close to s152 end-state (full HP per 0-recoil from reverts).
+- Lifetime: **72 kills / 74 obols / 4 reverts**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 pool from s151).
+
+**Anomalies**: 6/6 slim sample showing parked rates is a finding, not an anomaly. Confirms s152 hypothesis on a much larger and more diverse sample.
+
+**Gas notes**: 0 gas burned. The 6 slim calls are read-only. Session economics: 0 obol / 0 Mgas = neither earn nor burn. Cleanest possible session given the world state.
+
+**Watcher patch — written to `ideas_to_founder.md` § 6**: ask oracle to surface `harvest.rates.fertility` + `harvest.rates.intensity.average` + `harvest.balance` per harvest entity. With those fields, watcher filters killable_v2 by rates>0, hit-rate jumps from ~0% to (whatever the real strain-window is).
+
+**Next session (154)** — Re-wake **+12 min** (~22:37 UTC May 4, ts **1777934220**). Pinned to:
+- (a) **Rates-window opportunism**: parked-rates kamis may flip non-zero briefly during owner-action moments (cron-tick sync, manual harvest_collect, etc.). A 12-min cycle gives 2-3 watcher snapshots and ~3 cron ticks within which we might catch a flip.
+- (b) **Cluster turnover**: defenders may rotate kamis (stop one, start another) on uneven schedules; new candidates may surface with strain-bleeding rates.
+- (c) **Cron + slim-rates spot-check loop**: session 154's binding action is a fast 3-5 candidate slim sweep filtered by `rates.intensity > 0`. If any pass: strike. If none: assess whether to extend wait, harvest_stop strikers, or shift to design mode.
+- **Plan 154 actions in order**: (1) re-read watcher; (2) slim-check top 5 V<22 sb=0 candidates margin ≥+50 — but ONLY check `harvest.rates.intensity.average`; if 0, immediately skip (saves API time vs full slim parse); (3) strike the first non-zero-rates candidate with margin ≥+30 sync-verified; (4) if all 5 fail OR 5-session zero-kill streak triggers Design-Mode trigger, switch to building (e.g., a `parked_rates_filter.py` cron that extends watcher).
+- **Out of scope**: glue-raid (no automation we understand), force-flush, kamibots state reads, cross-region pivot, E006 sb≤−25 strikes, vuongdung1198 V<22, deny-set.
+
+**Pin justification (Cadence Discipline)**: 12-min wait pinned to (a) rates-flip opportunism (concrete game-mechanic event), (b) 2-3 watcher cycles + 3 cron ticks of fresh data, (c) cache stays warm (<300s margin). Specific multi-signal pin amortizes a single short wait.
+
+**Bias fire-now (session 154)**: rates-verified strike on any V<22 sb=0 ≥+50 candidate is THE play. If world is uniformly parked, switch to Design Mode and build the rates-aware pre-filter as a cron sub-process. **Streak watch: this is session 153 with 0 kills; sessions 152 and 153 both 0-kill. If 154 + 155 + 156 also 0-kill, hit Design-Mode trigger from CLAUDE.md (5 consecutive 0-kill sessions).**
+
