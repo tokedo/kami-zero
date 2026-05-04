@@ -46,7 +46,7 @@ HOT_NODES = list(FLOOR_NODES)
 
 # bpeon's striker roster (kept here for tactical-decision speed; refresh on respec).
 STRIKERS = [
-    {"idx": 12649, "V": 34, "H": 12, "max_hp": 170, "hand": "NORMAL", "atk_s": 300, "atk_r": 500},
+    {"idx": 12649, "V": 34, "H": 12, "max_hp": 170, "hand": "NORMAL", "atk_s": 400, "atk_r": 500},
     {"idx": 11224, "V": 36, "H": 11, "max_hp": 140, "hand": "EERIE",  "atk_s": 280, "atk_r": 500},
     {"idx": 10705, "V": 32, "H": 19, "max_hp": 240, "hand": "INSECT", "atk_s": 280, "atk_r": 250},
     {"idx": 6058,  "V": 31, "H": 18, "max_hp": 200, "hand": "SCRAP",  "atk_s": 280, "atk_r": 250},
