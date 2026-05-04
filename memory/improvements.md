@@ -391,3 +391,10 @@ Migration sequence (next session, separate PR scope):
 - **How to use**: When firing `liquidate`, pass `target_handle=<v_acct>` from the watcher snapshot (or `target_account_id` if available). No-op if resolver works; saves the pre-flight block when it doesn't.
 - **Files**: implicit doctrine (captured in CLAUDE.md-adjacent notes via plan.md and decisions.md going forward).
 - **Commit**: (this session)
+
+## 2026-05-04 — Watcher: recent_revive guard (E006 enabler)
+- **What**: Added `revives` CTE to the `scan_node()` SQL in `predator/scripts/refresh_world_targets.py` (LEFT JOIN onto `hs_open` by `kami_id`). Surfaces `sec_since_revive` per row; filtered to `recent_revive: bool` (true if any revive on this kami in last 3600s) on every candidate dict in `killable_clean` / `killable_v2` / `by_node`.
+- **Why**: E006 sustain-build (sb≤−25) test-strike protocol requires three guards before firing on a sb≤−125 target: (a) non-defensive owner, (b) no fresh feed since start, (c) **no recent revive on victim**. Guards (a)+(b) already on every row; (c) was missing — without it, E006 could not graduate from design-mode to opportunistic-test status. Recent revive signals owner is actively monitoring + counter-defending, not just running an unattended starve farm; striking a freshly-revived kami means the owner just acted within the cycle and may follow up with another defensive primitive (sync-feed, bulk-stop, counter-liquidate).
+- **Files**: `predator/scripts/refresh_world_targets.py` (added CTE + LEFT JOIN, parsed `sec_since_revive`, surfaced `recent_revive` + `sec_since_revive` on candidate dict).
+- **How to use**: No API change. `world_targets.json` rows now include `recent_revive: bool` and `sec_since_revive: int|None`. E006 test-strike gate: `recent_revive == False AND not fresh_feed_since_start AND not heat.defensive_cycle AND v_strain_boost ≤ −25 AND v_V < 22 AND margin ≥ +95`. Validated this session: 0 candidates show `recent_revive=True` in current snapshot (clean baseline); maia 80 surfaces 6 V<22 sb≤−25 candidates ≥+50 margin all with `recent_revive=False` (test pool ready when opportunity aligns).
+- **Commit**: (this session)

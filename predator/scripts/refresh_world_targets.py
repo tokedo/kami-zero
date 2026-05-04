@@ -152,6 +152,17 @@ def scan_node(node_id, node_meta, handles, accs):
       WHERE f.action_type='feed'
         AND f.block_timestamp >= (SELECT MIN(start_ts) FROM hs_open)
       GROUP BY kami_id
+    ),
+    revives AS (
+      -- Owner-driven revives in the last 1h. A revive flips a DEAD kami back
+      -- to RESTING; the subsequent harvest_start is fresh. Recent revive on
+      -- this kami signals the owner is actively monitoring + counter-defending
+      -- (they noticed the kill and re-deployed). E006 test-strike guard.
+      SELECT kami_id, MAX(block_timestamp) AS last_revive_ts
+      FROM kami_action
+      WHERE action_type='revive'
+        AND block_timestamp >= NOW() - INTERVAL 1 HOUR
+      GROUP BY kami_id
     )
     SELECT
       hs.kami_id, hs.start_ts, hs.harvest_id,
@@ -162,10 +173,12 @@ def scan_node(node_id, node_meta, handles, accs):
       ks.harvest_fertility_boost, ks.harvest_bounty_boost,
       ks.defense_threshold_shift, ks.defense_threshold_ratio,
       EXTRACT(EPOCH FROM (NOW() - hs.start_ts)) AS elapsed_sec,
-      COALESCE(fd.n_feeds, 0) AS n_feeds_after_start
+      COALESCE(fd.n_feeds, 0) AS n_feeds_after_start,
+      EXTRACT(EPOCH FROM (NOW() - rv.last_revive_ts)) AS sec_since_revive
     FROM hs_open hs
     JOIN kami_static ks ON ks.kami_id=hs.kami_id
     LEFT JOIN feeds fd ON fd.kami_id=hs.kami_id AND fd.last_feed >= hs.start_ts
+    LEFT JOIN revives rv ON rv.kami_id=hs.kami_id
     WHERE NOT EXISTS (
       SELECT 1 FROM killed_harvests kh
       WHERE kh.harvest_id = hs.harvest_id
@@ -182,6 +195,8 @@ def scan_node(node_id, node_meta, handles, accs):
         guild_blocked = acct in handles or acc_id in accs
         no_touch = acct in SOFT_NO_TOUCH_OWNERS
         fed = (r.get("n_feeds_after_start") or 0) > 0
+        sec_since_revive = r.get("sec_since_revive")
+        recent_revive = sec_since_revive is not None and sec_since_revive <= 3600
         elapsed = int(r.get("elapsed_sec") or 0)
         if elapsed < 60:
             continue  # not enough strain; skip noise
@@ -248,6 +263,8 @@ def scan_node(node_id, node_meta, handles, accs):
             "guild_blocked": guild_blocked,
             "no_touch_owner": no_touch,
             "fresh_feed_since_start": fed,
+            "recent_revive": recent_revive,
+            "sec_since_revive": int(sec_since_revive) if sec_since_revive is not None else None,
             **best,
         })
 
