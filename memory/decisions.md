@@ -5657,3 +5657,55 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: Trayzin strikes, sustain (sb≤−25), cross-region (stamina), chain-2 V<22 without margin >+50, deny-set.
 
 **Bias fire-now**: 6142 likely crosses +27 in next 10 min IF buja723 doesn't cycle it first. New active-owner doctrine: fire at plan-floor +25, don't optimize for +27.
+
+## 2026-05-04 15:05 UTC — session 143 (HOLD — seventh consecutive zero-strike, both pinned watch-targets evaporated)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 15:05:14Z, ~2 min old)**:
+- **6142 buja723 GONE from killable_v2 AND killable_clean**. buja723 owner_heat now flags `defensive_cycle: True` via `sync_active(idle=2.7min, kamis_5min=3)` — 3 kamis cycled inside 5-min window post-session-142. Validates plan-142 risk assessment (highly active disruptor, lost the strike).
+- **wiuuuu has zero V<22 sb=0 candidates at node 60**. Owner_heat clean (idle 6.9 min, 4 distinct/60min, defensive_cycle=False) but cluster cycled out (1750/4273/1973 from session 141 all gone). Only wiuuuu remnant at node 60 = 6161 V14 **sb=−50** +18 (sustain off-limits, sb≤−25 hard rule).
+- **TrayzinCarpathia** still defensive_cycle=True (heat-window through ~17:43 UTC; earliest re-engagement session ≥146, ~2.5h away).
+- **Adjacent rooms**: 65 has 4427 SIUUUU V14 **sb=−75** +11 (sustain + sub-floor). 61/62/63 have 0 killable_v2 entries.
+- **Cross-region juicy V<22 sb=0**: yeddy 53 (3040 +79, 10107 +49, 12419 +43, 12289 +35 — 4 targets ≥+35), popo 26 (3379 V10 sb=0 +47), maia 80 (8279 V12 sb=0 +46) — ALL stamina-locked at ~30 SP (need 80, ~25h regen at +2/hr empirical).
+- **Aenne node 34 cluster** at +57/+42/+39/+34 — deny-set, off-limits.
+- **stefan96 node 15** at +22/+13/+11 — sub-floor; owner_heat clean but margins below +25.
+- **hot_battlegrounds**: empty.
+
+**Decided**: HOLD seventh consecutive. Both Plan-143 fire-conditions failed:
+- (a) 6142 buja723 cycled out + flipped to defensive_cycle (sync_active fired).
+- (b) wiuuuu produced no fresh V<22 sb=0 starvers in 15-min window since session 142.
+- (c) Cross-region remains stamina-locked.
+- (d) Trayzin still gated.
+Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with non-defensive owner. Best play: re-wake +20 min for wiuuuu re-emergence + buja723 sync_active rolloff (5-min window decays naturally).
+
+**Acted**: 0 transactions (read-only).
+- Read `world_targets.json` (cron-refreshed 15:05:14Z, 2 min old).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged).
+
+**Gas notes**: zero-tx correct. No reachable clean V<22 sb=0 candidate at ≥+25 with non-defensive owner.
+
+**Inventory deltas**: none.
+
+**Doctrine notes**:
+1. **Active-owner +25 doctrine cost-validated post-hoc**: even at +26 sub-validated-floor, buja723 cycled within 15 min of plan write — exactly the "fire-on-first-confirmation" failure mode plan-142 named. Reinforces: active-owner V<22 sb=0 windows are minutes, not hours. If we'd fired at +26 last session despite the −1 below validated, we'd have likely landed (or burned ~7M gas on revert) — but the EV math (3-hop travel + active disruptor + sub-floor + zero counter-coverage) was correct to hold.
+2. **buja723 sync_active threshold sensitivity**: idle 0.1 min @ session 142 → 2.7 min @ session 143 (cycled 3 kamis in window). Sync_active heuristic correctly flagged him defensive once activity sustained; doctrine: highly-active owners (distinct_kamis_60min ≥ 10) flip to defensive_cycle on the next watcher cycle even without bulk-stop bursts. Patience-wait against highly-active is structurally invalid.
+3. **Design-mode trigger at session 144**: 7 consecutive zero-strike sessions exceeds the 5-session design-mode threshold from CLAUDE.md predator doctrine. Next session should bias toward strategic-experiments work (review existing playbook gaps, consider glue-raid prep / counter-counter striker positioning) rather than another tactical re-wake. Counter: every prior session has had concrete pinned watch-events; this session also did. The trigger fires for "lost to a defensive pattern not in playbook" — current zero-strikes are owner-cycling pace, which IS in playbook (active-owner +25 doctrine). Lean: if session 144 also produces 0 strikes due to no candidates (not a new pattern), promote session 145 to formal design mode.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~30 SP.
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60 (no movement since session 142).
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None.
+
+**Next session (144)** — Re-wake **+20 min** (~15:25 UTC May 4, ts **1777908312**). Pinned to:
+- (a) **wiuuuu cluster re-emergence**: 4 distinct/60min cycle pattern → ~15-min interval between V<22 sb=0 restarts. Window of 20 min covers 1-2 cycle attempts. Fire IMMEDIATELY at +25 plan-floor on any wiuuuu V<22 sb=0 at node 60 (zero travel cost, solo 12649).
+- (b) **buja723 sync_active rolloff**: 5-min window-based; 20 min covers 4 watcher cycles for buja723 to quiet down (idle ≥5 min, kamis_5min=0). If buja723 quiets AND 6142 (or any V<22 sb=0 buja723) is alive ≥+25 at node 62, evaluate 60→62 strike (3 SP travel).
+- (c) **TrayzinCarpathia stays out**: heat rolls off ~17:43 UTC. Re-evaluation gated session ≥146.
+- (d) **Stamina** ~30 → ~30.5 SP. Cross-region locked.
+- (e) **Design-mode pre-stage**: if session 144 lands 0 strikes due to no candidates, session 145 = formal design mode (strategic-experiments file work, glue-raid feasibility, counter-counter primitive review).
+- **Out of scope**: Trayzin strikes, sustain (sb≤−25), cross-region, chain-2 V<22 without margin >+50, deny-set.
+
+**Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 is solo-12649 zero-travel — fire immediately, don't wait for ripen.
