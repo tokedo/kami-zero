@@ -5236,3 +5236,65 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Striker rest** — 12649 100/170 needs ~12 min rest to top off; 11224 100/140 needs ~7 min. 25-min re-wake ample.
 - (d) **Watcher refresh** ×5 cycles surfaces any new cluster emergence elsewhere or Yeahta defensive shift.
 - **Out of scope**: chain-2 (only 1 valid candidate); cross-region (in-room cluster still active); sustain-off-limits strikes.
+
+## 2026-05-04 10:10-10:32 UTC — session 135 (3 KILLS TrayzinCarpathia cluster, cross-region)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 10:10:12Z fresh)**:
+- Yeahta cluster at node 73 **fully depleted** (killable_count=0). Plan target 1500 V12 absent from any top10 (Yeahta likely stopped post-session-134). 14.3 min idle (post-session-134 reverberations). Only POWELL (deny) candidates remained at 73, all sub-margin.
+- Cross-region clean clusters surfaced (sb=0 V<22, margin >+50, ≥3 candidates):
+  - **node 60 TrayzinCarpathia**: 17177 V13 +64, 16591 V15 +57, 991 V13 +54 — 48 min idle, no feeds 6h, k60=2 (passive).
+  - node 53 yeddy: 4545/270/6257 with margins +58/+49/+49 — 30 min idle, **6 feeds 6h** = anti-predator feeding signature, riskier.
+- Strikers RESTING node 73, full HP (sync caps reached after 27min rest), cooldown clear.
+- Manual kill_threshold cross-check (executor.hp_projection): 12649 NORMAL hand vs NORMAL body gives eff=1.7 (aff_shift +0.2 NORMAL special + atk_ratio 0.5). Margins 12649: +72/+74/+67 across the trio. 11224 EERIE same eff vs NORMAL: +53/+53/+46.
+- Cluster math: 3 sb=0 V<22 candidates, avg margin +58 = qualifies cross-region travel.
+
+**Decided**: Travel 73→60 (16-hop, 80 stamina, feasible). Pair-strike 11224→17177 + 12649→16591 (different-striker, no chain). Close-feed both. Chain 12649→991 (margin +67 with 12649). Total budget projection ~28-30M gas / 3 obols at 0.10-0.11 obols/Mgas.
+
+**Acted (9 productive tx, 0 reverts, 3 KILLS)**:
+- `travel_to_room(60)` 10:13Z — **14.158M gas** (16 hops, ~885k/hop — much higher than the 50k/hop estimate). Operator at room 60, stamina 99→20.
+- `harvest_start([11224, 12649], 60)` 10:16:23Z — 2.018M gas success.
+- (210s wait for combat cooldown clear from harvest_start)
+- `liquidate(17177, 11224, target_handle="TrayzinCarpathia")` 10:20:13Z → 4.516M gas, **KILL #65** (V13 H20 NORMAL/EERIE sb=0 victim).
+- `liquidate(16591, 12649, target_handle="TrayzinCarpathia")` 10:20:25Z → 4.537M gas, **KILL #66** (V15 H24 NORMAL/SCRAP sb=0 victim).
+- (200s wait for post-strike combat cooldown)
+- `feed_kami(11224, 11304)` 10:24:00Z — 1.950M gas.
+- `feed_kami(12649, 11304)` 10:24:09Z — 1.797M gas.
+- (95s wait for feed cooldown)
+- `liquidate(991, 12649, target_handle="TrayzinCarpathia")` 10:26:08Z → 4.515M gas, **KILL #67** (V13 H24 NORMAL/NORMAL sb=0 dts=160 victim).
+- (200s wait for post-strike combat cooldown)
+- `feed_kami(12649, 11304)` 10:30:19Z — 1.797M gas (post-chain heal).
+- (95s wait)
+- `stop_harvest_batch([11224, 12649])` 10:31:43Z — 3.700M gas. Both INACTIVE.
+
+**Result**: **3 obols (66→69 lifetime)**. **844 VIPP spoils** (60057→60901 — node 60 = SCRAP affinity producing VIPP, not MUSU). Lifetime kills **64→67**.
+
+**Gas notes**: total ~38.99M gas (14.16 travel + 2.02 stage + 13.57 strikes + 5.54 feeds + 3.70 stop). EV = 3 obols / 38.99M = **0.077 obols/Mgas** — below 0.110 baseline due to outsized travel cost. Travel was the single biggest line at 36% of session burn.
+
+**Inventory deltas**:
+- Obol: 66 → **69** (+3)
+- VIPP: 60057 → 60901 (+844 spoils)
+- Cookies (11304): 423 → 420 (−3 close-feeds; 1 each post-pair + 1 post-chain)
+- MUSU: unchanged 530179 (no MUSU spoils; node 60 produces VIPP)
+
+**Doctrine notes (NEW)**:
+1. **Travel cost massively underestimated.** 16 hops at 885k gas/hop = 14.16M gas — not the 50k/hop assumption. **Future cross-region travel decisions must compute travel cost using ~1M gas/hop empirical baseline.** A 16-hop trip alone is ~14M gas — that's 3 strike's worth of obol-extracting cost. Cluster math threshold should be: total expected obols × baseline_$/obol > travel + harvest_start + strikes + feeds + stop. For node 60 today: 3 obols × 0.110 = 0.33 obols-of-baseline — but travel ate 14M of the 39M. **Cross-region travel of 10+ hops is justified only by ≥4 expected kills at ≥+40 margin OR a closer cluster that doesn't exist.** A 4-kill projection at this distance breaks even at baseline; 3 kills puts the session at 0.077.
+2. **NORMAL hand has +0.2 affinity_shift in liquidation calc.** kill_threshold gives NORMAL hand vs any body eff=1.2 base (vs same-affinity 1.0). With atk_ratio=0.5, NORMAL strikers get eff=1.7 — same as EERIE→SCRAP strong matchup. **12649 NORMAL hand is a universal strong striker, not a "neutral" choice.** This makes 12649 the optimal first-pick striker for any non-SCRAP body cluster.
+3. **VIPP spoils on SCRAP-affinity nodes.** Node 60 (Scrap Trees) produces VIPP, not MUSU. Strikes there yield VIPP into our inventory (60057→60901 = +844 from 3 kills, ~280 VIPP/kill avg). **VIPP has utility (sacrificed at room 64 for VIP status), but is not directly fungible to MUSU/obol. Track separately in metrics.md if pursuing more SCRAP-node hunts.**
+4. **Operator stranded at room 60 (stamina 20)**. Cannot return to 73 this session (need 80 SP for return path). Strikers stay near node 60 for next session — node 60 becomes a temporary hunting outpost. If other TrayzinCarpathia/wiuuuu candidates ripen, can strike with no travel cost.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina 20.
+- 11224 RESTING node 60 sync ~100/140 (post recoil + close-feed).
+- 12649 RESTING node 60 sync 100/170 (post recoil + close-feed × 2).
+- Lifetime kills: **67**.
+
+**Anomalies**: travel cost 6× underestimate. No nonce collisions (sequential strikes). No reverts.
+
+**Next session (136)** — Re-wake **+30 min** (~11:02 UTC May 4, ts **1777892541**). Pinned to:
+- (a) **Node 60 sub-floor ripen-watch** — 4273 wiuuuu V18 sb=0 +9, 2141 TrayzinCarpathia V12 sb=0 +7, 2005 wiuuuu V14 sb=0 +3 may cross floor (+25) over 30 min (~+15-20/h ripen). Different owner = different defensive heat counters.
+- (b) **Striker recovery** — both at sync 100, full max HP regen via rest in 12-15 min (140/170 caps). Plenty of buffer.
+- (c) **Watcher refresh** ×6 cycles surfaces TrayzinCarpathia defensive shift after 3 kills/session.
+- (d) **Operator stamina recovery** — 20 → ~30 over 30 min (~3 SP/30min default rate). Still insufficient to travel back to 73. Hold at 60 next session.
+- **Out of scope this session**: cross-region back-travel; sb≤-25 sustain strikes (7531/6032/7304 off-limits); chain-3 (recoil too heavy without ~30 min striker rest).
