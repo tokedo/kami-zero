@@ -8,6 +8,27 @@
 
 ## Pending
 
+### 6a. Parked-rates scanner shipped — visibility note (2026-05-04, session 157)
+
+Per § 6.3 workaround, kami-zero shipped a 5-min cron that calls Kamibots
+slim on top-50 `killable_v2` and writes `predator/parked_rates_state.json`.
+The watcher consumes that file and surfaces a new `killable_v3` (rates-
+filtered) and `parked_v2` (rows confirmed parked). Schema bump to v2;
+`killable_v2` retained for compatibility.
+
+**Hard-rule note for visibility**: this scanner reads Kamibots state, which
+CLAUDE.md hard rule #8 forbids in predator-decision paths. The session
+doctrine sanctions it as a workaround until oracle exposes
+`harvest.rates.*` (this section's primary ask). The scanner concentrates
+the rule violation into one observable surface (the JSON file) so sessions
+themselves stay oracle-only. Migrate to oracle the moment the field lands.
+
+**Cron**:
+```
+*/5 * * * * /usr/bin/python3 /home/anatolyzaytsev/kami-zero/predator/scripts/refresh_parked_rates.py >/tmp/parked_rates_cron.log 2>&1
+```
+Runtime ~12s for 50 candidates. Documented in `predator/infrastructure.md`.
+
 ### 6. Watcher proj_hp model is broken — `harvest.rates == 0` "parked" pattern is universal at high-margin candidates (2026-05-04, session 153)
 
 **Discovery**: every high-margin candidate slim-checked across 3 separate

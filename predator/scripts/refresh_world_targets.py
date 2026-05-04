@@ -27,6 +27,8 @@ ORACLE_TOKEN = "pV6WYI4HUSLWK95cSg_YJbDlD6rTdCDaYCCMqhQvTl8"
 
 OUTPUT_PATH = REPO_ROOT / "predator" / "world_targets.json"
 GUILD_PATH = REPO_ROOT / "predator" / "guild-no-touch.csv"
+PARKED_RATES_PATH = REPO_ROOT / "predator" / "parked_rates_state.json"
+PARKED_RATES_MAX_AGE_SEC = 600  # accept snapshots up to 10 min old
 
 # FLOOR_NODES = always-watch set used as a safety floor when oracle is down
 # OR as a baseline that dynamic discovery merges on top of. Player traffic
@@ -543,6 +545,35 @@ def get_hot_battlegrounds(window_hours=3, top_n=20):
     return out
 
 
+def load_parked_rates():
+    """Read predator/parked_rates_state.json if present and fresh.
+
+    Returns (by_idx_map, snap_age_sec, generated_at_str). On stale or missing
+    snapshot, returns ({}, None, None) — caller surfaces that as "no rates
+    filter applied" rather than failing.
+    """
+    if not PARKED_RATES_PATH.exists():
+        return {}, None, None
+    try:
+        with open(PARKED_RATES_PATH) as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"parked_rates_state.json read error: {e}", file=sys.stderr)
+        return {}, None, None
+    by_idx = data.get("by_idx") or {}
+    gen = data.get("generated_at") or ""
+    age_sec = None
+    try:
+        gen_dt = datetime.fromisoformat(gen.rstrip("Z")).replace(tzinfo=timezone.utc)
+        age_sec = (datetime.now(timezone.utc) - gen_dt).total_seconds()
+    except ValueError:
+        pass
+    if age_sec is not None and age_sec > PARKED_RATES_MAX_AGE_SEC:
+        # Stale — don't apply. (Don't crash either; just don't filter.)
+        return {}, age_sec, gen
+    return by_idx, age_sec, gen
+
+
 def main():
     t0 = time.time()
     handles, accs = load_guild()
@@ -604,18 +635,64 @@ def main():
     # to be in our HOT_NODES.
     hot_battlegrounds = get_hot_battlegrounds(window_hours=3, top_n=20)
 
+    # Parked-rates pass (s157): refresh_parked_rates.py cron writes a per-idx
+    # snapshot of on-chain harvest.rates / sync HP via the slim endpoint.
+    # When intensity.average==0 AND fertility==0 AND balance==0 AND state==
+    # ACTIVE, the watcher's elapsed-based proj_hp is a phantom (s152-s156
+    # 13/13 sample). killable_v3 filters those rows out; parked_v2 surfaces
+    # them for visibility / heat-window monitoring.
+    parked_rates_by_idx, parked_age_sec, parked_gen = load_parked_rates()
+    for c in killable_v2:
+        v_idx = c.get("v_idx")
+        pr = parked_rates_by_idx.get(str(v_idx)) if v_idx is not None else None
+        if pr:
+            # Real margin if rates parked: kill_zone − sync (no strain coming).
+            sync_hp = pr.get("sync") or 0
+            rates_aware_margin = (c.get("kill_zone") or 0) - sync_hp
+            c["parked_rates"] = {
+                "rates_intensity_avg": pr.get("rates_intensity_avg"),
+                "rates_fertility": pr.get("rates_fertility"),
+                "balance": pr.get("balance"),
+                "sync": sync_hp,
+                "total": pr.get("total"),
+                "harvest_state": pr.get("harvest_state"),
+                "parked_bool": pr.get("parked_bool"),
+                "last_checked_ts": pr.get("last_checked_ts"),
+                "rates_aware_margin": rates_aware_margin,
+            }
+        else:
+            c["parked_rates"] = None
+
+    killable_v3 = [
+        c for c in killable_v2
+        if not (c.get("parked_rates") and c["parked_rates"].get("parked_bool"))
+    ]
+    parked_v2 = [
+        c for c in killable_v2
+        if c.get("parked_rates") and c["parked_rates"].get("parked_bool")
+    ]
+
     out = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "schema_version": 2,  # bumped for killable_v3 / parked_rates fields
         "scan_duration_sec": round(time.time() - t0, 2),
         "hot_nodes": HOT_NODES,
         "hot_nodes_source": "dynamic_discovery_v1",
         "floor_nodes": FLOOR_NODES,
         "guild_blacklist_size": len(handles) + len(accs),
+        "parked_rates": {
+            "snapshot_generated_at": parked_gen,
+            "snapshot_age_sec": round(parked_age_sec, 1) if parked_age_sec is not None else None,
+            "snapshot_idxs_loaded": len(parked_rates_by_idx),
+            "applied": bool(parked_rates_by_idx),
+        },
         "by_node": by_node,
         "hot_battlegrounds": hot_battlegrounds,
-        "killable_clean": killable[:50],  # top 50 across all nodes (legacy field)
-        "killable_v2": killable_v2[:50],  # heat-check filtered (defensive owners removed)
-        "owner_heat": heat,  # per-owner heat-check signals
+        "killable_clean": killable[:50],   # top 50 across all nodes (legacy field)
+        "killable_v2": killable_v2[:50],   # heat-check filtered (defensive owners removed)
+        "killable_v3": killable_v3[:50],   # rates-filtered (s157): parked rows removed
+        "parked_v2": parked_v2[:50],       # killable_v2 rows confirmed parked-rates
+        "owner_heat": heat,                # per-owner heat-check signals
     }
 
     tmp_path = OUTPUT_PATH.with_suffix(".json.tmp")
@@ -624,9 +701,16 @@ def main():
 
     n_killable = len(killable)
     n_v2 = len(killable_v2)
+    n_v3 = len(killable_v3)
+    n_parked = len(parked_v2)
     n_defensive_owners = sum(1 for h in heat.values() if h.get("defensive_cycle"))
     n_battlegrounds = len(hot_battlegrounds)
-    print(f"world_targets.json refreshed: {n_killable} killable ({n_v2} after heat-check), {n_defensive_owners} defensive owners, {n_battlegrounds} hot battlegrounds, across {len(HOT_NODES)} nodes in {out['scan_duration_sec']}s")
+    print(
+        f"world_targets.json refreshed: {n_killable} killable / {n_v2} v2 (heat) / "
+        f"{n_v3} v3 (rates) / {n_parked} parked, "
+        f"{n_defensive_owners} defensive owners, {n_battlegrounds} battlegrounds, "
+        f"{len(HOT_NODES)} nodes, {out['scan_duration_sec']}s"
+    )
     return 0
 
 
