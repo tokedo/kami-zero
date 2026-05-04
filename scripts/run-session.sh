@@ -58,5 +58,5 @@ else
     fi
 fi
 if [ "$need_default" -eq 1 ]; then
-    echo $(($(date +%s) + 21600)) > "$NEXT_RUN_FILE"
+    echo $(($(date +%s) + 900)) > "$NEXT_RUN_FILE"
 fi
