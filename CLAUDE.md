@@ -123,11 +123,51 @@ Read `predator/README.md` at the start of every session. That file is the runnin
 
 ## Predator Doctrine
 
+**First principles before heuristics.** Compute is abundant. Speed is not the binding constraint — correctness is. When you observe a revert, surprise, or regime your model didn't predict, default to **re-deriving from first principles**: `systems/*.md`, on-chain config (`KAMI_LIQ_*`, item catalogs, skill catalogs), `mechanics.md` as cross-reference. Do not manufacture a heuristic from one or two observations — defensive rules ratchet, accumulate, and outlive the bug they were patching (cf. V<22 floor born from session 118's revert which session 133 fixed at root cause: stale attacker atk_s).
+
+A heuristic is justified only when **all three** hold: (a) ≥20 observations across diverse conditions support it; (b) re-deriving each session is materially expensive; (c) it captures something not derivable from mechanics. Otherwise: every action grounded in mechanics, every empirical pattern logged in `predator/strategic-experiments.md` as a hypothesis to test — not in `plan.md` as a rule to follow.
+
+**You are finding profitable plays, not executing doctrine.** Items, accounts, timing windows, threat-of-presence, deception, glue/cooldowns/heals/poisons — all are primitives. The doctrine codifies plays that have been proven; it does not enumerate plays that exist. When you see a recurring pattern that the doctrine doesn't address, your job is to **invent and test** a play, document the design in `strategic-experiments.md`, run it under controlled conditions, and adopt it only if the data says so.
+
 **Mindset.** You are not on a quest checklist. You are a hunter with a budget. Every session, ask: *where are the targets, what does it cost to reach them, what comes back at us when we strike, and is the obol yield worth it?*
 
 **Targeting is data work, not movement.** Most of a session is reading on-chain state and oracle data. Movement is expensive (gas + opportunity cost). Identify candidate clusters before moving. A session that ends with zero kills but a sharper map of where targets live is a productive session.
 
 **Counter-predator awareness is asymmetric.** Another predator on the node is not automatically a deterrent. The math: *will our HP after the kill stay above their liquidation threshold for our weakest kami on the node?* If yes, fire. If no, leave — unless we have a counter-counter ready (a second predator of ours on the same node who can finish them). Trying counter-counter plays is allowed and encouraged once you understand the mechanic; do not freelance it without writing the reasoning to `decisions.md` first.
+
+### Worked example A — Counter-liquidation defense-in-depth
+
+**Pattern**: Some farmers post bodyguards alongside their starvers — full-HP defenders ready to counter-liquidate any aggressor. Hit a starver → bodyguard counter-strikes you → you lose striker + spoil + obol consumed.
+
+**Primitives** (combine, don't follow as a script):
+- **Pre-strike threat assessment**: `kill_threshold(bodyguard.V → my_striker.H)` is deterministic. Compute it before deploying. If a bodyguard can kill any of my deployed strikers, the node is contested.
+- **Spirit Glue (`item 19001`, `NEXT_COOLDOWN+180`)**: thrown on enemy HARVESTING kami → adds 180s to their next cooldown. Locks bodyguards in place; they can't counter-fire for 180s.
+- **Counter-counter striker**: deploy a 2nd kami positioned to liquidate the bodyguard *if* it counter-strikes. Post-fire bodyguards are typically near-zero HP — high-EV liquidate target. Two juicy counter-kills observed at Deeper Into Scrap (533+600 MUSU) were exactly this — never converted because we had no covering striker.
+- **Hit-and-run**: strike + retreat operator out of room before bodyguard cooldown clears.
+
+**Plays**: combine primitives based on inventory + context.
+- *Glue-then-strike*: throw glue on bodyguards 180s lock → harvest starvers freely → leave before glue expires.
+- *Defense-in-depth*: deploy 2 strikers + 2 coverers. Bait the bodyguard with strike #1, let it counter-fire to near-zero HP, counter-counter with the cover striker for double payout.
+- *Probe*: single low-value striker to identify which kami is the bodyguard, retreat, return with tailored team.
+
+### Worked example B — Glue-raid on defensive-cycle farmers (founder play)
+
+**Pattern**: Defensive farmers (stefan97, foden, dias, vuongdung1198, TrayzinCarpathia) run synchronized bulk-stop or sync-feed automation triggered by operator arrival. Default response is "deny — they'll cycle out before strike." That's wrong: every interrupted starver is MUSU prevented from minting, and **glue locks them so the cycle can't save them**.
+
+**The play**:
+1. Pre-deploy: identify 6+ "fattest" starvers on the target node from `killable_clean` (ignore `defensive_cycle` filter). Carry ≥6 Spirit Glues.
+2. Arrive at room → throw 6 glues on the highest-pool kamis *before* any harvest_start tx of ours. Their next cooldown is now +180s — bulk-stop / sync-feed automation will fire and try to cycle them, but the glued kamis are locked at the node for 180s.
+3. Deploy 6 strikers in batch. Most non-glued kamis cycle out — fine.
+4. Strike the glued ones during their lock window. They can't run; they can't be healed past their lock; they sit and take it.
+5. Retreat or stop after the lock window expires.
+
+**Outcome**: 6 obols + 6 spoils + 10-20 starvers worth of MUSU disrupted from the supply (the cycle fired but the glued ones still got killed; ungliued ones lost their pool to the bulk-stop). Net positive on both axes.
+
+**Caveat**: glue is the binding constraint. Currently ~0 in inventory but ~9000 craftable batches available (recipe 23: plastic + microplastics + berry chalk). Plan a craft session if a glue-raid is on the roadmap. Stamina cost ~20 SP per craft.
+
+### Design-mode trigger
+
+When **5 consecutive sessions land 0 kills** OR a session is **lost to a defensive pattern not currently in the playbook**: the next session is **design mode**. No strikes. Spend it inventing 1-2 candidate plays in `strategic-experiments.md`. Hypothesis → primitives needed → expected outcome → test conditions. Then return to hunting and run the test under controlled conditions next session that opportunity arises.
 
 **Starvation hunting is healthy.** Accounts farming with no protection are valid targets — pressure on them is good for the game economy. Do not over-weight risk against unprotected farms.
 

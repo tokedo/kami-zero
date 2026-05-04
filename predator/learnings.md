@@ -815,3 +815,25 @@ The watcher snapshot was 12 min stale by the third strike, but more importantly 
 ---
 
 2026-05-04 — Items arsenal v1 surveyed, 14 tactical items catalogued across 4 tiers (active disruption, self-buff, close-feed, operator stamina); 5 supply blockers identified (Blue Pansy, Holy Dust reserve, Fetid Egg, Curse Tablet, Inverted Teardrop Jewel) and propagated to `ideas_to_founder.md` ask 5. Free-unlock craft batch identified for next session: 29 Sanguine Shrooms → 14,500 Sanguineous Powder → 116 Apology Letter + Hostility Potion crafts. See `predator/items-arsenal.md`.
+
+
+---
+
+## 2026-05-04 — Round 3 lobotomy log
+
+Per founder doctrine "first principles before heuristics" (CLAUDE.md § Predator Doctrine). The following empirical rules were CUT from active doctrine and migrated to `predator/strategic-experiments.md` for re-validation:
+
+| Cut rule | Origin | Reason cut | Experiment ID |
+|---|---|---|---|
+| V<22 floor +95 | s118 revert | root cause (stale atk_s) fixed s133 | E001 |
+| +30 chain-strike buffer | s91 single observation | per-kami strain + cooldown supersedes | (subsumed in E003) |
+| rtvvvvv owner stop rule | 3 reverts s76/78/80 high-HP | never re-tested low-HP; SCRAP-sustain mechanics already in mechanics.md L569 | E002 |
+| 2-3 kills/owner/session cap | s137 single-instance generalization | owner cycle now read from heat detectors + sync-bursts | — |
+| 180s post-deploy cooldown (fixed) | empirical wait | per-kami: skills (CS) + items (Energy Drink) + chain `time.cooldown` | E003 |
+| 95s post-strike cooldown (fixed) | empirical wait | same as above | E003 |
+
+Defensive detectors retained as primitives; doctrine reframed: defensive-cycle owners are disruption raid targets, not deny targets (see CLAUDE.md § Worked example B — Glue-raid).
+
+Two new worked examples added to CLAUDE.md: counter-liquidation defense-in-depth (A) and glue-raid (B). Five experiments seeded in strategic-experiments.md.
+
+Read `predator/mechanics.md` § "Cooldown is per-kami" for the new cooldown rule. Read `predator/strategic-experiments.md` at session start as part of perception phase — this is now where empirical hypotheses live until they earn doctrine status.

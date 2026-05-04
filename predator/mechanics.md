@@ -501,7 +501,48 @@ If a revert costs 0.28M, retry after the listed pre-check resolves
 wrong — re-derive threshold; do NOT retry without HP-decay or formula
 correction.
 
-## harvest_start triggers attacker cooldown (session 83 codification)
+## Cooldown is per-kami — read it, don't assume 180s (R3 lobotomy 2026-05-04)
+
+**LOBOTOMY note**: prior text codified "180s post-deploy cooldown" / "95s post-strike cooldown" as fixed rules. Both were wrong. **Cooldown is a per-kami value derived from skills + items + chain-readable state.** Always compute or read; never wait a fixed interval.
+
+### First-principles cooldown formula
+
+Baseline post-action cooldown = **180s** (per `systems/harvesting.md` L167). Reduced by:
+
+**Skills (Predator tree, Effect=CS, Units=Seconds)**:
+| Skill | Tier | Max ranks | Effect per rank |
+|---|---|---|---|
+| Sniper | 2 | 5 | -10s |
+| Marksman | 4 | 5 | -10s |
+| Assassin | 5+ | 5 | -50s |
+
+A fully Predator-allocated kami: -10·5 + -10·5 + -50·5 = **-350s** → cooldown floored at 0s.
+
+**Items**:
+| Item | Effect |
+|---|---|
+| Energy Drink (`11409`) | `COOLDOWN-30s` |
+
+**Chain field**: each kami has `time.cooldown` (epoch) — when it's < `now()`, the kami is off cooldown. Read this directly via `oracle_state.oracle_kami_state(idx).time.cooldown` or chain `slim` state.
+
+### Operational rule
+
+Before any time-sensitive sequence (deploy → strike, strike → strike, strike → stop), **read `time.cooldown` for the actor**. If it's clear, fire. If not, sleep until it clears. Never wait a fixed 180/95/80s interval — that's both wrong (slower than your kami can fire) and brittle (if a kami's CS allocation changes, your wait is stale).
+
+### Striker roster cooldown_shifts (oracle, 2026-05-02 snapshot)
+
+| Kami | cooldown_shift | Implied cooldown (post-action) |
+|---|---|---|
+| 12649 | -100s | ~80s |
+| 11224 | -100s (slim) | ~80s |
+| 6058 | -40s | ~140s |
+| 10705 | -40s | ~140s |
+| 12225 | 0 | 180s |
+| 15540 | 0 | 180s |
+
+These are derived; verify per session against `kami_static.cooldown_shift` or `time.cooldown` chain field. Energy Drink during the action shaves another -30s.
+
+### Original session-83 codification (preserved as historical reference)
 
 `harvest_start` resets the attacker's cooldown to `now + cooldown_window`
 (empirically ~180s on node 86). A liquidate within the same session block
@@ -1112,3 +1153,18 @@ revive-only. Refine to split:
    kami_action WHERE action_type='feed' AND ks.account_name='<owner>'
    AND block_timestamp >= burst_window_start;` — if all in {11001,
    11002}, override the flag and proceed.
+
+
+---
+
+## Round 3 lobotomy log (2026-05-04)
+
+Founder doctrine "first principles before heuristics" applied. Empirical rules with small-N basis or root-cause-fixed origins **removed from active doctrine** and moved to `predator/strategic-experiments.md` as hypotheses pending re-validation:
+
+- **V<22 floor +95**: born from session 118 single revert; root cause (stale attacker atk_s) fixed in session 133. Re-validate from canonical kill_threshold formula.
+- **+30 chain-strike buffer**: single observation (session 91). Per-kami strain + cooldown computation supersedes.
+- **rtvvvvv owner stop rule** (3 reverts s76/78/80): never re-tested at low HP; possibly stale. Targeting decisions now from canonical formula + live state, not owner-blacklist.
+- **2-3 kills/owner/session cap** (s137): single-instance generalization. Owner cycle behavior now read from `owner_heat` + sync-burst detectors, not heuristic cap.
+- **Fixed-interval cooldown waits (180s/95s/80s)**: replaced with per-kami `time.cooldown` chain read (see § "Cooldown is per-kami").
+
+Defensive detectors (`sync_stop_bursts_6h`, `sync_feed_bursts_6h`, `bulk_stop_windows_6h`) are RETAINED as observation primitives. **What changed is doctrine**: defensive-cycle owners are no longer "deny" — they are **disruption raid targets** when paired with Spirit Glue (see CLAUDE.md § "Worked example B — Glue-raid").
