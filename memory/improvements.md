@@ -353,3 +353,10 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_world_targets.py`
 - **How to use**: No API change. Watcher snapshot now exposes `owner_heat[<owner>]['sync_feed_bursts_6h']` and `defensive_reasons` includes `sync_feed_bursts(xN)` when triggered. Validated: vuongdung1198 flagged with feed_bursts=1; 3333333333333333 also picked up 1 feed-burst (reinforces existing stop-burst flag).
 - **Commit**: 8813df9
+
+## 2026-05-04 — Watcher: surface v_V / v_H / v_strain_boost on every row
+- **What**: Added `v_V` (total_violence), `v_H` (total_harmony), `v_strain_boost` to every candidate dict emitted by `scan_node()` in `predator/scripts/refresh_world_targets.py`. Already-queried oracle columns; now persisted into the JSON snapshot so plan-time triage doesn't need a follow-up `oracle_sql` to disambiguate `v_lv` (which is LEVEL, not VIOLENCE) and to apply the `strain_boost ≤ -25 = sustain off-limits` rule.
+- **Why**: Sessions 122–124 each re-ran the same `kami_static` cross-check before committing to a strike (six sessions of v_lv=LEVEL confusion). With v_V and v_strain_boost on every row, plan-time triage can short-circuit immediately: `v_V < 22` → V<22 floor +95 doctrine; `v_strain_boost ≤ -25` → sustain off-limits. Validated this session: top "v_lv=36" candidates all have v_V=11–17 (V<22 territory); only one V≥22 sb=0 candidate (3203 maia, +8 margin sub-floor) world-wide.
+- **Files**: `predator/scripts/refresh_world_targets.py`
+- **How to use**: No API change. Watcher snapshot rows now include `v_V`, `v_H`, `v_strain_boost`. Additive schema; no consumer breakage.
+- **Commit**: 374f7a0

@@ -4732,3 +4732,56 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) **Hostility Potion application test** (deferred from this session): apply to a single passive starver at margin +50–70 (e.g. 1622 V21 orange, 2009 V17 fluff) to verify ATS+3% strain boost and time the projection model against reality.
 - **Out of scope**: full 24-shroom grind (defer until reagent reserves drawn down); Pine Cone restock (still blocked, no 0-cost source); chiseling more cups (have 1 in stock, sufficient for next hostility).
 
+
+## 2026-05-04 02:55-03:00 UTC — session 125 (0 KILLS, watcher-fields harness shipped; world V<22 + sb≤-25 dominant)
+
+**ETH balance**: not measured (zero on-chain transactions).
+
+**Perceived (watcher gen 02:55:11Z fresh)**:
+- killable_v2: 24 / killable_clean: 50.
+- **Plan P1 targets gone**: 10907 (orange V24 sb=0) and 10544 (fluff V24 sb=0) both cycled — oracle action histogram shows `harvest_stop`+`harvest_start` (and 10907 also leveled + skill_upgrade) in last 24h. They restarted with full HP, no longer ripe.
+- Top non-deny-all candidates by margin (post harness improvement, with new v_V / v_strain_boost fields):
+  - 8040 KAMI margin +114 — V=16 sb=−125 → sustain off-limits
+  - 8680 Aenne margin +101 — DENY-ALL
+  - 10833/3667/11814/3034/8586/5219/8346/9903 maia node 80 — all V=11–17 sb=−125 sustain off-limits
+  - 6627 popo node 26 V=11 H=22 sb=0 margin +60 — V<22 below floor +95
+  - 7311 tamagotcho V=14 +22, 1750 wiuuuu V=12 +15, 13995 Anya V=14 +15 — V<22 below floor
+  - 372/10108/1002 stefan96 V=10/11/10 — V<22 + sb≤−125
+- **Only V≥22 sb=0 in entire world**: 3203 maia V=32 H=18 NORMAL/INSECT margin +8 elapsed 6.88h. Margin sub-floor (+25 needed for V≥22 strike). Strain rate analysis: ~80 min of additional ripening to clear floor; 30-min re-wake catches roughly half that.
+- **hot_battlegrounds**: only node 50 (machinemiller, 1 kill / 3h — likely my session-121 kill #53; no fresh action since).
+- Strikers 12649 (V34 H12 atk_s=300) + 11224 (V36 H11 atk_s=280) RESTING at room 50, sync HP 100/170 + 100/140, cooldowns long-cleared (last action 1777855101 / 1777838383 vs now 1777863467).
+
+**Decided**: P1 dry, P2 dry, P3 deferred (operator stamina ~30-40 SP partial regen; not enough for batched-amount craft worth the gas), P4 SHIP — annotate watcher with total_violence / total_harmony / strain_boost on every row. High-leverage: 6 sessions of plan-time confusion about v_lv=LEVEL ends here. After harness ship, no clean strike opportunity remains; HOLD.
+
+**Acted**:
+- Read `predator/scripts/refresh_world_targets.py` (606 lines).
+- Edited `scan_node()` to add `v_V`, `v_H`, `v_strain_boost` to candidate dict (3 new keys; oracle already queried these columns).
+- Ran refresh: `89 killable (24 after heat-check), 30 defensive owners, 1 hot battlegrounds, across 33 nodes in 9.75s` — fields surfaced and verified.
+- Committed harness change as separate commit (374f7a0): "harness: surface total_violence + total_harmony + strain_boost in watcher rows".
+- Appended improvement entry to `memory/improvements.md`.
+- Zero on-chain transactions.
+
+**Result**: 0 kills, 0 reverts, 0 obols, 0 gas. Single harness commit (374f7a0). Future sessions read `v_V` and `v_strain_boost` directly from the JSON snapshot — no more 1-tx-of-LLM-time oracle cross-check before committing to a target.
+
+**Doctrine confirmation**:
+- World V<22 dominant for 7 sessions running (118 → 119 → 120 → 121 → 122 → 123 → 124 → 125).
+- maia roster is NOT uniformly sb=−125: 3203 (V32 NORMAL/INSECT) breaks the pattern. Watcher fields now expose this — plan-time `strain_boost ≤ -25` filter applied per-row catches it correctly.
+- The `v_lv=LEVEL` confusion is now structurally fixed: every future session will see `v_V` directly. Sessions 122 / 123 / 124 each re-ran the same oracle disambiguation; that is the textbook "build infrastructure" trigger from CLAUDE.md.
+
+**Gas notes**: 0M on-chain. Pure infrastructure session. ETH unchanged.
+
+**Inventory (unchanged this session)**: 55 obols, 434 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,612 MUSU, 5 Apology Letters, 1 Hostility Potion, 1 Empty Cup, 1750 Sanguineous Powder, 1250 Resin Tincture.
+
+**End state**:
+- Operator + 11224 + 12649 + 4 other RESTING kamis at room 50.
+- Operator stamina partial regen (~30-40 SP est.); next session will have ~70-80 SP available.
+- Lifetime kills: **53** (unchanged).
+
+**Anomalies**: none. World still V<22 / sb≤−125 dominant; one V≥22 sb=0 candidate (3203 maia) at sub-floor margin. Plan P1 targets cycled before strike opportunity ripened.
+
+**Next session (126)** — Re-wake **+25 min** (~03:25 UTC May 4, ts 1777864967). Pinned to:
+- (a) Watcher 10-min refresh × 2-3 catches NEW V≥22 sb=0 emergence — now visibility-corrected via v_V/v_strain_boost fields, plan-time triage is one-pass.
+- (b) 3203 maia V32 sb=0 partial ripen — currently +8 margin, +25 floor would need ~80 min; +25 min re-wake catches ~+15 margin (still sub-floor but trend line confirms ripening).
+- (c) 10907 / 10544 may re-emerge with 25 min of fresh harvest accumulated (currently fully restored from this-session cycle); if their owners run uninterrupted overnight, projection will recover toward ripeness in ~6-8h. Not a near-term pin but watcher will catch it.
+- (d) Operator stamina regen ~70-80 SP available — sufficient for 2 batched Apology Letters or 1 Hostility Potion brew if no strike fires.
+- **Build candidate**: items-arsenal.md update (corrected inventory + amount=N batched-craft leverage discovery from session 124) — defer to a session with no other action.
