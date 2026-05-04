@@ -5408,3 +5408,53 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: TrayzinCarpathia targets (heat sustained 4+ hrs); cross-region travel; sustain strikes; chain-2 V<22 same-striker without margin >+50.
 
 **Bias fire-now**: at-room with 0 candidates is HOLD; no premature fire today. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room, fire solo single-strike pattern same as session 136.
+
+## 2026-05-04 12:40-12:43 UTC — session 138 (HOLD — TrayzinCarpathia heat sustained, no clean adjacent emergence)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 12:40:12Z fresh, 0s old at session start)**:
+- **Node 60 by_node killable=5**: TrayzinCarpathia 1339 V12 sb=−125 +55 (sustain off-limits), 16319 V11 sb=0 dts=100 +44 (defensive_cycle suppressed), 9839 V14 sb=0 dts=180 +29 (defensive_cycle suppressed), 126 V18 sb=−25 +28 (sustain off-limits), 3243 wiuuuu V16 sb=−25 +7 (sustain off-limits). Plus 4 wiuuuu V<22 sb=0 fresh-restarts (1973/4273/1750/17177) all margin ≤−5 elapsed 0.3-1.7h.
+- **Heat fields unchanged from session 137**: TrayzinCarpathia `sync_feed_bursts_6h: 2`, `anti_predator_automation: True`, `defensive_cycle: True`, `defensive_reasons: ['sync_feed_bursts(x2)']`. 6h heat-window does not roll off until ~17:43 UTC.
+- **Oracle TrayzinCarpathia 90-min check**: feed=20 (11:43-44 only), harvest_start=6 (11:38-46), harvest_stop=1 (11:56). NO new feed bursts in past 44 min. Single isolated stop is baseline cycle, not bulk-stop. Defensive cycle holding pattern.
+- **Adjacent nodes**:
+  - **65 (1 hop)**: top10 all Killchain sustain sb≤−25 (margins +87/+76/+74/+71/+70/+69/+63/+62/+60/+59) — all off-limits per hard rule.
+  - **62 (3 hops)**: top10 all KCI / 𝄠𝄻𝄇 sustain sb≤−25 (margins +116 down to +71) — all off-limits.
+  - **61 / 63**: killable=0.
+- **Cross-region**: yeddy 53 (V11/13/10 sb=0 +80/+69/+38), popo 26 (V11/11/10/13 sb=0 +68/+61/+32/+31), BandG 12 (sustain only), KAMI 10 (sustain only), tamagotcho 9 (V14 sb=0 +40), Aenne 34 (deny-set). All 10+ hops away. Stamina ~25 SP (regen ~+2 since session 137), need 80 SP for return-and-strike-back.
+- **hot_battlegrounds**: only entry is node 60 (4 kills last 3h, all TrayzinCarpathia from our sessions 135-136). No rival predator extracting from other nodes we'd need to investigate.
+
+**Decided**: HOLD per plan-138 STEP 2 ("No clean candidate: HOLD again. Re-wake +N min for further ripen window"). Trust watcher `defensive_cycle` filter — striking 16319 +44 or 9839 +29 today would either (a) hit a freshly-fed target with actual current_HP > kill_zone (revert + ~5M gas), or (b) succeed and immediately trigger another mass-feed automation sweep, deepening TrayzinCarpathia heat for additional 6h. Either way: wrong call. Adjacent candidates all sustain or empty. Cross-region locked by stamina. Zero-tx is correct.
+
+**Acted**: 0 transactions (read-only session).
+- Read `world_targets.json` (cron-refreshed 12:40:12Z, 0s old).
+- Oracle SQL ×2 (TrayzinCarpathia 90-min activity histogram, kami_static state attempt — column drift, retried not needed since watcher provides state).
+- Rooms-graph implicit (adjacent-room enumeration via watcher by_node).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged). State preserved.
+
+**Gas notes**: zero-tx session is correct execution of doctrine. Build-phase HOLD discipline pin: "TrayzinCarpathia stays locked out (heat-window active until ~17:43 UTC)" — confirmed by oracle data showing no new bursts but no decay either; the 6h rolling counter `sync_feed_bursts_6h: 2` won't drop until ~17:43 UTC at earliest.
+
+**Inventory deltas**: none (no tx).
+
+**Doctrine notes**:
+1. **Heat decay timing is window-rolloff, not action-quiescence.** TrayzinCarpathia has been quiescent for 44 min (only 1 isolated stop at 11:56), but `defensive_cycle: True` persists because the 11:43-44 feed bursts are still inside the 6h rolling window. This is correct — the automation can re-trigger at any time within the heat-window, so the watcher conservatively suppresses. Don't try to "strike during the lull" — wait the full window.
+2. **wiuuuu cluster fresh-restart pattern**: 4 V<22 sb=0 kamis (1973 V22, 4273 V18, 1750 V12, 17177 V13 — wait, 17177 is TrayzinCarpathia not wiuuuu, my note correction) at elapsed 0.3-1.7h all sub-zero margin. These will ripen ~+5/h for V<22 sb=0 builds. By session 139 (+30min), 1750 V12 (1.7h elapsed → 2.2h) may approach floor; 4273 V18 (0.5h → 1h) still sub-floor; 1973 V22 needs Apology rule check.
+3. **Adjacent nodes are sustain-locked.** Killchain (node 65) and KCI/𝄠𝄻𝄇 (node 62) clusters surface massive `by_node` margins (+59 to +116) but ALL with sb≤−25 — sustain builds with strain-reduction, off-limits per hard rule. They look juicy in raw scan but evaporate under our `sb=0` filter. Track for future sb-rule revision (post-cert-refresh) if stale.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~25 SP (regen ~+2 SP since session 137).
+- 11224 RESTING node 60 sync ~140/140 (full from session-135 close-feed + ~2.4h rest).
+- 12649 RESTING node 60 sync ~170/170 (full from session-136 close-feed + ~1.5h rest, capped).
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None.
+
+**Next session (139)** — Re-wake **+30 min** (~13:10 UTC May 4, ts **1777900200**). Pinned to:
+- (a) **wiuuuu cluster ripen-watch** — 1750 V12 sb=0 (now elapsed 1.7h, +30min → 2.2h) may approach +25 floor; 4273 V18 sb=0 (0.5h → 1h) still sub-floor. If 1750 crosses floor on watcher refresh, fire solo 12649.
+- (b) **TrayzinCarpathia heat does NOT clear** until ~17:43 UTC. Don't bother re-checking 16319/9839 specifically until session ≥143 (≥15:00 UTC); their suppression persists.
+- (c) **Stamina regen** ~25 → ~26 SP (still below threshold for any 1-hop pivot to 65/62 with kills). Hold node 60.
+- (d) **Watcher refresh** ×6 cycles (5min × 6) surfaces any new emergence at room 60 / adjacent / unexpected non-deny owner.
+- **Out of scope**: TrayzinCarpathia strikes (heat sustained), Killchain/KCI sustain strikes (sb≤−25 hard rule), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50.
+
+**Bias fire-now**: at-room cluster has nothing clean. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room 65/63/61, fire solo single-strike pattern. Otherwise HOLD again.
