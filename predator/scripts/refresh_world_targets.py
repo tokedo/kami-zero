@@ -134,12 +134,17 @@ def scan_node(node_id, node_meta, handles, accs):
     killed_harvests AS (
       -- harvest_liquidate rows have target's harvest entity in harvest_id but
       -- target_kami_id is NULL; victims show no terminating action of their own.
-      -- Cross-reference open harvest_id against any recent kill's harvest_id.
-      SELECT DISTINCT harvest_id
+      -- Cross-reference open harvest_id against any recent SUCCESSFUL kill's
+      -- harvest_id. status=1 only — reverted attempts (status=0, e.g. cooldown-
+      -- lock) keep the harvest open. harvest entity IDs are recycled across
+      -- kill+revive+restart cycles, so also require kill_ts > open start_ts.
+      SELECT harvest_id, MAX(block_timestamp) AS last_kill_ts
       FROM kami_action
       WHERE action_type='harvest_liquidate'
+        AND status=1
         AND block_timestamp >= NOW() - INTERVAL 24 HOUR
         AND harvest_id IS NOT NULL
+      GROUP BY harvest_id
     ),
     feeds AS (
       SELECT kami_id, COUNT(*) AS n_feeds, MAX(block_timestamp) AS last_feed
@@ -161,7 +166,11 @@ def scan_node(node_id, node_meta, handles, accs):
     FROM hs_open hs
     JOIN kami_static ks ON ks.kami_id=hs.kami_id
     LEFT JOIN feeds fd ON fd.kami_id=hs.kami_id AND fd.last_feed >= hs.start_ts
-    WHERE hs.harvest_id NOT IN (SELECT harvest_id FROM killed_harvests)
+    WHERE NOT EXISTS (
+      SELECT 1 FROM killed_harvests kh
+      WHERE kh.harvest_id = hs.harvest_id
+        AND kh.last_kill_ts > hs.start_ts
+    )
     """
     rows = oracle_sql(sql, limit=4000)
     node_aff = node_meta["affinities"]
