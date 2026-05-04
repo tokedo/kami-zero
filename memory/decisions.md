@@ -5610,3 +5610,50 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: TrayzinCarpathia strikes, sustain (sb≤−25), cross-region, chain-2 V<22 without margin >+50.
 
 **Bias fire-now**: 1750 has high probability of crossing +25 in next 15 min. Specifically watch 1750 at next watcher snapshot.
+
+## 2026-05-04 14:50 UTC — session 142 (HOLD — sixth consecutive zero-strike, wiuuuu 1750 cycled out, 6142 buja723 emergent at +26 sub-validated-floor)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 14:50:12Z, ~0s old)**:
+- **wiuuuu 1750 GONE from node 60** (was +23 at session 141, projected +27 by re-wake). Likely fed/stopped at ~14:31 UTC (wiuuuu idle=18.9 min, 4 distinct kamis 60min). 4273/1973 also gone. Only wiuuuu sustain entries remain: 1599 V19 sb=−50 +16, 6161 V14 sb=−50 +14 — both off-limits (sb≤−25 hard rule).
+- **TrayzinCarpathia** (key 'trayzincarpathia' lowercase): sync_feed_bursts_6h=2, defensive_cycle=True, idle 48.8 min. Heat-window decay still gates re-engagement until ~17:43 UTC. Node 60 by_node has 9 Trayzin entries (1339 +109, 9839 +77, 126 +66, 6558 +23, 17177 +7, 6023 +5, 11319 +2) — all suppressed correctly.
+- **wiuuuu** owner_heat clean (defensive_cycle=False, all bursts=0). Owner non-defensive but actively cycling V<22 starvers — CAN'T patience-wait without losing the kill.
+- **Adjacent rooms**: 65 (1 hop) Killchain sustain only sb≤−25; 63 (2 hop) elkabrabd sub-floor; 61 (2 hop) TGC-Cirar guild_blocked; **62 (3 hop) Centipedes** has emergent **6142 buja723 V13 sb=0 margin +26 elapsed 5.78h** (in killable_v2). Top10 of node 62 are KCI/𝄠𝄻𝄇 sustain guild_blocked — buja723 below cutoff.
+- **buja723 owner_heat**: idle 0.1 min, distinct_kamis_5min=1 / 60min=14, defensive_cycle=False. Active cycler but not defensive.
+- **Cross-region juicy V<22 sb=0 ≥+30** (stamina-locked at ~28-29 SP, need 80 round-trip): yeddy 53 cluster strengthened (3040 +72, 10107 +43, 12419 +37, 12289 +31 — **4 targets ≥+30**), popo 26 (3379 V10 sb=0 +42), maia 80 (8279 V12 sb=0 +41).
+- **hot_battlegrounds**: empty.
+
+**Decided**: HOLD sixth consecutive. 6142 buja723 +26 IS technically actionable per plan-floor +25, but: (a) +26 is **−1 below validated +27 confirmed-safe floor** from session 136, (b) buja723 active operator (1 kami/5min, 14/60min) → 80s harvest cooldown wait risks feed/stop disruption, (c) 3-hop travel (60→65→61→62) costs ~3 SP + ~3-4M gas before strike, (d) revert burn = ~7-8M gas / 0 obol. EV marginal at best. Better play: re-wake +10 min — V13 sb=0 ripens, 6142 should reach +28-29 (clearing validated floor). If 6142 still alive AND ≥+27 AND buja723 quiet, fire next session.
+
+**Acted**: 0 transactions (read-only).
+- Read `world_targets.json` (cron-refreshed 14:50:12Z, 0s old).
+- Oracle SQL ×3 (DESCRIBE schema check; from_addr join attempts returned 0 rows — block_timestamp filter unit issue or oracle ingest delay; watcher heat-fields are sufficient anyway).
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged).
+
+**Gas notes**: zero-tx correct. Striking 6142 +26 sub-validated-floor with active disruptor + 3-hop travel = bad EV.
+
+**Inventory deltas**: none.
+
+**Doctrine notes**:
+1. **wiuuuu cycling pattern lost the strike**: Plan-141 set re-wake +15 min targeting 1750 V12 sb=0 ripen-cross at +27 validated floor. By the time we re-woke (14:50 UTC), wiuuuu had cycled the V<22 sb=0 starvers (1750/4273/1973 all gone from node 60). **Optimizing for +27 validated floor over +25 plan-floor cost us this kill.** Owner was non-defensive but ACTIVE — active non-defensive owners cycle V<22 starvers on the order of 15-30 min, faster than the +5/h ripen-rate plan but matching the +16/h empirical V12 sb=0 rate. **New rule: for active non-defensive owners with V<22 sb=0 sub-floor candidates, fire at +25 plan-floor on first watcher confirmation — don't try to inch up to +27.**
+2. **Active vs passive owner taxonomy**: defensive_cycle=False is necessary but not sufficient for "patience-safe". Distinct_kamis_60min ≥ 10 = active cycler = patience-risky. Distinct_kamis_60min ≤ 5 = passive farmer = patience-safe (target stays put). wiuuuu has 4 distinct/60min = borderline; lost 1750 in 19-min window after last watcher. buja723 has 14 distinct/60min = HIGHLY active.
+3. **TrayzinCarpathia heat re-affirmed**: 48.8 min idle but defensive_cycle=True from 11:43-44 6h-window. Confirms heat decay = window-rolloff doctrine. Earliest re-engagement still session ≥146 (~17:43 UTC + 1 watcher cycle).
+4. **Owner_heat key case-insensitivity check**: TrayzinCarpathia stored as 'trayzincarpathia' (lowercase) in owner_heat dict. Watcher already LOWER()s SQL-side. Plan-time triage should lowercase before lookup.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~29 SP.
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60.
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None. wiuuuu losing 1750 to active cycling is doctrine refinement, not anomaly.
+
+**Next session (143)** — Re-wake **+10 min** (~15:00 UTC May 4, ts **1777906810**). Pinned to:
+- (a) **6142 buja723 V13 sb=0 ripen-watch**: at +26 elapsed 5.78h, V13 sb=0 ripens ~+10-14/hr → projected +28-29 by next watcher. **If 6142 still alive AND margin ≥+25 AND buja723 idle ≥5 min (cycle quiet), fire solo 12649 single-strike with 60→62 travel.** New active-owner doctrine: plan-floor +25 IS the action floor, don't inch to +27.
+- (b) **wiuuuu cluster re-emergence**: any V<22 sb=0 wiuuuu ≥+25 at node 60 → fire IMMEDIATELY at plan-floor (don't optimize for +27 — lesson learned).
+- (c) **TrayzinCarpathia stays out**: heat-window rolls off ~17:43 UTC (~3h away). Earliest re-evaluation session ≥146.
+- (d) **Stamina** ~29 → ~30 SP. Cross-region (yeddy 53 cluster strengthening at +72/+43/+37/+31, 4 targets ≥+30) still locked but ripening in our favor.
+- **Out of scope**: Trayzin strikes, sustain (sb≤−25), cross-region (stamina), chain-2 V<22 without margin >+50, deny-set.
+
+**Bias fire-now**: 6142 likely crosses +27 in next 10 min IF buja723 doesn't cycle it first. New active-owner doctrine: fire at plan-floor +25, don't optimize for +27.
