@@ -6241,3 +6241,60 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 
 **Bias fire-now (session 154)**: rates-verified strike on any V<22 sb=0 ≥+50 candidate is THE play. If world is uniformly parked, switch to Design Mode and build the rates-aware pre-filter as a cron sub-process. **Streak watch: this is session 153 with 0 kills; sessions 152 and 153 both 0-kill. If 154 + 155 + 156 also 0-kill, hit Design-Mode trigger from CLAUDE.md (5 consecutive 0-kill sessions).**
 
+
+
+## 2026-05-04 22:40 UTC — session 154 (DESIGN-PRESSURE — 0 kills / 0 reverts; parked-rates pattern now confirmed UNIVERSAL across 7 owners / 6 nodes — likely a game-system default, not a defense)
+
+**Perceived (watcher gen 22:40:14Z, ~0s old at session start)**:
+- killable_v2 dominated by acheron / 4444… / 3333… / yeddy. Top non-deny non-parked-skip candidates margin ≥+30: tamagotcho 7311 V14 sb=0 +41 (node 9), orange 336 V12 sb=0 +40 (node 25), orange 5887 V10 sb=0 +35 (node 25), fluff 7230 V11 sb=0 +40 (node 12). No candidate in killable_v2 met chain-3 +50 floor with sb≥0 outside skip-list.
+- hot_battlegrounds: only node 60 (TrayzinCarpathia, 7 kills 3h window — historic, not currently exploitable per s153).
+
+**Decided**:
+- Per plan-154 P1: slim-verify rates on top 4 non-parked-skip candidates. If any has rates>0 AND actual_margin ≥+30, strike. If all 4 parked, declare session dead, schedule short re-wake.
+- Skipped slim of 5th candidate (1622, fluff 234) per s153 doctrine: "6-slim sample sufficient to declare a session dead." 4/4 with 100% parked is conclusive.
+
+**Acted (slim spot-checks, 0 tx)**:
+- 7311 (tamagotcho node 9): sync=220/total=220 (FULL HP), balance=0, **rates.intensity.avg=0 AND fertility=0**. kill_zone=110 (V14, 12649 atk_s+40 vs DTS=0). actual margin = −110. PARKED.
+- 336 (zizi/orange node 25): sync=170/total=170, balance=0, rates=0. DTS=0.45+0.20 — heavy threshold defense. PARKED.
+- 5887 (orange node 25): sync=170/total=170, balance=0, rates=0. DTS=0.65+0.20 — even heavier. PARKED.
+- 7230 (fluff node 12): sync=170/total=170, balance=0, rates=0. DTS=0.30+0.20. PARKED.
+- **0 strikes attempted. 0 reverts. 0 obols. 0 gas burned this session.**
+
+**Result — DOCTRINE EXPANSION (s154)**:
+
+**Parked-rates pattern is UNIVERSAL across long-elapsed harvests** — confirmed across **7 owners** (TrayzinCarpathia, yeddy, Gunnar, alexbuyer, tamagotcho, zizi/orange, fluff) and **6 nodes** (60, 53, 31, 9, 25, 12) at varying harvest-start timestamps (1777848618 to 1777916201). This now reads less like a defensive automation script and more like **a game-system default state for any harvest >~2h without continuous owner action**. Possible mechanisms:
+1. Intensity decay over time (skill-bonus build can suppress strain to zero).
+2. Rates field becomes stale/cached when no on-chain action touches the entity.
+3. A natural "low-strain equilibrium" under high-DTS (defense threshold shift) builds where strain rate naturally hits zero.
+4. (Mechanism unverified — needs founder oracle ask: surface `harvest.rates.intensity.average` per-entity → see ideas_to_founder.md § 6).
+
+Whatever the mechanism, the practical implication is **the watcher's elapsed-based proj_hp model is wrong for the dominant population of killable_v2 candidates** — likely 70-90% of high-elapsed candidates. The "killable" list is essentially a candidate-filter, with strike-authority requiring per-candidate slim verification of rates.
+
+**Skip-list expansion** (now 7 owners): TrayzinCarpathia, yeddy, Gunnar, alexbuyer added s152-s153; tamagotcho, orange (zizi), fluff added s154. Almost the entire surfaced killable population.
+
+**Doctrine NEW (s154)**:
+1. **Parked-rates is the population-default state for long harvests, not a per-account defense.** Any candidate with elapsed_h >2h is presumptively parked until slim verifies otherwise.
+2. **Bias toward FRESH harvests** — kamis with `harvest.time.start` within last ~30 min are most likely to have non-zero rates. Watcher should surface elapsed_h <0.5 as a separate "fresh" bucket; kill_zone calc isn't in their favor (low elapsed = low strain projection = small margin), but rates are real, so any margin ≥+30 is true.
+3. **Watcher patch is now urgent**, not optional — without rates ingestion, killable_v2 is mostly hallucinated. Bias session 155-156 toward (a) build the rates-aware filter cron OR (b) hit Design-Mode trigger and dedicate a session to the build.
+4. **Streak watch**: s152 + s153 + s154 = 3 consecutive 0-kill sessions. 2 more (155, 156) to hit 5-session Design-Mode trigger from CLAUDE.md.
+
+**End state**:
+- Operator at room 60 (no move tx).
+- 12649, 11224, 10705 still HARVESTING node 60 since 17:54:43 UTC (~4.7h elapsed; intensity continues; no HP loss).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills (unchanged) / 74 obols (unchanged) / 4 reverts (unchanged)**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: 4/4 slim sample showing parked rates across 4 different non-skip-list owners is confirmation, not anomaly. Strengthens s153 hypothesis to near-certainty: parked-rates is the dominant equilibrium state for long harvests.
+
+**Gas notes**: 0 gas burned. 4 slim calls (read-only). Cleanest possible outcome given the world state.
+
+**Next session (155)** — Re-wake **+15 min** (~22:55 UTC May 4, ts **1777935315**). Pinned to:
+- (a) **Fresh-harvest opportunism**: a 15-min window covers ~3 watcher cycles + 3 cron ticks; new harvest_start events from owner-action waves create brief windows of non-parked rates.
+- (b) **Cluster turnover**: defenders may rotate kamis on uneven schedules; new fresh-elapsed candidates may surface.
+- (c) **Streak-counter**: if s155 + s156 also 0-kill → DESIGN MODE per CLAUDE.md trigger.
+- **Plan 155 actions in order**: (1) re-read watcher; (2) **NEW** — partition killable_v2 into "fresh" (elapsed_h <0.5) vs "stale" (elapsed_h >2h); slim-check fresh first since they're likeliest to have rates>0; (3) strike any fresh candidate with sync_HP < kill_zone − 5; (4) if no fresh candidates, slim-check 3 stale candidates as control (confirm parked-rates persistence); (5) if all parked, schedule short re-wake or kick design-mode build.
+- **Out of scope**: glue-raid (unbuilt), force-flush, kamibots state reads, cross-region pivot without rates-verified cluster, E006 sb≤−25 strikes, Aenne / deny-set, striking any of the 7 confirmed parked-rates owners without fresh slim verification.
+
+**Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) fresh-harvest opportunism (concrete game event), (b) ~3 watcher cycles + 3 cron ticks, (c) cluster turnover. Cache miss (>300s) accepted — investigation amortizes over the wait.
+
+**Bias fire-now (session 155)**: fresh-bucket scan is THE play. The "stale" bucket is now empirically poisoned (4/4 parked s154, 6/6 parked s153 — total 10/10). If 155 + 156 also yield zero non-parked candidates from the fresh bucket, hit Design-Mode trigger and build the rates-aware filter cron in s157.
