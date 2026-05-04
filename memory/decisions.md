@@ -5834,3 +5834,50 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 - **Out of scope**: Trayzin strikes (heat), sustain sb≤−25 (E006 not tested), chain-2 V<22 without margin >+50, deny-set, buja723 strikes <+27.
 
 **Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 = solo-12649 fire-now. Otherwise, hold for cluster strengthening or glue-raid window.
+
+## 2026-05-04 16:30 UTC — session 147 (HARNESS — E006 watcher upgrade shipped, 0 strikes)
+
+**Perceived (watcher gen 16:30:13Z, 0s old, then re-run @ 16:32 post-fix)**:
+- **Reachable killable_v2 (nodes 60/61/62/63/65)**: 4 sub-floor candidates only. node 60 wiuuuu 2005 V14 sb=0 +19 sub-floor + COCOH 1462 V12 +13; node 62 buja723 569 V15 +19 + 1825 V14 +16. **No fire-now V<22 sb=0 ≥+25**.
+- **Node 60 by_node**: 5 TrayzinCarpathia entries +100/+65/+31/+30/+29 (all defensive_cycle=True, correctly suppressed by v2).
+- **Node 61 (TGC-Cirar) + node 65 (Killchain) + node 62 (KCI)**: huge V<22 sb=0 clusters (TGC-Cirar 9 candidates +86 to +128, Killchain 4 +127 to +177, KCI multiple +82 to +147) — **all GUILD-NO-TOUCH per `predator/guild-no-touch.csv`** (correctly filtered out of killable_clean / killable_v2). Doctrine confirmation: by_node top10 is unfiltered; killable_clean/v2 enforce guild gate.
+- **Cross-region V<22 sb=0 ≥+50 clean**: yeddy 53 (10107 +85, 12289 +61 — owner active k60=9), popo 26 (3379 +82 single, passive k60=1 idle 24m), maia 80 (8279 V12 sb=0 +80, passive k60=1 idle 10.7m). E007 trigger (≥4 ≥+50 at one location) NOT met.
+- **maia 80 sustain cluster (E006 test pool)**: 6 V<22 sb≤−25 ≥+50 (3117 sb=−125 +101, 7689 sb=−125 +81, 8559 sb=−125 +74, 7160 sb=−100 +70, 9850 sb=−125 +68, 10444 sb=−125 +57); maia heat clean (idle 10.7m, k5=0, k60=1, dc=False, no bursts). **Recent_revive guard now live** — 0 candidates flagged.
+- **TrayzinCarpathia**: still defensive_cycle=True (sync_feed_bursts_6h=2, anti_predator_automation=True). Heat-window rolls off ~17:43 UTC May 4 (~73 min from session wake). Glue-raid window opens session ≥148.
+- **hot_battlegrounds**: empty.
+
+**Decided**: Plan-147 Priority 1A/1B/2C all fail (no V<22 sb=0 ≥+25 reachable, yeddy cluster only 2 ≥+50, popo single below baseline). Plan-147 Priority 4 GO — ship E006 watcher upgrade (`recent_revive` field) per design-mode spec from session 145. Cross-region maia 80 pivot tempting (1 clean +80 obol + E006 test pool), but compounding risks (cross-region travel + first E006 test strike + glue-raid window 75 min away) on day-of-shipping new infra is wrong sequence. **Ship the upgrade, hold the strike, schedule wake for glue-raid window ≥session 148.**
+
+**Acted**: 0 game transactions. Harness shipped:
+- Edited `predator/scripts/refresh_world_targets.py`: added `revives` CTE + LEFT JOIN onto `hs_open` by `kami_id`; surfaced `recent_revive: bool` (any revive on victim in last 3600s) + `sec_since_revive: int|None` on every candidate row.
+- Re-ran watcher: 90 killable / 66 v2 / 28 defensive owners across 35 nodes in 11.12s. Field present on all rows. 0 recent_revive=True in current snapshot (clean baseline). E006 test pool at maia 80 = 6 candidates eligible.
+- Committed as `harness: watcher recent_revive guard (E006 enabler)` (commit 5fc30a0).
+
+**Result**: 0 obols, 0 kills, 0 game-tx gas. **E006 watcher infra LANDED**. Lifetime kills **68**, obols **70** (unchanged). Spirit Glue inventory: 6 (unchanged from session 146).
+
+**Gas notes**: 0 gwei game-tx session.
+
+**Inventory deltas**: none.
+
+**Doctrine NEW (session 147)**:
+1. **E006 graduation gate now armable**: with `recent_revive` live, the next opportunistic single-strike on V<22 sb=−125 margin ≥+95, owner non-defensive, no fresh feed, no recent revive, can be fired and the result begins N=1 of the planned N≥10 collection. Adoption criterion: revert rate ≤5% → REJECT current sb≤−25 blanket-deny rule.
+2. **Compounding-risk avoidance**: when shipping new watcher infra in a session, do NOT compound it with first-time test strikes that depend on the new infra. Land infra → wait one watcher cycle → strike in next session with full plan-time review. The maia 80 cluster will be there next session.
+3. **Cross-region single-target EV** at popo 26 (3379 +82 alone): 1 obol / ~14M gas (3M travel × 2 + 7M strike) = 0.071 obol/Mgas. Below 0.110 baseline. Cluster of 2 (popo 3379 + similar) needed before pivot fires; or wait for maia 80 to grow to ≥3 V<22 sb=0 ≥+50 (currently 8279 alone).
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~60-65 SP (6/hr regen).
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60.
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419. Spirit Glue: **6**. Rock Candyfloss: 459.
+
+**Anomalies**: None.
+
+**Next session (148)** — Re-wake **+65 min** (~17:35 UTC May 4, ts **1777916100**). Pinned to:
+- (a) **TrayzinCarpathia heat-window decay**: sync_feed_bursts_6h drops from 2 to 0/1 as bursts at ~11:43 UTC pass 6h window (~17:43 UTC rolloff). Watcher cron at 17:35 / 17:40 will reflect.
+- (b) **GLUE-RAID GO-CONDITION**: TrayzinCarpathia defensive_cycle=False AND ≥4 V<22 high-pool starvers visible in node 60 by_node OR killable_clean → throw 6 Spirit Glues → harvest_start strikers → strike-and-feed-cycle within 180s lock window.
+- (c) **maia 80 E006 test option**: if glue-raid go-condition fails (still defensive), evaluate cross-region pivot to maia 80 cluster (clean 8279 + 1 sb=-125 test = 2 obols at +80/+101, recent_revive=False). EV math: 2 obols / ~13M gas = 0.154 obol/Mgas (above baseline). 8 SP travel cost (16-hop one-way × 2 ≈ 5-8 SP).
+- (d) **wiuuuu cycle re-emergence**: if either (b) or (c) fails, scout for fresh V<22 sb=0 starvers at node 60.
+- **Out of scope**: TrayzinCarpathia clean-strikes (heat may still gate; glue-raid is the path), Aenne / 3333... / foden / dias / stefan97 / rtvvvvv / vuongdung1198 V<22, buja723 strikes <+27.
+
+**Bias fire-now (session 148)**: glue-raid is THE play. If Trayzin still defensive at 17:35 wake, fall through to maia E006 test or cross-region popo/yeddy cluster check.
+
+**Pin justification (Cadence Discipline)**: 65 min wait pinned to a specific watcher event (TrayzinCarpathia 6h burst-window rolloff at ~17:43 UTC). Single concrete event; cache miss accepted (5min TTL exceeded but justifies one long wait vs. 13 short polls of an unchangeable countdown).
