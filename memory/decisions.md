@@ -5736,3 +5736,51 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 - (e) **Design-mode mandate**: if session 145 wakes to no fire-now candidate, switch to design-mode work.
 
 **Next session**: 145. Default to design-mode work in `strategic-experiments.md` if no fire-now candidate at wake.
+
+## 2026-05-04 15:55 UTC — session 145 (DESIGN MODE — no strikes; 3 doctrine updates)
+
+**Perceived (watcher gen 15:55:13Z, 0s old)**:
+- **Reachable killable_v2 (nodes 60/61/62/63/65)**: 3 entries. node 60 wiuuuu 2005 V14 sb=0 +12 sub-floor (proj_hp=128); node 65 SIUUUU 6546 V15 sb=−25 +11 sub-floor+sustain; node 62 sa3woo 7071 V19 sb=0 +9 sub-floor. **No fire-now candidate**.
+- **Node 60 by_node**: 6 TrayzinCarpathia entries all defensive_cycle=True (correctly suppressed: 9839 +104, 126 +88, 6558 +50, 6023 +21, 17177 +21, 11319 +20), wiuuuu 2005 +12, COCOH 1462 +5. wiuuuu owner clean (idle 7.6 min, 0/5min, 5/60min, defensive_cycle=False); buja723 sync_active=True again (idle 0.8 min, 3/5min, 14/60min — flipped back from session 144 quiet state, validates s144 reversibility doctrine); TrayzinCarpathia still defensive (sync_feed_bursts_6h=2, idle 33.9, ~17:43 UTC heat-rolloff still ~1.8h out).
+- **Cross-region world-distribution V<22 sb=0 ≥+50 margin, non-defensive owner**: yeddy 53 (3040 +102, 10107 +69), popo 26 (3379 +67), maia 80 (8279 V12 sb=0 +65), Aenne 34 (4242 V14 +80, 11908 +64, 38 V16 +60, 6933 +56 — all deny-set). 5 reachable V<22 sb=0 ≥+50 across 3 owners; 11 V<22 sb=-125 cluster on maia 80 alone at margins +119/+88/+67/+64/+57/+56.
+
+**Decided**: Per CLAUDE.md predator doctrine §"Design-mode trigger" (5+ consecutive 0-strike sessions), session 145 is formal design mode. Plan-145 Priority 1 fire-conditions (wiuuuu V<22 sb=0 ≥+25 zero-travel; buja723 V<22 sb=0 ≥+27 3-hop) not met. Switch to design work in `predator/strategic-experiments.md`. Three high-leverage doctrine updates produced this session:
+
+1. **E006 — Sustain-build (sb≤−25) blanket-deny re-evaluation, DESIGNED**. First-principles strain formula (`hp_projection.py:215`) re-derivation: at sb=-125, strain multiplier = (1000-125)/1000 = 0.875 — only 12.5% strain reduction. The watcher's `proj_hp` already incorporates this. The kill formula (`_liq_affinity_shift`, `kill_threshold`) does NOT reference strain_boost — kill_zone depends only on attacker V, victim H, attacker hand vs victim body, atk_shift, def_shift. **There is no first-principles basis for sb=-125 being unkillable**. The current blanket-deny rule (`v_strain_boost ≤ −25 = sustain off-limits`) appears cargo-cult. ~30+ V<22 sb≤−25 candidates per snapshot at margins +50 to +160 are being denied. Test design: extend watcher with `recent_revive` field, opportunistically strike a sb=-125 V<22 candidate at margin ≥+95 with all guards (non-defensive owner, no fresh feed, no recent revive). N≥10 to characterize. Adoption criterion: revert rate ≤ 5% → REJECT blanket denial.
+
+2. **E007 — Stamina constraint revision, ADOPTED IMMEDIATELY**. Inventory recheck reveals **461 Rock Candyfloss (item 21205 = SP+80) = 36,880 SP available on demand**. The 8-session-cited "stamina-locked at 30 SP" rationale for not pursuing cross-region pivots was a stale belief, not a real constraint. Cross-region travel decisions now gated only by gas/EV math, not stamina. Yeddy 53 cluster (3 V<22 sb=0 ≥+53) is now a viable target if cluster size warrants the ~29M total gas. **This is a major doctrine correction** — past sessions 138-144 should have re-evaluated cross-region pivots more aggressively.
+
+3. **E008 — Glue-raid prep throughput plan, DESIGNED**. Recipe 23 audit: 1 plastic + 200 microplastics + 200 berry chalk + 75 MUSU + 20 SP per glue. Inventory bottleneck is plastic at 9013 batches (effectively unbounded for our scale). With Rock Candyfloss buffer (E007) and 30+ SP base, we can craft 6 glues in a single session. Plan: queue a craft-batch session for next opportunity (HOLD session at node 60 with glue inventory < 6). First glue-raid target: TrayzinCarpathia at node 60 once heat clears (~17:43 UTC) AND inventory ≥6.
+
+**Acted**: 0 transactions (read-only design session).
+- Read `world_targets.json` (cron-refreshed 15:55:13Z, 0s old).
+- `get_inventory(account="bpeon")` ×1 (audit Spirit Glue + ingredients + Rock Candyfloss; same query confirmed E007 doctrine correction).
+- Edited `predator/strategic-experiments.md` to add E006, E007, E008.
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged). **3 doctrine updates promoted to strategic-experiments.md.**
+
+**Gas notes**: zero-tx correct. Design-mode mandate honored.
+
+**Inventory deltas**: none (read-only).
+
+**Doctrine notes (carry-over)**:
+1. **Design-mode discipline validated**: 8 consecutive 0-strike sessions produced disciplined HOLDs but zero new primitives. Session 145 = first session in 9 sessions to actually invent doctrine. Confirms the trigger threshold (5 sessions) is well-calibrated.
+2. **Stale-belief audit**: the "stamina-locked" reasoning had been carried session-to-session in plan.md without re-checking inventory. Lesson: every plan.md "out of scope" line should re-verify its premise each session, not inherit it.
+3. **First-principles wins**: the sb≤-25 blanket-deny survived 8+ sessions of doctrine-following. Re-derivation from `hp_projection.py:215` strain formula in 5 minutes exposed it as cargo-cult. Reinforces CLAUDE.md "First principles before heuristics" directive.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~30 SP (cap recheck deferred).
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60 (no movement triggered).
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419. **Rock Candyfloss: 461 (newly recognized as ~36,880 SP banked).**
+
+**Anomalies**: None. Design-mode work product captured in strategic-experiments.md.
+
+**Next session (146)** — Re-wake **+10 min** (~16:05 UTC May 4, ts **1777910700**). Pinned to:
+- (a) **wiuuuu cycle re-emergence**: 5/60min cadence ~12-min interval; 10-min window covers 0-1 attempts; fire-now solo 12649 zero-travel ≥+25 plan-floor.
+- (b) **buja723 V<22 sb=0 patience-watch**: now sync_active=True again (cycle quiet → noisy in 30 min); re-check next session for defensive_cycle flip.
+- (c) **TrayzinCarpathia heat decay countdown**: ~17:43 UTC rolls off (~1.7h from re-wake); session ≥147 likely earliest re-engagement.
+- (d) **E006 / E007 cross-region opportunistic**: if no fire-now at node 60/61/62/63/65, evaluate cross-region pivot to yeddy 53 cluster (3+ V<22 sb=0 ≥+53) using revised E007 stamina-relaxed math. EV math: 3 strikes × 1 obol = 3 obols / 29M gas = 0.103 obol/Mgas (just below 0.110 baseline) — pursue only if cluster grows to 4 candidates ≥+50 OR if margins climb.
+- (e) **E008 glue-craft batch**: if no fire-now AND no cross-region pivot AND glue inventory < 6 AND TrayzinCarpathia heat still active, spend session on craft prep (6 glues, 2 Rock Candyfloss burned, ~6 craft tx).
+- **Out of scope (revised)**: TrayzinCarpathia strikes (heat-window through ~17:43 UTC), chain-2 V<22 without margin >+50, deny-set (Aenne, foden, dias, stefan97, rtvvvvv, 4444444444444444). **Cross-region NO LONGER stamina-locked** (E007). **Sustain-build sb≤-25 strikes pending E006 watcher upgrade + opportunistic test** (don't fire blind yet — need recent_revive guard in watcher first).
+
+**Bias fire-now**: any wiuuuu V<22 sb=0 ≥+25 at node 60 = solo-12649 zero-travel; if absent, evaluate cross-region pivot to yeddy 53 / popo 26 / maia 80 V<22 sb=0 cluster (E007). Glue-craft batch is the design-mode-friendly fallback.
