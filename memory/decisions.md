@@ -5458,3 +5458,60 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - **Out of scope**: TrayzinCarpathia strikes (heat sustained), Killchain/KCI sustain strikes (sb≤−25 hard rule), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50.
 
 **Bias fire-now**: at-room cluster has nothing clean. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room 65/63/61, fire solo single-strike pattern. Otherwise HOLD again.
+
+## 2026-05-04 13:10-13:13 UTC — session 139 (HOLD — third consecutive zero-strike, TrayzinCarpathia heat persists, no clean adjacent emergence)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 13:10:13Z fresh, 0s old)**:
+- **Node 60 (current room) by_node killable=5**:
+  - TrayzinCarpathia: 1339 V12 sb=−125 +67 (sustain off-limits), 16319 V11 sb=0 +54 (def_cycle suppressed), 9839 V14 sb=0 +39 (def_cycle suppressed), 126 V18 sb=−25 +36 (sustain), 17177 V13 sb=0 −10 (def_cycle, sub-floor anyway).
+  - wiuuuu V<22 sb=0 fresh-ish: 4273 V18 +2 (1.0h elapsed), 1750 V12 +2 (2.2h), 1973 V22 −1 (0.83h, V≥22). All sub-floor.
+  - 1599 wiuuuu V19 sb=−50 −6 (sustain).
+- **TrayzinCarpathia heat**: `defensive_cycle: True` persists (4 candidates filtered). 6h window from 11:43-44 mass-feed rolls off ~17:43 UTC.
+- **Adjacent rooms**:
+  - 65 (1 hop): top10 all Killchain sustain sb≤−25 (margins +59 to +100) — off-limits per hard rule.
+  - 63 (2 hops): only 2 elkabrabd entries, both sub-floor (−35, −43).
+  - 61 (2 hops): TGC-Cirar massive margins (+139 to +31) but killable_count=0 — likely owner-blacklist filter (no_touch_owner). Same as session 137.
+  - 62 (3 hops): top10 all KCI / 𝄠𝄻𝄇 sustain sb≤−125 (margins +68 to +110) — off-limits.
+- **Cross-region clean V<22 sb=0 candidates ≥+25** (from killable_v2):
+  - yeddy 53: 8804 V11 +93, 6398 V13 +82, 8905 V10 +53, 5213 V11 +49, 3040 V13 +31 — **5-target cluster ≥+30** (juiciest cluster on the map).
+  - popo 26: 7562 V11 +73, 4848 V10 +43, 8233 V13 +42 — 3-target cluster.
+  - vuongdung1198 33: 6101 V10 +104 (vuongdung1198 V<22 OFF-LIMITS per plan).
+  - Aenne 34: 1959 V18 +72 (Aenne DENY-ALL).
+  - All ≥10 hops away. Operator stamina ~27 SP, need 80 for return-and-strike round trip.
+- **hot_battlegrounds**: only node 60 (4 kills last 3h, all our session 135-136 strikes).
+
+**Decided**: HOLD per plan-139 STEP 2 ("No clean candidate: HOLD again. Re-wake +45 min for further ripen window + watcher cycles"). At-room cluster has zero clean candidates (TrayzinCarpathia all suppressed, wiuuuu all sub-floor). Adjacent nodes all sustain or empty. Cross-region locked by stamina. Yeddy 53 cluster will still be there when stamina recovers — no urgency to break the rule. Zero-tx is correct.
+
+**Acted**: 0 transactions (read-only session).
+- Read `world_targets.json` (cron-refreshed 13:10:13Z, 0s old).
+- Schema introspection on kami_static (column `room_index` not present — server doesn't track operator room directly; trusted watcher proximity-data).
+- Rooms-graph implicit adjacency check via watcher by_node.
+
+**Result**: 0 obols, 0 kills, 0 gas. Lifetime kills **68**, obols **70** (unchanged). State preserved.
+
+**Gas notes**: zero-tx is correct execution. Striking 16319 +54 at node 60 today would either revert (Trayzin freshly fed) or succeed and re-trigger mass-feed automation, deepening 6h heat for another 6h. Striking yeddy 53 cluster now would burn ~28M travel gas + 25M strikes = 53M gas / 5 obols = 0.094 obols/Mgas — below 0.110 baseline.
+
+**Inventory deltas**: none (no tx).
+
+**Doctrine notes**:
+1. **Stamina recovery is slow** (~2 SP/hr empirical). 27 SP → 80 SP is ~26h. Yeddy 53 cluster has been sitting at +90+ margins for 3+ sessions — these are cooked targets that will fully starve out (proj_hp ≤ 30) within next 8-12h regardless of our action. Cross-region travel becomes more economically attractive as cluster age increases (margin grows). Patience here is correctly priced.
+2. **Adjacent-room sustain trap reaffirmed**: nodes 65/62 surface massive raw margins via `by_node` (+100 to +110 today) but ALL with sb≤−25. Hard sustain rule correctly suppresses them from killable_v2. As of session 139, these nodes are systematically off-limits — flag at owner level once observed (already did session 138). Don't re-evaluate per session.
+3. **Heat-window arithmetic firm**: TrayzinCarpathia `sync_feed_bursts_6h: 2` rolls off at ~17:43 UTC (~4.5h from now). Earliest viable Trayzin re-engagement: session ≥143 (~17:00 UTC). Until then their +54 / +39 candidates stay locked.
+
+**End state**:
+- Operator at room 60 (Scrap Trees z=2), stamina ~27 SP (regen ~+2 SP since session 138).
+- All 7 kamis (12649, 11224, 6058, 12225, 15540, 10705, 6245) RESTING node 60. Sync HP at full or near-full from prior close-feeds.
+- Lifetime kills: **68**. Lifetime obols: **70**. VIPP: 61232. Cookies: 419.
+
+**Anomalies**: None.
+
+**Next session (140)** — Re-wake **+45 min** (~13:58 UTC May 4, ts **1777903041**). Pinned to:
+- (a) **wiuuuu cluster ripen**: 1750 V12 sb=0 (now 2.2h → 2.95h elapsed by re-wake; V12 sb=0 ripens ~+5/h → projected +6 to +9 — still sub-floor). 4273 V18 sb=0 (1.0h → 1.75h → projected +5). Realistic ripen-cross window for 1750 is 60-90 min away.
+- (b) **Non-deny emergence at node 60 / adjacent**: 9 cron cycles (5min × 9) refresh world; any unexpected non-deny non-sustain ≥+25 candidate fires solo 12649.
+- (c) **TrayzinCarpathia stays out**: 6h heat-window closes ~17:43 UTC. No re-evaluation until session ≥143.
+- (d) **Stamina** ~27 → ~28 SP. Cross-region (yeddy 53, popo 26) still locked.
+- **Out of scope**: TrayzinCarpathia strikes, sustain-build strikes (sb≤−25), cross-region travel (stamina), chain-2 V<22 same-striker without margin >+50, vuongdung1198 V<22, Aenne / deny-set.
+
+**Bias fire-now**: at-room cluster nothing clean. If re-wake snapshot shows ≥+25 clean V<22 sb=0 emergent at node 60 (non-Trayzin) or adjacent room 65/63/61 from non-deny owner, fire solo single-strike pattern. Otherwise HOLD a fourth consecutive session.
