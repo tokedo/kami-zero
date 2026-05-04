@@ -6043,3 +6043,57 @@ Nothing in killable_v2 within 1-hop reach is V<22 sb=0 at ≥+25 plan-floor with
 
 **Bias fire-now (session 151)**: 4th strike on 2141 (or whichever margin-≥+50 V<22 sb=0 surfaces) is THE play. If Trayzin remains passive, full chain. If reactive bursts appear, harvest_stop strikers + retreat + lock cluster snapshot for future sessions.
 
+
+## 2026-05-04 20:50 UTC — session 151 (FIRE — 1 kill / 1 revert; chain-3 rotation floor RAISED)
+
+**Perceived (watcher gen 20:50:14Z, ~0s old at session start)**:
+- **Cluster INTACT, mostly ripened**: top10 at node 60 = 2644 V10 sb=−25 +66 (E006 floor +95 unmet) / **2141 V12 sb=0 +56** (was +46 at s150 plan = ripened +10 in 25 min) / **898 V14 sb=0 +32** (was +22, ripened +10) / **5420 V15 sb=0 +26** (was +17, ripened +9) / 7531 V12 sb=−125 +17 sub-floor / wiuuuu 2005/4273 sub-floor / 6032 sb=−125 +2.
+- **TrayzinCarpathia heat fully clean post-3-kill** — owner_heat row present: idle 16.9m, dc=False, sync_*_bursts_6h=0 across the board, distinct_kamis_60min=2, anti_predator_automation=False. **Reaction window 20:33-20:43 produced ZERO defensive bursts.** Confirms s150 hypothesis: Trayzin is passive farmer, not defensive automated. Cluster still safe to strike.
+- **`hot_battlegrounds` shows kills_in_window=4 at node 60** (3 from our s150 + 1 inter-session 6558 = total 4 in 3h window). Window will roll forward.
+- **Strikers verified**: 12649 last action `harvest_liquidate` 20:27:59, 11224 last `harvest_liquidate` 20:28:05, 10705 last `harvest_liquidate` 20:28:12 — all 22+ min ago, well past 180s post-strike cooldown. All still HARVESTING (no harvest_stop since 17:54:43 UTC).
+- **Per-owner cap reset** to 0/3 for new session 151.
+
+**Decided**: 
+- Strike 1 (PRIMARY): liquidate(2141, 12649) — V12 sb=0 +56 margin, well above empirical chain-3 success floor of +50.
+- Strike 2 (SECONDARY): liquidate(898, 11224) — V14 sb=0 +32 margin, at plan's chain-3 floor +30 with striker rotation. Speculative — testing whether striker rotation extends chain-3 floor below +50.
+- Skip 5420 (+26, sub-+30 chain-3 floor), 2644 (E006 below +95), 7531/6032 sustain sub-floor.
+
+**Acted**:
+- `liquidate(target=2141, attacker=12649, target_handle="TrayzinCarpathia")` → tx 0xc18912…, status=success, block 28368959, gas 4,537,221. **Kill #72, +1 obol.**
+- `liquidate(target=898, attacker=11224, target_handle="TrayzinCarpathia")` → tx 0xc21f69…, **status=reverted**, block 28368961, gas 1,254,054 burned.
+- **STOPPED per 2-deep-revert-stop rule** (1 revert in this cluster); did NOT attempt 5420 (+26, lower margin than failed +32).
+
+**Result**: 1 kill / 1 revert / 1 obol. Strike gas burned: **5,791,275 (~5.79M)** = **0.173 obol/Mgas** — below s150's 0.219 but above baseline. The revert was the empirical doctrine-update cost.
+
+**Inventory deltas**:
+- Obol 1015: 73 → **74** (+1)
+- MUSU: pending — 2141 spoils (~688 MUSU est) added to 12649's bounty pool, will mint on harvest_stop.
+- All other items unchanged.
+
+**Lifetime: 72 kills (+1) / 74 obols (+1) / 2 reverts (+1).**
+
+**Doctrine NEW (session 151)**:
+1. **Striker-rotation chain-3 floor is HIGHER than +30 (likely +50)**: session 150 succeeded at margins +96/+76/+76 (all ≥+50 or above), session 151 failed at +32. The empirical floor lies between +32 and +50. **Conservative going forward: chain-3 striker-rotation floor = +50** (matches the s150 lowest-success margin). **Plan 151's "+30 chain-3 floor" assumption was wrong.** Update `predator/learnings.md` and any plan template using it. The +30 number was speculative — striker rotation only sidesteps the chain-2 *same-striker anti-revert* rule, not the underlying margin-based reversion mechanic.
+2. **Reaction-window-clean confirms passive-farmer classification**: TrayzinCarpathia produced zero sync_feed/sync_stop/anti_predator_automation signals in the 20:33-20:43 window after 3 kills at 20:27-20:28. Even an active human owner watching real-time would have reacted by 20:50 (22 min post-kill). **TrayzinCarpathia is reclassified passive farmer (not defensive automated)** — same kill-and-rotate pattern is safe to repeat in future sessions; no glue-raid pretext needed.
+3. **Cluster ripening rate at node 60 (post-s150)**: 2141 +46→+56 in 25 min ≈ 24 pts/hr. 898 +22→+32 ≈ 24 pts/hr. 5420 +17→+26 ≈ 22 pts/hr. **Faster than s150's measured 18 pts/hr (44/2.5h)** — possibly because these are now the highest-strain leftover targets after we removed the highest-margin victims. **Implication: a 1-2h re-wake should ripen 898 +32→+56-+80, well above the new +50 floor.**
+
+**End state**:
+- Operator at room 60 (no move tx; presumed unchanged from s150).
+- 12649, 11224, 10705 HARVESTING node 60 (since 17:54:43 UTC, ~3h elapsed; intensity continues to build, warm-up clock keeps ticking, post-strike 180s cooldown will clear at 20:53 UTC).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- HP recoil from 4th strike on 12649: not measured directly; pattern says modest (V32 vs V12 victim = low recoil); strikers should be ≥50% HP each, well above their own kill thresholds.
+- Lifetime: **72 kills / 74 obols / 2 reverts**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (~688 spoils still in 12649 pool pending mint).
+
+**Anomalies**: 1 revert at margin +32 — informative, not concerning. No HP discrepancies, no unexpected state changes, no defensive automation surfaced.
+
+**Next session (152)** — Re-wake **+60 min** (~21:50 UTC May 4, ts **1777931400**). Pinned to:
+- (a) **Cluster ripening to chain-3 floor**: 898 +32→~+56 (+24 pts/hr × 1h), 5420 +26→~+50, 2644 +66 unchanged (E006 floor still +95). Three potential strike targets above +50 floor.
+- (b) **Per-owner cap reset** (Trayzin currently 1/3 from this session, but new session resets to 0/3 anyway).
+- (c) **Trayzin reaction window long-tail observation**: 6h cumulative window for sync_*_bursts. By 21:50 we're 1h22m post-last-kill — captures any delayed automation that might fire on a longer schedule.
+- (d) **Striker post-strike cooldown clears 20:53 UTC** — well past, no pin from this.
+- **Plan 152 actions in order**: (1) re-read watcher; (2) verify Trayzin still passive; (3) verify 898/5420 ripened to ≥+50; (4) if yes: liquidate 898 with 11224 (chain-3 striker rotation, V14, post-revert this needs ≥+50 margin — should hit by 21:50); (5) liquidate 5420 with 10705; (6) optional 3rd strike if a new entry surfaces ≥+50; (7) harvest_stop OR continue HARVESTING based on HP and cluster state.
+- **Out of scope**: glue-raid (Trayzin reclassified passive — saved-glue pretext gone for this account; save glues for genuine defensive accounts), E006 sb≤−25 (cluster still has none ≥+95), maia 80, single-target cross-region.
+
+**Pin justification (Cadence Discipline)**: 60-min wait pinned to a specific cluster ripening event (898 needs ~24 min to cross +50 chain-3 floor; +60 gives buffer for variance and lets 5420 also ripen for chain-2). Multi-signal pin amortizes the cache miss. Below 90-min upper bound.
+
+**Bias fire-now (session 152)**: 898 strike with 11224 (or any V<22 sb=0 ≥+50) is THE play. If cluster has shrunk further (other hunters, own-cycle), assess and pivot.
