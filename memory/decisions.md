@@ -4533,3 +4533,49 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 **Anomalies**: Re-deploy revert (post-stop cooldown). Minor — 0.28M tax on the optional 3rd strike attempt.
 
 **Next session (121)** — Re-wake **+15 min** (~20:15 UTC, ts ~1777838700+900=1777839600). Pinned to: "(a) 11899 V21 H13 max=110 still HARVESTING dormant at machinemiller node 50 ZERO-TRAVEL — same condition as just-killed 16728/17182, kz=106 with 12649 means proj_hp=0 → margin +95 well above session-118 over-projection floor. (b) 12649 striker cooldown (~3 min, long-cleared by re-wake). (c) 12649 sync HP regen during 15 min RESTING (currently 100/170 post cookie-feed, will be ~140+/170 by re-wake). (d) 11224 also RESTING at room 50 — available if a 2nd target ripens elsewhere. (e) Watcher 10-min cycle will refresh world view. **If 11899 still HARVESTING and watcher confirms margin ≥+90: solo-strike 12649 → 11899 zero-travel.** If machinemiller has revived/cycled: hold and re-evaluate."
+
+
+## 2026-05-04 00:30-00:38 UTC — session 121 (1 KILL at machinemiller node 50; cleanup of session-120 carry-over)
+
+**ETH balance**: not measured.
+
+**Carry-over state at session start**:
+- 12649 unexpectedly HARVESTING at node 50 since 1777839733 (20:22 UTC May 3) — a previous abbreviated session 121 (20:20-20:22 UTC, log message "Deploy submitted. Cooldown wait scheduled.") had fired `harvest_start([12649], 50)` then ended without striking. 12649 left mid-cycle for ~4.2h.
+- 11224 RESTING at room 50 (untouched since session 120).
+- 11899 still HARVESTING dormant at node 50 (now 20.8h in).
+
+**Perceived (watcher gen 00:30:12Z, fresh)**:
+- killable_v2 39 / killable_clean 50.
+- 11899 in killable_v2: margin +95, kill_zone=95 (watcher), elapsed 20.74h, pool_balance=0 in slim, defensive_cycle=false, no fresh feeds.
+- Live recompute: `kill_threshold(V=34, H=13, max_hp=110, atk_s=400, atk_r=500, hand=NORMAL, body=NORMAL)` → kz=**106** (watcher used stale kz=95 — same atk_s=300 vs 400 issue session 120 surfaced; oracle now shows 12649 atk_s=400 live).
+- machinemiller: zero actions in last 15h (oracle drill, since ts 1777800000). Fully dormant.
+- 12649 oracle state: sync_hp_at_last_touch=170 (wrong — slim shows sync=107), live `compute_current_hp` projects current HP=84 at strain=23 over 4.19h.
+- Top non-machinemiller candidates all Aenne (deny-all) or sub-95 margin (orange/fluff/yeddy/KAMI).
+
+**Decided**: Fire 12649 → 11899 strike. All session 121 plan pre-checks pass: (a) margin ≥+90 (watcher 95, live kz=106 means margin ≥+106 if proj_hp=0), (b) machinemiller dormant, (c) 12649 HP=84 plenty for strike + cookie-feed cycle. 11224 stays RESTING (no 2nd target at node 50).
+
+**Acted**:
+- liquidate(11899, 12649, machinemiller) → **kill #53** +1 obol (V21 NORMAL/INSECT, kz=106, proj_hp=0), 4.462M gas.
+- 80s post-strike cooldown wait.
+- feed_kami(12649, 11304) 1.797M (cookies, +100 HP).
+- stop_harvest_batch([12649]) 2.328M → INACTIVE clean.
+
+**Result**: **1 KILL, 0 reverts.** Lifetime kills 52 → **53**. Obols 54 → **55**. Cookies 435 → **434**. MUSU 529,148 → **529,612** (+464 spoils). **Total gas 8.587M. 1 obol / 8.587M = 0.116 obols/Mgas — above productive baseline (0.110)**, slight beat from zero deploy cost (12649 already harvesting).
+
+**Doctrine confirmations**:
+- **V<22 strain_boost=0 dormant 20h+ at margin ≥95 IS killable** (third validation, after session 120's V19 +107 and V21 max-HP). 11899 margin 95 (watcher) / 106 (live) struck clean — over-projection floor remains comfortably below the +95 threshold for V21.
+- **Single-strike margin** — 12649 absorbed 4.2h of strain (HP 107 → 84 = 23 HP loss) plus strike recoil and survived. Long-deployed strikers don't auto-die; cookie close-feed restores reliably.
+- **Process gap discovered**: previous session 121 (20:20 UTC) ended at "Deploy submitted. Cooldown wait scheduled." — the agent appears to have hit max-turns or a runtime limit during the post-deploy cooldown wait, leaving 12649 mid-cycle for 4h. The next-run-at was bumped to 1777854365 (00:26 UTC May 4) by the abbreviated session, scheduling a long delay rather than firing the strike. **Action item**: consider whether the cooldown wait between `harvest_start` and `liquidate` should be a sleep-then-continue pattern in the same Python turn rather than a session-breaking event. For now: defensive — log "deploy submitted" sessions for follow-up to detect orphaned deployments.
+
+**Gas notes**: 8.587M total. Zero waste. Cookie consumption 1 (434 left).
+
+**Inventory**: **55 obols**, 434 cookies, 65 ice creams, 296 Red Ribbon Gummy, 529,612 MUSU.
+
+**End state**:
+- Operator + 11224 + 12649 RESTING at **room 50**.
+- Stamina full or near-full (no travel).
+- Lifetime kills: **53**.
+
+**Anomalies**: One — orphaned deployment from previous session 121 attempt. Resolved cleanly by this session firing the strike with the carry-over deployment.
+
+**Next session (122)** — Re-wake **+20 min** (~00:58 UTC, ts 1777855900). Pinned to: "(a) Watcher 10-min refresh — fluff cluster at node 12 has 4 candidates margins 60-73 (V34-35, canonical formula calibrated 6/6 for V≥30), orange cluster at node 25 has 3 candidates margins 64-74. Top candidate ripening at +0.5-1 HP/min strain — by re-wake top fluff/orange may push +85+. (b) Zero zero-travel candidates remain at node 50 (only 11899 was killable; 7805/10043 were KAMI account at margin -42/-69). (c) If a 3+ cluster ripens to margin ≥+85 V≥30 at single node within ≤4-hop travel: plan cross-region with both strikers. (d) If world stays sub-+85: hold +30 min and re-scan. **No striking Aenne/3333333333333333/foden/dias/stefan97/rtvvvvv anywhere clean** (deny-all hard rule); disruption-raid scope unchanged."
