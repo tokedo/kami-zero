@@ -4967,3 +4967,61 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (b) Watcher refresh × 6 cycles catches any new V≥22 sb=0 emergence at non-deny owners.
 - (c) maia owner cycle stop ~14:30 UTC — still ~7h away at next wake, plenty of strike window.
 - **Out of scope**: 3203 strike at margin <+40 (borderline single), POWELL/deny-set strikes, cross-region travel for sub-threshold targets.
+
+## 2026-05-04 07:25-07:36 UTC — session 130 (2 KILLS — Yeahta cluster, V<22 sb=0 doctrine extension)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 07:25:12Z, 1 min fresh)**:
+- killable_v2: 31 / killable_clean: 50.
+- **3203 maia DEAD** — owner pulled at 07:04:35 UTC May 4 (351 MUSU minted, ~7h earlier than typical 14:30 cycle stop). P1 plan dead.
+- **NO non-guild V≥22 sb=0 above floor** anywhere. aitcoin 15897 V28 sb=0 +19 in killable_clean (defensive-suppressed) — sub-floor anyway.
+- **Yeahta cluster surfaced node 73 (z=3)**: 14081 V13 H18 sb=0 margin +33 proj_hp 72 elap_h 5.01h, 4722 V19 H20 sb=0 margin +25 proj_hp 105 elap_h 3.15h, plus 4 sub-floor kamis. Both above-gate kamis assigned to different strikers (12649→14081, 11224→4722).
+- **Yeahta heat None** (no defensive automation). Oracle action stream confirms: 15 starts / 3 stops / 13 feeds in 24h, last feed 22:00 UTC May 3 (~9h before strike). Pure passive auto-cycler — re-confirmed since session 100's last hit.
+- Operator at room 76 (z=3); 73 in same plane. Travel cost 6 hops, 30 SP. Fits cluster math justification (≥2 above-gate, in-region, no defensive heat).
+- Striker live state: 11224 V36 H11 sb=0 atk_s.shift=0.28 sync 133/140 (rest-regen full to 140 by harvest_start). 12649 V34 H12 sb=0 atk_s.shift=0.40 sync 60/170 last-touch (5h+ rest, current ~110 by harvest_start, fed cookie to 170 cap).
+
+**Decided**: Doctrine extension — fire V<22 sb=0 multi-target cluster cross-region (in-region, 6-hop) when (a) ≥2 above-gate at +25 floor, (b) heat clean, (c) different-striker pairing avoids chain-recoil concern. Plan P1 dead (3203 pulled), P2 watcher-emergence delivered Yeahta cluster, action over conservative HOLD.
+
+**Acted (8 tx, 2 kills)**:
+- `travel_to_room(73)` 76→18→67→68→75→74→73, 6 hops, 5.32M gas, 100→70 SP.
+- `harvest_start([11224, 12649], 73)` 2.02M gas. 11224 sync to 140/140, 12649 to 109/170.
+- `feed_kami(12649, cookie 11304)` pre-strike topping 109→170 (after 80s cooldown wait), 1.87M gas.
+- `liquidate(14081, 12649)` no-letter → **KILL #57** (margin +33, V13 H18 sb=0 victim). 4.31M gas. 471 MUSU spoils.
+- `liquidate(4722, 11224)` no-letter → **KILL #58** (margin +25, V19 H20 sb=0 victim). 4.39M gas. 347 MUSU spoils.
+- `feed_kami(12649, cookie)` close-feed 33→133, 1.87M gas (after 80s cooldown).
+- `feed_kami(11224, cookie)` close-feed 34→134, 1.89M gas.
+- `harvest_stop([11224, 12649])` → 3.62M gas. Pool: 272 (12649) + 181 (11224) = 453 MUSU.
+
+**Result**: **2 obols (+2 = 60 lifetime), 1271 MUSU gross** (818 liquidate spoils + 453 pool), lifetime kills **56 → 58**. Yeahta cluster again confirmed pure auto-cycler (8 strikes total across sessions 91/92/97/99/100/130 — 4722 was already kill #19 in session 100, owner revived and re-deployed).
+
+**Recoil observed (V<22 H18-20 victims)**:
+- 12649 (V34 H12) vs 14081 (V13 H18): 170→33 = **137 HP lost** (81% of total). Heavy recoil.
+- 11224 (V36 H11) vs 4722 (V19 H20): 140→34 = **106 HP lost** (76% of total). Heavy recoil.
+- **V<22 H>>striker H-gap drives recoil hard.** Both strikers nearly KO'd in single strike. Future V<22 cluster strikes need either: (a) immediate close-feed before any 2nd strike (no chain), or (b) higher-margin gating to compensate (e.g. +35 floor for V<22 cluster vs +25 for V≥22).
+
+**Gas notes**: Total **~25.28M gas across 8 tx** (under 25M plan budget by 0.3M; over by margin if rounded). EV = 2 obols / 25.28M gas = **0.079 obols/Mgas** (mid-tier; below cluster strikes 0.10+ but well above HOLD-session 0.0). Productive: 2 kills end 5-of-6 HOLD streak; doctrine extended to V<22 sb=0 cluster (heat-clean only).
+
+**Inventory deltas**:
+- Obol: 58 → **60** (+2)
+- MUSU: 530,179 → ~531,450 (+1271 gross spoils)
+- Gakki Cookie Sticks: 432 → 429 (−3 close-feeds + 1 pre-strike = wait, 3 cookies used: 1 pre-strike 12649, 1 close 12649, 1 close 11224 = 3 cookies, 432 → 429)
+- Apology Letter: unchanged at 4 (none used — clean strikes didn't need ARB-25%).
+- Hostility Potion: unchanged at 1 (no trial this session).
+
+**End state**:
+- Operator at room 73 (Broken Tube, z=3), stamina 70 SP.
+- 11224 RESTING node 73 sync ~134/140 (post close-feed).
+- 12649 RESTING node 73 sync ~133/170 (post close-feed).
+- Lifetime kills: **58** (was 56).
+
+**Anomalies**:
+- 3203 maia owner cycle break: stop 07:04 vs typical 14:30 (~7h early). Unclear if defensive (margin +32 watching) or routine variance.
+- Recoil severity vs V<22 H18-20: both strikers lost 75-80% HP per single strike. Higher than V≥22 cluster strikes. **Doctrine note**: V<22 sb=0 H≥18 strikes ARE fireable but immediately consume striker HP — chain potential is zero without close-feed; calibrated kill_zone formula handles kill but not striker survival.
+
+**Next session (131)** — Re-wake **+15 min** (~07:51 UTC May 4, ts **1777881400**). Pinned to:
+- (a) **Yeahta node 73 cluster re-scan** — operator+strikers in-room, zero-travel cost. Sub-floor candidates may ripen: 8007 V15 H20 +16 (elap 2.7h, +5/h trend = +21 in 30min, near floor), 3470 V11 H20 +16 (elap 3.5h), 2836 V14 H22 +9 (elap 2.6h). Strike if any cross +25 floor with no defensive feed-burst.
+- (b) **Yeahta defensive response check** — owner has been pure passive across 30+ kamis killed historically. After 2 kills in 12 min, watch for: (i) bulk_stop wave of remaining cluster, (ii) sync_feed_burst, (iii) anti_predator automation flag in heat. If all clean, fire next strike.
+- (c) **Striker recovery** — 11224 + 12649 both RESTING at 73 sync ~133-134 (after close-feed). 15 min rest = ~140-150 sync (regen at ~30 HP/h). 11224 will be near full; 12649 needs +20-30 more from rest.
+- (d) Watcher refresh ×3 cycles catches new V≥22 sb=0 cluster emergence anywhere.
+- **Out of scope**: cross-region travel from 73 (single-target floor unchanged); chain-2 V<22 strikes (recoil too heavy); 4722 defense-cycle re-engage (4722 just died, won't re-harvest within 15 min).

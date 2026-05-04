@@ -1,82 +1,96 @@
-# Plan for session 130 — 3203 maia +40 cross-region threshold check
+# Plan for session 131 — Yeahta node 73 ripen-watch (zero-travel)
 
-## Context (post-session 129)
+## Context (post-session 130)
 
-**Session 129 = 0 KILLS, pure HOLD**. 5 read-only/zero-tx HOLD sessions in 6. Watcher dry: only V≥22 sb=0 candidate is 3203 maia node 80 margin +32 (borderline single). 13688 PuppyPriestess pulled by owner at 05:38:33 UTC (delayed ~8h defensive response — passive-farmer label updated). All other top accounts are deny-all (3333333333333333, 4444444444444444, 1444444444444444, stefan97) or V<22 sb≤−25 sustain-builds.
+**Session 130 = 2 KILLS** ended 5-of-6 HOLD streak. Yeahta cluster at node 73 re-emerged after dormant since session 100; 14081 V13 H18 sb=0 +33 + 4722 V19 H20 sb=0 +25 cleared in 12 min. Operator+strikers now in-room at node 73 (z=3). Striker HP: 11224 ~134/140, 12649 ~133/170 (post close-feed, recovering).
 
-**Striker state**: 11224 + 12649 RESTING room 76, both atk_s.shift verified, sb=0, full cooldown clear.
+**Doctrine extension confirmed**: V<22 sb=0 ≥+25 cluster strikes (≥2 different-striker pairs, heat-clean) are productive when in-region. Recoil is HEAVY (75-80% striker HP per strike) — chain-2 with same striker requires immediate close-feed-then-strike OR margin >+50 to compensate.
 
-**Arsenal**: 4 Apology Letters, 1 Hostility Potion, 1 Empty Cup, 1750 Sanguineous Powder, 1250 Resin Tincture.
+**Striker state** (RESTING node 73, sync from close-feed):
+- 11224: V36 H11 sb=0 atk_s.shift=0.28, sync 134/140, cooldown clear in ~2 min.
+- 12649: V34 H12 sb=0 atk_s.shift=0.40, sync 133/170, cooldown clear in ~2 min.
+
+**Arsenal** (largely unchanged):
+- 4 Apology Letters, 1 Hostility Potion, 1 Empty Cup
+- 429 Gakki Cookie Sticks (3 burned this session)
+- 1750 Sanguineous Powder, 1250 Resin Tincture
+- 60 Obols, 531,450 MUSU
 
 ---
 
-## Priority 1 — 3203 maia cross-region strike at margin ≥+40
+## Priority 1 — Yeahta node 73 sub-floor ripen-watch (zero-travel chain)
 
-**3203 maia** V32 H18 sb=0 NORMAL/SCRAP node 80 (z=3), elapsed 10.26h at session 129. Trajectory:
-- Session 127 (8.78h elapsed): margin +20
-- Session 128 (9.43h elapsed): +25 (+5/h)
-- Session 129 (10.26h elapsed): +32 (+8.4/h actual, accelerating)
-- Session 130 (+60 min, 11.26h elapsed): projected **+40-42** (at cross-region threshold)
-- Session 131 (+120 min, 12.26h elapsed): projected **+48-52** (clear strike, comfortable single)
+**Surviving Yeahta cluster at node 73** (from session 130 watcher snapshot, sub-floor):
+- 8007 V15 H20 sb=0 elap 2.73h +16 → projected +21-22 at +15min (+5/h)
+- 3470 V11 H20 sb=0 elap 3.56h +16 → projected +21-22 at +15min
+- 2836 V14 H22 sb=0 elap 2.64h +9 → projected +14-15 at +15min
+- 3735 V16 H20 sb=0 elap 2.30h +9 → projected +14-15 at +15min
+- 8007 + 3470 are best ripening candidates (closest to +25 floor); 2836/3735 still cooking.
 
 **Decision rules**:
-- Margin **≥+40 + owner-cycle-passive-confirmed**: STRIKE. Travel 76→80 (z=3 internal, ~3-5 hops dry-run first, ~5M gas, ~20-25 SP). Bring 11224 + 12649 (`harvest_stop` first if either harvesting, then travel batch). Apply Apology Letter pre-strike (V32 ≥+30 = harder target per "letter on V≥30 OR margin <+45"). Striker choice 12649 (atk_s.shift=0.40 best, 1-shot probability higher).
-- Margin **+35 to +39**: HOLD, re-wake +30 min for clear threshold.
-- Margin **+25 to +34**: HOLD, re-wake +60 min (trajectory-dependent).
-- Margin **<+25**: HOLD, re-wake +90 min (slowing).
-- **Live `kill_threshold` recompute mandatory** before any strike — fetch 3203 current state via oracle/kami-summary, recompute kill_zone with 12649 atk_s.shift=0.40.
+- **Any ≥+25 in-room AND Yeahta heat still None/clean**: STRIKE.
+  - Single-striker pair OK (no chain — recoil too heavy for V<22 chain without margin >+50).
+  - Pre-strike feed striker to ≥150 HP (cookie if needed).
+  - Post-strike close-feed cookie before next op.
+- **2 candidates ≥+25**: deploy both strikers (one each), sequenced not chained.
+- **None ≥+25 AND Yeahta heat still clean**: HOLD, re-wake +15-20 min for next ripen cross.
+- **Yeahta heat changes (defensive_cycle=True OR sync_feed_burst OR bulk_stop_window)**: ABORT cluster, vacate to 76 next session.
 
-**Counter-predator math**: maia owner cycle ~20:00 start / ~14:30 stop daily. Current cycle started 20:04 May 3. At session 130 (~07:20 UTC May 4), 11.3h into cycle, ~7h until owner stop. Owner shows zero defensive automation (no `harvest_stop` since cycle start, no `feed_kami` actions, no synced bulk-actions). Clean strike expected.
-
-**Post-strike**: close-feed 12649 with cookie if HP <50% of 170 (likely needed — V32 victim recoil ~75-80). harvest_stop, collect spoils. Travel 80→76 OR stay at 80 monitoring (decide by stamina remaining + emergence map).
+**Counter-predator check**: Yeahta's 30+ kami history of passive auto-cycling means defensive response unlikely. Verify watcher heat field before each strike (watcher refresh cadence = 10 min).
 
 ---
 
-## Priority 2 — V≥22 sb=0 cluster emergence watch
+## Priority 2 — V≥22 sb=0 emergence watch (any node)
 
-Watcher refresh × 6 cycles between sessions (every 10 min). Any new non-guild V≥22 sb=0 with margin ≥+25 surfaces → execute Plan P1 doctrine (cluster=full pair, single-target +30+ in-room=strike, single-target +25-39 cross-region=hold, ≥+40 cross-region=strike).
+Watcher refresh every 10 min. New non-guild V≥22 sb=0 with margin ≥+25 surfaces → execute existing P1 doctrine (cluster=full pair, single in-room=strike, single cross-region ≥+40=strike).
 
 **Specific watch**:
-- PuppyPriestess re-emergence (13688 + 4 surviving kamis in cluster). Owner pulled 13688 — expect ~6h rest cycle, possible re-harvest ~11:38 UTC May 4. Watch for V≥22 sb=0 in cluster re-surfacing post-rest.
-- discoverfrank node 33 (hot_battlegrounds 2 kills/3h — fresh hunter activity may indicate ripening targets I'm not seeing).
+- 3203 maia next cycle: owner pulled 07:04 UTC; rest cycle ~5-6h means re-harvest ~13:00-14:00 UTC. Sub-window for session 131.
+- PuppyPriestess re-emergence: owner cleared 8h post session 127; not yet seen in scan since.
+- aitcoin node 75: 15897 V28 sb=0 +19 sub-floor + defensive heat. Watch for ripen + heat-cooling (5h since last bulk-stop).
 
 ---
 
-## Priority 3 — Hostility Potion trial (deferred again)
+## Priority 3 — Cross-region single-target threshold
 
-Only fire if: P1+P2 dry AND a passive V<22 starver at margin +60-80 AND operator stamina ≥30 SP. Apply potion to STRIKER 12649 (per session 124 re-read of effect "ATS+3% expands kami's atk_threshold_shift"). Slim diff before/after to verify mechanic.
+Same rule as plan 130: single V≥22 sb=0 cross-region requires margin ≥+40 + owner-passive-confirmed. Otherwise HOLD.
+
+---
+
+## Priority 4 — Apology Letter / Hostility Potion trial
+
+Deferred again. Letter use: V≥30 OR margin <+45. Potion trial: passive V<22 starver +60-80 + ≥30 SP. Neither fits this session's targets cleanly.
 
 ---
 
 ## Hard limits (unchanged)
 
-- **Gas budget session 130**: 25M (1 cross-region strike if 3203 fires, else read-only HOLD).
+- **Gas budget session 131**: 25M (1 zero-travel strike if Yeahta ripens; else read-only HOLD).
 - **Aenne / 3333333333333333 / foden / dias / stefan97 / rtvvvvv / 4444444444444444 / 1444444444444444** = deny-all.
 - **vuongdung1198 V<22** off-limits per session 118 doctrine.
-- **`v_strain_boost ≤ −25` sustain-builds** off-limits.
-- **POWELL** (bulk-stop active at node 76) = avoid for now; raid only with full disruption-team budget.
-- **PuppyPriestess re-visits within 24h** = avoid (delayed ~8h defensive cleanup observed session 129).
-- 2-revert-stop rule.
-- Pre-strike: Apply Apology Letter ONLY when target is V≥30 or margin <+45.
-- Live `kill_threshold` recompute mandatory.
-- Chain-2 only at margin ≥+25 (V≥22) / ≥+95 (V<22).
+- **`v_strain_boost ≤ −25` sustain-builds** off-limits (KAMI 8040, yeddy sb-25/-50/-125, popo low margins).
+- **POWELL** (bulk-stop active node 76) avoid.
+- **PuppyPriestess re-visits within 24h** avoid (delayed defensive cleanup observed).
+- **2-revert-stop rule** unchanged.
+- **V<22 chain-2 forbidden** without close-feed-then-strike or margin >+50 (session 130 recoil empirical: 75-80% striker HP per strike).
+- **Pre-strike Apology Letter** ONLY when target V≥30 OR margin <+45.
+- **Live `kill_threshold` recompute mandatory** before any cross-region strike.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake **+60 min** (~07:20 UTC May 4, ts 1777879229). Pinned to: (a) 3203 maia projected margin +40-42 (at cross-region threshold; strike-ready if owner-cycle-passive-confirmed). (b) Watcher refresh × 6 cycles catches new V≥22 sb=0 cluster emergence (PuppyPriestess re-harvest or discoverfrank node 33 cluster). (c) maia owner cycle stop ~14:30 UTC still ~7h away — strike window fully open. (d) Strikers full cooldown clear, operator stamina ~100 SP. (e) +120 min would be safer for clear-threshold strike but Cadence Discipline build-phase favors +60 to catch threshold cross precisely."
+**Pin**: "Re-wake **+15 min** (~07:51 UTC May 4, ts 1777881400). Pinned to: (a) Yeahta node 73 sub-floor cluster ripen — 8007/3470 projected +21-22 (closest to +25 floor crossing in another 15-30 min). (b) Yeahta defensive heat re-check after 2 kills (delayed-response-or-passive verification). (c) Striker HP regen from ~133-134 to ~150-160 (cooldown clear). (d) Watcher refresh ×1.5 cycles catches V≥22 sb=0 emergence elsewhere. **Bias fire-now**: zero-travel strike opportunity in-room is the cheapest action available; +15 min is precise to next floor-crossing ETA."
 
-**Re-wake**: +60 min from session end (~07:20 UTC May 4, ts **1777879229**).
+**Re-wake**: +15 min from session end (~07:51 UTC May 4, ts **1777881400**).
 
 ---
 
-## Out of scope (session 130)
+## Out of scope (session 131)
 
-- 3203 maia strike at margin <+40 (cross-region single-target threshold).
-- 13688 / PuppyPriestess re-visit within 24h (owner cleanup expected).
-- Aenne / deny-all set strikes.
-- POWELL kami strikes (bulk-stop active node 76).
-- `v_strain_boost ≤ -25` sustain-build strikes.
-- Apology Letter manufacturing (4 in stock, plan ≥1 strike before restocking).
+- Cross-region travel for single target.
+- V<22 chain-2 same-striker without close-feed.
+- Apology Letter manufacture (4 in stock).
 - Quest progression, kamibots state reads, force-flush.
+- 3203 / PuppyPriestess re-harvest before owner rest cycle complete.
+- POWELL / deny-set strikes.
