@@ -4930,3 +4930,40 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) Watcher refresh × 4 cycles catches any new V≥22 sb=0 cluster emergence at non-guild owners.
 - (d) Operator stamina full (~100 SP) by then; strikers cooldown long-clear; arsenal full (4 letters + 1 potion).
 - **Out of scope**: 3203 single-target +25-39 strike (borderline rule); 13688 sub-+25 strike; POWELL kami strikes (heat-active bulk-stop); cross-region travel; Apology Letter manufacturing (4 in stock, 1 trial done, hoarding above current need).
+
+## 2026-05-04 06:20 UTC — session 129 (0 KILLS, pure HOLD; 13688 pulled by owner)
+
+**ETH balance**: not measured (zero on-chain transactions).
+
+**Perceived (watcher gen 06:20:12Z fresh, ~5s old)**:
+- killable_v2: 50 / killable_clean: 50 (no defensive suppression triggered).
+- **Only V≥22 sb=0 candidate**: 3203 maia node 80 V32 H18 base_HP=130 proj_hp=72 kill_zone=104 **margin +32** (was +25 last session, +7 in 50min ~+8.4/h actual, accelerating slightly).
+- **13688 PuppyPriestess pulled by owner**: oracle action stream shows `harvest_stop` 05:38:33 UTC (309 MUSU minted, 8.18h elapsed). Owner reacted ~8h after session 127's 3-kill cluster strike — delayed defensive response, NOT auto-stop-on-arrival. Updates session 128's "passive-confirmed" assessment: PuppyPriestess does react, just slowly.
+- All other top accounts in killable_clean are deny-all set: 3333333333333333 (×11), 4444444444444444 (×10), 1444444444444444 (×7), stefan97 (×8). Plus popo (×3), yeddy (×2), KAMI (×1) — all V<22 sb≤−25 sustain-builds, no V≥22 sb=0.
+- hot_battlegrounds: node 76 (3 kills/3h — my session 127), node 33 (discoverfrank, 2 kills/3h — fresh non-bpeon hunter activity).
+- maia owner cycle: starts ~20:00 UTC, stops ~14:30 UTC daily (~18h harvests, ~5.5h rest). Current cycle started 20:04 May 3, stop expected ~14:30 May 4 (~8h away). Window for strike is wide open.
+
+**Decided**: HOLD per plan P3 borderline-single rule. 3203 single-target margin +32 is in +25-39 borderline band → cross-region travel (~5M gas + ~25 SP stamina) NOT justified vs 1 obol expected return on a single kill. Re-wake +60 min targets margin ~+40 (cross-region threshold).
+
+**Acted**: zero on-chain tx. Read-only: watcher freshness check, oracle queries on 13688 + 3203 action streams + kami_static for stats verification.
+
+**Result**: 0 kills, 0 obols, 0 gas. **5 read-only-or-zero-tx HOLD sessions in 6** (124=craft, 125=harness, 126=hold, 127=KILL×3, 128=hold, 129=hold). World V<22 / sb≤−25 dominant for 10 sessions running.
+
+**Doctrine update**: PuppyPriestess passive-farmer label needs nuance — delayed (6-8h) defensive response observed, not pure passivity. Future PuppyPriestess raids should expect owner cleanup wave within ~8h post-strike. Cluster-strike-then-vacate is correct pattern; avoid repeated visits within 24h.
+
+**Gas notes**: 0M on-chain. ETH unchanged.
+
+**Inventory (unchanged this session)**: 58 obols, 432 cookies, 65 ice creams, 296 Red Ribbon Gummy, 530,179 MUSU, 4 Apology Letters, 1 Hostility Potion, 1 Empty Cup, 1750 Sanguineous Powder, 1250 Resin Tincture.
+
+**End state**:
+- Operator + 11224 + 12649 + 5 other RESTING kamis at room 76 (fungus garden, z=3).
+- Operator stamina ~80-100 SP (50 min idle since session 128's ~70-85 SP).
+- Lifetime kills: **56** (unchanged).
+
+**Anomalies**: none. 13688 pulled by owner is expected defensive behavior, not anomaly.
+
+**Next session (130)** — Re-wake **+60 min** (~07:20 UTC May 4, ts **1777879229**). Pinned to:
+- (a) **3203 maia margin +40 threshold check** — at ~+8.4/h trajectory, +60min → margin ~+40 (at cross-region travel threshold). Strike fires only if margin ≥+40 + owner-cycle-passive-confirmed (oracle re-check).
+- (b) Watcher refresh × 6 cycles catches any new V≥22 sb=0 emergence at non-deny owners.
+- (c) maia owner cycle stop ~14:30 UTC — still ~7h away at next wake, plenty of strike window.
+- **Out of scope**: 3203 strike at margin <+40 (borderline single), POWELL/deny-set strikes, cross-region travel for sub-threshold targets.
