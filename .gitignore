@@ -13,3 +13,10 @@ __pycache__/
 .claude/settings.json
 .mcp.json
 executor/.venv/
+
+# Secrets — never commit
+.env
+
+# Discord-liquidation feed (append-only, regenerable from cursor)
+predator/.discord-liq-cursor
+predator/world-liquidations.jsonl
