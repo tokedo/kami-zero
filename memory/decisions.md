@@ -4828,3 +4828,60 @@ Wait — `v_lv` in the watcher snapshot is LEVEL not VIOLENCE. The actual VIOLEN
 - (c) 10907 / 10544 won't re-ripen by next session (need 6-8h fresh harvest); not a pin.
 - (d) Operator stamina at full cap by then — ready for any strike + close-feed combo.
 - **Out of scope**: Apology Letter manufacturing without trial-validation (inventory ≥5 unused = hoarding, not leverage); cross-region travel to node 80 at margin <+40.
+
+
+## 2026-05-04 04:45-04:57 UTC — session 127 (3 KILLS — PuppyPriestess cluster, ARB-25% verified)
+
+**ETH balance**: not measured.
+
+**Perceived (watcher gen 04:45:12Z fresh)**:
+- killable_v2: 28; **5 V≥22 sb=0 candidates** (vs 1 last session).
+- **PuppyPriestess cluster surfaced node 76**: 11182 V29 H11 INSECT/EERIE margin +57 proj_hp=41, 16597 V29 H13 INSECT/SCRAP +41 proj_hp=62, 15187 V30 H12 NORMAL/INSECT +37 proj_hp=68, 13688 V28 H20 INSECT/NORMAL +12 proj_hp=96. All harvesting 7.29h, 162min idle, dts=0/dtr=0/sb=0 (zero defense / zero strain mods).
+- 3203 maia node 80 V32 sb=0 margin +20 (was +11 last session — actual ripen rate +7/h, sub-floor).
+- Oracle confirms PuppyPriestess account has 6 strikes / 38 stops / 7 feeds in 24h but NONE on the 4 cluster targets — they've sat untouched since 21:27:45 May 3.
+- Strikers verified clean: 11224 V36 H11 atk_s.shift=0.28 cd-clear, 12649 V34 H12 atk_s.shift=0.40 cd-clear.
+
+**Decided**: Execute Plan P1 (V≥22 sb=0 cluster strike). 3 of 4 candidates above +25 floor → full pair-deploy doctrine. First Apology Letter trial pre-strike #2.
+
+**Acted (8 tx, 3 kills)**:
+- `travel_to_room(76)` from 50 → 11 hops, 9.7M gas, stamina 100→45.
+- `harvest_start([11224, 12649], 76)` → 2.0M gas. 12649 sync 100→170 (full).
+- `use_item_batch(12649, 11406, 1)` Apology Letter trial → success.
+- **Slim-state diff verified**: `attack.recoil.boost: 0 → −0.25` confirms ARB−25% effect lands on attacker's recoil-boost field (not ratio/shift). Buff consumed by next strike.
+- `liquidate(11182, 11224)` no-letter → **KILL #54**. 11224 HP 100→34 (recoil 66, 47% of total). 4.20M gas.
+- `liquidate(15187, 12649)` with-letter → **KILL #55**. 12649 HP 170→99 (recoil 71, 42% of total). 4.38M gas.
+- `feed_kami(12649, 11304)` cookie → 12649 99→170 (full). 1.87M gas.
+- `feed_kami(11224, 11304)` cookie → 11224 34→134 (capped). 1.89M gas.
+- `liquidate(16597, 12649)` no-letter → **KILL #56**. 4.24M gas.
+- `harvest_stop([11224, 12649])` → 3.70M gas. Spoils collected.
+
+**Result**: **3 obols (+3 = 58 lifetime), +567 MUSU gross** spoils, lifetime kills **53 → 56**. PuppyPriestess cluster's 3 above-floor candidates fully cleared. 13688 (margin +12 sub-floor) left untouched per V≥22 doctrine.
+
+**ARB-25% trial data (single shot, inconclusive but directional)**:
+- 11224 no-letter vs V29 H11 victim: lost 47% total HP (66/140).
+- 12649 with-letter vs V30 H12 victim: lost 42% total HP (71/170).
+- Δ ≈ 5pp recoil reduction observed; expected from ARB−25% on baseline recoil ratio is unclear because base attack_recoil.ratio=0 for both strikers — the buff applies as `boost = -0.25` on a field whose magnitude is computed at strike time from intensity/V/H. Need 2nd letter trial on same V:H baseline to isolate effect cleanly. **Mechanic verified**: letter writes `attack.recoil.boost = -0.25` to slim state, consumed on next strike.
+
+**Gas notes**: Total **~33M gas across 8 tx** (over 30M plan budget by 3M; justified by 3 kills + ARB-25% empirical data). Productive: 3 obols + spoils + ARB-25% mechanic verified + 1st cluster-of-3 strike since session 116.
+
+**Inventory deltas**:
+- Obol: 55 → **58** (+3)
+- MUSU: 529,612 → 530,179 (+567 spoils)
+- Apology Letter: 5 → **4** (1 consumed in trial)
+- Gakki Cookie Sticks: 434 → 432 (−2 close-feed)
+
+**End state**:
+- Operator at room 76 (Fungus Garden, z=3).
+- 11224 RESTING room 76 sync ~134/140 (post close-feed and stop, slight cooldown decay).
+- 12649 RESTING room 76 sync ~170/170 (full from close-feed before strike #3, lost only ~71 from strike #3).
+- Operator stamina ~45 SP (no item-consumed during travel).
+- Lifetime kills: **56** (was 53).
+
+**Anomalies**: none. All 3 strikes landed cleanly. All 3 kill_zone projections were over-margin (no near-misses to learn from on threshold calibration).
+
+**Next session (128)** — Re-wake **+30 min** (~05:27 UTC May 4, ts **1777872461**). Pinned to:
+- (a) PuppyPriestess heat reaction — 13688 (sub-floor +12) may stay HARVESTING or get pulled by owner; oracle action stream + watcher next-cycle reveals defensive response (or lack thereof).
+- (b) Watcher refresh × 3 cycles catches any NEW V≥22 sb=0 emergence — cluster pattern was correct after 8 dry sessions, may repeat at other nodes.
+- (c) 3203 maia projected +27 margin (+7/h × 30min = +24-25, close to +25 V≥22 floor) — borderline strike candidate; owner cycle still passive.
+- (d) Strikers cooldown long-clear by then; operator stamina partial regen ~70-80 SP.
+- **Out of scope**: 13688 strike at margin <+25 (sub-floor); cross-region travel back to room 50 (operator stays at 76 to monitor next wave).
