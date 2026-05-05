@@ -7343,3 +7343,50 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (a) **11319 persistence check** at node 60 — if rates_aware_margin still ≥+20 across s174, that's session 1/3 of Branch 2 trigger.
 - (b) **vuongdung1198 cycle check** — 5+ candidates ~6-10h elapsed; stop-cycle imminent. If they cycle to RESTING and RE-START fresh, harvest_start sets sync=full and rates may un-park briefly during defensive automation lag — micro-window worth watching.
 - (c) **Refresh world_targets.json + parked_rates** — 30 min covers ~6 watcher cron ticks.
+
+## 2026-05-05 07:45 UTC — session 174
+
+**Perceived (read-only)**:
+- world_targets.json fresh (07:40:12Z), parked_rates_state.json fresh (07:40:17Z), parked_rates snapshot 294s old (well within bounds).
+- Node 33 candidates (15 in v2 + 8 in v3): **100% vuongdung1198 owner**. Sampled-parked: 6101/10754/7586/6044/8992/4703/10329/806/5879 with `rates_aware_margin` -47 to -70. Unsampled (parked_bool=None): 16268/3/5371/3417/1817/11525 — all known-parked-archetype owner → REJECT per s173 doctrine.
+- Node 60 candidates (3 in v3 + parked_v2): 11319 (TrayzinCarpathia) passes rates-aware gate (`rates_aware_margin=+22`, `sync=107/170`, `rates_intensity_avg=0`, `parked_bool=True`). All other node-60 entries (991/1599/9839/126/2644/4273) parked.
+- **Roster discovery (anomaly vs plan)**: oracle reports **11224 RESTING_OR_DEAD** (node=None), **10705 RESTING_OR_DEAD** (node=None), **12649 HARVESTING node 33** (not node 60). Plan-174 had all three at node 60. Possibilities: (a) cluster cycled naturally during s173→s174 wait, (b) oracle stale on harvest node. Did not invest tx to disambiguate.
+
+**Decided**:
+- **DEFER #12** — read-only session, 0 tx. No node-33 candidate passes rates-aware gate (all vuongdung1198 = parked or archetype-rejected). 11319 at node 60 passes gate but no co-located striker (12649 migrated/oracle-stale; 11224/10705 RESTING) AND single-target → Hard Rule 4 rejects cross-region travel.
+- **Branch 2 persistence test**: 11319 +22 SAME as s173 → session 1/3 *single-candidate* logged. 2nd candidate ≥+20 did not appear — Branch 2 trigger (≥2 persistent across 3 sessions) NOT met. Counter currently 1/3 with single candidate; will reset to 0 if 11319 cycles or rates_aware drops below +20.
+- **11224 Lethality allocation** — gate cleared (RESTING) but DEFER to s175. Need explicit `get_kami_state_slim(11224)` to verify (a) room location, (b) confirm 3 banked SP, (c) clarify whether `allocate_skills` requires operator co-location. Saving 7.5M-class tx until verified.
+- **Migration HOLD (Branch 1)** confirmed by today's null at node 33 — doctrine cost continues, ≥4 vuongdung1198 D-gate persistence requirement (Branch 3 trigger) ZERO sessions logged.
+- **Amendment E NOT triggered** — Branch 2 path actionable (1/3 logged today), HOLD remains principled.
+
+**Acted**: 0 tx. Read-only session.
+
+**Result**: 23-session 0-strike streak (s152-s174 = 5 by-design / **18 attempt-eligible**). E009 defer count = **12**.
+
+**Doctrinal/observational notes**:
+- Rates-aware schema confirmed working: parked_v2 entries surface `rates_aware_margin` (e.g. 11319 +22, vuongdung1198 -47 to -70). v3 entries' `parked_rates: null` means "unsampled by scanner" — per s173 doctrine, unsampled-archetype REJECT applies. Doctrine working as intended.
+- vuongdung1198 100% archetype-parked NOW = 2 consecutive sessions (s173+s174). If this persists 3+ sessions, it's evidence vuongdung1198 has fully migrated to anti-predator automation rather than transient cycling. Potential Amendment E hypothesis: "permanently-parked archetype" deflation may eventually require structural response (Branch 3 migration to a different cluster or roster level-up wave).
+- 11224/10705 RESTING is the FIRST natural cycle break since s165 — gate for Lethality allocation cleared. s175 priority elevated.
+
+**Gas notes**: 0 gas. Plan budget ≤10M unused.
+
+**Sub-issue queue update (post-s174)**:
+1. **E009 pilot DEFER #12** = primary for s175.
+2. **NEW PRIORITY: 11224 Lethality allocation** — gate cleared; s175 verify state + room + apply if cost-economic (no operator travel forced).
+3. **NEW: roster-state anomaly** — oracle says 12649 at node 33; plan-174 had 12649 at node 60. Verify via slim read s175.
+4. **Branch 2 persistence** — 1/3 single-candidate (11319 +22). Need 2nd candidate to start 3-session co-persistence count.
+5. **Migration HOLD (Branch 1)** — confirmed 2 sessions in a row. ≥4 D-gate persistence (Branch 3 trigger) still 0/3.
+6. **Amendment D** — UNFIRED. Triggers narrowed to rates-aware confirmed.
+7. **Amendment E** — NOT TRIGGERED yet. Watch for vuongdung1198 archetype permanence (3+ consecutive sessions of 100% parked) as potential trigger.
+8. **stop_harvest_batch ~17% revert** — defer.
+9. **v_HP staleness** — defer.
+10. **STRIKERS const stale (12225 atk_r)** — defer; v3 striker_idx=12649 always (single-striker calibration).
+11. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (175)** — Re-wake **+30 min** (~08:15 UTC May 5, ts ≈ 1777968928). Pinned to:
+- (a) **Roster verification** — slim reads on 11224, 10705, 12649 to disambiguate oracle/plan disagreement and resolve room location for Lethality allocation EV math.
+- (b) **11224 Lethality allocation candidate** — if RESTING + 3 SP banked + allocation feasible from current operator location, apply (~600k gas, ~+15-25 raw kill_zone uplift on 11224 vs vuongdung1198 SCRAP archetype).
+- (c) **11319 persistence check** — Branch 2 session 2/3 if rates_aware ≥+20 holds AND a 2nd node-60 candidate emerges. Without 2nd candidate, persistence counter stays at 1/3.
+- (d) **vuongdung1198 archetype watch** — 3rd consecutive 100%-parked session would elevate Amendment E hypothesis.
+
+**Bias for s175**: PRIMARY = roster verification + Lethality allocation IF feasible (this is the first actionable non-defer work item in 12 sessions of pilots — should attempt). FIRE if rates-aware fire-eligible co-located candidate emerges. ELSE defer #13 with note that Lethality allocation is the modality-shift work this batch.

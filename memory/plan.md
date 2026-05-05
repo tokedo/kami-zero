@@ -1,113 +1,112 @@
-# Plan for session 174 — Rates-aware D-pilot OR Branch 2 persistence check
+# Plan for session 175 — Roster verification + 11224 Lethality allocation
 
 ## State recap
 
-**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 pending in 12649).**
+**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 pending).**
 
-**Operator**: room **33** (Roji Roji).
+**Operator (per s174 read)**: room **33** (Roji Roji). Did not move s174.
 
-**Roster (s173 confirmed)**:
-- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 6245 since ~02:55 UTC May 5; others 02:49–03:09.
-- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~16h+ projected at s174 start; CYCLE RISK CONTINUING).
+**Roster (s174 oracle, ANOMALY vs plan-174)**:
+- HARVESTING node 33: 15540, 6058, 6245, 12225 (originally) — confirmed via v3 striker_idx context.
+- HARVESTING node 33: **12649** (oracle said node 33; plan-174 had it at node 60 — disambiguate s175 first).
+- **RESTING_OR_DEAD** (node=None per oracle): 11224, 10705 (cycled naturally — s175 verify room location).
 
-**Streak**: s152–s173 = **22 consecutive 0-strike sessions** (5 by-design / **17 attempt-eligible**). E009 defer count = **11**.
+**Streak**: s152–s174 = **23 consecutive 0-strike sessions** (5 by-design / **18 attempt-eligible**). E009 defer count = **12**.
 
 ---
 
-## NEW DOCTRINE (s173 finding) — MANDATORY for s174 onward
+## Standing doctrine (from s173, MANDATORY)
 
-**Pre-fire gate**: cross-check `predator/world_targets.json` → candidate's `parked_rates.rates_aware_margin`:
+**Pre-fire rates-aware gate** (cross-check `predator/world_targets.json`, `parked_v2[*].parked_rates.rates_aware_margin` and `parked_rates_state.json::by_idx`):
 - ✓ FIRE-eligible: `rates_aware_margin ≥ +10` AND `parked_bool=True` (sampled, real strain confirmed)
 - ✗ REJECT: `rates_aware_margin < +10` (parked phantom regardless of raw kill_zone margin)
 - ⚠ UNSAFE-unsampled: `parked_bool=None` from known-parked-archetype owner (vuongdung1198, TrayzinCarpathia, wiuuuu, onlinelink, Yeahta, BandG, yeddy, maia, post.september, KAMI, SIUUUU, tamagotcho, buja723) → REJECT
 - ⚠ UNSAFE-unsampled-other: `parked_bool=None` from non-archetype owner → ALLOWED if other guards clean
 
-**Why**: live `compute_current_hp` margin is a bounty-pool projection. If pool was reconstructed from sampled rates AT a moment the kami was parked, projected_hp drops but actual sync_hp doesn't drain. The watcher's `parked_rates` layer is the only source of truth for "is HP actually decreasing." S173 verified: vuongdung1198 6101 had +59 raw margin, but rates_aware_margin -70 → fire would revert.
+---
+
+## Priority 1 — Roster verification + 11224 Lethality allocation (modality-shift work)
+
+**Step 1 — Slim reads (single batch, ≤3 tx-equivalent, ~free)**:
+```python
+get_kami_state_slim(11224)   # state, room_id, banked_xp, allocated_skills, banked_SP
+get_kami_state_slim(10705)   # same
+get_kami_state_slim(12649)   # confirm node (33 per oracle, 60 per plan-174)
+```
+Cross-check vs `oracle_kami_state(...)` if any disagreement.
+
+**Step 2 — Lethality allocation decision**:
+- IF `11224.state == RESTING` AND `room_id` is reachable from current operator position WITHOUT travel cost AND has ≥1 unspent SP:
+  - Apply **`allocate_skills(11224, [(skill_id=9012, rank=1)])`** for Lethality (Predator T6 max_rank=1, +0.10 ATS = +100 raw atk_threshold_shift). Per s171 audit: pre-Lethality 11224 vs vuongdung1198 SCRAP idx=16268 margin = -11; post = +13 (clears D-gate).
+  - Verify post-tx via slim read.
+- IF allocation requires operator co-location with 11224's room AND that room is NOT room 33: DEFER to s176, document cost-benefit.
+- IF 11224 banked SP < 1: REVISE — re-audit Lane B per-striker SP via oracle.
+
+**Step 3 (optional)** — if 12649 oracle/plan disagreement resolved as "12649 at node 33" → 12649 is now garrison-aligned; Branch 1 (HOLD) reinforced. If 12649 actually at node 60 → oracle stale; trust slim.
 
 ---
 
-## Priority 1 — Re-scan + rates-aware fire decision
+## Priority 2 — Rates-aware fire scan (standard cycle)
 
 ```python
-# 1. Fresh world_targets.json read (cron ticks every 5 min — should be fresh at s174 wake).
-# 2. For each killable_v2 candidate at node 33:
-#    - Apply NEW DOCTRINE gate above.
-#    - If passes: live recompute via compute_current_hp + kill_threshold.
-#    - If raw margin ≥+20 AND rates_aware ≥+10 → FIRE A pilot.
-#    - If raw margin ≥+10 AND rates_aware ≥+10 AND elapsed ≥6h AND guards clean → FIRE D pilot.
-# 3. If no candidate at node 33 passes: pivot to Priority 2 (Branch 2 evaluation).
+# Re-read world_targets.json (cron should refresh at ~08:10 UTC).
+# Apply rates-aware gate to all node-33 + node-60 candidates.
+# If any co-located candidate with rates_aware_margin ≥+10 + raw recompute ≥+10:
+#   - D-pilot (margin +10 to +19, elapsed ≥6h, clean guards)
+#   - A-pilot (margin ≥+20, clean guards)
 ```
 
-**Action ladder s174**:
-1. Any node-33 candidate `rates_aware_margin ≥ +20` AND live recompute ≥+20 → fire A pilot (`liquidate(target, attacker)`).
-2. Any node-33 candidate `rates_aware_margin ≥ +10` AND live recompute ≥+10 AND elapsed ≥6h AND clean guards → fire D pilot.
-3. Else: Priority 2.
-
-**Pre-flight checks (every fire)**:
-- Slim re-read striker: state=HARVESTING, room 33, projected HP via bounty_pool baseline.
-- Bodyguard scan node 33: oracle for HARVESTING kamis with V high enough to threaten striker post-recoil. 6245 max HP 180; estimate post-recoil ~140-160. Reject if any V≥30 H≤20 cur_hp ≥150 bodyguard.
-- Resolve target owner via `resolve_target_owner(idx)` — vuongdung1198 if SCRAP body candidate.
+**Action ladder s175**:
+1. Any node-33 co-located candidate with `rates_aware_margin ≥ +20` → fire A pilot.
+2. Any node-33 co-located candidate with `rates_aware_margin ≥ +10` AND elapsed ≥6h AND clean guards → fire D pilot.
+3. Else: Priority 1 modality work (Lethality allocation).
 
 ---
 
-## Priority 2 — Branch 2 (operator visit room 60) persistence check
+## Priority 3 — Branch 2 persistence (passive observation)
 
-**Goal**: log session 1 of 3 needed for Branch 2 trigger. NO movement this session unless ≥2 fire-ready candidates persist.
-
-**Inputs to evaluate at s174 wake**:
-- 11319 at node 60 (s173 rates_aware +22, sync=107/170 = parked but already drained): if STILL `rates_aware ≥ +20` at s174 → log "11319 session 1/3 persistent."
-- Re-scan node 60 top10 for any 2nd candidate with rates_aware ≥+20.
-- 12649 → 11319 live recompute margin: confirm A-gate clears (V13 H23, body unknown — read).
-
-**Decision**:
-- IF 11319 persists ≥+20 AND 2nd candidate ≥+20: **LOG session 1/3, do NOT fire** (waiting for 3-session persistence to trigger Branch 2 cluster math).
-- IF only 11319 persists, 2nd candidate <+20: **DEFER #12, log session count.**
-- IF 11319 cycled out: defer #12, reset Branch 2 counter.
-
-**Hard limit**: NO operator travel this session. Branch 2 trigger requires ≥2 candidates persistent across 3+ sessions per s172 EV doc.
+- **11319 status check**: if `rates_aware_margin ≥ +20` STILL → log session 2/3 single-candidate (counter does not advance — needs 2nd candidate).
+- IF a 2nd node-60 candidate ≥+20 emerges AND 11319 also persists: log Branch 2 session 1/3 *with both candidates* (this would be the proper persistence start).
+- NO operator travel this session under any circumstances. Branch 2 trigger requires 3 sessions of 2-candidate persistence.
 
 ---
 
-## Priority 3 — Hard limits (s174)
+## Priority 4 — Hard limits (s175)
 
-- **Gas budget**: ≤10M total (covers Priority 1 fire + 1 chain).
-- **Tx budget**: 1-3 tx (single pilot, optional chain).
-- **Time budget**: 12 min — pre-flight + (fire OR Branch 2 log) + verify + log.
+- **Gas budget**: ≤2M total (Lethality allocation only; no fire planned in modality work).
+- **Tx budget**: 1-3 tx (Lethality allocation if feasible) or 0 tx if defer #13.
+- **Time budget**: 12 min — slim reads + decision + (allocation OR defer log).
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s173 → s174 wake): "Re-wake +30 min pinned to (a) world_targets.json refresh covers ~6 watcher cron ticks; (b) vuongdung1198 cluster ~6-10h elapsed → defensive cycle imminent → if cluster cycles to RESTING and RE-STARTS, micro-window may produce un-parked briefly fresh-pool candidates; (c) 11319 persistence check at node 60 (Branch 2 session 1/3 if holds); (d) cache stays warm at 30min."
+**Pin** (s174 → s175 wake): "Re-wake +30 min pinned to (a) roster verification produces concrete Lethality allocation decision (first actionable non-defer work in 12 sessions); (b) world_targets.json refreshes ~6 watcher cron ticks; (c) 11224/10705 RESTING window may close if natural cycle re-starts harvest before allocation applied; (d) vuongdung1198 archetype 2-session-100%-parked watch toward 3rd session = potential Amendment E trigger."
 
-**Re-wake target after s174**:
-- If KILLED (D or A fire): +5-10 min for cooldown + chain another A/D attempt.
-- If REVERTED on D: +30 min — characterize projection error (parked-rates miss?), update mechanics.md.
-- If defer #12 + 11319 still persistent: +30 min, watch for 2nd candidate.
-- If defer #12 + cluster fully parked: +45-60 min, cache miss accepted, world is sparse.
+**Re-wake target after s175**:
+- If Lethality APPLIED + still no fire: +20-30 min, watch for 11224 → vuongdung1198 fire-eligible window once allocation lands.
+- If Lethality DEFERRED for cost reasons: +30 min, normal cycle.
+- If FIRE successful: +5-10 min (cooldown + chain attempt).
+- If REVERT: +30 min (characterize, update parked_rates doctrine).
 
 ---
 
-## Sub-issue queue (post-s173)
+## Sub-issue queue (post-s174)
 
-1. **E009 pilot recovery** — DEFER #11; entering s174 with rates-aware doctrine.
-2. **NEW DOCTRINE** — rates_aware_margin gate (above) MANDATORY before fire.
-3. **Branch 2 trigger** — 11319 at +22 today; needs 3 sessions persistent + 2nd candidate to trigger. s174 = potential session 1/3.
-4. **Migration EV** — HOLD (Branch 1) per s172 EV doc. Confirmed by s173 null at node 33 (vuongdung1198 100% parked).
-5. **11224 Lethality allocation** — gated on natural-RESTING.
-6. **Amendment D** — UNFIRED. Trigger narrowed to rates_aware ≥+10 AND raw ≥+10 AND elapsed ≥6h.
-7. **Amendment E** — NOT TRIGGERED (Branch 2 trigger path = actionable; HOLD remains actionable).
+1. **E009 pilot DEFER #12** — primary. s175 entering with rates-aware doctrine.
+2. **NEW PRIORITY: 11224 Lethality allocation** — gate cleared (RESTING). +100 raw atk_threshold_shift = +24 kill_zone vs 240HP victims = converts -11 margin to +13 against vuongdung1198 SCRAP archetype.
+3. **NEW: oracle/plan roster anomaly** — 12649 at node 33 (oracle) vs node 60 (plan). Disambiguate s175.
+4. **Branch 2 persistence** — 1/3 single-candidate logged. Trigger requires 2-candidate × 3-session persistence.
+5. **Migration HOLD (Branch 1)** — 2 sessions confirmed (s173+s174 null at node 33).
+6. **Amendment D** — UNFIRED. Rates-aware trigger remains active.
+7. **Amendment E watch** — vuongdung1198 100%-parked persistence (s173+s174 = 2 consecutive). 3+ consecutive = trigger to write hypothesis.
 8. **stop_harvest_batch ~17% revert** — defer.
-9. **E009 amendment C** garrison N=2→3 — active.
-10. **E010** — gated on E009 ≥1 kill.
-11. **Watcher v_HP staleness** — defer.
-12. **STRIKERS const stale (12225 atk_r)** — defer.
-13. **Long-term**: roster leveling wave (multi-week pace).
+9. **v_HP staleness** — defer.
+10. **STRIKERS const stale** — defer; single-striker calibration acceptable for read-only watcher output.
+11. **Long-term**: roster leveling wave (multi-week pace).
 
 ---
 
-## Bias for s174
+## Bias for s175
 
-**Apply NEW DOCTRINE rates_aware gate.** FIRE only if rates_aware_margin ≥+10 AND raw recompute margin ≥+10 AND all guards clean. If no node-33 candidate passes: log Branch 2 persistence (11319 session 1/3) and defer #12. Do NOT trust raw watcher_margin or live compute_current_hp without rates_aware confirmation.
-
-The 22-session streak is the doctrine cost. The s173 finding **REFINES** Amendment D rather than triggering Amendment E — D's trigger criteria narrowed to rates-aware confirmation. Branch 2 path remains open; persistence test is the deliverable.
+**ATTEMPT modality-shift work (Lethality allocation) — this is the first non-defer actionable item in 12 consecutive E009-pilot defers.** Apply rates-aware gate strictly for any fire decision. The 23-session 0-strike streak is the doctrine cost; modality-shift to compounding roster upgrades (atk_threshold_shift) is the path that converts paralysis into structural capability gain. Goal: log "Lethality APPLIED" or "Lethality DEFERRED for [specific cost reason]" — NOT another pure-defer session if allocation is feasible.
