@@ -437,3 +437,11 @@ Migration sequence (next session, separate PR scope):
   ```
 - **Validation**: 50/50 parked detected on dry-run; watcher killable_v2=91 → killable_v3=41 (50 phantom rows correctly filtered to parked_v2 with `rates_aware_margin` of −55 to −67, confirming they were unstrikeable phantoms).
 - **Commit**: (this session, harness change)
+
+
+## 2026-05-05 — Scanner coverage-gap fix (refresh_parked_rates v2 ∪ v3 input, TOP_N 50→100)
+- **What**: `predator/scripts/refresh_parked_rates.py::load_candidates()` now reads `killable_v3 ∪ killable_v2` deduped (v3 listed first to prioritize fresh non-parked entries), and `TOP_N` raised from 50 to 100. Watcher unchanged.
+- **Why**: s159 discovered a coverage gap — when watcher's published `killable_v2[:50]` is fully parked, internal v2's deeper rows surface in `killable_v3[:50]` but the scanner never reached them (it only read published v2). Result: v3 rows had `parked_rates: None` and the doctrine triage couldn't trust them. Cron stagger doesn't fix this — the fix is union of v2+v3 input.
+- **Files**: `predator/scripts/refresh_parked_rates.py`, `predator/infrastructure.md` (documentation update).
+- **How to use**: No call-site change. Cron runs unchanged. Validated s160: scanner went from ~43-50 candidates/cycle to 72 (first run) and 59 (second run, after watcher republished smaller v3); runtime ~16s vs 12s before, well under 240s ceiling. After convergence, v2/v3 published combined rises as parked_v2 absorbs them; doctrine still 0-permissible across 41 v3 rows but coverage is now exhaustive.
+- **Commit**: (this session, harness change)

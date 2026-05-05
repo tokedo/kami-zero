@@ -34,7 +34,7 @@ OUTPUT_PATH = REPO_ROOT / "predator" / "parked_rates_state.json"
 ENV_PATH = Path.home() / ".blocklife-keys" / ".env"
 
 KAMIBOTS_BASE = "https://api.kamibots.xyz"
-TOP_N = 50           # candidates per cycle (matches killable_v2 size)
+TOP_N = 100          # candidates per cycle (v2 ∪ v3 deduped; up to 50 each)
 REQ_TIMEOUT = 15     # seconds per slim call
 SLEEP_BETWEEN = 0.05 # 50ms politeness pause between calls
 MAX_TOTAL_SEC = 240  # hard ceiling so the cron never overlaps a 5-min window
@@ -119,7 +119,14 @@ def extract_state(slim: dict) -> dict | None:
 
 
 def load_candidates() -> list[dict]:
-    """Read killable_v2 (margin-sorted) from the watcher snapshot."""
+    """Read killable_v2 ∪ killable_v3 (deduped) from the watcher snapshot.
+
+    Both arrays are top-50 each. When v2's top-50 are fully parked-flagged,
+    v3 surfaces watcher rows beyond rank-50 of internal v2 — those v3 rows
+    have no rates entry yet (coverage gap discovered s159). Merging both
+    closes the gap; v3 listed first so fresh non-parked entries take
+    precedence in dedup.
+    """
     if not WORLD_TARGETS_PATH.exists():
         print(f"world_targets.json missing — run watcher first", file=sys.stderr)
         return []
@@ -129,7 +136,17 @@ def load_candidates() -> list[dict]:
     except (OSError, json.JSONDecodeError) as e:
         print(f"world_targets.json read error: {e}", file=sys.stderr)
         return []
-    return data.get("killable_v2") or []
+    v2 = data.get("killable_v2") or []
+    v3 = data.get("killable_v3") or []
+    seen: set = set()
+    merged: list[dict] = []
+    for c in v3 + v2:
+        idx = c.get("v_idx")
+        if idx is None or idx in seen:
+            continue
+        seen.add(idx)
+        merged.append(c)
+    return merged
 
 
 def main() -> int:
