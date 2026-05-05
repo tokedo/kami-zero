@@ -1,14 +1,14 @@
-# Plan for session 160 — MONITOR + maybe BUILD (coverage-gap fix candidate)
+# Plan for session 161 — MONITOR + maybe BUILD (v_HP staleness fix candidate)
 
 ## State recap
 
 **Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (~688 pending in 12649's pool).**
 
-**Operator**: room 60. 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~6.7h+ at s160 start). Other 4 strikers RESTING.
+**Operator**: room 60. 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.0h+ at s161 start). Other 4 strikers RESTING.
 
-**Streak**: s152-s159 = 8 consecutive 0-strike sessions (s157=build, s158=test, s152-s156+s158-s159 = 7 attempt-eligible 0-strike).
+**Streak**: s152-s160 = 9 consecutive 0-strike sessions (s157 build, s158 test, s152-s156+s158-s160 = 8 attempt-eligible 0-strike).
 
-**s159 outcome**: 0 doctrine-permissible across 38 v3 rows. NEW SUB-ISSUE = scanner coverage gap (top-50 published v2 fully parked → 38 v3 rows beyond rank-50 are rates-unknown). Cron stagger doesn't fix. Need v2∪v3 patch.
+**s160 outcome**: 0 doctrine-permissible across 46 v3 rows (skip 4, deny 15, dung_V<22 9, E006 floor 9, sub-30 9). **Coverage-gap fix shipped (commit 75480ae)** — scanner now reads v2∪v3 deduped, TOP_N 100. Validated: 72 candidates/cycle scan, all 72 parked. Coverage convergence in-progress (2 ticks done; 3 more for full sync).
 
 ---
 
@@ -46,70 +46,47 @@ for c in snap['killable_v3']:
 ### Step 1.3 — Strike-go (if any candidate passes)
 
 For top permissible candidate:
-- If `parked_rates.parked_bool == False AND rates_intensity_avg > 0`: strike immediately (no extra slim).
-- If `parked_rates is None` (unscanned): one slim re-confirm via Kamibots is acceptable (sanctioned per `ideas_to_founder.md § 6.3`). Especially likely now that coverage-gap is known.
+- If `parked_rates.parked_bool == False AND rates_intensity_avg > 0`: strike immediately.
+- If `parked_rates is None` (unscanned): one slim re-confirm via Kamibots is acceptable (sanctioned per `ideas_to_founder.md § 6.3`).
 - Strike: `liquidate(target=v_idx, target_handle=v_acct)` with `striker_idx`.
 
 ### Step 1.4 — Empty case (likely)
 
-If 0 doctrine-permissible: log streak entry (s160 = 9th consecutive 0-strike). Append adoption metric. Move to P2.
+If 0 doctrine-permissible: log streak entry (s161 = 9th attempt-eligible 0-strike). Move to P2.
+
+**Strategic-experiments review trigger**: if s161 also 0-permissible, **fires at s162** (queue: E006 floor recalibration, V<22 floor relaxation for V=21, cross-region pivot beyond watched 17 nodes, skip-list pruning).
 
 ---
 
-## Priority 2 — Scanner coverage-gap fix (build, ~20 LOC)
+## Priority 2 — Watcher v_HP staleness fix (build, ~10-15 LOC)
 
-**Trigger**: ship if P1 is empty AND ≥5 min budget remaining. Otherwise defer to s161.
+**Trigger**: ship if P1 empty AND coverage-gap convergence is now stable (≥80% of v3 rows have parked_rates entries) AND ≥5 min budget remaining.
 
-**Problem**: scanner reads `world_targets["killable_v2"]` (capped to top-50). When all 50 are parked, v3's 38 rows beyond rank-50 are rates-unknown (`parked_rates: None`). Filter is partially blind.
+**Problem (s156 carry-over)**: watcher's `v_HP` is computed from `kami_static.total_health` (build cache). When `parked_rates_state.json` has a fresher `total` for the same v_idx (from a recent slim call), it should be preferred. Concrete failure mode: s156 maia 3203 had watcher-claimed v_HP=190 but slim-actual total=130 (38 HP overstatement). Phantom margin would be wider than reality.
 
-**Fix design (preferred)**: scanner reads `v2 ∪ v3` deduped from published snapshot. Both are top-50 each → up to 100 unique candidates. TOP_N stays sized for the union.
-
-**Patch** (`predator/scripts/refresh_parked_rates.py`):
-```python
-def load_candidates() -> list[dict]:
-    if not WORLD_TARGETS_PATH.exists():
-        print("world_targets.json missing — run watcher first", file=sys.stderr)
-        return []
-    try:
-        with open(WORLD_TARGETS_PATH) as f: data = json.load(f)
-    except (OSError, json.JSONDecodeError) as e:
-        print(f"world_targets.json read error: {e}", file=sys.stderr)
-        return []
-    v2 = data.get("killable_v2") or []
-    v3 = data.get("killable_v3") or []
-    # Merge v2 + v3 (v3 first to prioritize fresh non-parked entries)
-    seen = set()
-    merged = []
-    for c in v3 + v2:
-        idx = c.get("v_idx")
-        if idx is None or idx in seen: continue
-        seen.add(idx); merged.append(c)
-    return merged
-```
-
-Bump `TOP_N` from 50 → 100 (or leave at 50 if v3 prioritization is good enough — lower cost).
+**Fix design**: in `refresh_world_targets.py`, after attaching `parked_rates` per row, override `v_HP` (and recompute `margin`) when `parked_rates.total` differs and `parked_rates.last_checked_ts > <build_refresh_cutoff>`. Alternative: surface a separate `v_HP_slim` field for transparency without overriding the existing column.
 
 **Verify**:
-- Run `python3 predator/scripts/refresh_parked_rates.py` manually.
-- Run `python3 predator/scripts/refresh_world_targets.py` manually.
-- Re-read snapshot: confirm `killable_v3` rows have `parked_rates` populated for ≥80% of entries.
+- Run `python3 predator/scripts/refresh_world_targets.py` manually post-edit.
+- Spot-check a known-stale entry (e.g. recent maia 3203 if surfaced).
+- Confirm doctrine triage outputs are consistent (no new permissible candidates appearing solely from corrected v_HP).
 
-**Document**: append a brief note to `predator/infrastructure.md` § Parked-rates refresher about the v2∪v3 input.
+**Document**: append a note to `predator/infrastructure.md` § watcher integration section.
 
 ---
 
-## Priority 3 — Out of scope (s160)
+## Priority 3 — Out of scope (s161)
 
 - **No glue-raid** (no Blue Pansy / Animistic Poison).
 - **No force-flush** — strikers HARVESTING node 60 with 0 HP loss; intensity continues.
 - **No cross-region pivot** without ≥3-row rates-verified cluster.
 - **Quest progression paused**.
 - **Kamibots state reads forbidden** in-session outside the sanctioned scanner.
-- **No cron stagger** — coverage-gap fix supersedes the lower-leverage cron stagger.
+- **No cron stagger** — demoted; coverage-gap fix supersedes.
 
 ---
 
-## Hard limits (s160)
+## Hard limits (s161)
 
 - **Gas budget**: ~5M (single strike if criteria pass) OR 0 (build-only).
 - **Tx budget**: 1 strike + 1 close-feed if landed; 0 if no permissible candidate.
@@ -120,7 +97,7 @@ Bump `TOP_N` from 50 → 100 (or leave at 50 if v3 prioritization is good enough
 
 ## Strategic-experiments queue (s162 review trigger)
 
-Currently s158+s159 have 0 doctrine-permissible. If s160+s161 also yield 0, fires at s162:
+s158+s159+s160 = 3 consecutive 0-permissible. If s161 also 0-permissible, fires at s162:
 1. **E006 floor recalibration** — sb≤-25 with high-V (V≥22) — does +95 still hold or relax to +75/+50?
 2. **V<22 floor relaxation** for V=21 candidates with rates-confirmed (vuongdung1198 V=21 sb=-125 surfaces frequently +30-40).
 3. **Cross-region pivot** beyond watched 17 nodes (read `world-liquidations.jsonl` for competitor success).
@@ -128,27 +105,27 @@ Currently s158+s159 have 0 doctrine-permissible. If s160+s161 also yield 0, fire
 
 ---
 
-## Sub-issue queue (post-rates-filter)
+## Sub-issue queue (post-coverage-gap)
 
-1. **Scanner coverage gap (s159)** — see Priority 2 above. Ship in s160 if P1 empty.
-2. **Watcher v_HP staleness (s156)**: when `parked_rates_state.json` has fresh `total` for v_idx, prefer it over watcher build-cache. ~10 LOC. Schedule for s161-s162.
-3. **Cron timing race (s158)**: stagger 1-min would clean ordering but doesn't fix coverage. Demoted.
+1. **Scanner coverage gap (s159)** — ✅ shipped s160 (commit 75480ae). Convergence ticks ongoing.
+2. **Watcher v_HP staleness (s156)** — see Priority 2 above. Ship in s161 if P1 empty AND coverage converged.
+3. **Cron timing race (s158)** — demoted further. Stagger fix produces 1-tick reduction in convergence latency. Defer to s163+.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake +20 min (~00:40 UTC May 5, ts 1777941600). Pinned to (a) one full parked_rates cron tick + watcher tick (5+5+5 buffer for convergence); (b) potential fresh harvest_start by a non-blocked owner flipping rates into the strike window; (c) coverage-gap fix shipping window (need ~5 min build + verify)."
+**Pin**: "Re-wake +25 min (~01:05 UTC May 5, ts 1777943100). Pinned to (a) coverage-gap convergence completion (5+ alternating cron ticks across 25 min); (b) potential fresh harvest_start by non-blocked owner flipping rates into strike window; (c) v_HP staleness fix shipping window (~5 min build + verify if P1 empty)."
 
-**Re-wake**: **1777941600** (~00:40 UTC May 5).
+**Re-wake**: **1777943100** (~01:05 UTC May 5).
 
 ---
 
-## Bias fire-now (s160)
+## Bias fire-now (s161)
 
 Action ladder:
 1. Read world_targets.json + verify schema_v=2 + parked_rates.applied=true.
 2. Doctrine-filter killable_v3 (the doctrine logic above).
 3. If permissible row: rates-verify + strike.
-4. If 0 permissible: ship coverage-gap fix (Priority 2).
-5. Schedule +20-min re-wake to s161.
+4. If 0 permissible AND ≥80% v3 coverage: ship v_HP staleness fix (Priority 2).
+5. Schedule +20-25 min re-wake to s162.

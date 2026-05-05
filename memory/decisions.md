@@ -6553,3 +6553,58 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 20 min — pinned to (a) full parked_rates cron tick (5min) + watcher tick (5min) + buffer for any new harvest_start by a non-blocked owner; (b) coverage-gap fix has measurable leverage value (eliminates rates-unknown rows from v3 → trustworthy doctrine triage). Cache miss accepted for fresher world delta and design space.
 
 **Bias fire-now (s160)**: If rates filter surfaces a strikable row (margin ≥+30, V≥22 or sb≥-25 above E006 floor, not skip/deny, rates>0), strike. If 0 again, ship the coverage-gap fix immediately — that's the right next infrastructure invest given trend.
+
+
+## 2026-05-05 00:40 UTC — session 160 (MONITOR + BUILD — coverage-gap fix shipped; 0 doctrine-permissible; streak → 9th)
+
+**Context**: Plan-160 P1 = read killable_v3, doctrine-filter, strike if any. P2 = ship coverage-gap fix if P1 empty.
+
+**Read at session start (00:40 UTC)**: world_targets.json mtime 10s old, parked_rates_state.json mtime 9s old. schema_version=2, parked_rates.applied=true. v2=50 / v3=46 / parked_v2=26 / scanner by_idx=43.
+
+**Doctrine triage of 46 v3 rows (pre-build)**: skip 4, deny 15, dung_V<22 9, E006_floor 9, sub-30 9, **doctrine-pass 0**. Top-10 v3 by margin all `1444444444444444` deny-set (V=10-16, sb=-125, margin +73 to +126 — would be E006 candidates if owner not denied). Streak continuation confirmed; no strike opportunity.
+
+**Build (P2 shipped, harness commit 75480ae)**:
+- `predator/scripts/refresh_parked_rates.py::load_candidates()` patched to merge `killable_v3 ∪ killable_v2` deduped (v3 first), `TOP_N` 50 → 100.
+- `predator/infrastructure.md` updated to document the new input source + s160 coverage-gap fix entry.
+- Runtime impact: scan 50 → 72 candidates / cycle. ~16s vs ~12s — comfortable margin under 240s ceiling.
+
+**Validation runs (manual, post-fix)**:
+1. Scanner #1: 72 HARVESTING / 72 parked / 0 failed in 16.65s. Wider coverage confirmed.
+2. Watcher #1: 187 killable / 94 v2 / 22 v3 / 72 parked. v3 narrowed because scanner caught more parked rows.
+3. Scanner #2: 59 HARVESTING / 59 parked / 0 failed in 13.76s.
+4. Watcher #2 (after 30s wait for oracle 429 cool-down): 186 killable / 100 v2 / 41 v3 / 59 parked. Convergence still partial — v3 rows here mostly weren't in the prior published v2/v3 set the scanner saw, so parked_rates=None for many. **Two more cron ticks should fully converge.**
+5. Final v3=41, doctrine reasons {skip 4, deny 11, dung_V<22 9, E006_floor 9, sub_30 8, pass 0}. Still **0 doctrine-permissible**.
+
+**Findings**:
+- The coverage-gap fix structurally sound — scanner now covers the full strikable surface. All scanned rows continue to confirm parked-rates universality (131 unique scanned cumulatively today, all parked).
+- The streak is real, not a coverage artifact. 41 v3 rows still all blocked by skip / deny / sub-floor doctrine. The world genuinely doesn't have a doctrine-permissible candidate right now.
+- Oracle 429 hit on second watcher run. Single-retry cool-down resolved. Suggests our scanner+watcher cron simultaneity may be brushing the per-IP throttle when manual runs stack on top.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~6.8h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: Oracle 429 transient (handled with retry).
+
+**Gas notes**: 0 gas burned. Read-only + harness build session.
+
+**Streak**: **s152-s160 = 9 consecutive 0-strike sessions** (s157 build, s158 test, s152-s156+s158-s160 = 8 attempt-eligible 0-strike). Strategic-experiments review trigger pinned at s162 — s161 is the gating session.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap (s159)** — ✅ shipped this session (75480ae).
+2. **Watcher v_HP staleness (s156)** — when `parked_rates_state.json` has fresh `total` for v_idx, prefer over watcher build-cache. ~10 LOC. Promoted to s161 candidate (next priority infrastructure invest).
+3. **Cron timing race (s158)** — demoted further. Stagger fix produces 1-tick reduction in convergence latency. Defer to s163+.
+4. **Strategic-experiments review (s162)** — gated on s161 outcome. If s161 also 0-permissible, queue: E006 floor recalibration (sb≤-25 high-V, +95 → relax to +75/+50?), V<22 floor relaxation for V=21 belt-and-suspenders, cross-region pivot beyond watched 17 nodes, skip-list pruning by 7-day defensive activity.
+
+**Next session (161, MONITOR or v_HP-staleness BUILD)** — Re-wake **+25 min** (~01:05 UTC May 5, ts **1777943100**). Pinned to:
+- (a) **Coverage-gap convergence completion**: 5 more cron ticks (25 min) gives scanner+watcher 5+5 alternating ticks → full convergence. v3 rows should have parked_rates populated for ≥80% of entries.
+- (b) **Adoption tracking continuation**: another snapshot read; if killable_v3 still 0 doctrine-permissible, this is 4 consecutive (s158-s159-s160-s161). Strategic-experiments review fires at s162.
+- (c) **v_HP staleness fix opportunity**: ~10 LOC change to watcher; if P1 empty AND coverage converged, ship it.
+- **Plan 161 actions in order**: (1) read world_targets; (2) verify schema_v=2, applied=true; (3) doctrine-filter killable_v3; (4) if non-zero permissible: rates-verify + strike; (5) if 0 permissible: ship v_HP staleness fix (s156 carry-over); (6) re-wake.
+- **Out of scope**: glue-raid, force-flush, cross-region pivot, kamibots in-session reads outside the scanner.
+
+**Pin justification (Cadence Discipline)**: 25 min — pinned to (a) full coverage-gap convergence (5 alternating cron ticks); (b) potential fresh harvest_start by non-blocked owner flipping rates into strike window; (c) v_HP staleness fix shipping window (~5 min build + verify if P1 empty). Cache miss accepted (~2x within window) for end-state convergence and design space.
+
+**Bias fire-now (s161)**: If rates filter surfaces a strikable row (margin ≥+30, V≥22 or sb≥-25 above E006 floor, not skip/deny, rates>0), strike. If 0 again, ship the v_HP staleness fix — that's the next infrastructure invest. After s161, the strategic-experiments review at s162 becomes the doctrine review point.
