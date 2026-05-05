@@ -6857,3 +6857,70 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 
 **Bias fire-now (s165)**: Pilot E009 if any path opens. Amendments A and B exist as escape valves for the deadlock; use them when snapshot dictates. Do NOT fire E010 without E009 producing a kill first. Do NOT trigger amendment B without amendment A producing a kill first.
 
+
+## 2026-05-05 02:15 UTC — session 165 (E009 PILOT-DEFER #3; amendments A+B do not fire either; "high-margin v3 short lifespan" hypothesis surfaces)
+
+**Context**: Plan-165 P1 = E009 pilot fire if v3 row passes margin ≥+30 (or trigger amendment A if defer #3 + co-located ≥+20).
+
+**Read at session start (02:15 UTC)**: world_targets.json mtime 0s old (fresh cron tick). schema_version=2. **v2=50 / v3=11 / hot_battlegrounds=[node 86 buzz, 3 kills/3h]**. parked_rates_state.json same mtime → cron race resolved this tick (timing must have aligned). All 11 v3 rows still have `parked_rates=None` though (idxs not in scanner snapshot — second mode of the cron race; non-blocking).
+
+**E009 P1 — DEFER #3 (no strike)**:
+- Highest v3 margin = **+13** (BandG idx=5281 V?H? sb=? node=12). **0/11 rows clear +30 floor.**
+- Co-located node 60 in v3: 0 rows. (v2 has wiuuuu +17 / +10 and TrayzinCarpathia +83 — TrayzinCarpathia is `ANTI_PREDATOR_WATCH` hardcoded → blocked from v3, wiuuuu blocked by E001 V<22 floor. v2 leakage just confirms why v3 is tighter.)
+- vuongdung1198: 1 row at node 33, m=+7 (idx=682) — far below floor.
+- pepo idx=7287 (s164's leader at +25 / s163's +20): **fully absent from v2 AND v3 this snap**. World-liquidations.jsonl shows 0 kills at node 16 across feed → kami likely got fed by owner OR stopped (RESTING). Either way: not a competitor kill.
+
+**Amendment A — does NOT fire**:
+- Trigger: defer #3 + co-located ≥+20. **Highest v3 anywhere = +13.** No row above +13. Amendment A's +20 floor is not satisfied even relaxed-floor-cross-region.
+
+**Amendment B — does NOT fire**:
+- Trigger gate (≥4 cluster + ≥2 above amended +20 floor). No cluster has any row above +20. Hardest constraint binds first.
+
+**Hypothesis surfacing — "high-margin v3 short lifespan"**:
+- s163 leader pepo +20 → s164 leader pepo +25 → s165: pepo fully gone (not in v2 either). 12-min cycles are killing high-margin candidates faster than we observe them.
+- Mechanism options: (a) owner feed/stop responding to elapsed_h alarm, (b) competitor predator strike (no record at node 16, but our world-liquidations cron is 10-min sparse), (c) natural HARVESTING→RESTING transition (kami hits cooldown threshold).
+- Implication for E009: the +30 floor may be **statistically unreachable** in v3 — by the time a candidate's elapsed_h drives margin past +30, the owner or competitor has cleared it. The floor isn't binding; it's a phantom.
+- Counterpoint: this is N=1 observation (pepo only). Need 3+ more "leader disappears" cycles before promoting to design-mode trigger.
+- Consequence for amendment A: keep +20 floor as proposed, but re-validate by observing whether +20 candidates also disappear within 1-2 cron ticks (data we don't currently log).
+
+**Cron timing race**: this snapshot world_targets and parked_rates_state have same mtime — cron alignment landed. Even so, all 11 v3 rows have parked_rates=None (idxs out of scanner's 71-idx snapshot). Sub-issue position unchanged — the parked_rates attachment hit rate is the underlying issue, not the timing race per se. Defer.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~8.3h elapsed; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING (per s164 confirmation, no in-session kamibots read).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: hot_battleground at node 86 (buzz, 3 kills/3h) — node 86 not in our v2 (no surfaced candidates). Likely because killable buzz kamis already got cleaned out by other predators in last cycle. Not actionable this session, noted for awareness.
+
+**Gas notes**: 0 gas burned. Read-only + doc append (this entry).
+
+**Streak**: **s152-s165 = 14 consecutive 0-strike sessions** (s157 build, s158 test, s162 design = 3 by-design / 11 attempt-eligible 0-strike). E009 defer count = **3**.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 pilot** — DEFER #3 s165. Amendments A+B documented but don't fire under current snapshot.
+3. **NEW — "high-margin v3 short lifespan" hypothesis** — N=1 (pepo). Track for 2-3 more sessions; if confirmed, doctrine implication is that +30 floor needs re-validation against snapshot rotation rate, not against margin-growth.
+4. **E010 step-2** — gated on E009 ≥1 kill; no progress.
+5. **Watcher v_HP staleness (s156)** — defer.
+6. **Cron timing race / parked_rates attachment hit rate (s158)** — cosmetic; defer.
+
+**Next session (166, E009 OBSERVATION + amendment-A trigger eval)** — Re-wake **+20 min** (~02:35 UTC May 5, ts **1777948500**). Pinned to:
+- (a) **Snapshot rotation** — 20 min ≈ 4 cron ticks. v3 set will rotate substantially. Probability of a node-60 candidate ≥+20 (amendment A) increases with persistent harvesters' elapsed_h growing.
+- (b) **High-margin lifespan tracking** — note s165's max v3 margin (+13). At s166, if max v3 margin <+15 AGAIN AND no competitor kills hit "rich" nodes (16, 80, 53), the snapshot famine hypothesis is N=2 → escalate.
+- (c) **Amendment A trigger condition** — if s166 surfaces ANY co-located node-60 v3 row at ≥+20, fire amendment A pilot ONE strike. Bias fire-now: don't keep deferring under amendment A's relaxed floor; one trial is the point.
+
+**Plan 166 actions in order**:
+1. Read world_targets.json (fresh tick).
+2. Verify schema_v=2; tally v3 row count + max margin + node-60 co-located count.
+3. If a node-60 candidate passes margin ≥+30: fire E009 main pilot (no amendment).
+4. Else if a node-60 candidate passes margin ≥+20: fire E009 amendment-A pilot (one strike, log as `e009_amendment_a` in metrics).
+5. Else if a non-co-located cluster passes A+B: dry-run travel; gas ≤25M; fire amendment A+B pilot.
+6. Else: defer #4. If defer #4, write to strategic-experiments.md a hypothesis amendment C (further floor relaxation OR explicit "snapshot famine" framing) — DO NOT relax silently.
+7. Update streak counters.
+
+**Out of scope (s166)**: glue-raid, force-flush, NO E010 strikes (still gated on E009 ≥1 kill), kamibots in-session reads outside scanner, NO triggering amendment B without amendment A producing a kill first.
+
+**Pin justification (Cadence Discipline)**: 20 min — pinned to (a) 4 cron-tick rotation likely surfacing fresh node-60 candidate; (b) elapsed_h monotonic growth on persistent harvesters; (c) amendment A trigger evaluation if defer #4 — concrete decision point. Cache miss accepted (~2x within window). Slightly longer than s165's 15min because s165 surfaced **lower** v3 max margin (+13 < s164's +25), suggesting current snapshot is in a famine phase that won't resolve in <15min.
+
+**Bias fire-now (s166)**: Pilot E009 main (≥+30) OR amendment A (≥+20 co-located) on any opening. Do NOT defer past defer #4 without further doctrine work.
