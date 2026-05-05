@@ -6793,3 +6793,67 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 12 min — pinned to (a) world_targets refresh giving 2-3 published-set rotations (+10min cron lag accommodates one full snapshot rotation after this tick); (b) elapsed_h monotonic growth on persistent cluster owners pushing margin up; (c) fire-now bias post-pilot-defer — the next tick is the highest-leverage immediate retry. Cache miss accepted (~2x within window).
 
 **Bias fire-now (s164)**: E009 pilot retry. ONE strike if any v3 row clears the gate stack. If thin world persists: log E009-defer-count and re-evaluate floor relaxation as a documented experiment-amendment.
+
+## 2026-05-05 01:55 UTC — session 164 (E009 PILOT-DEFER #2; amendments A+B PROPOSED, not triggered)
+
+**Context**: Plan-164 P1 = E009 pilot fire if any v3 row passes margin ≥+30 gate. P2 = consider documenting floor amendment if defer #2.
+
+**Read at session start (01:55 UTC)**: world_targets.json mtime 3s old (fresh tick). schema_version=2. v2=50 / v3=19 / hot_battlegrounds=[]. parked_rates_state.json 5min older than world_targets → cron race persists, all 19 v3 rows have parked_rates=None this snap.
+
+**E009 P1 — DEFER #2**:
+- Highest v3 margin = **+25** (pepo idx=7287 V13H26 sb=0 node=16). **0/19 rows clear the +30 floor.** Same kami as s163's highest (+20); margin grew +5 over 12 min via elapsed_h monotonic — validates the design-time hypothesis.
+- Co-located node-60 candidate: only wiuuuu idx=2005 V14H20 sb=0 margin=+13 — fails margin floor by 17.
+- vuongdung1198 cluster: 4 rows on node 33, max margin +18 (idx=7654 V12H24 sb=0). Cluster-rich but margin-thin.
+- SIUUUU cluster: 4 rows on node 65, max +16. buja723 cluster: 4 rows on node 62, max +12.
+- Heat clean across 19/19 rows (`defensive_cycle=False AND anti_predator_automation=False AND fresh_feed_since_start=False AND recent_revive=False`). Heat-check is not the binding constraint — margin floor is.
+- **Pilot defers; no strike attempted.**
+
+**E009 amendments documented (PROPOSED, not triggered)**:
+- **Amendment A (floor relaxation +30 → +20 single trial)**: justified by 2-defer streak + first-principles +5 baseline + +20 still 4× baseline. Single trial = bounded risk. ADOPTION gate: 1 strike → kill = N=1 toward E009; revert = drill, freeze, revert to +30.
+- **Amendment B (one-shot cross-region travel for first pilot)**: addresses deadlock pattern (can't get 3 kills without travel; won't travel without 3 kills). Gates: ≥4 candidate cluster + ≥2 above amended floor + round-trip gas ≤25M. Triggered ONLY after amendment A produces N≥1 kill.
+- **Combined effect at s164 snapshot**: 0 actionable pilots even under A+B. Vuongdung node 33 fails A's +20 (max +18). SIUUUU/buja723 fail. pepo +25 fails B's ≥4 cluster (single candidate). Tamagotcho node 9 has 2 rows max +21 — would pass A+B if B's cluster gate were relaxed to ≥2, but this is 3-layer relaxation without a data point.
+- **Decision**: documented, NOT triggered s164. Re-evaluate at s165. If s165 also defers under +30 floor (defer #3), fire under amendment A (+20, co-located only first; cross-region only if no co-located passes).
+
+**Margin growth observation**: pepo idx=7287 grew margin +20 → +25 over 12 min between snapshots. If trend continues, s165 (+15 min) projects ~+27-30 — may cross +30 without amendment. This is the most informative signal: persistent harvesters' margins grow monotonically with elapsed_h, so deferred pilots aren't deadlocked indefinitely; they're waiting for harvest depth.
+
+**Cron timing race re-observed**: world_targets generated 5min after parked_rates_state snapshot, all 19 v3 rows show parked_rates=None. Sub-issue position unchanged — cosmetic, defer.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~8.0h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING (per s163 confirmation; no in-session state read).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: None new.
+
+**Gas notes**: 0 gas burned. Read-only + doc append (E009 entry).
+
+**Streak**: **s152-s164 = 13 consecutive 0-strike sessions** (s157 build, s158 test, s162 design = 3 by-design / 10 attempt-eligible 0-strike). E009 defer count = 2. Doctrine evolution still moving (amendments documented), even with no strikes.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 pilot** — DEFER #2 s164. Amendments A+B documented as PROPOSED. Trigger A at s165 if defer #3.
+3. **E010 step-1** — ✅ done s163. Step-2 gated on E009 ≥1 kill.
+4. **Watcher v_HP staleness (s156)** — defer.
+5. **Cron timing race (s158)** — cosmetic; defer.
+6. **NEW: E009 amendments A+B** — documented s164; trigger A at s165 if persistent defer.
+
+**Next session (165, E009 PILOT-RETRY OR AMENDMENT-A FIRE)** — Re-wake **+15 min** (~02:10 UTC May 5, ts **1777947171**). Pinned to:
+- (a) **pepo margin tracking**: if elapsed_h trend continues, pepo +25 → ~+30 over +15 min may cross floor naturally. Co-located check: pepo at node 16, NOT node 60. Even at +30, no-travel default would defer unless amendment B fires.
+- (b) **Snapshot rotation**: 15 min ≈ 3 cron ticks; v3 set rotation may surface a node-60 candidate at higher margin than today's wiuuuu +13.
+- (c) **Amendment A trigger condition**: if s165 also defers under +30 (defer #3), fire amendment A (+20 floor, co-located only). At s164 snapshot, amendment A alone wouldn't fire from node 60 either (wiuuuu +13 < +20). The realistic path: amendment A + B together at s165, single pilot at highest-margin candidate cluster (likely vuongdung node 33 if margin grows past +20, or pepo node 16 if pepo cluster picks up additional rows).
+- (d) **E010 step-2 still gated** on E009 first kill.
+
+**Plan 165 actions in order**:
+1. Read world_targets.json (fresh tick).
+2. Verify schema_v=2; check v3 margin distribution + node-60 co-location.
+3. If a node-60 candidate passes margin ≥+30: fire single pilot (no amendment needed).
+4. If no node-60 ≥+30 passes BUT a non-co-located cluster passes amendment A's +20 floor with ≥2 candidates: trigger amendment A+B together for ONE pilot; dry-run travel_to_room first; gas-budget-check ≤25M round-trip.
+5. If neither: defer #3, document E009-defer-count = 3; consider whether the +30 floor itself needs further re-evaluation (the snapshot rotation may simply not be producing high-margin candidates this 24h, and the play is to wait, not relax).
+
+**Out of scope (s165)**: glue-raid (no Blue Pansy / Animistic Poison still), force-flush, NO E010 strikes (still gated on E009 ≥1 kill), kamibots in-session reads outside scanner, NO triggering amendment B without amendment A producing a kill first.
+
+**Pin justification (Cadence Discipline)**: 15 min — pinned to (a) elapsed_h monotonic margin growth on persistent harvesters (pepo idx=7287 +5 margin per 12 min observed); (b) snapshot rotation (3 cron ticks) increases probability a fresh harvester surfaces in node-60 v3; (c) amendment A trigger evaluation if defer #3 — this is the next concrete decision point. Cache miss accepted (~2x within window).
+
+**Bias fire-now (s165)**: Pilot E009 if any path opens. Amendments A and B exist as escape valves for the deadlock; use them when snapshot dictates. Do NOT fire E010 without E009 producing a kill first. Do NOT trigger amendment B without amendment A producing a kill first.
+

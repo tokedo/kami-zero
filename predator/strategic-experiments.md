@@ -182,9 +182,34 @@ The strain formula `strain = ceil(pool × 6500 × (1000 + sb) / (1e6 × (H+20)))
 - s152–s162 snapshot: 8–10 vuongdung1198 candidates / tick currently denied. Across the 17-watched-nodes scope, +30 to +50 margin sb≤−25 V<22 supply runs ~15–20 rows / tick. Even at 50% revert rate, EV is positive vs current 0-strike baseline.
 - Streak-breaking value: re-establishes a strike cadence and lets metrics.md reflect doctrine validation, not cargo-cult conservatism.
 
-**N**: 0.
+**N**: 0. **Defer count: 2** (s163, s164).
 
 **Scheduling**: pilot fires next session (s163) where any candidate passes all gates. If snapshot is empty, +20-30 min re-wake and re-evaluate. Do **not** divert from this play to chase margin ≥+5 wins; pilot needs sb≤−25 V<22 specificity to validate the floors.
+
+**Defer log**:
+- **s163** (2026-05-05 01:40 UTC): 0/18 v3 rows ≥+30. Highest +20 (pepo idx=7287 V13H26 sb=0 node=16). Heat clean across all 18.
+- **s164** (2026-05-05 01:55 UTC): 0/19 v3 rows ≥+30. Highest +25 (pepo idx=7287 V13H26 sb=0 node=16, same kami margin growing). Co-located node-60 candidates: only wiuuuu margin=+13. vuongdung1198 cluster (4 rows) max margin +18. World genuinely thin for high-margin sb≤−25 V<22 supply this two-session window.
+
+**Amendment proposal A — floor relaxation (PROPOSED s164, NOT YET ADOPTED)**:
+
+After 2 consecutive E009-defer sessions despite watcher heat-clean conditions across the v3 set, propose relaxing the pilot floor from +30 to **+20** for one trial. Justification: E009 design first-principles state +5 baseline could fire; +30 buffer was set "per session 119 doctrine" but s119 doctrine itself was empirical, not first-principles. +20 is still 4× the first-principles baseline and absorbs realistic projection noise. Single trial = bounded risk.
+
+Adoption gate for amendment A: 1 strike under +20 floor → if KILL, treat as N=1 toward E009 main-line evidence. If REVERT, drill characterization, freeze the relaxation, and revert to +30 pending root-cause.
+
+**Amendment proposal B — one-shot cross-region travel for first pilot (PROPOSED s164, NOT YET ADOPTED)**:
+
+The E009 design gates "≥3 kills before 60→33 trip" was set to prevent travel-burn on speculative play. But E009 N=0 cannot grow past 0 if every candidate is non-co-located AND no-travel rule binds. Deadlock pattern: can't get 3 kills without travel; won't travel without 3 kills.
+
+Propose: allow ONE cross-region travel for the first E009 pilot when (a) target node has ≥4 v3 candidates from the same cluster owner (E009 specificity) AND (b) ≥2 of those clear amended floor +20 AND (c) round-trip gas ≤25M (more conservative than the 35M threshold cited in plan-163 since pilot-stage we're paying for hypothesis validation, not extraction). Currently node 33 vuongdung1198 has 4 candidates, max +18 — **fails amendment A's +20 floor**. Node 65 SIUUUU has 4 candidates, max +16 — also fails. So amendment B alone doesn't unblock; A+B together would let pepo node-16 (+25, single candidate, fails specificity) — also fails B's ≥4 cluster gate.
+
+**Combined effect of amendments A+B at current snapshot**: still 0 actionable pilots. Amendment B's "≥4 cluster" gate is binding. If we additionally relax to "≥2 cluster" candidates (looser), tamagotcho node-9 (2 rows, max +21) would qualify — but this stretches the amendment chain, which is already 3 layers of relaxation deep without a single data point.
+
+**Decision (s164)**: Document amendments A and B for visibility. Do NOT trigger them this session. Re-evaluate at s165 after one more snapshot rotation. If s165 still defers under +30 floor, fire under amendment A (+20 floor, co-located only) — at that point 3 consecutive defers + 2 cycles of margin growth on persistent owners constitutes meaningful evidence the +30 floor is binding above realistic supply ceiling. **Do NOT trigger amendment B until amendment A has produced N≥1 kill** (no point on a first-cross-region trip with a still-untested floor).
+
+**Margin trend across defer window**:
+- s163 highest margin = +20 (pepo idx=7287)
+- s164 highest margin = +25 (pepo idx=7287, same kami, margin grew +5 in 12 min via elapsed_h monotonic)
+- This validates the "elapsed_h grows margin" hypothesis from plan-163. If pepo continues HARVESTING uninterrupted, by s165 (+15 min) margin should be ~+27-30 — and may cross the +30 floor without amendment.
 
 ---
 
