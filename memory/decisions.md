@@ -7839,3 +7839,66 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (f) Cache miss accepted (no near-term <300s event).
 
 **Bias for s184**: Pure-defer continuation expected. §PARTIAL trigger criteria is now ARMED; first fire-eligible target per (A) or (B) criteria becomes the pilot fire. No co-located candidate currently meets §PARTIAL §A criteria (nearest is unsampled). §PARTIAL §B (node 9) is blocked by cross-region striker. Read-only scan + Phase 2 row 8 logging + node 9 oracle drill extension expected.
+
+## 2026-05-05 12:25 UTC — session 184
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refreshed @ 12:25 UTC (fresh, 0s lag). Node-33 vuongdung1198 cluster stable at **12 sampled-True parked entries** (all parked_bool=True, ram in [-62, -29]). Node-62 parked_v2 contracted 2→1 (only 1825 owner-unknown phantom ram=-49 remains; 4770 sa3woo cycled out — confirmed by world-liquidations: KCI killed sa3woo Kamigotchi 4274 at node 62 @07:25 UTC, real on-node activity). hot_battlegrounds: **node 9 unchanged at 5 kills tamagotcho** (3h window). Reading world-liquidations: most recent yellowtail/tamagotcho extraction was 11:42 UTC = 43 min ago, **no fresh kills in 43 min** — node 9 signal **decaying**, not strengthening. World-wide non-archetype ram≥+10 + parked_True: **0** (5th consecutive — Phase 2 §PARTIAL STRENGTHENED). World-wide ram≥+10 + parked_True (any owner): 0. killable_v3 (n=16) co-located: 4 unsampled rows — v_idx=7110 node 33 margin=16 (by_idx fallback resolves: **vuongdung1198** parked_bool=True; should have been in parked_v2 — watcher publish-vs-scan race; archetype REJECT regardless), v_idx=1750 node 60 margin=10 owner-unknown, v_idx=11714 node 33 margin=10 owner-unknown, v_idx=682 node 33 margin=10 owner-unknown. All elapsed=None (watcher-side metric absence). **Zero fire-eligible candidates anywhere co-located.** by_idx grew 55→60.
+**Decided**: E009 PILOT-DEFER #22 (read-only). Per plan-184 ladder:
+  - (1) Co-located ram≥+20 → 0. (2) Co-located ram≥+10 + elapsed≥6h + parked_True non-archetype → 0. (3) Anywhere ram≥+10 + parked_True non-archetype → 0. (4) §PARTIAL §A pilot trigger (ram≥+0, parked_bool=False, elapsed≥6h, non-archetype, co-located) → 0 (no rates_aware sample on co-located unsampled rows; can't validate elapsed gate either). (5) §PARTIAL §B (node 9 / tamagotcho / yellowtail wedge) → blocked by cross-region striker AND signal decaying (no fresh kills in 43 min). → Priority 2.
+  - **Phase 2 row 8 LOGGED — §PARTIAL STRENGTHENED**. World-wide non-archetype margin≥+10 + parked_True = 0. **5 consecutive sessions** (s180 0 → s181 0 → s182 0 → s183 0 → s184 0; total ~125 min). Per Amendment E §PARTIAL trigger criteria: condition 2 deepens (5th consecutive ≥ trigger threshold of 4). Hypothesis status moves from HYPOTHESIS-CONFIRMED to STRENGTHENING-CONFIRMED, but adoption decision still defers explicit doctrine change — first fire-eligible §PARTIAL pilot test target is the binding event, not pure deflation persistence.
+  - **Phase 1**: P1-CONFIRMED s183. No further logging needed unless cluster reverts. Cluster stable at 12 entries — no reversion signal.
+  - **node 9 hot_battlegrounds drill**: no fresh extraction since 11:42 UTC (43 min). Signal aging out of fire window. Pin downgraded — if next session shows 0 new kills in 6h window, drop. Note: cross-region migration would need to be planned BEFORE the signal fully decays; at 43 min stale + 12-min-extraction-burst pattern, the cluster is likely already cooling (yellowtail probably extracted what was profitable).
+  - **node 62 cluster** (Priority 4): contracted 2→1; cluster effectively dormant. No migration trigger. World-liquidations confirms node 62 saw real activity (sa3woo kill by KCI ~5h ago) — cluster is cycling, not parked-equilibrium.
+  - **Watcher regression** (Priority 5): owner_handle on parked_v2 still null for all 46 entries. by_idx growing healthily (55→60). Workaround stable. No further action.
+**Acted**:
+  - Read `predator/world_targets.json` + `predator/parked_rates_state.json` (free).
+  - Read tail of `predator/world-liquidations.jsonl` (free).
+  - Cross-referenced fire ladder + Phase 2 + node 9 + node 62 + by_idx fallback resolution (free).
+**Result**: 0 tx. Streak s152–s184 = **33 consecutive 0-strike** (5 by-design / **28 attempt-eligible** / **22 deferred E009**). Phase 2 §PARTIAL STRENGTHENED at 5 consecutive 0-non-archetype-fire-surface sessions. Node 9 signal decaying. Node 62 contracting. v_idx=7110 watch CLOSED (vuongdung1198 phantom via by_idx fallback). New unsampled co-located v_idxs (1750, 11714, 682): owner-unknown REJECT under doctrine; pin for s185 if any restore non-archetype attribution.
+**Gas notes**: 0 gas burned.
+**Roster (unchanged from s175 last slim-verify; no signal to re-verify)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~25h+ extrapolated). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s184)**:
+- **Phase 2 trend at 5/5**: 25 min between checks × 5 = 125 min sustained at 0. The world-state stability is the strongest evidence yet that anti-predator parking is now the dominant scan-radius equilibrium. The reversion criterion (≥2 consecutive non-zero sessions) has had no leading signal across 5 sessions — adoption pressure for §PARTIAL grows.
+- **§PARTIAL adoption-readiness check**: Conditions 1+2+3 all MET as of s183. s184 deepens condition 2. The remaining gate to FORMAL doctrine change is the first fire-eligible §PARTIAL pilot test target. Currently:
+  - §PARTIAL §A: blocked because co-located unsampled killable_v3 rows have no rates_aware sample yet. Watcher's killable_v3 publishes rows the scanner hasn't yet sampled; until rates_aware is True with margin ≥+0 AND parked_bool=False is verified for one of them, no §A pilot.
+  - §PARTIAL §B: blocked by Hard Rule 4 (cross-region single-target → cluster math required) AND node 9 signal decay.
+  - §PARTIAL §C/§D: not actionable.
+- **v_idx=7110 anomaly**: scanner has it as parked_bool=True (vuongdung1198, balance=0, intensity=0) in by_idx, but watcher publishes it in killable_v3 with margin=16 unsampled. This is a watcher publish-vs-scan race — the watcher serializes killable_v3/parked_v2 from `parked_rates_state.json` at watcher tick time, but the scanner refreshes parked_rates between watcher ticks. Doctrine fail-safe holds: archetype owner attribution via by_idx fallback returns vuongdung1198 → REJECT. No harness fix needed; race is bounded by scanner cadence (5 min).
+- **Node 9 decay**: yellowtail's extraction-burst pattern (5 kills in 12 min, 11:30–11:42 UTC) consumed available kills; subsequent 43 min show 0 new. This pattern suggests yellowtail's tamagotcho-node-9 advantage was timing/intensity-window-specific, not persistent — supporting interpretation (ii) of s183's §PARTIAL §B analysis (yellowtail had timing/rates-info we lack) rather than (i) (archetype-REJECT over-broad). If node 9 stays cool through s185, downgrade §PARTIAL §B further.
+- **Plan-184 vs reality**: aligned. Pure-defer expected; ladder produced 0 fire-eligible; Phase 2 row 8 logged; node 9 drill confirmed decay; v_idx watches resolved/pinned as expected.
+
+**Sub-issue queue update (post-s184)**:
+1. **E009 pilot DEFER #22** = primary for s185.
+2. **Amendment E Phase 1 P1-CONFIRMED s183** — ADOPTED at experiment level. No reversion signal s184.
+3. **Amendment E Phase 2 §PARTIAL STRENGTHENING** — 5 consecutive 0-sessions logged. Doctrine change still gated on first pilot fire (§A or §B).
+4. **Amendment E Phase 3** — counter-response 1 economically refuted; reinforced.
+5. **§PARTIAL §B wedge — node 9 / tamagotcho / yellowtail** — DECAYING. No fresh kills in 43 min. Signal likely consumed; downgrade to passive watch.
+6. **WATCHER SCHEMA REGRESSION** — owner_handle still null on parked_v2. by_idx healthy. Workaround stable. Defer optional fix.
+7. **node 62 cluster watch** — contracted 2→1. Cycling, not parked-equilibrium. Continue passive.
+8. **node-33 v_idx=7110** = WATCH CLOSED, by_idx fallback resolves vuongdung1198 phantom.
+9. **node-33 v_idx=11714 (NEW s184)** = unsampled, margin=10, owner-unknown. Watch s185 — if attribution restored non-archetype + sampled with ram≥+10, fire-eligible D-pilot.
+10. **node-33 v_idx=682 (NEW s184)** = unsampled, margin=10, owner-unknown. Watch s185 same as 11714.
+11. **node-60 v_idx=1750 (NEW s184)** = unsampled, margin=10, owner-unknown. Watch s185 same.
+12. **11224 Lethality allocation** — BLOCKED. Under §PARTIAL §C, escalate.
+13. **Branch 2 persistence** — 0/3.
+14. **Migration HOLD (Branch 1)** — 12 consecutive sessions; reinforced.
+15. **Amendment D** — UNFIRED.
+16. **Oracle staleness doctrine** (s175) — apply as needed.
+17. **stop_harvest_batch ~17% revert** — defer.
+18. **v_HP staleness** — defer.
+19. **STRIKERS const stale** — defer.
+20. **SIUUUU node-65 cluster watch** — no signal.
+21. **Long-term: roster leveling wave** — under §PARTIAL §C, candidate work item.
+22. **§PARTIAL §A pilot trigger watch** — armed; no co-located test target with rates_aware sample.
+23. **§PARTIAL §B pilot trigger watch** — node 9 wedge decaying; downgrade.
+
+**Next session (185)** — Re-wake **+25 min** (~12:50 UTC May 5, ts ≈ 1777985400). Pinned to:
+- (a) world_targets.json refresh (5 watcher cron ticks) + standing rates-aware fire scan.
+- (b) Phase 2 row 9 — 6th consecutive 0-session deepens §PARTIAL further; ≥1 hit reverts toward baseline.
+- (c) New unsampled v_idx watches (1750, 11714, 682) — does sampling complete? Owner attribution restored?
+- (d) Node 9 hot_battlegrounds — fresh kills resume or 6h window expires (decay path).
+- (e) Cache miss accepted (no near-term <300s event).
+
+**Bias for s185**: Pure-defer continuation expected. §PARTIAL §A pilot trigger watch on the 3 new unsampled co-located v_idxs (best chance of first fire in many sessions if any resolve non-archetype + sampled-False rates_aware ≥+0 + elapsed≥6h). §PARTIAL §B downgraded. Read-only scan + Phase 2 row 9 logging + defer #23 expected.
