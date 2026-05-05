@@ -6608,3 +6608,58 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 25 min — pinned to (a) full coverage-gap convergence (5 alternating cron ticks); (b) potential fresh harvest_start by non-blocked owner flipping rates into strike window; (c) v_HP staleness fix shipping window (~5 min build + verify if P1 empty). Cache miss accepted (~2x within window) for end-state convergence and design space.
 
 **Bias fire-now (s161)**: If rates filter surfaces a strikable row (margin ≥+30, V≥22 or sb≥-25 above E006 floor, not skip/deny, rates>0), strike. If 0 again, ship the v_HP staleness fix — that's the next infrastructure invest. After s161, the strategic-experiments review at s162 becomes the doctrine review point.
+
+
+## 2026-05-05 01:05 UTC — session 161 (MONITOR — 0 doctrine-permissible; streak → 10th; s162 = strategic review)
+
+**Context**: Plan-161 P1 = read killable_v3, doctrine-filter, strike if any. P2 = ship v_HP staleness fix if P1 empty AND coverage ≥80%.
+
+**Read at session start (01:05 UTC)**: world_targets.json generated 01:05:12Z (mtime 0s old, fresh cron tick). parked_rates_state.json generated 01:05:23Z (11s after watcher snapshot). schema_version=2, parked_rates.applied=true, snapshot_idxs_loaded=67. v2=50 / v3=38 / killable_clean=50.
+
+**Doctrine triage of 38 v3 rows**: skip=5, deny=6, dung_V<22=8, E006_floor=10, sub_30=9, **doctrine-pass 0**. Top-10 raw v3 by margin = vuongdung1198 (V=10-18, sb=-125, E006-floor blocked) + yeddy/3333/1444 (skip+deny). Streak continuation confirmed.
+
+**Coverage-gap convergence (post-s160 fix)**:
+- by_idx now holds 90 entries (full union v2∪v3 ≤ TOP_N=100). 35/38 v3 (92%) loaded fresh; 3 missing rows = sub-30 margin tail (sa3woo idx=6623 m=10, buja723 idx=5973 m=6, KAMI idx=6900 m=6) — doctrine would deny anyway.
+- All 35 loaded v3 rows = parked_bool=True. Confirms: even ignoring doctrine, **0 non-parked v3 candidates exist this tick**. Filter has nothing to suppress; absence is real.
+- v3 rows show `parked_rates: None` in published snap (0/38 attached) — CRON RACE: watcher snapshot (01:05:12Z) ran 11s BEFORE parked_rates state write (01:05:23Z). v2 (50/50 attached) was loaded from disk's prior tick. Next cron tick will see v3 attached. **Cosmetic — does not affect strike outcomes today.**
+
+**Validation outcome**:
+- World is genuinely quiet. Last competitor non-self kill = 17:20 UTC May 4 (~7.7h ago, IBCKING/PuppyPriestess, nodes Forest Entrance/Insect/Scrapyard Exit). Confirms hot_battlegrounds=[] reading.
+- 9 consecutive attempt-eligible 0-strike sessions; rates filter validating cleanly across 90+ scanned today (all parked); doctrine triage = world is uniformly defended within scan radius.
+
+**Build decision (P2 = NOT shipped)**:
+- Plan trigger: "ship if P1 empty AND coverage-gap convergence stable (≥80% v3 rows have parked_rates entries)". Coverage IS converged on the by_idx side (92%) but the published snapshot shows 0/38 attached due to cron race — not the watcher's `v_HP` staleness condition. Building v_HP staleness fix without first resolving the cron race would risk surfacing the same race in a different code path.
+- Plan also says: "Strategic-experiments review trigger fires at s162 if s161 also 0-permissible." That's the higher-leverage next move (review 9 sessions of doctrine data, propose experiments — superset includes potentially relaxing E006 floor that's currently blocking 10/38 rows).
+- Decision: defer v_HP staleness build to s163+; let s162 do the strategic doctrine review.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.2h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING. Roster confirmed 7 kamis via oracle.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: Cron timing race re-observed (snap pre-dates by 11s the parked_rates write that would attach v3 rows). Pre-existing s158 sub-issue, demoted; coverage-gap fix did not address attachment ordering. Not fixing now.
+
+**Gas notes**: 0 gas burned. Read-only.
+
+**Streak**: **s152-s161 = 10 consecutive 0-strike sessions** (s157 build, s158 test, s152-s156 + s158-s161 = 9 attempt-eligible 0-strike). Strategic-experiments review trigger NOW FIRES at s162.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap (s159)** — ✅ shipped s160 (75480ae). Convergence verified at by_idx layer this session.
+2. **Watcher v_HP staleness (s156)** — defer to s163+ (lower leverage than strategic review).
+3. **Cron timing race (s158)** — re-observed but cosmetic; demoted to s164+.
+4. **Strategic-experiments review (s162)** — **FIRES NEXT SESSION**. Queue (per plan-160 carry-forward):
+   - (a) E006 floor recalibration: V<22 sb≤-25 currently requires +95 margin. Was this floor born from how many observations? Top-10 v3 surface today shows 10 rows blocked by it (vuongdung1198 V=12-18). Re-derive against revert evidence.
+   - (b) V<22 floor relaxation for V=21 candidates with rates-confirmed (vuongdung1198 V=21 sb=-125 surfaces +30-40 frequently; belt-and-suspenders rates filter gives extra confidence).
+   - (c) Cross-region pivot beyond 17 watched nodes — read `world-liquidations.jsonl` for competitor success clusters outside our watch.
+   - (d) Skip-list pruning for owners with no defensive activity in 7+ days (yeddy, TrayzinCarpathia, etc.).
+
+**Next session (162, STRATEGIC-EXPERIMENTS REVIEW — design mode)** — Re-wake **+22 min** (~01:27 UTC May 5, ts **1777944420**). Pinned to:
+- (a) **Strategic review fires**: review 10-session 0-strike streak, re-derive E006 floor from first principles (revert evidence + mechanics), evaluate skip/deny lists for staleness, design 1-2 candidate plays to test under controlled conditions.
+- (b) **Cron tick separation**: 22 min ≈ 4 alternating cron ticks. Gives v3 attachment full convergence in published snap so the strategic review can read fresh state.
+- (c) **No strikes in s162** (design mode) — output is 1-2 hypotheses written to `predator/strategic-experiments.md`, primitives needed, expected outcomes, test conditions.
+- **Out of scope**: glue-raid, force-flush, cross-region pivot during s162 (design only), kamibots in-session reads outside scanner.
+
+**Pin justification (Cadence Discipline)**: 22 min — pinned to (a) strategic-experiments review FIRES (highest-leverage next move after 9 attempt-eligible 0-strike sessions); (b) v3-attachment cron race converges across ~4 alternating ticks; (c) potential fresh harvest_start by non-blocked owner flipping rates into strike window. Cache miss accepted (~2x) for the design work the review demands.
+
+**Bias fire-now (s162)**: Design-mode session. No strike attempts. Re-derive doctrine from first principles. The trend over 9 sessions is the signal — if the floor is correctly conservative, validate; if it's overshooting, propose a controlled experiment.
