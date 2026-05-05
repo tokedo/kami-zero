@@ -7079,3 +7079,27 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 **Pin justification (Cadence Discipline)**: 30 min — pinned to (a) cron-tick rotation surfacing fresh candidates; (b) elapsed_h margin growth on persistent node-33 harvesters; (c) cycle period observation for vuongdung1198 (s166 N=2 pattern: cluster surfaces high then disappears within 12-15 min). 30 min ≈ 2 cycle periods so we should see if cluster rebuilds. Cache miss cost accepted; this is a longer wait than the +25 default but justified — no fireable candidate AND no recovery work pending means short re-wakes (10-15 min) waste compute on identical no-op observations.
 
 **Bias for s168**: Read-and-decide. Defer #5 → defer #6 sequence is acceptable IF margins remain below floor, but write amendment D hypothesis to strategic-experiments.md if defer #6 lands — do not silently defer past 6.
+
+## 2026-05-05 04:20 UTC — session 168
+
+**ETH balance**: not measured (read-only session, 0 tx).
+
+**Perceived**:
+- Snapshot fresh (generated 04:20:12Z, 4s before read). 15 v3 candidates, max margin **+16** (BandG idx=590 node 12, elapsed_h 9.53h, defensive_cycle=False). NO candidate ≥+20 anywhere. NO candidate ≥+10 at our co-located nodes (33: vuongdung idx=9051 +5; 60: sa3woo/buja723 max +11).
+- hot_battlegrounds: only node 86 (buzz, 9 kills/3h) — no v3 surface there.
+- Spot-checks: 15540 (node 33) HARVESTING since 1777949385 (03:09 UTC, ~1.2h elapsed); 12649 (node 60) HARVESTING since 1777917283 (May 4 21:54, ~10.4h elapsed). No drift from s167 picture except 15540 cycle-restarted ~03:09 (auto_v2 not running on bpeon — kami-bot? or normal cycle stop+restart at full HP). Not concerning; both still placed correctly for the garrison.
+
+**Decided**:
+- E009 PILOT-DEFER #6. v3 max margin +16 fails amendment-A (+20) and -main (+30) gates. No fireable opening on co-located nodes. No travel-pilot candidate (Amendment B already burned 16.5M gas s166 — gate held).
+- WROTE Amendment D hypothesis to `predator/strategic-experiments.md`: diagnostic pilot at margin ≥+10 under strict row guards (clean heat, persistent ≥6h, no fresh_feed/recent_revive, no parked, **no travel**), to resolve whether +30 floor is projection-conservative or structurally unreachable in current world composition. Adoption gates: kill rate ≥66% on N≥3 → relax floor to +10. Trigger: defer #7 at s169 if a co-located persistent candidate hits +10-15 (e.g. vuongdung idx=9051 currently +5 at node 33 may grow to +10 over 30min via elapsed_h).
+- Streak now s152-s168 = **17 consecutive 0-strike sessions** (s157 build / s158 test / s162 design = 3 by-design / 14 attempt-eligible 0-strike). Doctrine work this session counts as `s168 doctrine` per Design-mode trigger spirit (not a strike-attempt session).
+
+**Acted**: 0 tx. Two slim-state reads (free).
+
+**Result**: Amendment D landed in writing as gated by plan. No new harness, no gas, no risk. Garrison position preserved (4×33, 3×60, all HARVESTING, intensity compounding).
+
+**Gas notes**: 0 gas spent.
+
+**Next session**: s169 fires amendment A (+20 single trial) if any v3 candidate organically reaches +20 with co-located striker; else fires amendment D (+10 single trial) if vuongdung idx=9051 (or any node-33 persistent) reaches +10 with all D row guards; else defer #7 with no further amendment writing — at #7 the next escalation is committing roster level-up wave to push kill thresholds rather than relaxing margin floor (founder hard-rule #7 hp_projection back-fit certificate stays sacrosanct). Schedule +30 min (1777956625) pinned to (a) 6 cron-tick rotation may surface new persistent candidates above +20 since s168, (b) vuongdung idx=9051 elapsed_h growth from 7.22→7.72 = ~+2-3 margin gain, putting it at +7-8 (still below D's +10 — but next-after may hit), (c) BandG idx=590 at +16 may persist and approach +20 organically if its harvest stays uninterrupted.
+
+**Bias for s169**: Fire if ANY of {A, D} gates clean met. Defer #7 acceptable but next escalation must shift modality — either roster level-up doctrine (raise our kill thresholds) or accept node-86 hot_battleground as the only true-margin signal and investigate buzz cluster directly. **Do NOT extend amendment chain to E.** The diagnostic question Amendment D answers is pre-requisite for any further floor work.

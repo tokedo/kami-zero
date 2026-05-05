@@ -291,6 +291,67 @@ Total: 6 non-self kills against 3 mental-skip owners over the most recent 2 days
 
 ---
 
+## E009 Amendment D — "Floor empirically unreachable; diagnostic pilot at margin ≥+10 with strict row guards"
+
+**Status**: HYPOTHESIS (session 168, defer #6 trigger after 7 consecutive scanner snapshots without a fireable v3 candidate above amendment-A's +20 floor)
+
+**Observation source — max v3 margin across snapshots s162-s168**:
+
+| Session | Top margin | Owner / idx | Persistence |
+|---------|-----------|-------------|-------------|
+| s162    | +20       | vuongdung idx=14649 | Transient (cycling) |
+| s163    | +20       | pepo idx=7287       | Cycling (gone by s165) |
+| s164    | +25       | pepo idx=7287       | Same kami, +5 in 12 min via elapsed_h |
+| s165    | +13       | pepo gone           | Cluster evaporated |
+| s166    | +53       | vuongdung cluster   | Evaporated mid-travel (Amendment B fire, 0 kills) |
+| s167    | +18       | TrayzinCarpathia node 60 | Persistent |
+| s168    | +16       | BandG idx=590 node 12    | Persistent (elapsed_h 9.53h, defensive_cycle=False) |
+
+**Pattern**: +30 floor (E009 main) reached only via transient cycling-defensive bursts (s166 +53). Persistent non-cycling harvesters plateau around +13-+18 even at elapsed_h ≥ 6-9h. Amendment-A's +20 floor (single trial) has not fired across s165/s166/s167/s168 — also unreachable for the persistent class. The cycling class IS reachable (s166 saw +53) but evaporates before perception-to-fire latency closes.
+
+**First-principles question**: why is +30 unreachable on persistent harvesters? Two non-exclusive hypotheses:
+1. **Projection conservatism** — `executor/hp_projection.py` overestimates remaining HP for persistent harvesters (e.g. strain rate underestimate at low intensity, or `health.sync` interpretation lag). The validated certificate in mechanics.md claims ≥90% accuracy on 7d back-fit — that gives 5-15 HP noise band, not enough to explain a +30 vs +16 gap.
+2. **World composition shift** — current bpeon striker stack (V31-V34, H12-H21) yields kill thresholds in the 130-160 range against a typical V13/H21-25 farmer with sb≤−100. Persistent farmers' projected HP at elapsed_h ≥6h sits in the 110-145 band, leaving margin +5 to +20 typically. To reach +30 would require either a softer farmer (V<13 or H>25) or our striker stack getting stronger (level-up SP, equipment, intensity-reducing skills on TARGET — out of our control).
+
+If hypothesis 2 dominates, the +30 floor is structurally unreachable on persistent owners regardless of how long we wait, because elapsed_h growth is asymptotic (proj_hp converges to a strain-rate floor, not zero).
+
+**Hypothesis (Amendment D)**: A diagnostic pilot at margin ≥+10 (well above Hard Rule 7's +5 contract floor, well below current +20/+30 doctrine) on a persistent clean-heat candidate validates whether (a) the projection is well-calibrated at that band, and (b) world composition has structurally moved kill margins down. If pilot lands kill, relax floor to +12 conservative step. If pilot reverts, capture the projection error mode and refine `hp_projection.py` rather than ratchet the floor up further.
+
+**Pilot row guards (all must hold)**:
+- `margin ≥ +10`
+- `heat.defensive_cycle == False` AND `heat.anti_predator_automation == False`
+- `fresh_feed_since_start == False`
+- `recent_revive == False`
+- `parked_rates.parked_bool != True` (or null)
+- `elapsed_h ≥ 6.0` (selects persistent, non-cycling)
+- Striker is co-located with target node (zero travel cost).
+
+**Test design**:
+1. **Single-strike pilot** under above guards. Executor `compute_current_hp` + `kill_threshold` re-derived live (pre-flight slim read on victim, not snapshot replay).
+2. **Outcome adjudication**:
+   - **Kill**: projection well-calibrated at margin +10. Adopt floor +12 for next iteration. Carry to N=3 before adopting +10 broadly.
+   - **Revert (executor `reverted` status)**: capture diff between projected HP at fire-time and the on-chain HP that resulted in revert. Update `hp_projection.py` if a systemic bias is identified.
+   - **Bodyguard counter-strike**: counter-predator math failure, not a margin failure. Excluded from D's adoption signal; routes to Worked Example A doctrine (glue/cover striker) instead.
+3. **Adoption**: kill rate ≥ 66% on N≥3 pilots at margin +10-15 → relax doctrine floor permanently to +10. Kill rate < 33% → revert to +20 + write to mechanics.md as projection bias note. In-between (33-66%) → run N to 5 before deciding.
+
+**Cost analysis**: A pilot revert costs ~1-2M gas + recoil HP on the striker. Compared against Amendment B's s166 cost (~16.5M phantom-cluster travel), a pilot strike is cheap experimental capital. The information value of resolving "is +30 floor structural or projection-conservative" is high — it directly informs whether E009 needs floor relaxation, projection refinement, or roster strengthening (level-up wave on H-stack to push kill thresholds up).
+
+**Trigger conditions**:
+- Defer #7 (s169) with v3 max margin still <+20: candidate exists at margin +10-15 with all row guards met AND co-located. If yes → fire. If no → defer #7 + re-evaluate at s170.
+- Co-location preference: node 33 candidates first (4 strikers there) > node 60 candidates (3 strikers there). No travel for amendment D pilots — travel was the failure mode of B; D isolates the floor question from the latency question.
+- vuongdung1198 idx=9051 at node 33 currently margin=+5 elapsed_h=7.22. If this kami persists and grows to +10-15 by s169 (~30min) under non-cycling guards (defensive_cycle currently False per s168 snap), it's the first candidate. BandG idx=590 (+16, node 12, elapsed_h 9.53) is a no-travel-out-of-zone candidate but cross-region from node 33; qualifies under D only with one-zone-hop economic check, deferred to amendment B-style logic.
+
+**Counter-evidence to watch for**: if any v3 candidate reaches +20 organically in s169 without amendment D firing, A becomes triggerable on that single trial without needing D's diagnostic step. D becomes secondary in that branch.
+
+**Relation to other amendments**:
+- A (single trial floor +20): still PROPOSED, never fired. A precedes D in the relaxation chain — D only fires if A would-have-fired but no candidate ≥+20 exists.
+- B (cross-region travel for first pilot): FIRED s166, failed. NOT triggered for D pilots — D explicitly forbids travel to isolate the floor question.
+- C (snapshot famine / cycling-defensive owners): independent track. Branch 1 (garrison) is the s167+ active test for cycling-defensive class. D is for the persistent class.
+
+**N**: 0 strikes. First fireable opportunity is s169 if vuongdung idx=9051 (or similar persistent node-33 row) reaches +10 with guards.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.
