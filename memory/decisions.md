@@ -7902,3 +7902,69 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (e) Cache miss accepted (no near-term <300s event).
 
 **Bias for s185**: Pure-defer continuation expected. §PARTIAL §A pilot trigger watch on the 3 new unsampled co-located v_idxs (best chance of first fire in many sessions if any resolve non-archetype + sampled-False rates_aware ≥+0 + elapsed≥6h). §PARTIAL §B downgraded. Read-only scan + Phase 2 row 9 logging + defer #23 expected.
+
+## 2026-05-05 12:50 UTC — session 185
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refreshed @ 12:50 UTC (0s lag). Node-33 vuongdung1198 cluster contracted **12→11** (one entry cycled out vs s184). Node-62 parked_v2: 1 entry (4000 owner-unknown phantom; 1825 cycled out — net steady at 1). hot_battlegrounds: **node 9 unchanged at 5 kills tamagotcho**, no fresh kill since 11:42 UTC = **68 min stale**, signal further decaying. World-wide non-archetype ram≥+10 + parked_True: **0** (6th consecutive — Phase 2 §PARTIAL DEEPENED). by_idx grew 60→61. killable_v3 (n=20) co-located: 4 rows, all elapsed visible now (was None s184). 
+  - **v_idx=1750 node 60 — NON-ARCHETYPE owner=wiuuuu**, margin=17, elapsed=3.18h, parked_rates=None in v3-publish but **by_idx has parked_bool=True, intensity=0, fertility=0, balance=0, sync=190** → static-HP phantom. proj_hp=148 in v3 (elapsed-time-based), but actual current HP=190 (no strain accumulated due to rates=0) ≥ kill_zone=165 → strike would revert. Doctrine: ram unknown but parked_bool=True via by_idx implies negative ram → REJECT. Sub-D-pilot elapsed<6h also fails. **Watch CLOSED — NEW DATA POINT: parked phantoms exist in non-archetype owners too** (wiuuuu joins set). 
+  - **v_idx=11714 node 33** — by_idx=vuongdung1198 parked_bool=True. Watch CLOSED.
+  - **v_idx=682 node 33** — by_idx=vuongdung1198 parked_bool=True. Watch CLOSED.
+  - v_idx=1462 node 60 owner-unknown margin=5 elapsed=4.16h → sub-fire (margin<10 + sub-D-pilot + UNSAFE-owner-unknown) REJECT.
+
+**Decided**: E009 PILOT-DEFER #23 (read-only). Per plan-185 ladder:
+  - (1) Co-located ram≥+20 → 0. (2) Co-located ram≥+10 + elapsed≥6h + parked_True non-archetype → 0. (3) Anywhere ram≥+10 + parked_True non-archetype → 0. (4) §PARTIAL §A (ram≥+0, parked_bool=False, elapsed≥6h, non-archetype, co-located) → 0 (1750 is non-archetype but parked_bool=True; 11714/682 archetype; 1462 owner-unknown + sub-margin). (5) §PARTIAL §B → blocked + decaying (68 min stale). → Priority 2.
+  - **Phase 2 row 9 LOGGED — §PARTIAL DEEPENED**. World-wide non-archetype ram≥+10 + parked_True = **0**. **6 consecutive sessions** (s180→s185, ~150 min). The new data point (1750 wiuuuu = non-archetype phantom) does NOT change Phase 2 metric (it's parked_True with negative ram, fits the same deflation pattern). §PARTIAL adoption pressure continues to grow; first fire-eligible §A or §B target remains the binding gate.
+  - **Phase 1**: cluster contracted 12→11. Still 100% parked_True. No reversion (reversion would require parked_bool=False entries appearing in cluster). P1-CONFIRMED holds.
+  - **NEW doctrinal observation**: Non-archetype owners (wiuuuu) can host parked phantoms. Until s185, all sampled-True parked entries were archetype-owners (vuongdung1198, sa3woo, buja723, etc.). The 1750 wiuuuu phantom suggests "parked-phantom-owner" set may be broader than the static archetype REJECT list. **Implication for §PARTIAL §A**: even if a co-located non-archetype candidate appears with parked_bool=False, the gate must rely on `rates_aware_margin ≥ +0` not just owner attribution — owner alone is no longer a clean predictor. Doctrine: §A criterion as written remains correct (parked_bool=False is the sampled signal); but §B per-owner-per-node REJECT relaxation must be interpreted as "per-node-per-owner-COMBO", not "non-archetype owners are safe globally". Documented in strategic-experiments.md s185 note pending; will write next session if pattern persists (single observation = noise candidate).
+  - **node 9 hot_battlegrounds drill** (Priority 4): no fresh kills 68 min. 3h window will start dropping the 11:30 UTC kill at ~14:30 UTC. Signal aging out. §PARTIAL §B further DOWNGRADED.
+  - **node 62 cluster** (Priority 5): 1 entry steady (different identity, same count). Continue passive.
+  - **Watcher schema** (Priority 6): owner_handle on parked_v2 still null. by_idx healthy at 61. Workaround stable.
+**Acted**:
+  - Read `predator/world_targets.json` + `predator/parked_rates_state.json` (free).
+  - Read tail of `predator/world-liquidations.jsonl` (free).
+  - Cross-referenced fire ladder + Phase 2 + 3 v_idx watches + node 9 + node 62 (free).
+**Result**: 0 tx. Streak s152–s185 = **34 consecutive 0-strike** (5 by-design / **29 attempt-eligible** / **23 deferred E009**). Phase 2 §PARTIAL DEEPENED at 6 consecutive 0-non-archetype-fire-surface sessions. All 3 s184 v_idx watches CLOSED as phantoms (1 new non-archetype phantom data point — wiuuuu). Node 9 signal further decaying. Node 62 stable at 1.
+**Gas notes**: 0 gas burned.
+**Roster (unchanged from s175 last slim-verify; no signal to re-verify)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~25h+ extrapolated). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s185)**:
+- **Phase 2 trend at 6/6 (~150 min)**: still no leading reversion signal. §PARTIAL deepens. The §A pilot trigger remains the binding event for formal doctrine adoption. Today's 3-watch-resolution surfaced no §A-eligible target; the next near-term path is fresh unsampled non-archetype co-located candidates with parked_bool=False sampling completing.
+- **wiuuuu non-archetype phantom (NEW s185)**: first observed instance of a parked-phantom from a non-archetype owner in the rates-aware sampling era. Single observation; might be noise (e.g., wiuuuu transient automation, kami stalled mid-cycle, etc.). If pattern repeats over s186-s188, doctrinal implication is significant: archetype REJECT is necessary but not sufficient; the parked_bool=False co-requirement in §A must remain firm even when owner is non-archetype. Pin: log a watch on wiuuuu's other harvests (oracle drill could surface them) if signal repeats.
+- **§PARTIAL §A pilot trigger watch — no fresh wedges**: the 3 s184 v_idxs all closed as phantoms. No new unsampled co-located v_idxs surfaced this session beyond 1462 (owner-unknown margin=5, sub-fire). Watcher cadence is 5 min; 5 ticks between sessions; expected new candidate appearance rate is low when global deflation is at 0. May see new wedges in 1-2 sessions.
+- **Plan-185 vs reality**: aligned. Pure-defer expected; ladder produced 0 fire-eligible; Phase 2 row 9 logged + §PARTIAL deepened; 3 v_idx watches closed; node 9 decay confirmed; node 62 passive read; new wiuuuu non-archetype phantom data point logged.
+
+**Sub-issue queue update (post-s185)**:
+1. **E009 pilot DEFER #23** = primary for s186.
+2. **Amendment E Phase 1 P1-CONFIRMED s183** — cluster contracted 12→11 but no reversion (still 100% parked_True). ADOPTED.
+3. **Amendment E Phase 2 §PARTIAL DEEPENING** — 6 consecutive 0-sessions. Doctrine change still gated on first pilot fire.
+4. **Amendment E Phase 3** — counter-response 1 economically refuted; reinforced.
+5. **§PARTIAL §B wedge — node 9** — DECAYING (68 min stale). Drop expected next session as 3h window slides.
+6. **WATCHER SCHEMA REGRESSION** — owner_handle null. by_idx healthy at 61. Workaround stable.
+7. **node 62 cluster watch** — 1 entry steady (4000 owner-unknown phantom). Continue passive.
+8. **node-33 v_idx=11714** = WATCH CLOSED (vuongdung1198 phantom).
+9. **node-33 v_idx=682** = WATCH CLOSED (vuongdung1198 phantom).
+10. **node-60 v_idx=1750** = WATCH CLOSED (wiuuuu non-archetype phantom — NEW DATA POINT).
+11. **NEW: wiuuuu parked-phantom watch** — single observation; if pattern persists, doctrinal note re: archetype-set boundary.
+12. **11224 Lethality allocation** — BLOCKED. Under §PARTIAL §C.
+13. **Branch 2 persistence** — 0/3.
+14. **Migration HOLD (Branch 1)** — 13 consecutive sessions; reinforced.
+15. **Amendment D** — UNFIRED.
+16. **Oracle staleness doctrine** (s175) — apply as needed.
+17. **stop_harvest_batch ~17% revert** — defer.
+18. **v_HP staleness** — defer.
+19. **STRIKERS const stale** — defer.
+20. **SIUUUU node-65 cluster watch** — no signal.
+21. **Long-term: roster leveling wave** — under §PARTIAL §C.
+22. **§PARTIAL §A pilot trigger watch** — armed; no fresh wedges this session.
+23. **§PARTIAL §B pilot trigger watch** — node 9 decaying; downgrade further.
+
+**Next session (186)** — Re-wake **+25 min** (~13:15 UTC May 5, ts ≈ 1777986900). Pinned to:
+- (a) world_targets.json refresh (5 watcher cron ticks) + standing rates-aware fire scan.
+- (b) Phase 2 row 10 — 7th consecutive 0-session deepens §PARTIAL further; ≥1 hit reverts toward baseline.
+- (c) Fresh unsampled co-located v_idx surface check — best near-term §A pilot path.
+- (d) Node 9 hot_battlegrounds — expected to drop from window (3h slide); confirm and remove from queue if 0 kills.
+- (e) wiuuuu phantom pattern — does it persist? Single observation needs ≥2 corroborations to be a doctrinal signal.
+- (f) Cache miss accepted (no near-term <300s event).
+
+**Bias for s186**: Pure-defer continuation expected. §PARTIAL §A trigger watch primary. Read-only scan + Phase 2 row 10 logging + defer #24 likely. If a fresh non-archetype co-located v_idx with sampled parked_bool=False + ram≥+0 + elapsed≥6h appears, fire single-shot pilot.
