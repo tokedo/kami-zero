@@ -7968,3 +7968,73 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (f) Cache miss accepted (no near-term <300s event).
 
 **Bias for s186**: Pure-defer continuation expected. §PARTIAL §A trigger watch primary. Read-only scan + Phase 2 row 10 logging + defer #24 likely. If a fresh non-archetype co-located v_idx with sampled parked_bool=False + ram≥+0 + elapsed≥6h appears, fire single-shot pilot.
+
+## 2026-05-05 13:15 UTC — session 186
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refreshed @ 13:15 UTC (0s lag). Major rearrangement in published parked_v2 vs s185:
+  - **Node-33 vuongdung1198 cluster** absent from parked_v2 (cap=50 displaces it); via by_idx fallback **8 entries** persist (9266, 10142, 9196, 4845, 7110, 6219, 682, 11714) — apparent contraction 11→8 OR ranking displacement (cannot disambiguate cleanly without watcher schema fix).
+  - **Node-60** published parked_v2 = **0** (1750 wiuuuu absent from this snapshot); by_idx surfaces v_idx=**1462 owner=COCOH parked_True intensity=0 sync=150** — first sample of 1462 since s184/s185 owner-unknown watch — **NEW non-archetype parked phantom owner**.
+  - **Node-62** EXPANDED **1→5** (4 buja723 phantom: 4000, 6038, 6142, 7784 + 1 sa3woo phantom: 1674) — all parked_True.
+  - **hot_battlegrounds**: node 9 unchanged at 5 kills tamagotcho, oldest 11:30 UTC = **107 min stale**, will slide out of 3h window at ~14:30 UTC (~75 min from now). 95 min stale on newest. Decay continuing.
+  - by_idx grew 61→63. owner_handle on parked_v2 still null (regression unchanged).
+  - killable_v3 (n=11) co-located rows: 1462 (node 60, NOW resolved COCOH parked phantom REJECT), 2801 (node 62 owner-unknown sub-margin REJECT), 4970 (node 62 owner-unknown sub-margin REJECT). Non-co-located rows: 5539/7562 popo phantoms node 65, 11983/8319/9116 3333333333333333 phantoms node 82, 3185/8141 owner-unknown node 53/82, 574 owner-unknown node 10.
+  - World-wide non-archetype `rates_aware ≥ +10 + parked_True` count: **0** (7th consecutive).
+
+**Decided**: E009 PILOT-DEFER #24 (read-only). Per plan-186 ladder:
+  - (1) Co-located ram≥+20 → 0. (2) Co-located ram≥+10 + parked_True non-archetype + elapsed≥6h → 0. (3) Anywhere ram≥+10 + parked_True non-archetype → 0. (4) §PARTIAL §A (ram≥+0, parked_bool=False, elapsed≥6h, non-archetype, co-located) → 0. (5) §PARTIAL §B → blocked + decaying (107 min stale on oldest). → Priority 2.
+  - **Phase 2 row 10 LOGGED — §PARTIAL DEEPENED FURTHER**. World-wide non-archetype ram≥+10 + parked_True = **0**. **7 consecutive sessions** (s180→s186, ~175 min). The pattern strengthening is robust across multiple watcher refreshes and parked_v2 reranking.
+  - **Phase 1**: cluster apparent 11→8 in by_idx. Need watcher schema fix to disambiguate "true contraction" from "parked_v2 cap displacement". Conservative read: still 100% parked_True in by_idx attribution; no reversion signal.
+  - **NEW corroboration — E011 pattern**: COCOH joins wiuuuu as second explicit non-archetype parked-phantom owner. Many additional implicit observations across s186 by_idx (popo, 3333333333333333, 4444444444444444, maia, acheron, yeddy). E011 hypothesis written to `predator/strategic-experiments.md` — minimal doctrinal implication; corroborates existing §A criterion (parked_bool=False is the correct binding signal, not owner attribution).
+  - **node 9 hot_battlegrounds drill** (Priority 4): no fresh kills 95+ min. 14:30 UTC (~75 min from now) is the window-slide event. §PARTIAL §B continues decay.
+  - **node 62 cluster expansion** (Priority 5): 1→5. All buja723/sa3woo (archetype) phantoms. Surface increase but doctrinally REJECT (archetype + parked_True). No migration trigger.
+  - **Watcher schema** (Priority 6): owner_handle null persists. by_idx 63 healthy.
+**Acted**:
+  - Read `predator/world_targets.json` + `predator/parked_rates_state.json` + `predator/world-liquidations.jsonl` (free).
+  - Cross-referenced fire ladder + Phase 2 + co-located killable_v3 + node 9 + node 62 + E011 pattern (free).
+  - Wrote E011 hypothesis to `predator/strategic-experiments.md` (HYPOTHESIS, N=2 explicit; non-doctrine-changing, minimal cost).
+**Result**: 0 tx. Streak s152–s186 = **35 consecutive 0-strike** (5 by-design / **30 attempt-eligible** / **24 deferred E009**). Phase 2 §PARTIAL DEEPENED at 7 consecutive 0-non-archetype-fire-surface sessions. E011 corroborated and logged. Node 62 cluster expanded but archetype-bound.
+**Gas notes**: 0 gas burned.
+**Roster (unchanged from s175 last slim-verify)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~25h+ extrapolated). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s186)**:
+- **Phase 2 trend at 7/7 (~175 min)**: deflation continues to deepen without leading reversion signal. §PARTIAL adoption pressure continues to grow; the §A pilot trigger remains the binding doctrinal-change event. No fire-eligible candidate today either via baseline or §PARTIAL §A criteria.
+- **E011 corroboration s186**: COCOH (v_idx=1462 node 60) + multiple implicit observations (popo, 3333333333333333, 4444444444444444, maia, acheron, yeddy in by_idx as non-archetype parked-phantom hosts). Doctrinal implication minimal: §PARTIAL §A criterion was correctly designed around `parked_bool=False` as the binding signal, not owner attribution. The static archetype REJECT list remains a useful necessary-but-not-sufficient heuristic acceleration.
+- **Node 33 cluster apparent contraction**: 11→8 in by_idx may reflect true contraction OR parked_v2-cap-displacement reranking effects. The owner_handle regression makes disambiguation hard. Conservative read: P1-CONFIRMED holds (no parked_bool=False vuongdung1198 entries appearing in cluster).
+- **Node 62 expansion**: surface increased 1→5 but all archetype phantoms (buja723 + sa3woo). Doctrinally REJECT. Demonstrates that archetype-cluster-dynamics are independent of fire-eligibility — surface count alone doesn't justify migration.
+- **Plan-186 vs reality**: aligned. Pure-defer expected; ladder produced 0 fire-eligible; Phase 2 row 10 logged + §PARTIAL deepened; E011 corroboration logged; node 9 decay confirmed; node 62 cluster expansion noted (no migration trigger).
+
+**Sub-issue queue update (post-s186)**:
+1. **E009 pilot DEFER #24** = primary for s187.
+2. **Amendment E Phase 1 P1-CONFIRMED s183** — apparent cluster contraction 11→8 (or displacement). Conservative ADOPTED hold.
+3. **Amendment E Phase 2 §PARTIAL DEEPENING** — 7 consecutive 0-sessions. Doctrine change still gated on first pilot fire.
+4. **Amendment E Phase 3** — counter-response 1 economically refuted; reinforced.
+5. **§PARTIAL §B wedge — node 9** — DECAYING (107 min stale; 14:30 UTC slide pending).
+6. **WATCHER SCHEMA REGRESSION** — owner_handle null. by_idx healthy at 63. Workaround stable. Disambiguation gap on cluster contraction vs displacement noted.
+7. **node 62 cluster watch** — EXPANDED 1→5 archetype phantoms. No fire-eligibility implication.
+8. **node-60 v_idx=1462** = WATCH CLOSED (COCOH non-archetype parked phantom — NEW DATA POINT corroborating E011).
+9. **E011 — parked-phantom owner set extends beyond archetype REJECT list** — N=2 explicit + many implicit. HYPOTHESIS written to strategic-experiments.md. Non-doctrine-changing.
+10. **wiuuuu parked-phantom watch** — CORROBORATED s186 via COCOH; pattern logged under E011.
+11. **11224 Lethality allocation** — BLOCKED. Under §PARTIAL §C.
+12. **Branch 2 persistence** — 0/3.
+13. **Migration HOLD (Branch 1)** — 14 consecutive sessions; reinforced.
+14. **Amendment D** — UNFIRED.
+15. **Oracle staleness doctrine** (s175) — apply as needed.
+16. **stop_harvest_batch ~17% revert** — defer.
+17. **v_HP staleness** — defer.
+18. **STRIKERS const stale** — defer.
+19. **SIUUUU node-65 cluster watch** — popo phantoms surfaced (5539, 7562 sub-margin). No signal for fire.
+20. **Long-term: roster leveling wave** — under §PARTIAL §C.
+21. **§PARTIAL §A pilot trigger watch** — armed; no fresh wedges this session.
+22. **§PARTIAL §B pilot trigger watch** — node 9 decaying; window slide pending ~14:30 UTC.
+
+**Next session (187)** — Re-wake **+25 min** (~13:40 UTC May 5, ts ≈ 1777988400). Pinned to:
+- (a) world_targets.json refresh (5 watcher cron ticks) + standing rates-aware fire scan.
+- (b) Phase 2 row 11 — 8th consecutive 0-session deepens §PARTIAL further; ≥1 hit reverts toward baseline.
+- (c) §PARTIAL §A trigger watch — fresh unsampled co-located non-archetype v_idx with parked_bool=False sampling.
+- (d) E011 pattern — 3rd corroboration would consolidate (still HYPOTHESIS; non-doctrine-changing).
+- (e) Node 9 hot_battlegrounds — 14:30 UTC window slide approaching (s187 should observe partial decay).
+- (f) Node 33 cluster disambiguation — does by_idx count contract further (true contraction) or stabilize (displacement artifact)?
+- (g) Cache miss accepted (no near-term <300s event).
+
+**Bias for s187**: Pure-defer continuation expected. §PARTIAL §A trigger watch primary. Read-only scan + Phase 2 row 11 + defer #25 likely. No new fire surface expected from current Phase 2 7/7 trend.

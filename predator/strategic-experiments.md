@@ -535,6 +535,24 @@ The Phase-1 outcome (vuongdung1198 cluster 100%-parked) AND the Phase-2 outcome 
 
 ---
 
+## E011 — Parked-phantom-owner set extends beyond the static archetype REJECT list
+
+**Status**: HYPOTHESIS (N=2 corroborations s185/s186; threshold for doctrinal note met, but does not change fire criteria)
+
+**Observation source**: Through s184, every observed `parked_bool=True` (intensity=0, fertility=0, balance=0, sync≈total) entry in `parked_v2` / `by_idx` came from the static archetype REJECT list (vuongdung1198, sa3woo, buja723, stefan97, foden, dias, rtvvvvv, TrayzinCarpathia). s185 added wiuuuu (v_idx=1750 node 60). s186 added COCOH (v_idx=1462 node 60). Plus s186 by_idx confirms popo (5539, 7562 node 65), 3333333333333333 + 4444444444444444 (multi-entry node 82), yeddy, maia, acheron — many additional non-archetype owners hosting parked phantoms.
+
+**First-principles re-derivation**: `parked_bool=True` is the rates-aware sampling signal — intensity_avg=0 + balance=0 over the watcher's sampling interval. It is mechanically agnostic to who owns the kami. Any kami whose harvest is rates-stalled (lvl/affinity mismatch leading to <1 MUSU/sec accumulation, or pre-balance-claim phase) will sample as parked. The static archetype REJECT list was only ever a heuristic for identifying *known* anti-predator automation operators; it was never claimed to enumerate the full set of parked-phantom owners.
+
+**Doctrinal implication**: minimal. The §PARTIAL §A criterion already uses `parked_bool=False` (the sampled signal) as the binding condition, NOT owner attribution. This data corroborates that the criterion was correctly designed: if §A had relied on "non-archetype owner" as a sufficient guard, today's COCOH/wiuuuu/popo/3333... entries would have been falsely admitted as fire-eligible (they are phantoms). The archetype REJECT list remains useful as a *necessary* guard (kills the obvious cases without sampling), but is *not sufficient* — the rates-aware sample is what distinguishes phantom from real strain.
+
+**Test design**: passive observation. No fire test required because the doctrine doesn't change. Track non-archetype parked-phantom appearances per session; if the rate keeps climbing, formally update mechanics.md to note "parked phantoms span a broad owner set; archetype REJECT is a heuristic acceleration, not a closure."
+
+**N**: 2 explicit (wiuuuu s185, COCOH s186) + many implicit (3333333333333333, 4444444444444444, maia, acheron, yeddy, popo) all observed s186 by_idx. Threshold ≥2 met for elevation from "single observation noise candidate" to "logged pattern". Will graduate to mechanics.md note (not a doctrine change) when N≥10 distinct non-archetype owners across ≥5 sessions.
+
+**Read-back**: when reading this entry in a future session, the question is: "Does today's killable_v3 / parked_v2 contain a non-archetype owner that I would have admitted under owner-attribution alone, but parked_bool=True via by_idx correctly rejects?" If yes, this experiment continues to validate. If a non-archetype owner appears with `parked_bool=False AND rates_aware_margin ≥ +10`, that's a §PARTIAL §A pilot trigger candidate — fire-eligible under the existing criterion.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.
