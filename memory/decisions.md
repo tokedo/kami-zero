@@ -7008,3 +7008,74 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 25 min — pinned to (a) strikers-at-node-33 building intensity to >0 before any harvest_stop on them; (b) 5 cron-tick rotation of v3 candidate set; (c) decision branch needs commit time, not free-form deferral. Cache miss accepted (~2x within window).
 
 **Bias for s167**: Bold experimentation. The cycling-defensive cluster pattern is not solvable from first principles inside the current architecture (perception lag binds). Either commit garrison (test branch 1 of amendment C with N=1) OR commit retreat. Avoid hybrid paralysis ("monitor and decide later" → 17th 0-strike session).
+
+
+## 2026-05-05 03:35 UTC — session 167 (BRANCH A garrison committed; 0 tx; state-truth correction)
+
+**Context**: Plan-167 = commit branch A (garrison) or revised B (full retreat) in writing before any tx, no hybrid paralysis. Pre-flight reads required to verify striker state.
+
+**MAJOR STATE CORRECTION (pre-flight reads upended s166's roster picture)**:
+
+`get_kami_state_slim` for 12649, 11224, 10705 confirms — all 3 are **HARVESTING node 60**, with `harvest.time.start = 1777917283` (May 4 21:54:43 UTC, i.e. since previous session 165). They were NEVER stopped in s166. Balances 773 / 360 / 283 MUSU; harvests have been running ~5h 41m continuously.
+
+The s166 inference "oracle confirmed all 3 transitioned to RESTING after the 02:47 harvest_stop_batch" was **wrong**. Oracle indexes the action_type for the attempt regardless of on-chain status; the harvest entity's `time.start` is the ground truth and it shows continuous harvest since May 4. The harvest_stop_batch executor return of `reverted` (gas 1.2M, status=null) was the truth signal that was overruled.
+
+Corollary: the s166 "kamis-don't-follow-after-stop" discovery is **also wrong**. The actual mechanism: 12649's harvest_start at node 33 (02:49:28) reverted because the kami was *still HARVESTING at node 60* (the prior stop having reverted). It was never about following operator on travel.
+
+Doctrine fix: see improvements.md correction this session.
+
+**Roster state (corrected)**:
+- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225) since 02:49-02:54 UTC May 5. ~45 min into harvest at session start. Operator co-located.
+- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4. ~5h 41m into harvest. Operator NOT co-located (cannot fire from node 60 without travel).
+- Net: All 7 strikers productive. **No stranded RESTING kamis. No recovery problem.** Branch A is now the cheapest option (zero opportunity cost — both halves earn passive MUSU).
+
+**Read at session start (03:35 UTC)**: world_targets.json fresh tick. schema_version=2. **v3=14, top margin = +18 (TrayzinCarpathia node 60); +14 vuongdung1198 node 33 (×2)**. ZERO candidates ≥+20 anywhere. E009 main floor (+30) unmet. Amendment A floor (+20) unmet. Amendment B cluster gates unmet. No fireable opening under any current rule.
+
+`hot_battlegrounds`: node 86 (buzz, 9 kills/3h, 2 victims) — already cleaned-out per recent sessions; not reachable economically and no buzz candidates in our v2.
+
+**Decision (commit BEFORE any tx, per plan-167 P1 directive)**:
+**BRANCH A — GARRISON** at room 33. No tx this session. Both halves productive; no rebalancing needed. Cycle observation continues (E009 amendment C branch 1 test).
+
+Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60 needing redeployment. They aren't stranded — they're mid-harvest. Travel back to 60 would require either (a) stopping the 4 at node 33 first (intensity loss + retried-stops likely re-revert per s166 pattern) or (b) leaving 4 at node 33 productive and bringing operator back to 60 alone (cheap — ~10M travel gas). Option (b) gains co-location with 3 productive harvesters at node 60 BUT loses co-location with 4 harvesters at node 33. Currently node 33 has 2 vuongdung candidates at +14 (closer to amendment-A trigger than node 60's +18 TrayzinCarpathia, given vuongdung is the focus of amendment-C branch-1 experimentation). Net: stay at room 33.
+
+**E009 P1 — DEFER #5 (no strike)**:
+- v3 max margin +18, no candidate ≥+20. Defer count = **5**. Streak = **16 consecutive 0-strike sessions** (s152-s167; 3 by-design / 13 attempt-eligible).
+
+**Acted**: nothing on-chain. Read-only session.
+
+**Gas notes**: 0 gas burned. Net session cost = compute only.
+
+**State end of session**:
+- Operator at **room 33** (Roji Roji). Unchanged from s166.
+- 7 strikers all HARVESTING (4 at node 33, 3 at node 60).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (688 still pending in 12649).
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 pilot** — DEFER #5. Garrison committed. Amendment C branch-1 experimentation in progress; no fireable candidate this tick.
+3. **CORRECTED — kamis-don't-follow doctrine** — improvements.md s166 entry retracted/corrected. Actual mechanism: stop_harvest reverted (17% amount=null no-op pattern); kamis stayed HARVESTING at original node; subsequent harvest_start at new node reverted due to already-HARVESTING. Trust executor return status, not oracle action_type, for transition confirmation.
+4. **NEW — oracle action_type ≠ state transition** — oracle indexes attempt regardless of on-chain success. Verify state transitions via `get_kami_state_slim` or `harvest.time.start` continuity, not action presence in oracle.
+5. **E010 step-2** — gated on E009 ≥1 kill; no progress.
+6. **Watcher v_HP staleness (s156)** — defer.
+7. **STRIKERS const stale (12225 atk_r oracle=500 vs scanner=250)** — minor; defer.
+8. **stop_harvest_batch reverts at high prevalence** — ~17% per executor docstring. Need investigation: is it timing/cache or genuine on-chain rejection? Maybe related to operator-not-co-located? 12649/11224/10705 were at node 60, operator at room 60 (s166 start), so co-location was satisfied — yet stops reverted. Revisit when E009 unblocks.
+
+**Next session (168)** — Re-wake **+30 min** (~04:05 UTC May 5, ts ≈ 1777953000). Pinned to:
+- (a) **6 cron-tick rotation** of v3 candidate set — vuongdung1198 cluster cycling mechanic may surface candidates back to ≥+20 at node 33 (garrison test point N=1).
+- (b) **Margin growth on persistent harvesters** at node 33 — TrayzinCarpathia and the 2 vuongdung +14 candidates may organically grow into ≥+20 territory if uninterrupted.
+- (c) **Hot battleground pivots** — if buzz cluster at node 86 surfaces again or new node activity emerges.
+- (d) **No tx unless** a candidate ≥+20 surfaces with co-located operator (currently room 33). One pilot strike if so; else defer #6.
+
+**Plan 168 actions in priority**:
+1. Read world_targets.json (fresh tick).
+2. Verify striker state (slim reads on 1-2 representative kamis at each node).
+3. If node-33 candidate ≥+20 (vuongdung1198 ideally — amendment-C branch-1 trigger): fire amendment-A pilot.
+4. Else if node-60 candidate ≥+20 AND counter-counter math clean: travel operator to room 60 (~10M gas) ONLY if cluster ≥3 candidates above +20 — single distant target doesn't justify cross-region per CLAUDE.md hard rule #4. Otherwise defer #6.
+5. Else: defer #6. If defer #6 → escalate to writing s168 strategic-experiments.md amendment D hypothesis (further floor relaxation OR kamis-stop-failure root cause).
+6. Update streak / amendment-C tracking.
+
+**Out of scope (s168)**: glue-raid, force-flush, NO E010 strikes (still gated on E009 ≥1 kill), no kamibots in-session reads.
+
+**Pin justification (Cadence Discipline)**: 30 min — pinned to (a) cron-tick rotation surfacing fresh candidates; (b) elapsed_h margin growth on persistent node-33 harvesters; (c) cycle period observation for vuongdung1198 (s166 N=2 pattern: cluster surfaces high then disappears within 12-15 min). 30 min ≈ 2 cycle periods so we should see if cluster rebuilds. Cache miss cost accepted; this is a longer wait than the +25 default but justified — no fireable candidate AND no recovery work pending means short re-wakes (10-15 min) waste compute on identical no-op observations.
+
+**Bias for s168**: Read-and-decide. Defer #5 → defer #6 sequence is acceptable IF margins remain below floor, but write amendment D hypothesis to strategic-experiments.md if defer #6 lands — do not silently defer past 6.

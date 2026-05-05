@@ -469,3 +469,18 @@ Migration sequence (next session, separate PR scope):
 - **Commit**: (s166 documentation, no harness change)
 - **Sub-issue**: Once mechanism confirmed, propose CLAUDE.md edit to fix the migration sequence.
 - **Related**: s166 also revealed `harvest_stop_batch` returns `reverted` status (gas 1.2M) when amount=null on 1+ rows, but oracle confirms transitions actually happened (17% prevalence per executor doc). This is a separate executor status detection bug, not the kamis-don't-follow issue. Both surfaced same session.
+
+
+## 2026-05-05 — CORRECTION: s166 "kamis-don't-follow" discovery was WRONG (root cause is failed stop, not failed location-update)
+- **What**: The s166 improvements.md entry hypothesized that "just-stopped kamis don't follow operator on travel" based on observed harvest_start failures at node 33. **That hypothesis is incorrect.** s167 pre-flight reads via `get_kami_state_slim` on 12649, 11224, 10705 show all 3 are STILL HARVESTING node 60 with `harvest.time.start = 1777917283` (May 4 21:54:43 UTC) — a continuous harvest since s165, never interrupted. The s166 `harvest_stop_batch` actually reverted on-chain (executor return status `reverted`, gas 1.2M, amount=null was the truth signal); the kamis never transitioned to RESTING. The harvest_start at node 33 then failed because they were *still HARVESTING at node 60*, not because they didn't "follow" operator.
+- **Why s166 misread it**: s166 trusted `oracle action_type = 'harvest_stop'` as proof of state transition. Oracle indexes attempted actions regardless of on-chain success — `harvest_stop` appearing in `kami_action` only means a tx was indexed, NOT that the kami transitioned to RESTING. The authoritative signal is the harvest entity's `time.start` continuity (a successful start would update `time.start` to the new tx timestamp; a no-op/revert leaves it pointing at the old session's start).
+- **Doctrine fix (replaces s166 entry)**:
+  - Trust the executor return status over oracle action_type for state transitions. `stop_harvest_batch` returning `status="reverted"` with gas 1.2M and `amount=null` is the no-op signal documented as 17% prevalence in the executor docstring — that signal is REAL, do not override it with oracle action_type alone.
+  - Authoritative state-transition checks: (a) `get_kami_state_slim(kami_id).state` == "RESTING" / "HARVESTING", (b) `get_kami_state_slim(kami_id).harvest.time.start` matches the expected new-tx timestamp.
+  - Oracle action_type in `kami_action` table is event-attempted, not event-succeeded. Use it for "what was attempted recently" not "what state the kami is in now."
+  - The CLAUDE.md "Predator deployment" migration sequence (stop → travel → harvest_start) is NOT broken in the way s166 claimed. The actual brittleness is `stop_harvest_batch` reverting silently ~17% of the time (executor docstring). Mitigation: verify each kami's state via slim AFTER batch stop; retry per-kami stop_harvest until confirmed RESTING; THEN travel.
+  - The "wait 120s between stop and travel" workaround proposed in s166 doctrine is NOT NEEDED if stop is verified per-kami first.
+- **Open question (lower priority)**: WHY did the stop revert in s166? The pre-conditions appeared satisfied: kamis HARVESTING node 60, operator at room 60, no cooldowns. Hypothesis: gas estimation edge in `executeBatchedAllowFailure` — 5+ kami batches with mixed amount=null may trigger a top-level revert of the wrapper. Needs investigation but is minor: workaround is single-kami stops or smaller batches.
+- **Files**: NO harness changes. Doctrine note only.
+- **Commit**: (s167 documentation, no harness change)
+- **Sub-issue**: investigate `stop_harvest_batch` revert pattern when ready (after E009 unblocks).

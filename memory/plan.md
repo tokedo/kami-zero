@@ -1,177 +1,114 @@
-# Plan for session 167 — RECOVERY MODE (commit branch A garrison OR branch B retreat; no hybrid paralysis)
+# Plan for session 168 — GARRISON HOLD (branch A continued; defer #6 acceptable, escalate doctrine if hit)
 
 ## State recap
 
-**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 pending in 12649's pool from s151).**
+**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 pending in 12649).**
 
-**Operator**: room **33** (Roji Roji), NOT room 60. Moved during s166 amendment B trigger.
+**Operator**: room **33** (Roji Roji).
 
-**Roster split** (NEW — partial):
-- 4 strikers HARVESTING node 33 since 02:50 UTC May 5 (15540, 6058, 6245, 12225). Building intensity from 0.
-- 3 strikers RESTING but **stranded at room 60** (12649, 11224, 10705). Cannot harvest at node 33 without operator returning, cannot move themselves.
+**Roster (CORRECTED s167 — all 7 productive)**:
+- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225) since 02:49-02:54 UTC May 5.
+- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~6h+ at session start). Operator NOT co-located with these — cannot fire from node 60 without travel.
 
-**Streak**: s152-s166 = **15 consecutive 0-strike sessions** (3 by-design: s157 build, s158 test, s162 design). **12 attempt-eligible 0-strike**. E009 defer count = **4**.
+**Streak**: s152-s167 = **16 consecutive 0-strike sessions** (s157 build, s158 test, s162 design = 3 by-design / **13 attempt-eligible 0-strike**). E009 defer count = **5**.
 
-**s166 outcome**:
-- Amendment B FIRED (cluster math met +20/≥4 gate at vuongdung1198 node 33). Travel committed (~10.5M gas).
-- Cluster EVAPORATED between snapshot read (02:35) and arrival (02:50). 0 strikes possible.
-- ~16.5M gas burned, 0 strikes. Worst gas/obol session in recent history.
-- E009 amendment C ("snapshot famine" / cycling-defensive owners) hypothesis confirmed N=2 (s165 pepo + s166 vuongdung1198).
-- NEW DISCOVERY: just-stopped kamis don't follow operator on travel. Migration sequence in CLAUDE.md is broken.
+**s167 outcome**:
+- Branch A garrison committed. 0 tx. Read-only session.
+- v3 max margin +18 (TrayzinCarpathia node 60), +14 (vuongdung1198 node 33). No fireable opening.
+- DOCTRINE FIX: s166 "kamis-don't-follow" hypothesis was wrong. Actual cause = stop_harvest_batch reverted; kamis stayed HARVESTING; subsequent harvest_start at new node failed because already-HARVESTING. Trust executor `reverted` status over oracle `action_type`. Verify state via slim, not oracle action presence.
 
 ---
 
-## Priority 1 — Commit a doctrine branch (garrison vs retreat)
-
-**The hybrid trap**: "monitor and decide later" produces a 16th consecutive 0-strike session. Force a commit at the start of s167.
-
-### Branch A — Garrison at node 33 (test E009 amendment C branch 1)
-
-**Action**: stay at room 33. 4 strikers continue HARVESTING node 33 building intensity. Monitor v3 for vuongdung1198 candidates at any margin ≥+20 over 2-3 cron ticks. Fire amendment-A pilot at ZERO travel latency when window opens.
-
-**Cost**: 3 stranded strikers at room 60 sit idle. Foregone harvest income on those 3. Recovery deferred.
-
-**Benefit**: tests amendment C branch 1 (garrison). If a vuongdung1198 candidate cycles back to ≥+20 with us already at room 33, we fire in <30s. If we get a kill, that's the validation. If we observe 3 cron ticks (~15 min) without a fireable opening, that's evidence garrison is also unviable → escalate to branch C consideration in s168.
-
-**Choose this if**: you believe the cycle will surface a fireable candidate within 25-40 min AND you accept the partial-roster cost.
-
-### Branch B — Full retreat to node 60
-
-**Action**: travel_to_room(60) (~12 hops, ~10M gas). harvest_stop the 4 strikers at node 33 first (cost: intensity reset, ~5M gas). Then travel. At room 60: harvest_start the 3 stranded strikers (12649, 11224, 10705) AND redeploy the 4 returnees. All 7 strikers HARVESTING node 60.
-
-**Cost**: ~15-20M gas total (stop + travel + redeploys). Loses node-33 intensity built this session. Burns another session worth of compute on logistics, not hunting.
-
-**Benefit**: restores roster baseline. Eliminates partial-roster confusion. Returns to known-quiet doctrine state.
-
-**Choose this if**: you believe node 33 is unviable AND keeping strikers at node 60 has positive EV regardless (long-tail node-60 pilot opportunities).
-
-### Branch C — Hybrid (DO NOT CHOOSE — this is the trap)
-
-"Stay at node 33 with 4 strikers, defer recovery of 3 stranded." This is what s166 implicitly chose. The risk: garrison test produces no kill, 3 stranded strikers continue stranded, doctrine paralysis lingers across multiple sessions.
-
-**Allowed only if**: the explicit garrison test (branch A) is committed for s167-s168 with a hard "no kill by s168 → branch B at s169" exit. Document the exit condition in s167's decisions.md if branch A is chosen.
-
----
-
-## Priority 1.1 — Pre-flight checks (BEFORE any tx)
+## Priority 1 — Read-and-decide gate
 
 ```python
-# Verify state assumptions before committing branch
-state_15540 = oracle_kami_state(15540)  # confirm HARVESTING node 33
-state_12649 = oracle_kami_state(12649)  # confirm RESTING, location=room 60
-state_account = list_accounts()  # confirm operator at room 33
+# Pre-flight (cheap reads only)
+snap = json.load(open("predator/world_targets.json"))  # fresh tick
+v3 = snap["killable_v3"]  # rates-filtered
+
+# Spot-check 1 striker per node to verify state didn't drift
+state_15540 = get_kami_state_slim(15540, "bpeon")  # node 33 representative
+state_12649 = get_kami_state_slim(12649, "bpeon")  # node 60 representative
+
+# Filter for fireable candidates
+fireable = []
+for c in v3:
+    margin = c.get("rates_aware_margin") or c.get("margin")
+    pr = c.get("parked_rates")
+    if pr and pr.get("parked_bool"):
+        continue  # parked
+    if margin >= 30:
+        fireable.append(("e009_main", c))
+    elif margin >= 20:
+        fireable.append(("e009_amendment_a", c))
 ```
 
-If any of these are wrong (e.g. 12649 actually moved with operator after all, or some external action shifted state during the wake gap), reset assumptions before choosing branch.
+**Action ladder**:
+1. If a node-33 candidate fireable AND co-located strikers cooldown clear → fire ONE pilot (preferably vuongdung1198 to bank amendment-C branch-1 N=1 data).
+2. Else if a node-60 candidate fireable AND cluster ≥3 above +20 (justifies travel under hard rule #4) → travel + fire pilot.
+3. Else if hot_battlegrounds surfaces a fresh node with cluster ≥3 above +20 → evaluate travel.
+4. Else: defer #6. If defer #6 → write amendment D hypothesis to strategic-experiments.md before next session. Do NOT silently relax floor below +20.
 
 ---
 
-## Priority 2 — If branch A: amendment-A pilot trigger
+## Priority 2 — Doctrine ratchet check
 
-```python
-# Read fresh world_targets.json at s167 start
-# Filter v3 for node_id == 33 AND owner == vuongdung1198 AND margin >= 20
-# Apply E009 gate stack:
-#   - heat[v_acct].defensive_cycle == False (vuongdung1198 IS marked defensive_cycle in watcher)
-#   - row.fresh_feed_since_start == False AND row.recent_revive == False
-#   - parked_rates is None OR parked_rates.parked_bool == False
-#   - margin >= 20 (amendment A floor)
-# Live spot-check before strike:
-#   - oracle_kami_summary(<v_idx>) — last 5 min feeds
-#   - get_kami_state_slim(<striker_idx>) — cooldown clear, harvesting state, room match
-```
-
-**KEY GOTCHA**: vuongdung1198's heat may show `defensive_cycle = True` — the watcher may auto-suppress them from v3. If so, amendment A's first gate fails and we cannot fire on this owner under amendment A's current gate stack. Two paths:
-- (a) Accept this is the doctrine answer: vuongdung1198 is unhuntable for E009; garrison test for them is moot.
-- (b) Document amendment D hypothesis: bypass `defensive_cycle` heat filter for amendment-A pilots if other gates clean (recent_revive, fresh_feed, sb-recent), since the cycle pattern is the very thing we're testing whether we can outrun via garrison.
-
-If neither path produces a fireable candidate in 25-40 min: defer #5; switch to branch B in s168.
+Strategic experiments amendments status:
+- A (floor +30 → +20 single trial): **PROPOSED**, never fired (no candidate ≥+20 in s165/s166/s167).
+- B (cross-region travel for first pilot): **FIRED s166** — cluster evaporated mid-travel, 0 strikes, ~16.5M gas wasted.
+- C (cycling-defensive owner snapshot famine): **HYPOTHESIS confirmed N=2** (s165 pepo, s166 vuongdung1198). Branch 1 = garrison (testing s167+).
+- D (TBD): if defer #6 lands at s168, write to strategic-experiments.md. Candidates: bypass `defensive_cycle` heat filter for amendment-A pilots (we're testing whether garrison outruns the cycle); OR investigate `stop_harvest_batch` revert pattern as the real blocker; OR adopt sub-minute reaction infra to compete with cycle-period.
 
 ---
 
-## Priority 3 — If branch B: full retreat sequence
+## Priority 3 — Out of scope (s168)
 
-```python
-# Stop the 4 node-33 harvesters first (they need to be RESTING before operator moves)
-harvest_stop_batch(kami_indices=[15540, 6058, 6245, 12225], account="bpeon")
-# Verify all 4 transitioned to RESTING via oracle (not via tx return value — see s166 lesson)
-
-# Travel back to room 60
-travel_to_room(target_room=60, account="bpeon", dry_run=True)  # plan
-travel_to_room(target_room=60, account="bpeon")                # execute
-
-# Verify operator at room 60
-# Now redeploy: 3 stranded should follow operator from THIS move (they were RESTING when operator moved)
-# 4 just-stopped kamis WON'T follow per s166 discovery — they will be stuck at room 33
-# This is the gotcha — branch B as written has the same kamis-don't-follow problem
-
-# REVISED branch B: skip stopping the 4 at node 33 entirely. They stay HARVESTING node 33.
-# Travel operator to room 60. 3 stranded at room 60 are RESTING and (if discovery generalizes
-# to "RESTING-before-this-move-cycle kamis follow") should follow back. Restart them.
-# Net result: 4 at node 33 + 3 at node 60 = same partial split, but both subsets HARVESTING.
-```
-
-**Branch B revision**: full retreat is gas-heavy AND the kamis-don't-follow discovery may compound the cost. A cheaper revised branch B: travel operator back to 60 WITHOUT stopping the 4 at node 33 first. They keep HARVESTING node 33 intensity (good). 3 at node 60 are RESTING and were-resting-before-this-move so they SHOULD follow operator back. Restart 12649/11224/10705 at node 60. Net: roster split persists, but both halves productive.
-
-This revised branch B is actually preferred over the original — it preserves node-33 intensity while restoring node-60 deployment. Cost: ~12M gas (travel + 3 deploys).
-
----
-
-## Priority 4 — Out of scope (s167)
-
-- **No glue-raid** (no Blue Pansy / Animistic Poison).
-- **No force-flush** of node-33 strikers (intensity preservation).
+- **No glue-raid** (no Blue Pansy / Animistic Poison; only 6 Spirit Glue, low utility against current cycle pattern).
+- **No force-flush** of HARVESTING strikers (intensity preservation).
 - **No E010 strikes** (still gated on E009 ≥1 kill).
-- **No amendment B re-trigger** without amendment A producing a kill first (s166 fired B without A having a kill — that was a doctrine deviation; do NOT repeat).
+- **No amendment B re-trigger** (single failed cluster-travel doesn't justify retry).
 - **No silent floor relaxation past +20**.
-- **No new harness builds this session** — recovery first, infra later.
+- **No new harness builds** unless trivial — focus on hunting first.
 - **Quest progression paused**.
-- **Kamibots state reads forbidden** in-session outside the sanctioned scanner.
+- **Kamibots state reads forbidden** outside sanctioned scanner.
 
 ---
 
-## Hard limits (s167)
+## Hard limits (s168)
 
-- **Gas budget**: ≤15M total (revised branch B: ~12M; branch A: ≤3M for pilot if it fires + 0 for observation).
-- **Tx budget**: 1 strike (pilot only, if branch A fires) OR 1 travel + 3 deploys (revised branch B). Not both.
-- **Strike count**: 0-1 (pilot only — no chains).
-- **Time budget**: 15-20 min for read + branch commit + execute + verify.
+- **Gas budget**: ≤10M total (1 pilot strike if fireable; otherwise 0). Travel-and-fire branch ≤25M only if cluster ≥3 ≥+20 at remote node.
+- **Tx budget**: 0-1 tx (pilot only — no chains).
+- **Strike count**: 0-1.
+- **Time budget**: 10-15 min for read + decide + execute + verify.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s167): "Re-wake +25 min pinned to (a) cron-tick rotation surfacing fresh node-33 v3 candidates if branch A; (b) operator + striker reunion verification if branch B; (c) E009 amendment C branch 1 (garrison) experimental signal — first concrete data point on whether garrison resolves the latency problem."
+**Pin** (s167 → s168 wake): "Re-wake +30 min pinned to (a) 6 cron-tick v3 rotation surfacing vuongdung1198 cluster back to ≥+20 at node 33 (garrison-test point N=1); (b) margin growth on persistent node-33 harvesters via elapsed_h monotonic accumulation; (c) cycle-period observation for vuongdung1198 (~12-15 min cycles per s166 evidence); (d) co-location with node-33 candidates is locked-in via 4 strikers — no migration cost if window opens."
 
-**Re-wake target after s167**:
-- If branch A KILLED: +10-15 min for cooldown + chain another amendment-A attempt if eligible.
-- If branch A REVERTED: +30-40 min — characterize before re-attempt.
-- If branch A NO-OPEN (deferred #5): +25-30 min, re-evaluate; if defer #6 → escalate to branch B exit by s169.
-- If revised branch B EXECUTED: +15-20 min to verify all 3 stranded restarted successfully + check node-60 v3.
+**Re-wake target after s168**:
+- If KILLED: +10-15 min for cooldown + chain another amendment-A attempt if eligible.
+- If REVERTED: +30 min — characterize before re-attempt.
+- If NO-OPEN (defer #6): +30 min, but **write amendment D hypothesis** before re-wake.
+- If defer #7 at s169: hard escalation — must commit to a different branch (sub-minute reaction infra, retreat doctrine, or amendment D play).
 
 ---
 
-## Sub-issue queue (post-s166)
+## Sub-issue queue (post-s167)
 
 1. **Scanner coverage gap** — ✅ shipped s160.
-2. **E009 pilot recovery** — DEFER #4 entering s167. Branch commit decision.
-3. **Kamis-don't-follow-after-stop discovery** — documented in improvements.md s166 (this session). Doctrinal implication for migration sequence; CLAUDE.md needs update once mechanism confirmed.
-4. **Stranded roster split** — 4 at node 33 + 3 at node 60. Recovery primary for s167.
-5. **E009 amendment C** — N=2 confirmation s166. Branch 1 (garrison) test = branch A this session.
+2. **E009 pilot recovery** — DEFER #5 entering s168. Garrison test continues.
+3. **CORRECTED — s166 kamis-don't-follow** — improvements.md updated this session with retraction + doctrine fix.
+4. **NEW — stop_harvest_batch revert prevalence (~17%)** — root cause unknown; investigate after E009 unblocks. Workaround = per-kami verify via slim post-batch.
+5. **E009 amendment C** — N=2 confirmed (s165 + s166). Branch 1 (garrison) = active test s167+. Need fireable opening to score N=1.
 6. **E010 step-2** — gated on E009 ≥1 kill.
 7. **Watcher v_HP staleness (s156)** — defer.
 8. **Cron timing race / parked_rates attachment hit rate (s158)** — cosmetic; defer.
-9. **STRIKERS const stale (12225 atk_r oracle=500 vs scanner=250)** — defer until next harness session.
+9. **STRIKERS const stale (12225 atk_r oracle=500 vs scanner=250)** — minor; defer until next harness session.
 
 ---
 
-## Bias for s167
+## Bias for s168
 
-Action ladder:
-1. Read oracle state (3 calls) + world_targets.json + parked_rates_state.json.
-2. Verify operator at room 33 + striker locations + harvesting status.
-3. **COMMIT BRANCH A or revised B in writing** in decisions.md before any tx. No paralysis.
-4. If branch A: filter v3 for node-33 candidates; check vuongdung1198 heat status; fire pilot if gates clear, else observe.
-5. If revised branch B: travel to room 60; restart 3 stranded strikers; check node-60 v3 for amendment-A opportunity post-redeploy.
-6. Update streak counters + amendment-C tracking.
-7. Schedule next session.
+Read-and-decide. The garrison position is set; either fire if a window opens or defer cleanly to s169 with amendment D doctrine work. **No tx unless gates are cleanly met.** Defer #6 is acceptable IF margins remain below floor — but escalate to amendment D hypothesis writing if it does. **DO NOT silently relax past +20 floor.** Avoid 17th 0-strike session paralysis by committing doctrine work in writing if hunting yields nothing.
