@@ -6663,3 +6663,69 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 22 min — pinned to (a) strategic-experiments review FIRES (highest-leverage next move after 9 attempt-eligible 0-strike sessions); (b) v3-attachment cron race converges across ~4 alternating ticks; (c) potential fresh harvest_start by non-blocked owner flipping rates into strike window. Cache miss accepted (~2x) for the design work the review demands.
 
 **Bias fire-now (s162)**: Design-mode session. No strike attempts. Re-derive doctrine from first principles. The trend over 9 sessions is the signal — if the floor is correctly conservative, validate; if it's overshooting, propose a controlled experiment.
+
+## 2026-05-05 01:30 UTC — session 162 (STRATEGIC-EXPERIMENTS REVIEW — design mode; 2 pilot plays designed)
+
+**Context**: Plan-162 trigger fired. 9 attempt-eligible 0-strike sessions (s152-s161). Doctrine review against the streak; design 1-2 candidate plays.
+
+**Read at session start (01:30 UTC)**: world_targets.json mtime 0s old (fresh cron tick). schema_version=2. v2=50 / v3=30 / parked_v2=50 / hot_battlegrounds=[]. parked_rates_state mtime 7s after watcher snapshot — cron race repeats; v3 rows' parked_rates=None across all 30 rows in this published snap.
+
+**Doctrine triage of 30 v3 rows (informational only)**: 9 vuongdung1198 V<22 sb≤-125/-75/-50 (E001+E006-blocked); 5 buja723; 3 sa3woo (V<22 floor); 3 1444444444444444 sb=-125 (mental deny / E006); 2 stefan96 (ANTI_PREDATOR_WATCH hardcoded); 2 wiuuuu (V<22 floor); 1 each {tamagotcho, KAMI, 3333..., pepo, IBCKING, SIUUUU}. **Doctrine-pass under current rules: 0.**
+
+**Audit (the doctrine review):**
+
+1. **E001 V<22 floor +95** — already in strategic-experiments.md as TESTING (N=0 since lobotomy). Lineage: s118 single revert, root cause (stale atk_s) fixed in s133. No first-principles basis. Cargo-cult.
+
+2. **E006 sb≤-25 blanket-deny** — already DESIGNED in strategic-experiments.md. First-principles re-derivation in that entry shows kill formula does NOT depend on strain_boost; watcher's `proj_hp` already incorporates the multiplier. No first-principles basis. Watcher upgrade prerequisite (recent_revive + fresh_feed_since_start row fields) **already shipped** — confirmed in s162 snapshot v3 row schema.
+
+3. **Mental "skip-list"** (yeddy, TrayzinCarpathia, tamagotcho, etc.) — NOT in watcher code, only in session-time triage. s162 audit: watcher's `owner_heat` output for ALL v3 owners shows `defensive_cycle=False AND anti_predator_automation=False`. Mental skip-list duplicates the watcher's heat-check responsibility without adding signal.
+
+4. **Hardcoded ANTI_PREDATOR_WATCH** (`refresh_world_targets.py:67`: aenne, stefan97, stefan96, foden, dias, rtvvvvv) — these get heat-checked even when no candidates surface. Justified by automation pattern history, but watcher already auto-detects via 6h windows. Could be retired if E010 hypothesis confirms — defer that decision until E010 N≥10.
+
+5. **vuongdung1198 specifically** — last sync_feed burst was session 115 (~50+ sessions ago by tick). Heat-check with 6h window shows zero defensive automation today. The "vuongdung is dangerous" memory is stale; the watcher would catch them if they re-engage automation.
+
+**Output (per design-mode trigger): 2 pilot plays added to `predator/strategic-experiments.md`:**
+
+- **E009 — Vuongdung1198 V<22 sb≤-25 single-strike pilot (E001+E006 convergence)**: DESIGNED. Concrete pre-strike gate stack {watcher heat clean + row guards + parked_rates non-parked + oracle 5-min feed spot-check + live atk_shift verify + striker co-located + cooldown clear + margin ≥+30}. Pilot strike fires when ALL gates pass. Adoption criterion: ≥10 strikes ≤5% reverts → drop both E001 and E006 floors. Currently 8-10 candidates / tick eligible.
+
+- **E010 — Session-mental skip-list collapse (trust watcher heat-check)**: HYPOTHESIS. Step 1 = free same-tick comparison against world-liquidations.jsonl: are watcher-clean-but-mental-skip owners being killed by other predators? Step 2 = opportunistic strike pilot when E009 has produced ≥1 kill. Adoption: N≥10 strikes ≤5% reverts → collapse skip-list, doctrine = "trust watcher heat + row guards".
+
+**No strikes / no tx / 0 gas** (design mode per CLAUDE.md "5 consecutive sessions land 0 kills" trigger that fired at s157).
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.6h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: Cron race re-observed (snap pre-dates parked_rates write by 7s, all 30 v3 rows parked_rates=None in published snap). Sub-issue queue position unchanged — cosmetic, defer.
+
+**Gas notes**: 0 gas. Read-only + design write-up.
+
+**Streak**: **s152-s162 = 11 consecutive 0-strike sessions** (s157 build, s158 test, s162 design — 3 by-design / 8 attempt-eligible 0-strike). Strategic review trigger fired AS PLANNED at s162. Output = 2 candidate plays. Next opportunity-eligible session is s163.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **Watcher v_HP staleness (s156)** — defer (lower leverage than E009 pilot now).
+3. **Cron timing race (s158, re-observed s161+s162)** — cosmetic; defer.
+4. **Strategic-experiments review (s162)** — ✅ FIRED THIS SESSION. Two pilot plays designed.
+5. **NEW: E009 + E010 pilot execution** — primary action for s163 onward.
+
+**Next session (163, PILOT-READY E009)** — Re-wake **+10 min** (~01:40 UTC May 5, ts **1777945200**). Pinned to:
+- (a) **Pilot E009 fire-now**: snapshot vuongdung1198 cluster on node 33 typically refreshes every cron tick. After +10 min the published snap will have parked_rates attached (cron race resolves on next tick). If a vuongdung row passes ALL E009 gates, fire one strike.
+- (b) **E010 step-1 free read**: same session, scan world-liquidations.jsonl for last 7d kills against mental-skip-list owners. ~5 min read.
+- (c) **Cooldown / cooler-window**: no recent strikes, all strikers ready. Operator at room 60 — vuongdung is at node 33, NOT co-located. Need to plan a strike from current position (operator must move) OR only pilot a node-60 candidate if one passes E009 gates (wiuuuu V12H19 sb=0 +17 fails margin floor; no node-60 v3 currently passes +30).
+- (d) **Cross-region pivot decision**: 60 → 33 hops (Black Pool portal route — needs travel_to_room dry-run). 9 vuongdung candidates is an EV cluster justifying the move IF E009 hypothesis confirms.
+
+**Plan 163 actions in order**:
+1. Read world_targets.json (fresh cron tick post-+10 min).
+2. Verify parked_rates attached to v3 rows (cron race resolved).
+3. **E010 step-1 free read**: world-liquidations.jsonl filter by mental-skip-list owners as victims, last 7d.
+4. **E009 candidate selection**: filter v3 by ALL gates. If a node-60 candidate exists (no travel needed): fire pilot from current position. If only node-33 candidates: dry-run `travel_to_room(33)`, compute round-trip gas + EV, decide go/no-go. With 9-candidate cluster + relaxed +30 floor, EV math should easily clear baseline.
+5. **If pilot fires**: log result in metrics.md, update E009 N counter, characterize outcome.
+
+**Out of scope (s163)**: glue-raid (no Blue Pansy / Animistic Poison still), force-flush, NO E010 strikes (gate on E009 ≥1 kill first), kamibots in-session reads outside scanner.
+
+**Pin justification (Cadence Discipline)**: 10 min — pinned to (a) parked_rates cron-tick convergence (~5 min) so v3 rows have rates_attached for E009 gate; (b) potentially fresh harvest_start by a non-blocked owner widening the eligible candidate pool; (c) fire-now bias post-design-mode — the pilot is the highest-leverage immediate action and E009 candidates currently exist on node 33. Cache miss accepted.
+
+**Bias fire-now (s163)**: Pilot E009 unless ALL candidates fail gates (parked_rates parked / fresh_feed / recent_revive / cooldown / atk_shift mismatch). If pilot fires: ONE strike, log, characterize. If pilot defers: free E010 step-1 read + re-wake +10-15 min. Do NOT chase margin <+30 wins; pilot specificity matters more than session metrics this once.

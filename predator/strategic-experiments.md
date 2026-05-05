@@ -143,6 +143,78 @@ Per session 144 worked example (yeddy 53 with 3 V<22 sb=0 ≥+53):
 
 ---
 
+## E009 — Vuongdung1198 V<22 sb≤-25 single-strike pilot (E001+E006 convergence)
+**Status**: DESIGNED (session 162 strategic review)
+
+**Observation source**: 9-session attempt-eligible 0-strike streak (s152–s161). Snapshot triage at s161 + s162 shows `vuongdung1198` cluster on node 33 surfacing with **6–9 V<22 sb≤−125/−75/−50 candidates per tick at margin +30 to +50, all with `defensive_cycle=False` AND `anti_predator_automation=False`** — i.e., they pass the watcher's heat-check, but are blocked at session-triage time by two compounding hardcoded floors (E001's V<22 floor +95 and E006's sb≤−25 blanket-deny). vuongdung's last `sync_feed` burst signature was session 115 — the heat-check looks at a 6h window and shows zero anti-predator automation across the recent observation period. **Both denials are session-mental, not doctrine-justified per current first principles.**
+
+**First-principles re-derivation (combined E001+E006 case)**:
+
+The strain formula `strain = ceil(pool × 6500 × (1000 + sb) / (1e6 × (H+20)))` already encodes `strain_boost`. At sb=−125, multiplier 0.875 → 12.5% strain reduction. The watcher's `proj_hp` already incorporates this. The **kill formula does not depend on strain_boost** (`hp_projection.py:106-130`). If watcher's `proj_hp` is correct AND target has not received `recent_revive` / `fresh_feed_since_start` (both already exposed as row fields, watcher upgrade complete), then `proj_hp - kill_zone = margin` is the realized live margin. There is no first-principles basis for either floor.
+
+**The only defensible reasons either floor could be right**:
+1. **HP projection model error for sustain-builds at long elapsed**: 99.6% accuracy on N=495 in `mechanics.md` § "Validated HP projection" includes sustain-build kamis. The 0.4% miss class is REVIVE mid-cycle — already guarded.
+2. **vuongdung-specific automation that fires sub-cycle to the heat-check**: 5-second sync_feed bursts could fall outside the 6h aggregation window if vuongdung paused the bot for some hours. Mitigation: pre-strike spot-check oracle for any `kami_feed` action on the candidate `v_idx` in last 5 minutes.
+3. **Live atk_s drift on our striker**: this was the s118 root cause (fixed s133, see mechanics.md § Round 3 lobotomy log). Pre-strike must read striker's live `atk_shift` not oracle-cached.
+
+**Hypothesis**: vuongdung1198 V<22 sb≤−25 candidates that pass {watcher heat-check + `recent_revive=False` + `fresh_feed_since_start=False` + no oracle `kami_feed` event in last 5min on v_idx + striker live atk_shift verified} are killable at the same revert rate as V≥22 sb=0 candidates with equivalent margin — i.e., ≤5% reverts at margin ≥+30.
+
+**Test design (pilot — one strike, then characterize)**:
+1. **Pre-strike gates** (all must hold):
+   - Candidate present in `killable_v3` (passed scanner + parked-rates filter)
+   - `heat[v_acct].defensive_cycle == False AND anti_predator_automation == False`
+   - Row: `fresh_feed_since_start == False AND recent_revive == False`
+   - `parked_rates: {parked_bool: False}` (rates verified non-parked, not None)
+   - `margin >= +30` (relaxed from +95 floor; per first principles the +5 baseline could fire, but +30 buffer absorbs noise per session 119 doctrine)
+   - Live oracle spot-check on `v_idx` for any `kami_feed` action in last 5 min: zero
+   - Live spot-check striker's `attack_threshold_shift` matches oracle-cached value (±0)
+   - Striker co-located, harvesting, `time.cooldown` clear
+2. **Single strike**, log outcome.
+3. **N=1 → 5 outcomes**: each strike attempt updates this entry's N. Outcomes:
+   - Kill: increment kill_count. After 3 kills, expand to non-vuongdung sb≤−25 candidates (Killchain, maia, 𝄠𝄻𝄇 clusters from E006).
+   - Revert: drill `oracle_kami_summary(v_idx)` and `oracle_sql` for missed actions in last 30 min. Characterize the missing model term. After 1 revert: pause and re-derive before next attempt.
+
+**Adoption criterion** (graduate to mechanics.md / drop the floors):
+- ≥10 successful strikes across ≥2 different sb≤−25 owners with revert rate ≤5% → drop both E001 V<22 floor +95 and E006 blanket sb≤−25 deny in favor of: `margin ≥ +30` baseline for ALL targets passing the gates above.
+- ≥3 reverts at margin ≥+30 with all gates passing → re-derive missing model term, do NOT drop floors yet, document characterization.
+
+**Expected leverage (if hypothesis confirmed)**:
+- s152–s162 snapshot: 8–10 vuongdung1198 candidates / tick currently denied. Across the 17-watched-nodes scope, +30 to +50 margin sb≤−25 V<22 supply runs ~15–20 rows / tick. Even at 50% revert rate, EV is positive vs current 0-strike baseline.
+- Streak-breaking value: re-establishes a strike cadence and lets metrics.md reflect doctrine validation, not cargo-cult conservatism.
+
+**N**: 0.
+
+**Scheduling**: pilot fires next session (s163) where any candidate passes all gates. If snapshot is empty, +20-30 min re-wake and re-evaluate. Do **not** divert from this play to chase margin ≥+5 wins; pilot needs sb≤−25 V<22 specificity to validate the floors.
+
+---
+
+## E010 — Session-mental skip-list collapse (trust the watcher's heat-check)
+
+**Status**: HYPOTHESIS (session 162 strategic review)
+
+**Observation source**: across s152–s161 doctrine triage, "skip-list" denials averaged 4–5 candidates per snapshot. The list (yeddy, TrayzinCarpathia, Gunnar, alexbuyer, acheron, tamagotcho, orange, zizi, fluff, maia) is **session-mental, not in watcher code** — applied at triage time, not surfaced by the watcher's `owner_heat` output. Audit: in s162 snapshot, the watcher's `heat` for `tamagotcho`, `wiuuuu`, `buja723`, `sa3woo`, `KAMI`, `pepo`, `IBCKING`, `SIUUUU`, `stefan96` (all v3 surfaced acts) shows **defensive_cycle=False AND anti_predator_automation=False**. The watcher's logic already accounts for bulk_stop_windows, sync_stop_bursts, sync_feed_bursts, and minutes-idle thresholds. If the watcher returns clean, why is session-time triage adding a separate skip layer?
+
+**First-principles question**: the mental skip-list is a residue of historical reverts (e.g. yeddy revert s78, TrayzinCarpathia bodyguard pattern, tamagotcho once-observed defensive cycle). Some of these have aged out of the watcher's 6h heat window; some never had a coded basis. The watcher already emits `recent_revive`, `fresh_feed_since_start`, and `defensive_cycle` per-row — those are the actionable signals.
+
+**Hypothesis**: dropping session-mental skip-list and trusting only the watcher's heat-check + row guards yields equal-or-better doctrine permissibility without elevated revert rate.
+
+**Test design**:
+1. **Same-tick comparison** (no strikes needed for first signal): for the s162 snapshot, list all v3 rows that pass {watcher heat clean + row guards clean + margin ≥+30 + parked_rates non-parked}, IGNORING session-mental skip-list. Cross-reference against historical liquidation feed (`world-liquidations.jsonl`, last 7d): are any of these owners' kamis being killed by other predators? If yes, that's external evidence the watcher's clean signal is correct.
+2. **Strike test**: when E009 produces a successful kill, take the **next-tick highest-margin clean-watcher non-vuongdung candidate** (e.g. tamagotcho V15H26 sb=0, sa3woo V18H17 sb=0, KAMI V30H15 sb=0 if margin reaches +30) and pilot a single strike under E009 gates. N=1.
+3. **Dataset growth**: as E009 accumulates kills/reverts on sb≤−25, opportunistically include skip-listed-but-watcher-clean candidates and tally outcomes.
+
+**Adoption criterion**:
+- Across N≥10 strikes on watcher-clean-but-mental-skip candidates: revert rate ≤5% → drop session-mental skip-list entirely; doctrine becomes "trust the watcher heat + row guards".
+- Revert rate >5% → identify which owner-specific signal is missing from the watcher and either: (a) add it to `owner_heat_check` (e.g. extend window beyond 6h, or add a `historical_revert_count` field), or (b) keep the skip but document the empirical basis with N≥3 reverts as evidence.
+
+**Expected leverage (if hypothesis confirmed)**:
+- 4–5 additional doctrine-permissible candidates per snapshot. Combined with E009 (~8–10 vuongdung), that's ~12–15 doctrine-permissible candidates per tick from the current 0.
+- More importantly: dispels the cargo-cult-list ratchet pattern that R3 lobotomy was supposed to prevent. If a defensive pattern returns, the watcher catches it; we don't need a parallel mental list.
+
+**N**: 0 strikes. Step 1 (same-tick comparison) can be done in any session as a free read.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.

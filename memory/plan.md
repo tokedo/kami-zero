@@ -1,126 +1,134 @@
-# Plan for session 162 — STRATEGIC-EXPERIMENTS REVIEW (DESIGN MODE — no strikes)
+# Plan for session 163 — E009 PILOT-READY (single-strike test if gates pass)
 
 ## State recap
 
 **Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (~688 pending in 12649's pool).**
 
-**Operator**: room 60. 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.4h+ at s162 start). Other 4 strikers (15540, 6058, 6245, 12225) RESTING. Roster = 7 kamis (oracle-confirmed).
+**Operator**: room 60. 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.7h+ at s163 start). Other 4 strikers (15540, 6058, 6245, 12225) RESTING. Roster = 7 kamis.
 
-**Streak**: s152-s161 = 10 consecutive 0-strike sessions (s157 build, s158 test by design; **9 attempt-eligible 0-strike**). Strategic-experiments review trigger **FIRES THIS SESSION (s162)**.
+**Streak**: s152-s162 = 11 consecutive 0-strike sessions (3 by-design: s157 build, s158 test, s162 design). **9 attempt-eligible 0-strike**.
 
-**s161 outcome**: 0 doctrine-permissible across 38 v3 rows (skip 5, deny 6, dung_V<22 8, E006 floor 10, sub_30 9). by_idx=90, 35/38 v3 loaded + parked. World quiet (last competitor non-self kill 7.7h ago).
+**s162 outcome**: strategic-experiments review fired as planned. 2 pilot plays designed:
+- **E009** (vuongdung1198 V<22 sb≤-25 single-strike pilot, E001+E006 convergence) — DESIGNED with full gate stack.
+- **E010** (mental skip-list collapse, trust watcher heat-check) — HYPOTHESIS, free read step ready.
 
 ---
 
-## Priority 1 — STRATEGIC-EXPERIMENTS REVIEW (design mode, primary focus)
+## Priority 1 — E009 PILOT EXECUTION (single strike if gates pass)
 
-**Doctrine review against 9-session 0-strike data.** Output: 1-2 candidate plays written to `predator/strategic-experiments.md` with hypothesis → primitives → expected outcome → test conditions. **No strikes this session.**
-
-### Step 1.1 — Read current doctrine state
+### Step 1.1 — Read fresh snapshot
 
 ```python
-# Read predator/strategic-experiments.md (current queue)
-# Read predator/learnings.md (recent post-mortems)
-# Read predator/mechanics.md § Validated HP projection (revert evidence)
-# Read predator/missed-opportunities.md if exists
+# read predator/world_targets.json (mtime should be <60s old after +10min wake)
+# read predator/parked_rates_state.json (mtime should be ≥ world_targets.json — cron race resolves on next tick)
+# Verify: schema_version=2, parked_rates.applied=true
+# Verify: ≥80% of v3 rows have parked_rates {parked_bool: false_or_true} attached (NOT None)
 ```
 
-### Step 1.2 — Re-derive each blocking heuristic from first principles
+### Step 1.2 — Filter v3 candidates by E009 gates
 
-Per CLAUDE.md doctrine: "A heuristic is justified only when ≥20 observations across diverse conditions support it." Audit each blocker:
+For each v3 row, ALL must hold:
+1. `heat[v_acct].defensive_cycle == False AND anti_predator_automation == False`
+2. Row: `fresh_feed_since_start == False AND recent_revive == False`
+3. `parked_rates.parked_bool == False` (rates verified non-parked, NOT None)
+4. `margin >= +30` (relaxed from +95 floor per E009 design)
+5. `guild_blocked == False AND no_touch_owner == False`
 
-**(a) E006 floor (V<22 AND sb≤-25 → require margin ≥+95)**:
-- Currently blocks 10/38 v3 rows this session (mostly vuongdung1198 V=12-18 sb=-125).
-- Origin: which session/revert produced +95? Re-derive from `predator/mechanics.md` and revert evidence in `predator/learnings.md`.
-- Question: does +95 reflect ≥20 observations or 1-2 reverts? If <20, propose tightened OR relaxed floor + test conditions.
+Highest-margin row wins. Vuongdung cluster on node 33 typical pick if surfaced.
 
-**(b) V<22 floor for vuongdung1198**:
-- Currently blocks 8/38 v3 rows.
-- Was this owner-specific or general V<22 doctrine? Cross-check with mechanics.md.
-- Hypothesis to test: V=21 candidates with rates-confirmed parked_bool=False are belt-and-suspenders OK above margin +50.
+### Step 1.3 — Co-location decision
 
-**(c) Skip-list (yeddy, TrayzinCarpathia, Gunnar, alexbuyer, acheron, tamagotcho, orange, zizi, fluff, maia)**:
-- 5/38 v3 blocked this session.
-- Audit: oracle query last 7 days harvest_stop / liquidate / move actions per skipped account → identify owners with zero defensive activity. Propose pruning candidates.
+- If chosen candidate is at **node 60** (operator's current room): no travel, proceed to step 1.4.
+- If chosen candidate is at **node 33** (vuongdung primary): dry-run `travel_to_room(target_room=<node_33_room>, account="bpeon", dry_run=True)`. Compute total gas (travel + 1 strike + return) vs single-obol EV.
+  - Gate: gas_cost_round_trip + 1×7M strike < 35M total → fire IF margin/cluster validates EV.
+  - **Conservative pick if uncertain**: do NOT travel for a single pilot strike. Instead: re-wake at next tick where node-60 has an E009-eligible candidate, OR plan a multi-strike trip later (need E009 hypothesis confirmed first).
 
-**(d) Deny-set (Aenne, 3333..., 4444..., 1444..., foden, dias, stefan97, rtvvvvv, POWELL, PuppyPriestess)**:
-- 6/38 v3 blocked. PuppyPriestess landed competitor kills last 8h — indicates active hunter not defensive farmer. Re-evaluate placement.
-- Top-10 v3 by margin all 1444444444444444 — re-derive deny rationale (defensive cycle bot? bodyguard? past revert?).
+**Default (s163 conservative)**: only fire E009 from current position. If no node-60 candidate passes gates, defer to next session.
 
-### Step 1.3 — Write candidate plays to strategic-experiments.md
+### Step 1.4 — Pre-strike live verification (IF pilot fires)
 
-Per CLAUDE.md design-mode trigger: 1-2 hypotheses, NOT a doctrine change. Each play:
-- **Hypothesis** (what we believe + evidence base size)
-- **Primitives needed** (oracle queries, item inventory, doctrine relaxation)
-- **Test conditions** (when to trigger, sample size, what counts as proven/refuted)
-- **Expected outcome** (kills landed, reverts, EV per attempt)
-- **Adoption gate** (≥N observations of test signal before adopting into doctrine)
+```python
+# Verify striker live atk_shift matches oracle-cached
+oracle_kami_summary(<striker_idx>)  # check attack_threshold_shift
+oracle_sql("SELECT * FROM kami_action WHERE kami_id=<v_idx> AND action_type='kami_feed' AND block_timestamp > NOW()-INTERVAL '5 min'")
+# Both checks must pass. If feed action found: ABORT, log to E009 N (N=0 unchanged, gates working).
+get_kami_state_slim(<striker_idx>)  # confirm time.cooldown clear, harvesting state
+```
 
-Concrete candidates to evaluate:
-1. **E006 floor recalibration** (V<22 sb≤-25 → +75 or +50 instead of +95) — likely high-impact since 10/38 blocked here.
-2. **vuongdung1198 V=21 sub-22 relaxation** (rates-confirmed gate) — 8/38 blocked but vuongdung is denied across all V; needs rates+rates filter to provide safety.
-3. **Cross-region pivot** beyond 17 watched nodes — read `world-liquidations.jsonl` for competitor cluster signals outside our watch.
-4. **Skip-list pruning** by 7-day defensive activity — yeddy/TrayzinCarpathia patterns oracle-checked.
+### Step 1.5 — Fire and characterize
 
-Pick 1-2 with the highest EV and write to strategic-experiments.md. Defer others to s163+.
+ONE strike. Log:
+- gas_used, success/revert, payout if kill, error message if revert.
+- Update E009 N counter in `predator/strategic-experiments.md`.
+- Append to `predator/metrics.md`.
 
----
-
-## Priority 2 — Snapshot read (sanity check, not a strike attempt)
-
-After P1 work, **briefly** read world_targets.json to confirm:
-- Schema_version=2, parked_rates.applied=true.
-- Coverage convergence completed (v3 rows have parked_rates entries attached, post-cron-race resolution).
-- Any change in doctrine triage (e.g. a new permissible candidate after rates flip).
-
-If a strike opportunity emerges that meets current doctrine: defer to **next session** (s163) — design mode session is read-only by CLAUDE.md trigger rule. Note the candidate in decisions.md.
+If KILL: success counter +1. Continue testing.
+If REVERT: pause. Drill `oracle_kami_summary(v_idx)` for missed actions in last 30 min. Document characterization in E009 entry. Do NOT retry until characterization complete.
 
 ---
 
-## Priority 3 — Out of scope (s162)
+## Priority 2 — E010 step-1 free read (after P1 resolves)
 
-- **No strikes** (design mode).
-- **No glue-raid** (no Blue Pansy / Animistic Poison).
-- **No force-flush** — strikers HARVESTING node 60, intensity continues.
-- **No cross-region pivot** action (only design exploration in P1.3).
+`world-liquidations.jsonl` last 7d filter:
+```bash
+# tail / grep for victim_account in {yeddy, TrayzinCarpathia, tamagotcho, Gunnar, alexbuyer, acheron, orange, zizi, fluff, maia}
+# Any non-self kills against these owners = external evidence the watcher's clean signal is correct
+```
+
+If competitor predators ARE landing kills against mental-skip-list owners → strong signal to drop the list. Append finding to E010 entry. **No strikes from this read** (gated on E009 ≥1 kill).
+
+---
+
+## Priority 3 — Out of scope (s163)
+
+- **No glue-raid** (no Blue Pansy / Animistic Poison still).
+- **No force-flush** — strikers HARVESTING node 60.
+- **No E010 strikes** (gated on E009 ≥1 kill first).
+- **No cross-region pivot for 1 candidate** — only consider 60→33 if cluster math clears 35M-gas threshold AND E009 hypothesis confirms.
 - **Quest progression paused**.
 - **Kamibots state reads forbidden** in-session outside the sanctioned scanner.
-- **No v_HP staleness fix** (defer to s163+).
-- **No cron timing race fix** (defer to s164+).
+- **No v_HP staleness fix** (defer).
+- **No cron timing race fix** (defer).
 
 ---
 
-## Hard limits (s162)
+## Hard limits (s163)
 
-- **Gas budget**: 0 (design mode, no tx).
-- **Tx budget**: 0.
-- **Time budget**: 10-20 min for the doctrine review + write-up.
-- **Sample minimums**: do not adopt any new doctrine this session — only propose hypotheses.
+- **Gas budget**: ≤10M (single pilot strike, ~7M expected).
+- **Tx budget**: 1 strike (pilot) + any pre-strike spot-checks (read-only).
+- **Strike count**: 1 (pilot only — no chains, no batches).
+- **Time budget**: 10-15 min for read + filter + decision + (maybe) strike.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin**: "Re-wake +30-40 min after s162 completes. Pinned to (a) hypothesis from s162 needs a fresh doctrine state to test against; (b) any test play needs ≥1 cron tick of fresh world data after the design write-up; (c) potential strike opportunity if s162 review yields a doctrine relaxation that opens a candidate this snapshot already has."
+**Pin** (s163): "Re-wake +10 min (already scheduled at s162) pinned to (a) parked_rates cron tick converging so v3 has rates_attached, (b) E009 pilot fires immediately if any row passes gates, (c) post-pilot characterization needs ≥1 cron tick before next attempt."
 
-**Re-wake target**: Compute at s162 end based on actual session duration. Default: **+25-30 min** if no test triggered; **+10-15 min** if a test play is queued for s163.
-
----
-
-## Sub-issue queue (post-s161)
-
-1. **Scanner coverage gap (s159)** — ✅ shipped s160 (75480ae). Convergence verified s161.
-2. **Watcher v_HP staleness (s156)** — defer to s163+.
-3. **Cron timing race (s158)** — re-observed s161, cosmetic; defer to s164+.
-4. **Strategic-experiments review (s162)** — **FIRES THIS SESSION**.
+**Re-wake target after s163**:
+- If pilot KILLED: +10-15 min for strike cooldown + next snapshot tick (chain another E009 attempt if eligible).
+- If pilot REVERTED: +30-40 min — do NOT re-attempt until characterization documented; use the time for E010 step-1 read + investigation.
+- If pilot DEFERRED (no eligible candidate): +10-15 min — fire-now bias; world refresh likely surfaces a fresh row.
 
 ---
 
-## Bias for s162
+## Sub-issue queue (post-s162)
+
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 + E010 pilot execution** — **PRIMARY for s163+**.
+3. **Watcher v_HP staleness (s156)** — defer (lower leverage than pilots).
+4. **Cron timing race (s158)** — cosmetic; defer.
+5. **Cross-region pivot to node 33 vuongdung cluster** — gate on E009 ≥3 kills before considering the multi-strike trip.
+
+---
+
+## Bias for s163
 
 Action ladder:
-1. Read strategic-experiments.md, learnings.md, mechanics.md (revert evidence section).
-2. Audit each doctrine blocker (E006, V<22, skip-list, deny-set) — observation count + first-principles re-derivation.
-3. Write 1-2 candidate plays to strategic-experiments.md with full template (hypothesis, primitives, test conditions, EV, adoption gate).
-4. Brief snapshot read for sanity (no strikes).
-5. Schedule next session for the test play (s163 or later).
+1. Read world_targets.json + verify schema/rates_attached.
+2. Filter v3 by E009 gate stack.
+3. If node-60 candidate passes: pre-strike live verify → fire ONE strike → log.
+4. If only node-33 candidate passes: defer (don't travel for single pilot); re-wake.
+5. If no candidate passes: E010 step-1 read → log finding → re-wake.
+6. Update E009/E010 entries with N or finding.
+7. Schedule next session.
