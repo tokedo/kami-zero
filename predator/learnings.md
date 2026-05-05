@@ -837,3 +837,40 @@ Defensive detectors retained as primitives; doctrine reframed: defensive-cycle o
 Two new worked examples added to CLAUDE.md: counter-liquidation defense-in-depth (A) and glue-raid (B). Five experiments seeded in strategic-experiments.md.
 
 Read `predator/mechanics.md` § "Cooldown is per-kami" for the new cooldown rule. Read `predator/strategic-experiments.md` at session start as part of perception phase — this is now where empirical hypotheses live until they earn doctrine status.
+
+## Session 171 — Lane B per-striker SP audit (banked SP + Lethality plan)
+
+Per-striker breakdown (oracle `kami_skills` × `kami_static.level`, `New Kami starts with 1 SP at L1` per leveling.md → max SP = level):
+
+| kami  | level | invested | banked | XP | XP-to-next | next-level cost |
+|-------|-------|----------|--------|----|----|----|
+| 12649 |  56   |   56     |  **0** | 1.20M | 12.7M | months |
+| 11224 |  48   |   45     |  **3** |  33k  |  2.02M | weeks |
+| 10705 |  46   |   46     |  **0** |  59k  |  1.28M | weeks |
+| 15540 |  46   |   46     |  **0** |  18k  |  1.28M | weeks |
+|  6058 |  46   |   46     |  **0** |  44k  |  1.28M | weeks |
+|  6245 |  45   |   45     |  **0** | 127k  |  1.01M | days-weeks |
+| 12225 |  45   |   45     |  **0** |  62k  |  1.01M | weeks |
+
+**Only 11224 has banked SP.** Best deployment = `162 Lethality` (Predator T6, max_rank=1, +0.10 ATS = +100 atk_threshold_shift in raw units). Currently 11224 atk_threshold_shift=280; post-Lethality=380. Margin uplift ≈ +0.10 × victim_max_hp (≈+24 vs 240HP victims).
+
+Worked example — 11224 vs vuongdung1198 idx=16268 (L28, V=14, H=23, HP=240, dts=100):
+- Pre-Lethality: kill_zone=152, margin=152-163=−11 (FAILS A and D).
+- Post-Lethality: kill_zone=176, margin=176-163=+13 (CLEARS amendment-D +10 floor).
+- 11224 currently at NODE 60, victim at NODE 33 → not striker-eligible without roster move.
+
+**Constraints blocking immediate execution**:
+1. SP allocation requires kami in RESTING state. 11224 currently HARVESTING node 60 (since 21:54 UTC May 4 ~14h elapsed).
+2. `stop_harvest` requires operator at room 60. Operator at room 33. Cross-region travel ~10M gas + breaks 4×33 garrison.
+3. Even after allocation, 11224 still at node 60 → no node-33 fire capability. Requires further roster move.
+
+**Decision (s171)**: DEFER 11224 SP allocation to next natural opportunity:
+- (a) 11224 cycles to RESTING naturally (auto = no, no auto_v2; manual cycle on next `harvest_stop` operator pass).
+- (b) Operator visits room 60 for another reason (e.g., E009 fireable opening at node 60).
+- Trigger when both conditions met: `allocate_skills(11224, [{skill_index:162, points:1}])`. Remaining 2 banked SP held in reserve (T1 Mercenary 4→5 +1 ASR, or save for T3 alt — undecided).
+
+**Doctrine outcome (Lane B)**: SP allocation is NOT a near-term lever. 6/7 strikers have 0 banked SP, and the only banked-SP kami (11224) requires either expensive travel or natural-cycle wait to deploy. Long-term lever = leveling wave (multi-week pace at current XP accumulation: each L46-48 striker needs 1-2M XP to next level vs current 18-127k banks).
+
+**Better latent lever surfaced (out of Lane B scope)**: 12649 (V=34, atk_s=400, ATR=500, Lethality already at 1) is currently at node 60 but is the watcher's `striker_idx` for ALL high-margin node-33 candidates. Migrating 12649 from node 60 → node 33 would convert the +15 vuongdung1198 idx=16268 candidate from "watcher-margin only" to "fireable" (D-gate clear). Cost ~10-20M gas (bidirectional travel + per-kami stop+restart) — defer until s172 cost-benefit modeling. Logged for s172 priority queue.
+
+**Lane B status**: Audit COMPLETE; allocation plan documented; execution gated on (a) natural RESTING window for 11224 OR (b) decision to migrate 12649. Lane A (node 86) closed s170. **Amendment E hypothesis NOT written this session** — Lane B has actionable output (defer-not-null) per plan-171 trigger condition.

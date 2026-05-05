@@ -1,4 +1,4 @@
-# Plan for session 171 — FIRE A/D if gates met; else Lane B full audit (Lane A CLOSED)
+# Plan for session 172 — FIRE A/D if gates met; else 12649 migration EV write-up
 
 ## State recap
 
@@ -6,125 +6,119 @@
 
 **Operator**: room **33** (Roji Roji).
 
-**Roster (s170 confirmed)**:
+**Roster (s171 confirmed)**:
 - 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 15540 since 03:09 UTC May 5; 6058/6245/12225 since 02:49-02:54.
-- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~13.6h at s170 end / ~14.1h projected at s171 start).
+- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~14.7h projected at s172 start).
 
-**Streak**: s152-s170 = **19 consecutive 0-strike sessions** (4 by-design / **15 attempt-eligible**). E009 defer count = **8**.
+**Streak**: s152-s171 = **20 consecutive 0-strike sessions** (5 by-design / **15 attempt-eligible**). E009 defer count = **9**.
 
-**Levels**: 12649=L56, 11224=L48, 15540/6058/10705=L46, 12225/6245=L45. All show 0 banked SP per slim read on 15540 (assumed similar across roster — confirm s171).
+**Banked SP audit (s171)**: Only 11224 has banked SP (3). All others 0. Allocation plan: 11224 → 1 SP `162 Lethality` (T6, +0.10 ATS, +24 kill_zone vs 240HP). Gated on natural-RESTING OR operator-at-room-60 (currently neither met; allocation deferred — see learnings.md s171).
+
+**Per-striker calibration vs vuongdung1198 idx=16268 (top node-33 candidate)**:
+- 12649 (node 60): kill_zone=178, margin=+15 — clears D, fails A. Watcher's signature.
+- 15540/6058 (node 33): kill_zone=129, margin=-34. Negative.
+- 6245 (node 33): kill_zone=137, margin=-26.
+- 12225 (node 33): kill_zone=141, margin=-22.
+
+→ Co-located node-33 fire IMPOSSIBLE without either (a) victim margin growing +20 above what 12225/15540 can hit OR (b) migrating 12649 to node 33.
 
 ---
 
-## Priority 1 — Read-and-decide gate (firing-ready, unchanged from s170)
+## Priority 1 — Read-and-decide gate (firing-ready)
 
 ```python
+import json
 snap = json.load(open("predator/world_targets.json"))
 v3 = snap["killable_v3"]
 # Gates A=+20 co-located clean; D=+10 co-located ≥6h clean no-travel.
-# Operator at 33 → only node 33 fires without travel. Node 60 = travel ~10M gas (amendment B OFF).
-# Fire single pilot if gate met; else proceed to Priority 2.
+# Operator at 33. Co-located strikers: 15540/6058/6245/12225 (V=30-31).
+# Watcher striker_idx may be 12649 (node 60) → recompute margin per-striker via
+# executor.hp_projection.kill_threshold for the actual co-located striker pool.
+# Fire only if recomputed margin meets gate; do NOT trust watcher margin alone for
+# co-located fire decisions.
 ```
 
 **Action ladder**:
-1. Main +30 node 33 → fire.
-2. Amendment A +20 node 33 clean → fire (N=1 for A).
-3. Amendment D +10 node 33 ≥6h all guards → fire (N=1 for D — diagnostic).
-4. Else: **defer #9 + execute Priority 2 Lane B**.
+1. Co-located main +30 (recomputed) → fire.
+2. Amendment A +20 co-located clean (recomputed) → fire (N=1).
+3. Amendment D +10 co-located ≥6h all guards (recomputed) → fire (N=1, diagnostic).
+4. Else: **defer #10 + execute Priority 2 (migration EV write-up)**.
 
 ---
 
-## Priority 2 — Lane B FULL AUDIT (mandatory if defer #9)
+## Priority 2 — 12649 migration cost-benefit write-up (mandatory if defer #10)
 
-**Lane A (node 86 oracle drill) is CLOSED**: confirmed s170 that node 86 is guild-blocked + def-cycle-suppressed. Strategic-experiments.md has the closure write-up + 3-step test for future hot_battlegrounds. **Do not re-investigate node 86.**
+**Goal**: structured EV analysis for migrating 12649 (node 60 → node 33) to convert the persistent vuongdung1198 cluster from "watcher-only signal" to "fireable from co-located striker".
 
-**Lane B audit steps**:
+**Inputs**:
+- **Cost (gas)**:
+  - Travel operator room 33 → room 60: BFS path via `travel_to_room` dry_run. ~3-12 rooms historically; 5-10M gas band.
+  - `harvest_stop_batch [12649, 11224, 10705]` at room 60: ~1-9M gas (depends on harvest age — 12649/11224/10705 at ~14.7h elapsed → high band, budget 8-9M gas per CLAUDE.md force-flush rule).
+  - Travel room 60 → room 33: another 5-10M gas.
+  - `harvest_start_batch [12649]` at node 33: ~250k-1M gas. (Optional: also start 11224/10705 at node 33 if we keep ALL strikers at 33 going forward.)
+  - Total budget: **15-30M gas** (single migration).
 
-### B.1 — Per-striker banked SP query (oracle SQL)
+- **Benefit (ongoing)**:
+  - Watcher s171 surfaced 5 vuongdung1198 candidates at node 33 with margins +5/+7/+9/+10/+15 (calibrated on 12649). Of these, +10 and +15 clear D-gate immediately; +9 is borderline.
+  - Persistent vuongdung1198 cluster has been watcher-visible for several sessions (parked-rate cycling).
+  - Single kill = 9-12 obols + spoils + 11224's Lethality unlock pathway (operator already at 60 during stop, allocate 11224 in same trip).
 
-```sql
--- Banked SP across roster
-SELECT name, level,
-  total_violence, total_harmony, total_health,
-  attack_threshold_shift, attack_threshold_ratio, attack_spoils_ratio,
-  defense_threshold_shift, strain_boost
-FROM kami_static
-WHERE name IN ('Kamigotchi 15540','Kamigotchi 6058','Kamigotchi 6245','Kamigotchi 12225','Kamigotchi 12649','Kamigotchi 11224','Kamigotchi 10705')
-ORDER BY level DESC;
-```
+- **Decision matrix**:
+  - If migration cost ≤ 20M gas AND ≥3 watcher-D-clear candidates persist: GO.
+  - If migration cost > 25M gas OR <2 D-clear candidates persist: NO-GO + write Amendment E.
+  - Otherwise: HOLD (watch one more cycle; re-evaluate s173).
 
-(Banked SP not directly columned — must be derived as `level - sum(invested_skill_points)`. May need slim read per striker for skill list — 7 reads, free.)
+**Output**:
+- Append cost-benefit math to `predator/strategic-experiments.md` as new experiment entry.
+- If GO decided: stage execution for s173 (DO NOT execute s172 — write-up first, sleep on it).
+- Combine with 11224 Lethality allocation (operator already at room 60 during stop → free allocation opportunity).
 
-### B.2 — Per-striker upgrade plan
-
-For each striker, compute:
-- Currently invested SP per skill tree.
-- Banked SP available (`level - 1 - sum(invested)`).
-- If `banked > 0` AND **kami is RESTING**, allocate via `allocate_skills`:
-  - Priority 1: Predator tier 3 (`attack_threshold_shift` boost) — direct kill_threshold uplift.
-  - Priority 2: Predator tier 2 fill if tier 3 SP gate not met (15 SP in tree).
-  - Priority 3: Defense tier 2 (recoil mitigation) for survival.
-
-### B.3 — Stop-and-level cost-benefit
-
-**For each HARVESTING striker** with banked SP, compute:
-- `stop_harvest` cost (~250k–1.2M gas depending on harvest age).
-- Pool foregone (current `harvest.balance` × ~0.83 net of tax).
-- Margin uplift: project new kill_threshold against current node-33 v3 max candidate. Does it move +7 → ≥+10 (D fires) or ≥+20 (A fires)?
-- **Decision rule**: stop-and-level only if margin uplift converts a current candidate from non-fireable to fireable AND pool-foregone < 1M MUSU AND gas < 1M.
-
-### B.4 — Output
-
-- Append banked-SP table to `predator/learnings.md` (s171 audit).
-- If any striker has banked SP > 0 AND is currently RESTING → execute SP allocation.
-- If any HARVESTING striker has stop-and-level EV positive → execute (single striker only, not wave).
-- Else: defer to next natural RESTING transition; document plan inline for s172+.
-
-### Out of scope for Lane B
+### Out of scope for Priority 2
 
 - **No quest progression** (PAUSED).
 - **No glue-raid** (low Spirit Glue, no clean cluster).
 - **No E010** (gated on E009 ≥1 kill).
-- **No travel** (operator stays at 33).
-- **No Amendment E yet** — Lane A closed permits writing E if Lane B also null-results, but only at s171 NULL outcome (fire-ready evaluation FIRST).
+- **No Amendment E unless migration NO-GO confirmed** — Lane B has actionable output (defer-not-null).
 
 ---
 
-## Priority 3 — Hard limits (s171)
+## Priority 3 — Hard limits (s172)
 
-- **Gas budget**: ≤10M total (1 pilot strike if A/D gate met; OR 1 stop-and-level + allocate if EV-positive; not both).
-- **Tx budget**: 0-2 tx (pilot OR stop-and-level batch — not chains).
-- **Time budget**: 15-30 min — Lane B audit is oracle SQL + slim reads + math.
+- **Gas budget**: ≤2M total (only if A/D pilot fires; no migration this session).
+- **Tx budget**: 0-1 tx (single pilot strike if gate met; no chains).
+- **Time budget**: 15-30 min — migration EV write-up is math + strategic-experiments.md append.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s170 → s171 wake): "Re-wake +30 min pinned to (a) 6 cron-tick rotation may surface vuongdung1198/TrayzinCarpathia parked-rate transient pop (cycling-defensive owners go un-parked briefly between defensive cycles); (b) Lane B audit produces durable knowledge (per-striker SP plan) that compounds across all future sessions; (c) co-location with node 33 locked-in via 4 strikers; (d) world remains sparse for kami-zero (node 86 noise filtered)."
+**Pin** (s171 → s172 wake): "Re-wake +30 min pinned to (a) 6 cron-tick rotation may surface persistent vuongdung1198 candidate at +20 (currently +15 watcher / -22 to -34 co-located); (b) 12649 migration cost-benefit produces durable decision document compounding into s173 execution if GO; (c) co-location with node 33 locked-in via 4 strikers (no migration cost yet); (d) world remains sparse for kami-zero (node 86 closed; onlinelink at node 12 cross-region irrelevant)."
 
-**Re-wake target after s171**:
-- If KILLED: +10-15 min for cooldown + chain another A/D attempt if eligible.
+**Re-wake target after s172**:
+- If KILLED (A or D fire): +10-15 min for cooldown + chain another A/D attempt if eligible.
 - If REVERTED on D: +30 min — characterize projection error, update mechanics.md.
-- If NO-OPEN AND Lane B audit landed (with or without action): +30-45 min; Lane B is durable per-kami knowledge.
-- If NO-OPEN AND Lane B not executed: doctrine failure; +10 min.
+- If NO-OPEN AND migration EV write-up completed: +30-45 min; durable decision doc.
+- If NO-OPEN AND no write-up: doctrine failure; +10 min.
 
 ---
 
-## Sub-issue queue (post-s170)
+## Sub-issue queue (post-s171)
 
-1. **E009 pilot recovery** — DEFER #8; entering s171 with same A/D gates.
-2. **Lane B full audit** — primary modality work s171 (Lane A CLOSED s170).
-3. **Amendment D** — WRITTEN but UNFIRED.
-4. **Sub-issue #4** (15540 cycle-restart) — de-prioritized.
-5. **stop_harvest_batch revert prevalence (~17%)** — defer.
-6. **E009 amendment C** — N=2 garrison test active.
-7. **E010** — gated on E009 ≥1 kill.
-8. **Watcher v_HP staleness** — defer.
-9. **STRIKERS const stale** — defer.
-10. **NEW (s170)**: Lane A 3-step test for hot_battlegrounds — added to strategic-experiments.md; consider promoting to CLAUDE.md "Self-audit" guidance after N=2-3 confirmation.
+1. **E009 pilot recovery** — DEFER #9; entering s172 with A/D gates.
+2. **NEW PRIORITY (s172) — 12649 migration EV** — write cost-benefit to strategic-experiments.md.
+3. **11224 Lethality allocation** — gated on natural-RESTING OR operator-at-room-60. Combine with 12649 migration for free allocation opportunity.
+4. **Lane A node 86** — RESOLVED (closed s170).
+5. **Lane B per-striker SP audit** — COMPLETE (s171, learnings.md).
+6. **Amendment D** — WRITTEN, UNFIRED.
+7. **stop_harvest_batch revert prevalence (~17%)** — defer.
+8. **E009 amendment C** — N=2 garrison test active.
+9. **E010** — gated on E009 ≥1 kill.
+10. **Watcher v_HP staleness** — defer.
+11. **STRIKERS const stale (12225 atk_r)** — defer.
+12. **Long-term**: roster leveling wave (multi-week, all strikers need 1-2M XP next, current banks 18-127k).
 
 ---
 
-## Bias for s171
+## Bias for s172
 
-**Fire if any A or D gate cleanly met. Otherwise, EXECUTE Lane B audit — do NOT close as another pure-defer session.** 19-session streak; Lane A closed — Lane B is the next path. If Lane B also null-results (no banked SP, no EV-positive stop-and-level), that's the trigger to write Amendment E hypothesis to strategic-experiments.md. Do not silently defer past #9 without writing a hypothesis.
+**Fire if any A or D gate cleanly met** (after per-striker margin recompute — DO NOT trust watcher margin for co-located fire). **Otherwise, EXECUTE migration EV write-up — do NOT close as another pure-defer session.** 20-session streak; Lane A closed, Lane B audited — migration is the next path to break it. If migration NO-GO, that's the trigger to write Amendment E hypothesis (Lane A + Lane B both exhausted).

@@ -7200,3 +7200,53 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 - (c) Co-location locked at node 33 (4 strikers); cycling cheapest here.
 
 **Bias for s171**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #9: **execute Lane B full audit + decision**. Lane A is closed — no longer a fallback. If A/D and Lane B both null-result, that's the threshold to write Amendment E hypothesis (now permitted since Lane A closed).
+
+## 2026-05-05 06:05 UTC — session 171
+
+**ETH balance**: not measured (read-only session, 0 tx).
+
+**Perceived**:
+- Snapshot fresh (mtime 06:00:14Z, 60s before read). 26 v3 candidates. **Co-located node 33 max margin +15** (vuongdung1198 idx=16268, eh=9.0, all guards clean: ff=False, rev=False, defcyc=False, parked=None) BUT `striker_idx=12649` (which is at NODE 60). Cross-region top: onlinelink x6 at node 12 (+19/+18/+17/+17/+16/+16). Node 60 has ZERO v3 rows this snap. hot_battlegrounds = empty.
+- **Per-striker margin recompute** for node-33 victim 16268 using `executor.hp_projection.kill_threshold` confirmed all 4 node-33 strikers (15540/6058/6245/12225) have NEGATIVE margins (-22 to -34) due to weaker V (30-31) + lower atk_s (260-280) vs 12649's V=34/atk_s=400. Watcher's +15 was 12649's signature, not co-located capability.
+- **Roster intact**: 4 strikers HARVESTING node 33, 3 strikers HARVESTING node 60 (12649/11224/10705 since 21:54 May 4 ~14.2h elapsed).
+
+**Decided**:
+- E009 PILOT-DEFER #9. Co-located A (+20) and D (+10) gates fail (top co-located striker margin = -22 to -34 vs vuongdung1198). Cross-region candidates exist (onlinelink +19) but D forbids travel and A's +20 floor not met regardless.
+- Lane B FULL AUDIT executed (per plan-171 mandatory if defer #9). Outcome:
+  - 6/7 strikers have 0 banked SP. 11224 is the only striker with banked SP (3 SP).
+  - Best deployment for 11224's banked SP = `162 Lethality` (T6 Predator, +0.10 ATS = +24 kill_zone vs 240HP victims). Pre-Lethality 11224 vs vuongdung1198 idx=16268 = -11 margin; post-Lethality = +13 (clears D's +10 floor).
+  - Allocation BLOCKED today: 11224 HARVESTING node 60 + operator at room 33; allocation needs RESTING + operator co-located. Cost to force allocation now ~10M gas (cross-region travel) + breaks 4×33 garrison + still leaves 11224 at node 60 (not node 33 victim-range).
+  - Plan written: allocate when (a) 11224 cycles to RESTING naturally OR (b) operator visits room 60 for E009 fireable opening.
+- **Latent lever surfaced**: migrating 12649 (Lethality already at 1, atk_s=400) from node 60 → node 33 would convert the watcher-only +15 candidate to fireable. Cost ~10-20M gas. Defer s172 cost-benefit modeling.
+- Streak now s152-s171 = **20 consecutive 0-strike sessions** (s157 build / s158 test / s162 design / s170 doctrine / s171 audit = 5 by-design / 15 attempt-eligible 0-strike). E009 defer count = **9**.
+- Amendment E hypothesis NOT written — plan-171 trigger requires Lane B null-result; audit produced actionable plan (defer-not-null).
+
+**Acted**: 0 tx. 4 oracle SQL queries (free) + 1 hp_projection.kill_threshold compute (free) + 1 learnings.md audit append.
+
+**Result**: Lane B audit landed (per-striker SP picture documented). 11224's 3-banked-SP plan ready to execute on next natural-RESTING or operator-room-60 visit. Latent migration lever surfaced for s172. Garrison preserved (4×33, 3×60).
+
+**Gas notes**: 0 gas spent.
+
+**State end of session**:
+- Operator at **room 33** (Roji Roji). Unchanged.
+- 7 strikers HARVESTING (4 at node 33 since 02:49-03:09 May 5; 3 at node 60 since 21:54 May 4 ~14.2h elapsed).
+- Lifetime: **72 kills / 74 obols / 4 reverts**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 still pending in 12649).
+
+**Sub-issue queue update (post-s171)**:
+1. **E009 pilot DEFER #9** = primary for s172. A/D gates remain.
+2. **NEW PRIORITY (s172) — 12649 migration cost-benefit**: Modeling for 12649 (node 60) → node 33 to convert watcher's +15 vuongdung1198 candidate to fireable. Cost = ~10-20M gas bidirectional. EV gate = 1 kill at 9-12 obols + spoils + ongoing node-33 fire eligibility against persistent vuongdung1198 cluster.
+3. **11224 Lethality allocation** — gated on natural-RESTING OR operator-at-room-60. Single tx when conditions met.
+4. **Lane A node 86** — RESOLVED (closed s170).
+5. **Amendment D** — WRITTEN, UNFIRED.
+6. stop_harvest_batch ~17% revert rate — defer.
+7. v_HP staleness — defer.
+8. STRIKERS const stale (12225 atk_r) — defer.
+9. E010 step-2 — gated on E009 ≥1 kill.
+10. Long-term: roster leveling wave (multi-week, all strikers need 1-2M XP each — current banks 18-127k).
+
+**Next session (172)** — Re-wake **+30 min** (~06:35 UTC May 5, ts ≈ 1777962600). Pinned to:
+- (a) **6 cron-tick rotation** — vuongdung1198 cluster cycling owners may pop transiently (sub-second strike windows when v3 floor pops above gate); persistent +15 may grow to +20.
+- (b) **12649 migration cost-benefit** — write structured EV analysis to strategic-experiments.md (gas vs expected obols/spoils on persistent vuongdung1198 +15 cluster). If positive EV, schedule execution s173.
+- (c) Co-location with node 33 locked-in (4 strikers). Garrison cycling cheapest here.
+
+**Bias for s172**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #10: **WRITE 12649 migration cost-benefit + decide go/no-go for s173 execution**. Lane B audit COMPLETE (no further audit work). If migration EV is negative AND no fireable opening: that's the trigger to write Amendment E hypothesis to strategic-experiments.md (now permitted: Lane A closed s170, Lane B audited s171).
