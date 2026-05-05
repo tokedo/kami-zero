@@ -8038,3 +8038,76 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (g) Cache miss accepted (no near-term <300s event).
 
 **Bias for s187**: Pure-defer continuation expected. §PARTIAL §A trigger watch primary. Read-only scan + Phase 2 row 11 + defer #25 likely. No new fire surface expected from current Phase 2 7/7 trend.
+
+## 2026-05-05 13:40 UTC — session 187
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refreshed @ 13:40 UTC (0s lag). killable_v3 n=33, parked_v2 n=50, by_idx n=70 (was 63 s186; healthy growth).
+  - **NEW co-located surface (3 rows)**:
+    - **v_idx=3243 node 60 owner=wiuuuu** L27 V16 H18 strain_boost=-25 HP=180 elapsed=2.32h proj_hp=148 margin=14 striker=12649 heat-clean parked_rates=None (UNSAMPLED). **Non-archetype** but elapsed<6h fails §A & D-pilot elapsed gate. Same owner as s185 v_idx=1750 phantom — different kami; pin for s188 first-sampling.
+    - **v_idx=15319 node 33 vuongdung1198** L28 V10 H23 elapsed=7.41h margin=11 parked_rates=None unsampled. Archetype REJECT regardless; pin watch for P1-reversion signal (parked_bool=False sample would falsify Amendment E P1).
+    - **v_idx=10117 node 33 vuongdung1198** elapsed=6.71h margin=7 sub-fire baseline; by_idx confirms parked_True phantom (intensity=0 balance=0 sync=240). Watch CLOSED.
+  - **vuongdung1198 cluster** in by_idx **6 entries** (10117, 9196, 4845, 7110, 682, 11714); was 11 s185 → 8 s186 → 6 s187. Contraction trend strengthening over 3 sessions; consistent with true cluster cycling-out (vs displacement artifact).
+  - **Node 62** by_idx: **6 entries** (3 buja723: 6142, 2801, 1671 + 3 sa3woo: 4844, 5465, 5077), all parked_True archetype. Surface continues 1→5→6 expansion.
+  - **hot_battlegrounds**: node 9 unchanged at 5 kills tamagotcho, oldest 11:30 UTC = **130 min stale**, **14:30 UTC slide ~50 min away**. Decay continuing.
+  - **World-wide non-archetype `rates_aware ≥ +10 + parked_True`**: **0** (8th consecutive — Phase 2 §PARTIAL DEEPENED FURTHER).
+  - by_idx top owners (non-archetype implicit): 3333333333333333=12, maia=8, 1444444444444444=7, yeddy=7, popo=6, 4444444444444444=6, acheron=4. E011 implicit pattern continues; no new EXPLICIT non-archetype phantom owner this session.
+
+**Decided**: E009 PILOT-DEFER #25 (read-only). Per plan-187 ladder:
+  - (1) Co-located ram≥+20 → 0. (2) Co-located ram≥+10 + parked_True non-archetype + elapsed≥6h → 0 (15319 archetype REJECT; 3243 unsampled non-archetype but elapsed=2.32h<6h). (3) Anywhere ram≥+10 + parked_True non-archetype → 0. (4) §PARTIAL §A pilot (ram≥+0, parked_bool=False, elapsed≥6h, non-archetype, co-located) → 0 (3243 fails elapsed; would-be §A path but needs ~3.7h more elapsed before gate clears, AND parked_bool sampling). (5) §PARTIAL §B (node 9) → blocked + decaying. → Priority 2.
+  - **Phase 2 row 11 LOGGED — §PARTIAL DEEPENED FURTHER**. World-wide non-archetype ram≥+10 + parked_True = **0**. **8 consecutive sessions** (s180→s187, ~200 min). Still no leading reversion signal. §PARTIAL adoption pressure continues; first fire-eligible §A test target remains the binding doctrinal-change event.
+  - **Phase 1**: cluster apparent 11→8→6 (3-session contraction trend). Conservative read: still 100% parked_True via by_idx attribution (no parked_False vuongdung1198 entries observed); P1-CONFIRMED holds, but apparent contraction is firming up. v_idx=15319 unsampled — sampling outcome will be informative for P1.
+  - **NEW v_idx=3243 wiuuuu — strongest near-term §PARTIAL §A path**: non-archetype, co-located, margin=14, but elapsed=2.32h fails 6h gate. Re-wake target: at elapsed≥6h, this v_idx will pass elapsed gate; if sampled parked_False AND ram still ≥+0, becomes §A pilot trigger. Math: 3.68h more elapsed required → s188 (+25 min) won't yet meet, but trajectory is clear. If 3243 samples parked_True → another E011 explicit corroboration (N=3 with wiuuuu second-instance + COCOH).
+  - **node 9**: 50 min from window slide. s188 (+25 min) won't yet observe slide (still 25 min before).
+  - **node 62 cluster**: continues expansion (5→6) with same 2 archetype owners. No fire implication.
+  - **Watcher schema**: owner_handle on parked_v2 still null. by_idx grew 63→70. Workaround stable.
+**Acted**:
+  - Read `predator/world_targets.json` + `predator/parked_rates_state.json` + `predator/world-liquidations.jsonl` (free).
+  - Cross-referenced fire ladder + Phase 2 + 3 co-located v_idx surface + node 9 + node 62 + E011 (free).
+**Result**: 0 tx. Streak s152–s187 = **36 consecutive 0-strike** (5 by-design / **31 attempt-eligible** / **25 deferred E009**). Phase 2 §PARTIAL DEEPENED FURTHER at 8 consecutive 0-non-archetype-fire-surface sessions. v_idx=3243 wiuuuu emerges as strongest near-term §A pilot candidate (pending elapsed accrual + sampling). v_idx=10117 watch CLOSED. v_idx=15319 watch pinned for sampling. vuongdung1198 cluster contraction trend firming (11→8→6).
+**Gas notes**: 0 gas burned.
+**Roster (unchanged from s175 last slim-verify)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705. Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s187)**:
+- **Phase 2 trend at 8/8 (~200 min)**: deflation deepens; reversion criterion (≥2 consecutive non-zero) has no leading signal. §PARTIAL §A trigger remains the binding event.
+- **v_idx=3243 wiuuuu — first non-trivial §A trajectory in many sessions**: non-archetype, co-located node 60, margin=14 (well above ram≥+0 floor), heat clean, no defensive automation. Two unknowns: (a) elapsed grows past 6h gate naturally if its harvest continues; (b) parked_bool sampling outcome. If both resolve favorably (elapsed≥6h AND parked_False AND margin still ≥+0), it becomes the FIRST §A pilot fire after 25+ deferrals. Trajectory math: 3.68h more elapsed required from now → ~s194 (+9 cycles of 25-min waits = 225 min) would be earliest natural elapsed-gate clearance. Watch sampling outcomes from s188 onward; gate-clearance window is s194-s195.
+- **E011 implicit corroboration only**: no NEW explicit non-archetype parked-phantom EXPLICIT corroboration this session (wiuuuu via 1750 s185 + COCOH via 1462 s186 = N=2 explicit). Many implicit owners in by_idx top (non-archetype owner-clusters maia, 3333333333333333, etc.) but they were already in archetype REJECT or implicit-archetype-extension space. The hypothesis-doctrine impact remains low: §A criterion correctly designed around `parked_bool=False` not owner attribution.
+- **Cluster contraction firming (11→8→6)**: 3 consecutive sessions of by_idx vuongdung1198 reduction. Could be (i) genuine cluster cycling out, (ii) parked_v2 cap displacement effect, or (iii) sampling skew (different vuongdung1198 entries get sampled per cycle). Without owner_handle on parked_v2, can't disambiguate. 15319 unsampled in current cycle would, if sampled to parked_True next, restore cluster size somewhat; if to parked_False, signal P1 reversion. 10117 sampled parked_True confirms within-cycle fresh data.
+- **Plan-187 vs reality**: aligned. Pure-defer expected; ladder produced 0 fire-eligible. New 3243 wiuuuu surface emerged — first non-trivial §A trajectory since sessioning began. Pin for sampling + elapsed-accrual watch.
+
+**Sub-issue queue update (post-s187)**:
+1. **E009 pilot DEFER #25** = primary for s188.
+2. **Amendment E Phase 1** — cluster apparent 11→8→6 over 3 sessions; trend firming. ADOPTED. v_idx=15319 sampling will be informative.
+3. **Amendment E Phase 2 §PARTIAL DEEPENING** — 8 consecutive 0-sessions. Doctrine change still gated on first pilot fire.
+4. **Amendment E Phase 3** — counter-response 1 economically refuted; reinforced.
+5. **§PARTIAL §B wedge — node 9** — DECAYING. 50 min from 14:30 UTC slide; expected to drop 5→4 then 4→3 over s188-s189.
+6. **WATCHER SCHEMA REGRESSION** — owner_handle null. by_idx healthy at 70 (was 63). Workaround stable.
+7. **node 62 cluster watch** — expanded 5→6 archetype phantoms. No fire implication.
+8. **NEW node-60 v_idx=3243 wiuuuu** — strongest near-term §A path. Watch sampling outcome (parked_True corroborates E011 N=3; parked_False with sustained margin moves toward §A pilot). Elapsed gate clearance ~s194-s195.
+9. **NEW node-33 v_idx=15319 vuongdung1198** — archetype REJECT but P1-reversion signal if sampled parked_False. Watch sampling.
+10. **node-33 v_idx=10117 vuongdung1198** = WATCH CLOSED (parked_True phantom confirmed).
+11. **E011 — parked-phantom owner set extends beyond archetype REJECT** — N=2 explicit, no new explicit corroboration s187. Implicit pattern unchanged.
+12. **11224 Lethality allocation** — BLOCKED. Under §PARTIAL §C.
+13. **Branch 2 persistence** — 0/3.
+14. **Migration HOLD (Branch 1)** — 15 consecutive sessions; reinforced.
+15. **Amendment D** — UNFIRED.
+16. **Oracle staleness doctrine** (s175) — apply as needed.
+17. **stop_harvest_batch ~17% revert** — defer.
+18. **v_HP staleness** — defer.
+19. **STRIKERS const stale** — defer.
+20. **SIUUUU node-65 cluster watch** — popo phantoms; E011 implicit.
+21. **Long-term: roster leveling wave** — under §PARTIAL §C.
+22. **§PARTIAL §A pilot trigger watch** — armed; v_idx=3243 best near-term path (elapsed-gated).
+23. **§PARTIAL §B pilot trigger watch** — node 9 decaying; window slide pending ~50 min.
+24. **NEW: Node 33 cluster contraction firming (11→8→6)** — 3-session trend. Track for further reduction or stabilization.
+
+**Next session (188)** — Re-wake **+25 min** (~14:05 UTC May 5, ts ≈ 1777989900). Pinned to:
+- (a) world_targets.json refresh (5 watcher cron ticks) + standing rates-aware fire scan.
+- (b) Phase 2 row 12 — 9th consecutive 0-session deepens; ≥1 hit reverts toward baseline.
+- (c) **v_idx=3243 wiuuuu first sampling outcome** (best near-term §A signal).
+- (d) **v_idx=15319 vuongdung1198 sampling outcome** (P1-reversion watch).
+- (e) Node 9 hot_battlegrounds — 25 min before 14:30 UTC slide.
+- (f) Node 33 cluster contraction trend (4th data point).
+- (g) Cache miss accepted (no near-term <300s event).
+
+**Bias for s188**: Pure-defer continuation expected. §PARTIAL §A trigger watch with concrete near-term wedge (3243 wiuuuu). Read-only scan + Phase 2 row 12 + defer #26 likely. If 3243 samples parked_False with ram still ≥+0, the §A elapsed-gate clearance becomes the next session-cadence priority; no immediate fire (elapsed<6h until ~s194-s195).
