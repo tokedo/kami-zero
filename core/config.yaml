@@ -1,0 +1,76 @@
+# core/config.yaml — every tunable parameter lives here.
+# Optimizer edits this file far more often than .py modules.
+# Keep this file flat, well-commented, and free of overlapping concepts.
+
+predator:
+  # === Gate stack — applied in order in core/predator/filter.py ===
+
+  # Hard floor on candidate.margin (kill_zone − projected_HP). The
+  # watcher already applies rates-aware filtering when populating
+  # killable_v3, so this floor is a margin-of-safety on the watcher's
+  # output. Optimizer raises or lowers based on revert observations.
+  margin_floor: 10
+
+  # Minimum elapsed_h on the candidate's harvest. Below this, projection
+  # is too noisy. The old system used 6h.
+  min_elapsed_h: 6.0
+
+  # Heat gates — see watcher heat dict. Skip targets recently struck.
+  max_minutes_idle_for_strike: null      # no upper bound on idle for v0
+  reject_if_anti_predator_automation: true
+  reject_if_defensive_cycle: true
+
+  # Parked-rates handling. The old system rejected parked_bool=False
+  # candidates. Empirically yellowtail (May 5) lands kills on
+  # tamagotcho without parked-rates confirmation, so v0 allows
+  # non-parked when other gates are clean.
+  require_parked_bool: false
+
+  # Owner attribution. The watcher's owner_handle has been null on
+  # parked_v2 since s181. Fail-safe in old system was REJECT, which
+  # contributed to the dead-loop. v0 allows owner-unknown if v_acct
+  # is resolved via parked_rates_state.by_idx fallback.
+  require_owner_resolved: true           # via either owner_handle or by_idx
+  reject_owner_unknown: true             # no fallback resolution available
+
+  # Co-location requirement — striker AND operator must be at node_id.
+  # No migration in v0; if a high-margin candidate is at a different
+  # node, emit anomaly (migration_candidate) and skip.
+  require_colocation: true
+
+# === Per-tick limits ===
+
+limits:
+  # Maximum strikes per tick. v0 fires at most one to keep blast radius
+  # small while we calibrate.
+  max_strikes_per_tick: 1
+
+  # Per-tick gas spending cap (sum of submitted tx gas_used).
+  max_gas_per_tick: 15000000
+
+# === Anomaly thresholds ===
+
+anomalies:
+  # Emit `no_candidates_passing` after this many consecutive empty ticks.
+  # Threshold the optimizer uses to consider relaxing gates.
+  defer_streak_alert_threshold: 12       # ~1h at 5-min cadence
+
+  # Emit `data_quality_owner_handle_null` if >X% of killable_v3 entries
+  # have null owner attribution.
+  owner_handle_null_pct_alert: 50
+
+# === Account ===
+
+account:
+  # The account label kami-zero operates. Passed to executor functions.
+  primary: "bpeon"
+
+# === Paths (relative to kami-zero root) ===
+
+paths:
+  world_targets: "predator/world_targets.json"
+  parked_rates_state: "predator/parked_rates_state.json"
+  guild_no_touch: "predator/guild-no-touch.csv"
+  runs_log: "history/runs.jsonl"
+  anomalies_log: "history/anomalies.jsonl"
+  changes_log: "history/core_changes.jsonl"
