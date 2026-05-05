@@ -33,10 +33,21 @@ predator:
   require_owner_resolved: true           # via either owner_handle or by_idx
   reject_owner_unknown: true             # no fallback resolution available
 
-  # Co-location requirement — striker AND operator must be at node_id.
-  # No migration in v0; if a high-margin candidate is at a different
-  # node, emit anomaly (migration_candidate) and skip.
+  # Co-location requirement — applied only when hunting_mode is false.
   require_colocation: true
+
+  # Roaming-assassin mode. When true, the executor migrates the
+  # striker to the target's node before each strike (~15-25M gas/kill,
+  # plus stamina). Strikers default to RESTING with operator and are
+  # tools-not-farmers — they're not expected to build intensity.
+  # When true, co-location gate is dropped and hunting_margin_floor
+  # replaces margin_floor as the candidate-acceptance threshold.
+  hunting_mode: true
+
+  # Hunt threshold: only chase candidates with at least this much
+  # margin. Higher than margin_floor because we pay migration cost
+  # and want a safe buffer against last-minute HP changes.
+  hunting_margin_floor: 25
 
 # === Per-tick limits ===
 
@@ -46,7 +57,9 @@ limits:
   max_strikes_per_tick: 1
 
   # Per-tick gas spending cap (sum of submitted tx gas_used).
-  max_gas_per_tick: 15000000
+  # Hunt sequence is harvest_stop (4M) + travel (~5-10M) + harvest_start
+  # (3M) + liquidate (7.5M) + harvest_stop (4M) ≈ 25-30M worst case.
+  max_gas_per_tick: 30000000
 
 # === Anomaly thresholds ===
 

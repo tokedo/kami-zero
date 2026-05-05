@@ -17,6 +17,7 @@ from pathlib import Path
 from core import anomaly, config as cfg_module
 from core.perception import self_state, world
 from core.predator import filter as pfilter
+from core.predator import hunt as hunt_module
 from core.predator import strike, targeting
 
 ROOT = Path(__file__).resolve().parent.parent  # repo root (kami-zero/)
@@ -149,7 +150,28 @@ async def tick() -> dict:
     ranked = targeting.rank(survivors)
     pick = ranked[0]
 
-    # 5. Strike
+    # 5. Strike or hunt depending on mode
+    if cfg["predator"]["hunting_mode"]:
+        outcome = await hunt_module.hunt(pick, account=account)
+        rec = {
+            "outcome": "hunt",
+            "candidates_seen": len(cands),
+            "survivors": len(survivors),
+            "reject_counts": reject_counts,
+            **outcome,
+        }
+        _log_run(runs_path, rec)
+        if not outcome.get("success"):
+            anomaly.emit(
+                anomalies_path,
+                "hunt_failed",
+                target=outcome.get("target"),
+                aborted_at=outcome.get("aborted_at"),
+                abort_reason=outcome.get("abort_reason"),
+                total_gas=outcome.get("total_gas"),
+            )
+        return rec
+
     outcome = await strike.fire(pick, account=account)
     rec = {
         "outcome": "strike",

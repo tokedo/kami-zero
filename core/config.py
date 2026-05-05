@@ -19,6 +19,11 @@ class PredatorConfig(BaseModel):
     require_owner_resolved: bool = True
     reject_owner_unknown: bool = True
     require_colocation: bool = True
+    # Roaming-assassin mode: executor migrates striker to target's node
+    # before each strike (~15-25M gas/kill). Bypasses co-location gate;
+    # uses higher margin floor instead.
+    hunting_mode: bool = False
+    hunting_margin_floor: float = 25.0
 
 
 class LimitsConfig(BaseModel):
@@ -52,7 +57,7 @@ class Config(BaseModel):
     paths: PathsConfig
 
 
-def load(path: Path) -> Config:
-    with path.open() as f:
+def load(path: Path | str) -> Config:
+    with open(path) as f:
         raw = yaml.safe_load(f)
     return Config.model_validate(raw)

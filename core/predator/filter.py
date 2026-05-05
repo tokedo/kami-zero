@@ -40,11 +40,17 @@ def apply(
             rej("archetype_rejected")
             continue
 
-        # Margin floor
+        # Margin floor — hunting_mode raises the bar (we pay migration
+        # cost, so only chase strong candidates).
         margin = c.get("margin", 0) or 0
-        if margin < pcfg["margin_floor"]:
-            rej("below_margin_floor")
-            continue
+        if pcfg["hunting_mode"]:
+            if margin < pcfg["hunting_margin_floor"]:
+                rej("below_hunting_margin_floor")
+                continue
+        else:
+            if margin < pcfg["margin_floor"]:
+                rej("below_margin_floor")
+                continue
 
         # Elapsed
         elapsed = c.get("elapsed_h") or 0
@@ -70,16 +76,17 @@ def apply(
                 rej("not_parked")
                 continue
 
-        # Co-location: striker must be HARVESTING at target's node.
-        # `liquidate()` requires both kamis HARVESTING on the same node.
-        # Operator location is NOT required (old doctrine was wrong).
-        if pcfg["require_colocation"]:
-            striker_idx = c.get("striker_idx")
-            target_node = c.get("node_id")
-            striker = self_state["kamis"].get(int(striker_idx) if striker_idx else -1)
-            if striker is None:
-                rej("striker_not_in_roster")
-                continue
+        # Co-location: when hunting_mode is on, the executor migrates
+        # the striker to the target's node, so we don't gate on it here.
+        # We still verify the striker_idx is in our roster.
+        striker_idx = c.get("striker_idx")
+        target_node = c.get("node_id")
+        striker = self_state["kamis"].get(int(striker_idx) if striker_idx else -1)
+        if striker is None:
+            rej("striker_not_in_roster")
+            continue
+
+        if not pcfg["hunting_mode"] and pcfg["require_colocation"]:
             if striker.get("state") != "HARVESTING":
                 rej("striker_not_harvesting")
                 continue

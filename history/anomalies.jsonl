@@ -1,0 +1,9 @@
+{"ts": 1777991104, "kind": "migration_candidate", "target_node": 12, "striker_nodes": [33, 60], "margin": 30.0, "handle": "onlinelink"}
+{"ts": 1777991114, "kind": "migration_candidate", "target_node": 12, "striker_nodes": [33, 60], "margin": 30.0, "handle": "onlinelink"}
+{"ts": 1777991403, "kind": "migration_candidate", "target_node": 19, "striker_nodes": [33, 60], "margin": 70.0, "handle": "acheron"}
+{"ts": 1777991703, "kind": "migration_candidate", "target_node": 80, "striker_nodes": [33, 60], "margin": 112.0, "handle": "maia"}
+{"ts": 1777992003, "kind": "migration_candidate", "target_node": 74, "striker_nodes": [33, 60], "margin": 137.0, "handle": "1444444444444444"}
+{"ts": 1777992304, "kind": "migration_candidate", "target_node": 77, "striker_nodes": [33, 60], "margin": 122.0, "handle": "4444444444444444"}
+{"ts": 1777992604, "kind": "migration_candidate", "target_node": 82, "striker_nodes": [33, 60], "margin": 29.0, "handle": "3333333333333333"}
+{"ts": 1777992903, "kind": "migration_candidate", "target_node": 65, "striker_nodes": [33, 60], "margin": 31.0, "handle": "popo"}
+{"ts": 1777993173, "kind": "hunt_failed", "target": 3379, "aborted_at": "verify", "abort_reason": "hp_above_kill_zone", "total_gas": 0}

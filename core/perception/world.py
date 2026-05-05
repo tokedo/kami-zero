@@ -8,11 +8,11 @@ from pathlib import Path
 from typing import Any
 
 
-def load_world(path: Path) -> dict[str, Any]:
+def load_world(path: Path | str) -> dict[str, Any]:
     """Load the full watcher snapshot. Raises FileNotFoundError if the
     watcher hasn't run yet — callers should treat that as a fatal anomaly.
     """
-    with path.open() as f:
+    with open(path) as f:
         return json.load(f)
 
 
@@ -23,14 +23,15 @@ def candidates(world: dict[str, Any]) -> list[dict]:
     return list(world.get("killable_v3") or [])
 
 
-def parked_rates_by_idx(parked_rates_path: Path) -> dict[int, dict]:
+def parked_rates_by_idx(parked_rates_path: Path | str) -> dict[int, dict]:
     """Load parked_rates_state.by_idx — used as fallback owner attribution
     when world_targets owner_handle is null (regression noted in old
     ideas_to_founder.md item 7).
     """
-    if not parked_rates_path.exists():
+    p = Path(parked_rates_path)
+    if not p.exists():
         return {}
-    with parked_rates_path.open() as f:
+    with open(p) as f:
         state = json.load(f)
     by_idx = state.get("by_idx") or {}
     return {int(k): v for k, v in by_idx.items()}
