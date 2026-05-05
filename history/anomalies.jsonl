@@ -1,2 +1,9 @@
 {"ts": 1777995200, "kind": "consolidation_scatter", "detail": "all 7 strikers found HARVESTING on tick start; nodes_visited: none (defer tick, no hunt initiated); node_60: [12649, 10705, 11224], node_33: [6058, 12225, 15540, 6245]"}
 {"ts": 1777995960, "kind": "consolidation_scatter", "detail": "6/7 strikers HARVESTING on defer tick; RESTING: [10705] at node 60; HARVESTING: [12649, 6058, 12225, 15540, 11224, 6245]; nodes unknown (no slim calls on defer path)"}
+{"ts": 1777997300, "kind": "hunt_failed", "aborted_at": "liquidate", "abort_reason": "liquidate_reverted", "target": 15548, "striker": 12649, "node": 10, "total_gas": 5356979}
+{"ts":1777997600,"type":"consolidation_scatter","nodes_visited":[10],"note":"12649 was HARVESTING at node 10 on tick start"}
+{"ts":1777997600,"type":"harvest_stop_persistent_revert","striker":12649,"node":73,"attempts":2,"note":"harvest_stop reverted twice after liquidate_reverted; striker stuck HARVESTING at node 73"}
+{"ts":1777997600,"type":"hunt_failed","aborted_at":"liquidate","abort_reason":"liquidate_reverted","total_gas":16991273,"note":"target 2836 Yeahta at node 73; viability check passed (HARVESTING confirmed) but liquidate reverted"}
+{"ts": 1778000400, "kind": "consolidation_scatter", "nodes_visited": [73], "detail": "12649 HARVESTING at node 73; operator already at 73; harvest_stop batch succeeded"}
+{"ts": 1778000400, "kind": "hunt_failed", "aborted_at": "liquidate", "abort_reason": "liquidate_reverted", "target": 1218, "striker": 12649, "node": 10, "total_gas": 19386560}
+{"ts": 1778000400, "kind": "standdown_harvest_stop_reverted", "detail": "harvest_stop for striker 12649 reverted after liquidate revert; 12649 may still be HARVESTING at node 10; next tick should check"}

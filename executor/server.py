@@ -394,6 +394,40 @@ def _send_tx(
     return result
 
 
+def _static_call_tx(
+    account: str,
+    system_id: str,
+    abi: list,
+    args: list,
+) -> dict:
+    """Simulate a tx via eth_call. No tx submitted, no gas spent.
+
+    Returns {"would_succeed": bool, "revert_reason": str | None}.
+    Use as a pre-flight check before _send_tx to avoid wasting gas
+    on tx that would revert (cooldown, HP changes, etc.).
+    """
+    acct = _get_account(account)
+    addr = _resolve_system(system_id)
+    contract = w3.eth.contract(address=addr, abi=abi)
+    fn = contract.functions.executeTyped(*args)
+    try:
+        fn.call({"from": acct.operator_addr})
+        return {"would_succeed": True, "revert_reason": None}
+    except Exception as e:
+        msg = str(e)
+        # Try to extract a clean "revert: <reason>" string
+        reason = msg
+        if "revert:" in msg:
+            try:
+                reason = msg.split("revert:", 1)[1].split("'}")[0].strip()
+                # Strip trailing ": Reverted" suffix
+                if reason.endswith(": Reverted"):
+                    reason = reason[:-len(": Reverted")]
+            except Exception:
+                reason = msg[:200]
+        return {"would_succeed": False, "revert_reason": reason[:300]}
+
+
 def _send_batch_tx(
     account: str,
     system_id: str,
@@ -1768,6 +1802,101 @@ async def liquidate(
     result["target_account_id"] = aid
     result["target_handle"] = hdl
     return result
+
+
+@mcp.tool()
+async def liquidate_simulate(
+    target_kami_id: int,
+    attacker_kami_id: int,
+    account: str = "main",
+    target_account_id: str = "",
+    target_handle: str = "",
+) -> dict:
+    """Simulate a liquidate tx without spending gas. Use as a
+    pre-flight check before liquidate() — catches cooldown, HP
+    changes, missing-co-location, and any other chain-side condition
+    that would cause a revert.
+
+    Returns:
+        {
+          "would_succeed": bool,    # True if liquidate() would succeed right now
+          "revert_reason": str | None,  # chain's revert message if would_succeed=False
+          "blocked": bool,          # True if guild gate denies (same as liquidate)
+          "reason": str | None,     # guild block reason if blocked=True
+          ...echoes of args...
+        }
+
+    GUILD GATE: same behavior as liquidate(). If target is in
+    predator/guild-no-touch.csv, returns blocked=True without
+    even attempting the simulation.
+    """
+    aid = (target_account_id or "").strip()
+    hdl = (target_handle or "").strip()
+    if not aid and not hdl:
+        try:
+            data = await _api_get(
+                f"/api/playwright/kami/{target_kami_id}/", account
+            )
+        except Exception as e:
+            return {
+                "would_succeed": False,
+                "revert_reason": None,
+                "blocked": True,
+                "reason": f"could not resolve target owner via playwright: {e}",
+                "target_kami_id": target_kami_id,
+            }
+        owner = (
+            data.get("account") or data.get("owner") or data.get("operator")
+            or {}
+        )
+        if isinstance(owner, dict):
+            aid_v = (
+                owner.get("id") or owner.get("account_id")
+                or owner.get("entityId") or owner.get("entity_id") or ""
+            )
+            aid = str(aid_v).strip() if aid_v is not None else ""
+            hdl = str(
+                owner.get("handle") or owner.get("name")
+                or owner.get("username") or ""
+            ).strip()
+
+    try:
+        blocked, reason = _is_target_protected(aid, hdl)
+    except Exception as e:
+        return {
+            "would_succeed": False,
+            "revert_reason": None,
+            "blocked": True,
+            "reason": f"guild-roster gate error (deny-fail): {e}",
+            "target_kami_id": target_kami_id,
+            "target_account_id": aid,
+            "target_handle": hdl,
+        }
+    if blocked:
+        return {
+            "would_succeed": False,
+            "revert_reason": None,
+            "blocked": True,
+            "reason": reason,
+            "target_kami_id": target_kami_id,
+            "attacker_kami_id": attacker_kami_id,
+            "target_account_id": aid,
+            "target_handle": hdl,
+        }
+
+    h_id = _harvest_entity_id(target_kami_id)
+    k_id = _kami_entity_id(attacker_kami_id)
+    sim = _static_call_tx(
+        account, "system.harvest.liquidate", _ABI_HARVEST_LIQUIDATE,
+        [h_id, k_id],
+    )
+    sim["blocked"] = False
+    sim["reason"] = None
+    sim["target_kami_id"] = target_kami_id
+    sim["attacker_kami_id"] = attacker_kami_id
+    sim["target_account_id"] = aid
+    sim["target_handle"] = hdl
+    return sim
 
 
 @mcp.tool()

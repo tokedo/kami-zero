@@ -36,6 +36,7 @@ Movement:
 - `travel_to_room(target_room: int, account="bpeon")` → operator BFS travel; RESTING kamis follow; auto-uses SP+ items if low stamina
 
 Strike:
+- `liquidate_simulate(target_kami_id, attacker_kami_id, account="bpeon", target_handle="")` → free pre-flight check. Returns `{would_succeed: bool, revert_reason: str|null, blocked: bool, reason: str|null}`. Use this BEFORE every `liquidate` to avoid wasting gas on a tx that would revert (cooldown, HP changes, missing co-location, etc).
 - `liquidate(target_kami_id, attacker_kami_id, account="bpeon", target_handle="")` → the kill tx (~7.5M gas). Both kamis must be HARVESTING on the same node. The function enforces the guild gate internally via `predator/guild-no-touch.csv` — DO NOT bypass it; if the call returns `blocked: true`, accept and move on.
 
 Files (use the Read tool):
@@ -105,32 +106,20 @@ Read top survivor's slim state:
 
 This is a free read. Always do it.
 
-### Step 7 — Striker cooldown check
-Read the striker's slim (`get_kami_state_slim(c.striker_idx)`).
-Kamis have a base 180-second cooldown after a `liquidate`. Skill
-allocations can shorten it. The exact slim field for "last attack
-time" or "cooldown remaining" is not documented in this playbook —
-look in `time` or `harvest.time` or `state` and figure it out from
-the response shape. If you can't find it, emit a `cooldown_field_unknown`
-anomaly and proceed without the check (better to risk one revert
-than to defer forever).
-
-If striker is on cooldown: log abort with `striker_on_cooldown`, exit.
-This tick is done — try again in 5 min.
-
-### Step 8 — Hunt
+### Step 7 — Hunt
 Sequence (any tx revert: log abort with the failed step, then go
-to Step 9 cleanup):
+to Step 8 cleanup):
 
 1. `travel_to_room(c.node_id)` — RESTING kamis follow. If `reached_target=False`: abort with `travel_failed`.
 2. `harvest_start([c.striker_idx], c.node_id)` — deploy striker. If `status != "success"`: abort with `harvest_start_reverted`.
-3. `liquidate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)` — the strike. Capture: `tx_hash`, `status`, `gas_used`, `revert_reason`, `blocked`.
+3. **Simulate strike** — `liquidate_simulate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Free pre-flight check. If `blocked=true`: abort with `liquidate_blocked` + the guild reason. If `would_succeed=false`: abort with `simulate_reverted` + the chain `revert_reason` (likely `kami on cooldown`, `harvest inactive`, `target HP too high`, or similar). This catches the failures we previously paid 7.5M gas to discover.
+4. **Strike** — only if simulate said `would_succeed=true`. Call `liquidate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Capture: `tx_hash`, `status`, `gas_used`, `revert_reason`, `blocked`. (In normal operation this should always succeed — if it reverts despite simulate green-lighting it, that's a notable race condition; emit `simulate_passed_but_tx_reverted` anomaly.)
 
-### Step 9 — Stand down (always — success or any failure)
+### Step 8 — Stand down (always — success or any failure)
 `harvest_stop([c.striker_idx])` → striker returns to RESTING.
 Invariant restored.
 
-### Step 10 — Log and exit
+### Step 9 — Log and exit
 See Logging.
 
 ## Hard limits (also see rules/safety.md)
@@ -160,8 +149,8 @@ Append anomalies to `history/anomalies.jsonl` only when warranted
 - `world_targets_missing` — file unreadable
 - `data_quality_owner_handle_null` — >50% v3 candidates have null `v_acct`
 - `consolidation_scatter` — found roster scattered, did the heal
-- `cooldown_field_unknown` — couldn't find cooldown info in slim
-- `striker_on_cooldown` — picked striker was on cooldown
+- `simulate_reverted` — pre-flight liquidate_simulate said would_succeed=false; payload includes `revert_reason` (e.g., `kami on cooldown`, `harvest inactive`)
+- `simulate_passed_but_tx_reverted` — race condition: simulate said ok but actual liquidate reverted (rare; valuable signal)
 - `hunt_failed` — abort during a hunt; payload includes `aborted_at`, `abort_reason`, `total_gas`
 - (or any other one-line observation that the optimizer should know)
 

@@ -31,5 +31,7 @@ founder approval.
 - `min_margin_pct` = 0.02 (2% of victim's total HP)
 - `max_strikes_per_tick` = 1
 - `max_gas_per_tick` = 30_000_000
-- `striker_cooldown_base_sec` = 180
 - `archetype_reject_owners` = (empty — see rules/rejects.md)
+
+(Striker cooldown gate removed — `liquidate_simulate` catches it
+along with all other chain-side revert conditions.)
