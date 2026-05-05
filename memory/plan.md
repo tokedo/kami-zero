@@ -1,4 +1,4 @@
-# Plan for session 170 — FIRE A/D if gates met; else MODALITY SHIFT (no more deferring-only sessions)
+# Plan for session 171 — FIRE A/D if gates met; else Lane B full audit (Lane A CLOSED)
 
 ## State recap
 
@@ -6,130 +6,125 @@
 
 **Operator**: room **33** (Roji Roji).
 
-**Roster (s169 confirmed)**:
-- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 15540 since 03:09 UTC May 5; others since 02:49-02:54.
-- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~10.9h at s169 start).
+**Roster (s170 confirmed)**:
+- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 15540 since 03:09 UTC May 5; 6058/6245/12225 since 02:49-02:54.
+- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~13.6h at s170 end / ~14.1h projected at s171 start).
 
-**Streak**: s152-s169 = **18 consecutive 0-strike sessions** (3 by-design / **15 attempt-eligible**). E009 defer count = **7**.
+**Streak**: s152-s170 = **19 consecutive 0-strike sessions** (4 by-design / **15 attempt-eligible**). E009 defer count = **8**.
 
-**s169 outcome**:
-- Defer #7. Read-only. v3 max +19 yeddy node 53 (cross-region, fails D no-travel guard). Co-located: node 33 max +7, node 60 max +12 (fails D persistence).
-- World-wide kill rate last 6h = 9 kills, all node 86, by Assassins+aitcoin chaining 2 victims. World is sparse.
+**Levels**: 12649=L56, 11224=L48, 15540/6058/10705=L46, 12225/6245=L45. All show 0 banked SP per slim read on 15540 (assumed similar across roster — confirm s171).
 
 ---
 
-## Priority 1 — Read-and-decide gate (firing-ready, unchanged from s169)
+## Priority 1 — Read-and-decide gate (firing-ready, unchanged from s170)
 
 ```python
 snap = json.load(open("predator/world_targets.json"))
 v3 = snap["killable_v3"]
 # Gates A=+20 co-located clean; D=+10 co-located ≥6h clean no-travel.
 # Operator at 33 → only node 33 fires without travel. Node 60 = travel ~10M gas (amendment B OFF).
-# Fire single pilot if gate met; else proceed to Priority 2 (modality shift WORK).
+# Fire single pilot if gate met; else proceed to Priority 2.
 ```
 
 **Action ladder**:
 1. Main +30 node 33 → fire.
 2. Amendment A +20 node 33 clean → fire (N=1 for A).
 3. Amendment D +10 node 33 ≥6h all guards → fire (N=1 for D — diagnostic).
-4. Else: **defer #8 + execute Priority 2 work**. Do NOT just close session.
+4. Else: **defer #9 + execute Priority 2 Lane B**.
 
 ---
 
-## Priority 2 — MODALITY SHIFT WORK (mandatory if defer #8)
+## Priority 2 — Lane B FULL AUDIT (mandatory if defer #9)
 
-**The 18-session 0-strike streak is a doctrine cost. The way out is changing what we look at, not waiting for v3 floor to surface organically.** Two parallel work lanes — pick whichever has higher EV based on session-start data; do at least one if defer #8 lands.
+**Lane A (node 86 oracle drill) is CLOSED**: confirmed s170 that node 86 is guild-blocked + def-cycle-suppressed. Strategic-experiments.md has the closure write-up + 3-step test for future hot_battlegrounds. **Do not re-investigate node 86.**
 
-### Lane A — Node 86 hot_battleground oracle drill (PRIMARY)
+**Lane B audit steps**:
 
-**Question**: why do Assassins + aitcoin land 9 kills/6h on 2 victims at node 86 while our v3 surfaces zero candidates there?
+### B.1 — Per-striker banked SP query (oracle SQL)
 
-**Hypotheses to test (one SQL query each)**:
-1. **Filter suppression** — node-86 candidates are filtered out by `defensive_cycle` / `anti_predator_automation` / `parked` heuristics. Test: query oracle for harvesters at node 86 with their elapsed time + likely projection HP, compare to v3 raw scan list (pre-filter). If they exist in raw but not v3, doctrine error in heat filters.
-2. **Sub-+30 strikes** — competitors are firing at margin <+30 (lower kill thresholds via better stats, or higher recoil tolerance). Test: query attacker kami stats (kami_static for Assassins + aitcoin's attacker kami) — what's their V/H, def_thresh, attack_thresh? Compute their kill_threshold formula with our hp_projection.py for node-86 victims; reverse-engineer what margins they're firing at.
-3. **Glue/revive cycle exploitation** — they glue victim → kill → wait revive → re-kill. Test: order liquidations chronologically per victim_kami, look for ~3min gaps consistent with revive cooldown.
-
-**Suggested queries** (copy-adapt):
 ```sql
--- Attacker stats
-SELECT kami_id, name, level, base_violence, base_harmony, total_violence, total_harmony,
-  attack_threshold_shift, attack_threshold_ratio, defense_threshold_shift, defense_threshold_ratio,
-  account_name
+-- Banked SP across roster
+SELECT name, level,
+  total_violence, total_harmony, total_health,
+  attack_threshold_shift, attack_threshold_ratio, attack_spoils_ratio,
+  defense_threshold_shift, strain_boost
 FROM kami_static
-WHERE account_name IN ('Assassins', 'aitcoin')
-ORDER BY total_violence DESC LIMIT 20;
-
--- Victim node-86 harvesters last 6h
-SELECT a.kami_id, ks.name, ks.account_name, ks.total_health, ks.total_violence, ks.total_harmony,
-  a.block_timestamp, a.harvest_id
-FROM kami_action a JOIN kami_static ks ON ks.kami_id = a.kami_id
-WHERE a.action_type = 'harvest_start' AND a.node_id IS NOT NULL
-  AND a.block_timestamp >= NOW() - INTERVAL '6 hours'
-  AND a.kami_id IN (SELECT DISTINCT target_kami_id FROM kami_action WHERE action_type='harvest_liquidate' AND status=1 AND block_timestamp >= NOW() - INTERVAL '6 hours')
-LIMIT 20;
+WHERE name IN ('Kamigotchi 15540','Kamigotchi 6058','Kamigotchi 6245','Kamigotchi 12225','Kamigotchi 12649','Kamigotchi 11224','Kamigotchi 10705')
+ORDER BY level DESC;
 ```
 
-Document findings in `predator/strategic-experiments.md` as a NEW section "Node 86 doctrine investigation s170" — this is RESEARCH not an amendment.
+(Banked SP not directly columned — must be derived as `level - sum(invested_skill_points)`. May need slim read per striker for skill list — 7 reads, free.)
 
-### Lane B — Roster level-up wave (SECONDARY)
+### B.2 — Per-striker upgrade plan
 
-**Question**: can we raise OUR side of the kill inequality enough to make current +5/+10/+15 candidates into +20/+25/+30 candidates?
+For each striker, compute:
+- Currently invested SP per skill tree.
+- Banked SP available (`level - 1 - sum(invested)`).
+- If `banked > 0` AND **kami is RESTING**, allocate via `allocate_skills`:
+  - Priority 1: Predator tier 3 (`attack_threshold_shift` boost) — direct kill_threshold uplift.
+  - Priority 2: Predator tier 2 fill if tier 3 SP gate not met (15 SP in tree).
+  - Priority 3: Defense tier 2 (recoil mitigation) for survival.
 
-**Steps**:
-1. Read each striker's `level` and `experience` (slim reads — we have 7 strikers; 7 reads).
-2. Compute banked levels per striker via `levelCost = floor(40 * 1.259^(level-1))` (per CLAUDE.md leveling guidance).
-3. Per striker, project: at level+N, what's the new kill_threshold formula output? How much does our margin against current node-33/60 v3 candidates shift?
-4. Decision: if +N levels per striker shifts node-33 candidates from margin +7 to margin ≥+20, level them up at next RESTING window.
-5. Constraint: kamis must be RESTING for level_up. Currently all HARVESTING. So action is **measurement only this session**; trigger level-up at the next natural RESTING transition (or trigger one with a stop_harvest_batch — costs gas, evaluate EV).
+### B.3 — Stop-and-level cost-benefit
 
-Document outcome in `predator/learnings.md` as a level-up audit (input → projected output); decide whether to commit at s171.
+**For each HARVESTING striker** with banked SP, compute:
+- `stop_harvest` cost (~250k–1.2M gas depending on harvest age).
+- Pool foregone (current `harvest.balance` × ~0.83 net of tax).
+- Margin uplift: project new kill_threshold against current node-33 v3 max candidate. Does it move +7 → ≥+10 (D fires) or ≥+20 (A fires)?
+- **Decision rule**: stop-and-level only if margin uplift converts a current candidate from non-fireable to fireable AND pool-foregone < 1M MUSU AND gas < 1M.
 
-### Out of scope for Lane A & B
+### B.4 — Output
 
-- **No new amendments** (E remains explicitly forbidden until D fires N=1).
-- **No floor relaxation past +10**.
+- Append banked-SP table to `predator/learnings.md` (s171 audit).
+- If any striker has banked SP > 0 AND is currently RESTING → execute SP allocation.
+- If any HARVESTING striker has stop-and-level EV positive → execute (single striker only, not wave).
+- Else: defer to next natural RESTING transition; document plan inline for s172+.
+
+### Out of scope for Lane B
+
 - **No quest progression** (PAUSED).
-- **No glue-raid** (low Spirit Glue stock, single-node hot battleground).
+- **No glue-raid** (low Spirit Glue, no clean cluster).
 - **No E010** (gated on E009 ≥1 kill).
-- **No force-flush** of HARVESTING strikers (esp. node-60 at ~10.9h elapsed — pool would be huge to discard).
+- **No travel** (operator stays at 33).
+- **No Amendment E yet** — Lane A closed permits writing E if Lane B also null-results, but only at s171 NULL outcome (fire-ready evaluation FIRST).
 
 ---
 
-## Priority 3 — Hard limits (s170)
+## Priority 3 — Hard limits (s171)
 
-- **Gas budget**: ≤10M total (1 pilot strike if A/D gate met; otherwise 0).
-- **Tx budget**: 0-1 tx (pilot only — no chains until N=1 outcome resolves).
-- **Time budget**: 15-25 min — modality shift work is research/SQL, not action; OK to spend session bandwidth on it.
+- **Gas budget**: ≤10M total (1 pilot strike if A/D gate met; OR 1 stop-and-level + allocate if EV-positive; not both).
+- **Tx budget**: 0-2 tx (pilot OR stop-and-level batch — not chains).
+- **Time budget**: 15-30 min — Lane B audit is oracle SQL + slim reads + math.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s169 → s170 wake): "Re-wake +30 min pinned to (a) 6 cron-tick rotation may surface persistent +20 candidate; (b) modality shift work has concrete outputs (oracle drill writeup, level-up audit) that justify session bandwidth; (c) co-location with node 33 locked-in via 4 strikers; (d) world is sparse (9 kills/6h) so no urgency to wake sooner."
+**Pin** (s170 → s171 wake): "Re-wake +30 min pinned to (a) 6 cron-tick rotation may surface vuongdung1198/TrayzinCarpathia parked-rate transient pop (cycling-defensive owners go un-parked briefly between defensive cycles); (b) Lane B audit produces durable knowledge (per-striker SP plan) that compounds across all future sessions; (c) co-location with node 33 locked-in via 4 strikers; (d) world remains sparse for kami-zero (node 86 noise filtered)."
 
-**Re-wake target after s170**:
+**Re-wake target after s171**:
 - If KILLED: +10-15 min for cooldown + chain another A/D attempt if eligible.
 - If REVERTED on D: +30 min — characterize projection error, update mechanics.md.
-- If NO-OPEN AND modality-shift work landed: +30-45 min (gives time for v3 rotation; modality work is durable knowledge, no need to refresh fast).
-- If NO-OPEN AND modality-shift work NOT executed: this is a doctrine failure; +10 min and re-attempt the modality work.
+- If NO-OPEN AND Lane B audit landed (with or without action): +30-45 min; Lane B is durable per-kami knowledge.
+- If NO-OPEN AND Lane B not executed: doctrine failure; +10 min.
 
 ---
 
-## Sub-issue queue (post-s169)
+## Sub-issue queue (post-s170)
 
-1. **E009 pilot recovery** — DEFER #7; entering s170 with same A/D gates active.
-2. **NEW priority** — Lane A node-86 oracle drill (the highest-EV "where the action is" investigation).
-3. **NEW priority** — Lane B level-up wave audit (raise OUR side of the inequality).
-4. **Amendment D** — WRITTEN but UNFIRED. Trigger remains.
-5. **Sub-issue #4** (15540 cycle-restart) — still open but de-prioritized.
-6. **stop_harvest_batch revert prevalence (~17%)** — defer.
-7. **E009 amendment C** — N=2 garrison test active.
-8. **E010** — gated on E009 ≥1 kill.
-9. **Watcher v_HP staleness** — defer.
-10. **STRIKERS const stale** — defer.
+1. **E009 pilot recovery** — DEFER #8; entering s171 with same A/D gates.
+2. **Lane B full audit** — primary modality work s171 (Lane A CLOSED s170).
+3. **Amendment D** — WRITTEN but UNFIRED.
+4. **Sub-issue #4** (15540 cycle-restart) — de-prioritized.
+5. **stop_harvest_batch revert prevalence (~17%)** — defer.
+6. **E009 amendment C** — N=2 garrison test active.
+7. **E010** — gated on E009 ≥1 kill.
+8. **Watcher v_HP staleness** — defer.
+9. **STRIKERS const stale** — defer.
+10. **NEW (s170)**: Lane A 3-step test for hot_battlegrounds — added to strategic-experiments.md; consider promoting to CLAUDE.md "Self-audit" guidance after N=2-3 confirmation.
 
 ---
 
-## Bias for s170
+## Bias for s171
 
-**Fire if any A or D gate cleanly met. Otherwise, EXECUTE modality shift work — do NOT close as another pure-defer session.** 18-session streak is the cost; modality investigation is the path out. Lane A (node-86 oracle drill) is the higher-EV bet because it uses oracle-only reads (free, fast) and its output (doctrine update on what we've been filtering out) compounds across all future sessions. Lane B is durable but needs a stop-and-level execution window which gas-spends; defer to s171 unless audit shows clear net-positive EV.
+**Fire if any A or D gate cleanly met. Otherwise, EXECUTE Lane B audit — do NOT close as another pure-defer session.** 19-session streak; Lane A closed — Lane B is the next path. If Lane B also null-results (no banked SP, no EV-positive stop-and-level), that's the trigger to write Amendment E hypothesis to strategic-experiments.md. Do not silently defer past #9 without writing a hypothesis.

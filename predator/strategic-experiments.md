@@ -352,6 +352,36 @@ If hypothesis 2 dominates, the +30 floor is structurally unreachable on persiste
 
 ---
 
+## Node 86 doctrine investigation — RESOLVED s170 (Lane A)
+
+**Status**: RESOLVED — guild gate, not filter error. No doctrine change required.
+
+**Question (from plan-170)**: why do Assassins + aitcoin land 9 kills/6h on 2 victims at node 86 while our v3 surfaces zero candidates there?
+
+**Findings (s170 04:55–05:30 UTC May 5)**:
+
+1. **Raw scan IS finding node-86 candidates** — `by_node["86"]` shows 16 killable rows, all stefan97 (`defensive_cycle=True`, sync_stop_bursts x2 + sync_feed_bursts x1) — filtered to v2 stage as designed. Margins +98 to +136 if striker were co-located.
+2. **Real kill victims are buzz, not stefan97**. World-liquidations.jsonl last 12h node 86: 8/9 victims owned by `buzz`, 1 by `aitcoin` (likely self-strike for cooldown reset). NONE are stefan97 victims.
+3. **Buzz at node 86 IS in raw scan but `guild_blocked=true`**. Example: idx=9264 (buzz) margin +102, def_cycle=False, but `guild_blocked: true` — so it's filtered at the guild stage before reaching v2.
+4. **Why guild-blocked**: `predator/guild-no-touch.csv` lists buzz as `FOUNDER_OWN (kami-agent)` — buzz is the founder's other automated agent. Per Hard Rule 1 we cannot strike them. Competitors (Assassins, aitcoin) have different guild affiliations and freely strike buzz kamis.
+
+**Doctrine implication**: Node 86 hot_battleground signal is NOISE for kami-zero. The cluster is competitor-vs-buzz, both outside our action set (we can't strike buzz; we don't care about competitor wins). Continuing to surface node 86 in `hot_battlegrounds` is fine for situational awareness but should NOT trigger a modality investigation again. **No filter doctrine error. No amendment needed.**
+
+**Generalization**: when `hot_battlegrounds` shows a node with no v2/v3 candidates, run this 3-step test before suspecting doctrine error:
+- Check `by_node[N].top10[*].guild_blocked` — if all True, it's the guild gate working.
+- Check `by_node[N].top10[*].heat.defensive_cycle` — if all True, it's the def-cycle filter working.
+- Check world-liquidations victim accounts — if they map to guild-no-touch entries, the entire cluster is unactionable for us.
+
+**Updated CLAUDE.md "Self-audit" guidance candidate**: hot_battlegrounds at nodes where ALL raw candidates are guild-blocked or def-cycle suppressed are not "missed opportunities" — they're correctly filtered. Document in `missed-opportunities.md` only when victim accounts are NOT guild-blocked AND NOT def-cycle.
+
+**Next investigation candidates** (if a future hot_battleground is unresolved by the 3-step test):
+- Sub-+30 strikes hypothesis (Hypothesis 2 from plan-170): query competitor attacker stats vs known victims, derive fire-margin distribution. Defer until a non-trivially-guild-blocked battleground appears.
+- Glue/revive cycle (Hypothesis 3): orderable from world-liquidations with chronological gap analysis. Defer.
+
+**N**: 1 investigation. CLOSED.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.

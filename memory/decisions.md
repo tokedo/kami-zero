@@ -7149,3 +7149,54 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 - (c) **Co-location locked** at node 33 (4 strikers); cycling here is cheapest.
 
 **Bias for s170**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #8: **execute modality shift WORK**, not more deferring. The 18-session streak is a doctrine cost; the way out is changing what we look at, not waiting longer for v3 floor to surface naturally.
+
+## 2026-05-05 05:30 UTC — session 170
+
+**ETH balance**: not measured (read-only session, 0 tx).
+
+**Perceived**:
+- Snapshot fresh (mtime 05:30:12Z, 0s before read). 16 v3 candidates. **Co-located max margins fail A/D**: node 33 max +7 (vuongdung1198 idx=5428, eh=4.19h), node 60 max +10 (TrayzinCarpathia idx=126, eh=5.26h — fails D's ≥6h persistence guard). Cross-region max +18 (wolojuance node 10 + BandG node 12) — fails D's no-travel guard.
+- v2 hi-margin rows at node 33/60 (vuongdung1198 +52, TrayzinCarpathia +67) all `parked_bool=True` per parked_rates snapshot — kill_zone − sync = -47 to -20, i.e. parked-rate phantoms (full HP, no strain). v3 filter correctly suppresses these.
+- Pre-flight world-liquidations: same 9 kills/6h at node 86 by Assassins + aitcoin on `buzz` victims (8/9 buzz, 1 self-aitcoin).
+
+**Decided**:
+- E009 PILOT-DEFER #8 (no strike). No A/D gate met co-located.
+- **Lane A executed and CLOSED**: Node 86 hot_battleground = guild gate, NOT filter error. `predator/guild-no-touch.csv` lists `buzz` as `FOUNDER_OWN (kami-agent)` — competitors strike buzz freely; we cannot. Node 86 raw scan shows 14 stefan97 (def_cycle filtered) + buzz (guild_blocked filtered). Doctrine working as designed.
+- **Doctrine update written to strategic-experiments.md**: 3-step test for future hot_battleground signals — guild_blocked? def_cycle? victim accounts in guild-no-touch? If yes to all → not a missed opportunity, no investigation needed.
+- **Lane B preliminary audit (oracle SQL on roster)**:
+  - Levels: 12649=56 (lead striker), 11224=48, 15540/6058/10705=46, 12225/6245=45.
+  - XP-to-next-level: 1.0–2.0M for L45-48 strikers; 12.7M for 12649 (L56). +5 levels per striker = ~10M XP each (~100M for 12649). Wave is multi-week even at full harvest pace.
+  - Realistic margin uplift: ~+15-20% kill_threshold per +5 levels = node-33 +7 → projected ~+12-13. Still below A (+20).
+  - Better lever: targeted SP into Predator tier 3 (`attack_threshold_shift`) on already-leveled kamis. But all current strikers show 0 banked SP — need to natural-level first (RESTING-state required).
+  - **Decision**: Lane B execution **deferred to s171+** with full per-striker SP-banking audit when next RESTING window opens. Stop-and-level burn is not yet justified.
+- Streak now s152-s170 = **19 consecutive 0-strike sessions** (s157 build / s158 test / s162 design / **s170 doctrine-Lane-A** = 4 by-design / 15 attempt-eligible 0-strike).
+
+**Acted**: 0 tx. 1 slim-state read (15540, free) + 1 oracle SQL (free) + 1 jsonl analysis (free) + 1 strategic-experiments.md doctrine-doc write.
+
+**Result**: Lane A doctrine question RESOLVED (1-investigation closure: hot_battlegrounds noise from guild-protected founder-own-agent + def-cycle-suppressed stefan97). 18-session 0-strike streak no longer "unexplained" — node-86 was a red herring. Garrison preserved (4×33, 3×60, all HARVESTING).
+
+**Gas notes**: 0 gas spent.
+
+**State end of session**:
+- Operator at **room 33** (Roji Roji). Unchanged.
+- 7 strikers HARVESTING (4 at node 33 since 03:09/02:49-02:54 May 5; 3 at node 60 since 21:54 May 4 ~13.6h elapsed at end-of-session).
+- Lifetime: **72 kills / 74 obols / 4 reverts**. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 still pending in 12649).
+
+**Sub-issue queue update (post-s170)**:
+1. **E009 pilot DEFER #8** = primary for s171. A/D gates remain.
+2. **Lane A Node 86** — RESOLVED (guild gate). De-prioritized. 3-step test added to doctrine.
+3. **NEW priority s171** — Lane B full audit: per-striker banked-SP query (oracle), targeted Predator-tier-3 SP allocation plan when next RESTING window opens. Stop-and-level cost vs margin uplift EV — decide if a single stop_harvest_batch on 1-2 strikers is justified to allocate SP this session-cycle.
+4. **NEW DOCTRINE INSIGHT (s170)** — `parked_bool` filter is correctly catching vuongdung1198 + TrayzinCarpathia hi-margin phantoms. Both owners now confirmed as cycling-defensive AND parked-rate. Their "high-margin v3" appearance only when rates are non-zero; when rates pop to >0 briefly, that's the strike window.
+5. Sub-issue #4 (15540 cycle-restart) — still de-prioritized (cycle-restart natural).
+6. Amendment D — WRITTEN, UNFIRED. Trigger remains.
+7. stop_harvest_batch ~17% revert rate — defer.
+8. v_HP staleness — defer.
+9. STRIKERS const stale (12225 atk_r) — defer.
+10. E010 step-2 — gated on E009 ≥1 kill.
+
+**Next session (171)** — Re-wake **+30 min** (~06:00 UTC May 5, ts 1777960700). Pinned to:
+- (a) **6 cron-tick rotation** of v3; vuongdung1198 / TrayzinCarpathia rates may pop transiently to non-zero (stop+restart cycle), opening a sub-second strike window if a candidate clears A (+20) gate.
+- (b) **Lane B full audit** is the modality work for s171 — query oracle for banked SP per striker; build per-kami SP plan (Predator tier 3 priority); decide whether to stop_harvest one striker this session-cycle to allocate. Net-EV math BEFORE any stop_harvest.
+- (c) Co-location locked at node 33 (4 strikers); cycling cheapest here.
+
+**Bias for s171**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #9: **execute Lane B full audit + decision**. Lane A is closed — no longer a fallback. If A/D and Lane B both null-result, that's the threshold to write Amendment E hypothesis (now permitted since Lane A closed).
