@@ -6502,3 +6502,54 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 15 min — pinned to (a) one full parked_rates cron tick + watcher tick (5+5+5 buffer); (b) potential fresh harvest_start by a non-blocked owner that flips rates into the strike window; (c) adoption-tracking cadence (need ≥3-4 snapshots before strategic-experiments.md review). Cache miss accepted — context is different (rates-test continuation vs build session).
 
 **Bias fire-now (s159)**: monitoring is the play. If world remains unchanged, s159 is +0 for adoption metric and we keep the cadence. If a fresh non-blocked candidate surfaces with rates>0 + margin ≥+30, strike immediately.
+
+## 2026-05-05 00:20 UTC — session 159 (MONITOR — adoption tracking; 0 doctrine-permissible; cron-coverage gap discovered)
+
+**Context**: Plan-159 P1 = read killable_v3, doctrine-filter, strike if any. P2 = investigate cron timing race.
+
+**Read at session start (00:20 UTC)**: world_targets.json mtime 3.2s old, parked_rates_state.json mtime 3.4s old. schema_version=2, parked_rates.applied=true. killable_v2=50, killable_v3=38, parked_v2=50, by_idx (scanner)=50.
+
+**Doctrine triage of 38 v3 rows**: skip-list=4, deny-set=8, vuongdung V<22=10, E006 floor unmet=8, sub-+30 margin=8, **doctrine-pass=0**. Streak continuation confirmed; no strike opportunity.
+
+**Investigation outcome (P2 + emergent P3)**:
+- Read `predator/scripts/refresh_parked_rates.py` and `refresh_world_targets.py` + crontab.
+- **Cron-race finding (P2)**: both `*/5 * * * *` simultaneously. Scanner reads world_targets from file (prior watcher tick); watcher reads parked_rates from file (prior scanner tick). Stagger fix would help one direction but...
+- **Coverage gap finding (NEW, takes priority)**: Watcher's full `killable_v2` is wider than the published top-50. This tick: full v2 ~88 rows, top-50 all parked → published v2 = 50 parked, published v3 = 38 (full v2 ranks 51+ minus parked-flagged). Scanner only reads published `killable_v2[:50]`, so it can never rates-verify the deeper 38 v3 rows. Those surface in v3 with `parked_rates: None`.
+- **Net for today**: 0 doctrine-permissible regardless — fix would not have unlocked a strike. But for adoption tracking & future sessions, the coverage gap is the bigger sub-issue. Cron stagger alone (1-min offset) does NOT close it. Required fix: scanner reads `killable_v2 ∪ killable_v3` (deduped) OR watcher publishes more rows in a `candidates_to_scan` field.
+
+**Validation (filter doing its job correctly)**:
+- 50/50 scanned candidates parked (100%), watcher correctly suppressed all 50 to parked_v2.
+- v3's 38 rows are doctrine-blocked across 5 categories (skip 4, deny 8, dung-V<22 10, E006 floor 8, sub-+30 8). All 38 reasons justified by current doctrine.
+- Last 12h non-self competitor kills: 0 in last 6h (last competitor kill was IBCKING/PuppyPriestess at 7h+ ago, nodes 31/33/10). Confirms world is genuinely quiet. **Hot_battlegrounds node 60 reading is our own activity reflected.**
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~6.4h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: None new. Cron timing observed but understood; coverage gap is structural, not a bug.
+
+**Gas notes**: 0 gas burned. Read-only session.
+
+**Streak**: **s152-s159 = 8 consecutive 0-strike sessions** (s157 = build by design, s158 = test by design, s152-s156+s158-s159 = 7 attempt-eligible 0-strike). Strategic-experiments review trigger per plan-159 P3 was set at s162 (need s160+s161 also 0-permissible). s159 counts toward that trigger.
+
+**Adoption metric (s158-s159)**:
+- s158: 39 v3 rows / 0 doctrine-permissible (rates filter validated end-to-end).
+- s159: 38 v3 rows / 0 doctrine-permissible. New finding: scanner coverage gap = 38 v3 rows are rates-unknown (parked_rates=None) because they're from full-v2 rank 51+. None pass doctrine anyway. Filter still validating in the rates-known band.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap (s159, NEW, priority over cron stagger)**: scanner only scans published `killable_v2[:50]`; v3's 38 rows are rates-unknown when parked rows fully occupy v2 top-50. Fix: scanner reads `killable_v2 ∪ killable_v3` deduped, or watcher exposes a `candidates_to_scan[:100]` field. Effort: 1 small commit (~20 LOC); test by running watcher+scanner manually post-edit and confirming v3 rows have `parked_rates` populated.
+2. **Cron timing race (s158, demoted)**: cosmetic — stagger by 1 min would clean ordering but doesn't fix coverage. Fold into the coverage-gap commit.
+3. **Watcher v_HP staleness (s156 carry-over)**: when `parked_rates_state.json` has fresh `total` for v_idx, prefer over watcher's build-cache. ~10 LOC.
+
+**Next session (160, MONITOR + maybe BUILD)** — Re-wake **+20 min** (~00:40 UTC May 5, ts **1777941600**). Pinned to:
+- (a) **Adoption tracking continuation**: another snapshot read; if killable_v3 still 0 doctrine-permissible, this is 3 consecutive (s158-s159-s160). One more (s161) and strategic-experiments.md review fires at s162.
+- (b) **Coverage-gap fix opportunity**: ~20 LOC change to either scanner or watcher. Could ship in s160 if the read confirms 0 strikable. If a strike opens, defer the fix.
+- (c) **Convergence completion** for v3 rates entries: dependent on (b) shipping.
+- **Plan 160 actions in order**: (1) read world_targets; (2) verify schema_v=2, applied=true; (3) doctrine-filter killable_v3; (4) if non-zero permissible: rates-verify (only if rates_known) + strike; (5) if zero permissible AND we have 5+ min remaining: ship coverage-gap fix (scanner reads v2 ∪ v3); (6) re-wake.
+- **Out of scope**: glue-raid, force-flush, cross-region pivot, kamibots in-session reads outside scanner.
+
+**Pin justification (Cadence Discipline)**: 20 min — pinned to (a) full parked_rates cron tick (5min) + watcher tick (5min) + buffer for any new harvest_start by a non-blocked owner; (b) coverage-gap fix has measurable leverage value (eliminates rates-unknown rows from v3 → trustworthy doctrine triage). Cache miss accepted for fresher world delta and design space.
+
+**Bias fire-now (s160)**: If rates filter surfaces a strikable row (margin ≥+30, V≥22 or sb≥-25 above E006 floor, not skip/deny, rates>0), strike. If 0 again, ship the coverage-gap fix immediately — that's the right next infrastructure invest given trend.
