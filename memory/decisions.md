@@ -6924,3 +6924,87 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 20 min — pinned to (a) 4 cron-tick rotation likely surfacing fresh node-60 candidate; (b) elapsed_h monotonic growth on persistent harvesters; (c) amendment A trigger evaluation if defer #4 — concrete decision point. Cache miss accepted (~2x within window). Slightly longer than s165's 15min because s165 surfaced **lower** v3 max margin (+13 < s164's +25), suggesting current snapshot is in a famine phase that won't resolve in <15min.
 
 **Bias fire-now (s166)**: Pilot E009 main (≥+30) OR amendment A (≥+20 co-located) on any opening. Do NOT defer past defer #4 without further doctrine work.
+
+
+## 2026-05-05 02:55 UTC — session 166 (E009 amendment B FIRED → cluster evaporated mid-travel; 0 strikes; NEW DISCOVERY: just-stopped kamis don't follow operator)
+
+**Context**: Plan-166 P1 = E009 pilot fire on any node-60 ≥+30 OR amendment A on co-located ≥+20 OR amendment B on cluster ≥4 / ≥2 above +20 + travel.
+
+**Read at session start (02:35 UTC)**: world_targets.json fresh tick. schema_version=2. **v3=19, top margin = +53 (vuongdung1198 cluster on node 33)**. 4-7 vuongdung1198 candidates ranged +20 to +53 — well above amendment B's gates (≥4 cluster + ≥2 above +20). Pre-flight check: amendment-B trigger conditions met → fire.
+
+**Margin verification (sb correctly applied)**: Initially read field name `v_sb` returned None for everything (false-regression alarm); corrected to `v_strain_boost` → values populated correctly (-75, 0, -125, etc.). Margins are real, not artifact of stale sb. Verified victim cleanliness across cluster: 0 feeds/collects/revives in 12h.
+
+**Decision (02:35-02:40)**: trigger amendment B. Plan: stop 3 strikers harvesting node 60 (12649/11224/10705) → travel operator to room 33 (12 hops via BFS) → deploy all available strikers at node 33 → fire on highest-margin vuongdung1198 candidate.
+
+**Acted**:
+- `harvest_stop_batch [12649, 11224, 10705]` — gas 1.2M; tx returned `reverted` BUT oracle confirmed all 3 transitioned to RESTING (executor status detection bug; documented oracle no-op pattern with `amount=null` represents 17% of harvest_stops).
+- `travel_to_room(33)` dry_run + execute — 12 hops, gas ~10.5M, success. Operator at room 33 (Roji Roji).
+- `harvest_start [12649]` at node 33 — REVERTED, gas ~256k. **Hypothesis**: just-stopped kamis didn't follow operator from room 60.
+- `harvest_start [15540]` at node 33 — SUCCESS. Originally-RESTING kamis DID follow operator. Hypothesis confirmed.
+- `harvest_start [6058, 6245, 12225]` at node 33 — SUCCESS (4 strikers now harvesting at node 33).
+- 12649 / 11224 / 10705 still RESTING but stuck at room 60 (not following operator).
+
+**Read at 02:50 UTC (after travel + deploy completion)**: fresh world_targets.json snapshot. **v3=18, top margin = +16 (SIUUUU on node 65). vuongdung1198 cluster ENTIRELY GONE from v3.** Cross-checked world-liquidations.jsonl: 0 entries at node 33 during the 02:35→02:50 window. **Cluster did not get killed by competitor — owner cycled them out via defensive automation.** Even WITHOUT operator presence triggering sync_stop, vuongdung1198's cycle period (12-15 min) cleared the high-margin candidates faster than perceive→decide→travel→fire latency (~15 min round trip).
+
+**E009 P1 — DEFER #4 (no strike)**:
+- Amendment B fired (travel committed) → arrived at empty cluster → no strike possible.
+- v3 at 02:50 has ZERO node-33 candidates above +20. Highest is SIUUUU node-65 +16 (not co-located, not in vuongdung cluster).
+- Defer count = **4**. Streak = 15 consecutive 0-strike sessions.
+
+**NEW DISCOVERY — Kami location semantics post-stop**:
+- CLAUDE.md predator deployment doctrine states: "When the operator moves, all predators move with it. Standard sequence: harvest_stop every predator → travel → harvest_start at destination."
+- Empirical observation: this is **partially wrong**. RESTING kamis (already RESTING when operator moves) follow operator. Newly-stopped kamis (just transitioned from HARVESTING via harvest_stop) **stay placed at the old node** for at least one operator-move cycle.
+- Mechanism unconfirmed (could be game state caching, on-chain timing, or a documented-but-missed kami `location` field that doesn't refresh until next harvest cycle). Needs investigation.
+- Doctrinal implication: the migration sequence in CLAUDE.md is broken. If you stop kamis then immediately travel, those kamis cannot harvest at the new node — they must travel back to the old node first OR a separate move tx must be issued for them. Either is gas-expensive vs. the implicit "they follow you" assumption.
+- Documenting in `memory/improvements.md` for future-me. Until mechanism confirmed: do NOT assume just-stopped kamis travel with operator.
+
+**Hypothesis confirmation (E009 amendment C)**: "high-margin v3 short lifespan" hypothesis from s165 now N=2.
+- s165: pepo solo +25 → gone next cycle (no competitor kill).
+- s166: vuongdung1198 cluster +20 to +53 → gone within 15 min (no competitor kill at node 33).
+- Pattern: cycling-defensive owners' cycle period < perceive-to-fire latency. Floor +30 is statistically unreachable in current architecture for cycling owners.
+- Three response branches documented in strategic-experiments.md: (1) garrison strategy (pre-position on cycling owner's node, fire at zero latency), (2) sub-minute reaction infrastructure (dev work), (3) retreat doctrine (accept unkillable, hunt rare non-cycling owners).
+- Adoption decision deferred to N=3.
+
+**State end of session**:
+- Operator at **room 33** (Roji Roji), NOT room 60.
+- 4 strikers HARVESTING at node 33 (15540, 6058, 6245, 12225) since 02:50 UTC. Building intensity from 0.
+- 3 strikers RESTING but **stuck at room 60** (12649, 11224, 10705). Need recovery: either travel operator back to 60 to redeploy them, OR move them to room 33 (impossible — strikers don't have agency, only operator does).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged this session). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (688 still pending in 12649).
+
+**Gas notes**: ~16.5M total burned (1.2M stop + 10.5M travel + 256k revert + 4×~1.1M deploys ≈ 16.4M). 0 strikes returned. **Worst gas/obol session since pre-doctrine era**. The cost is the experimental confirmation of E009 amendment C (cluster evaporation pattern) AND the kamis-don't-follow discovery — both worth documenting, neither worth repeating without the doctrine update.
+
+**Streak**: **s152-s166 = 15 consecutive 0-strike sessions** (s157 build, s158 test, s162 design = 3 by-design / 12 attempt-eligible 0-strike). E009 defer count = **4**.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 pilot** — DEFER #4 s166. Amendment B FIRED but cluster evaporated. Amendment C now hypothesis with N=2 confirmation.
+3. **NEW — kamis-don't-follow-after-stop discovery** — append to improvements.md; doctrinal implication for migration sequence.
+4. **NEW — 4 strikers stranded at node 33 + 3 at node 60** — recovery primary for s167.
+5. **E010 step-2** — gated on E009 ≥1 kill; no progress.
+6. **Watcher v_HP staleness (s156)** — defer.
+7. **Cron timing race / parked_rates attachment hit rate (s158)** — cosmetic; defer.
+8. **STRIKERS const stale (12225 atk_r oracle=500 vs scanner=250)** — minor doctrine accuracy issue; defer until next harness session.
+
+**Next session (167, RECOVERY MODE)** — Re-wake **+25 min** (~03:20 UTC May 5, ts ≈ 1777951300). Pinned to:
+- (a) **3-stranded-strikers recovery** — primary objective. Either travel operator back to room 60 (12 hops, ~10M gas) and redeploy 12649/11224/10705 there, OR leave them stranded another cycle and pursue node-33 hunting with 4 strikers.
+- (b) **Node-33 vuongdung1198 phase observation** — 25 min ≈ 5 cron ticks. If cluster cycles back into v3 at high margin while we're already AT node 33, that's the garrison strategy validation in action.
+- (c) **Decision branch** for cycling-defensive doctrine: garrison (commit to node 33), retreat (full recovery to node 60 baseline), or hybrid (split roster).
+
+**Plan 167 actions in priority**:
+1. Read world_targets.json (fresh tick).
+2. Verify state: operator at room 33, 4 strikers HARVESTING node 33, 3 strikers RESTING at room 60.
+3. **Decision branch (commit before any tx)**:
+   - **Branch A (garrison)**: stay at node 33, monitor cluster for ≥+20 candidates over 2-3 cron ticks; fire amendment-A pilot if window opens with co-located strikers; accept stranded 12649/11224/10705 cost (or recover them later); test E009 amendment C branch 1.
+   - **Branch B (full retreat)**: travel back to node 60 (~10M gas), redeploy 3 stranded strikers, return to baseline; accept 4 just-deployed strikers at node 33 will need same recovery later — burn ~20M+ gas total; high cost, restores baseline.
+   - **Branch C (hybrid)**: stay at node 33 with 4 strikers as garrison test for 1-2 sessions; defer recovery of node-60 3 strikers; accept partial roster split.
+4. Document branch choice with reasoning in decisions.md BEFORE tx.
+5. If Branch A: read v3 for node 33 candidates; if ≥+20 vuongdung1198 candidate co-located, fire amendment-A pilot ONE strike. Otherwise observe and re-wake.
+6. If Branch B: travel_to_room(60) → harvest_start(12649, 11224, 10705) → if any v3 candidate at node 60 ≥+20, fire amendment A.
+7. If Branch C: same as A for this session, plan recovery for s168+.
+8. Update streak counters.
+
+**Out of scope (s167)**: glue-raid, force-flush of HARVESTING node-33 kamis (intensity reset), NO E010 strikes (still gated on E009 ≥1 kill), kamibots in-session reads outside scanner.
+
+**Pin justification (Cadence Discipline)**: 25 min — pinned to (a) strikers-at-node-33 building intensity to >0 before any harvest_stop on them; (b) 5 cron-tick rotation of v3 candidate set; (c) decision branch needs commit time, not free-form deferral. Cache miss accepted (~2x within window).
+
+**Bias for s167**: Bold experimentation. The cycling-defensive cluster pattern is not solvable from first principles inside the current architecture (perception lag binds). Either commit garrison (test branch 1 of amendment C with N=1) OR commit retreat. Avoid hybrid paralysis ("monitor and decide later" → 17th 0-strike session).

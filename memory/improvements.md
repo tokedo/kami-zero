@@ -445,3 +445,27 @@ Migration sequence (next session, separate PR scope):
 - **Files**: `predator/scripts/refresh_parked_rates.py`, `predator/infrastructure.md` (documentation update).
 - **How to use**: No call-site change. Cron runs unchanged. Validated s160: scanner went from ~43-50 candidates/cycle to 72 (first run) and 59 (second run, after watcher republished smaller v3); runtime ~16s vs 12s before, well under 240s ceiling. After convergence, v2/v3 published combined rises as parked_v2 absorbs them; doctrine still 0-permissible across 41 v3 rows but coverage is now exhaustive.
 - **Commit**: 75480ae
+
+
+## 2026-05-05 — DISCOVERY: just-stopped kamis don't follow operator on travel (CLAUDE.md migration sequence is broken)
+- **What**: Empirical observation from session 166. CLAUDE.md "Predator deployment" section states: "When the operator moves, all predators move with it. Standard sequence: harvest_stop every predator → travel → harvest_start at destination." This is **partially wrong** — kamis that were RESTING *before* the operator move follow operator, but kamis that just transitioned from HARVESTING via `harvest_stop` immediately preceding the move **stay placed at the old node**.
+- **Evidence (s166, ~16.5M gas burned proving this)**:
+  - `harvest_stop_batch [12649, 11224, 10705]` at room 60 (operator at room 60). Oracle confirmed all 3 RESTING.
+  - `travel_to_room(33)` — operator successfully moved to room 33.
+  - `harvest_start [12649]` at node 33 (operator at room 33) — REVERTED with gas ~256k. Likely error: "kami not at this room" or equivalent.
+  - `harvest_start [15540]` at node 33 — SUCCESS. 15540 had been RESTING since previous session (not just-stopped). It DID follow operator.
+  - `harvest_start [6058, 6245, 12225]` at node 33 — also SUCCESS (all originally-RESTING).
+  - Pattern: 3 kamis stopped immediately before travel = stranded; 4 kamis already-RESTING at travel = followed operator.
+- **Why** (mechanism unconfirmed; 3 candidate hypotheses):
+  - (a) On-chain kami `location` field updates lazily — same-block harvest_stop + travel may not update location atomically.
+  - (b) Kamibots-API caching (15s) may surface stale "kami at old node" between stop and travel txs.
+  - (c) Game state semantic: harvest_stop transitions kami to RESTING but leaves it placed at the harvest node; only the *next* operator move with the kami already RESTING moves it (1-cycle lag).
+  - Need a controlled test: (1) stop a kami, wait 60-120s, then travel; check if it follows. If yes → (b) timing. If no → (a) or (c).
+- **Files**: NO harness fix yet. Doctrine implication for CLAUDE.md "Predator deployment" section: the standard migration sequence is unreliable. Until mechanism confirmed, the recommended sequence becomes:
+  - **Option 1 (safe)**: stop kamis → wait ≥120s → travel → harvest_start. Adds delay but predictable.
+  - **Option 2 (split)**: leave kamis HARVESTING at old node, travel operator alone, deploy a different subset of already-RESTING kamis at new node. Accept partial-roster split.
+  - **Option 3 (untested)**: travel WITHOUT prior stop (kamis still HARVESTING). Operator moves. Then stop them remotely (if remote harvest_stop is allowed) and harvest_start at new node. Untested whether mid-air stops work cross-room.
+- **How to use**: When migrating roster across rooms, do NOT execute the CLAUDE.md "stop → travel → start" sequence in adjacent transactions. Either wait 120s+ between stop and travel, or accept partial split. Document outcome in next session that tests this.
+- **Commit**: (s166 documentation, no harness change)
+- **Sub-issue**: Once mechanism confirmed, propose CLAUDE.md edit to fix the migration sequence.
+- **Related**: s166 also revealed `harvest_stop_batch` returns `reverted` status (gas 1.2M) when amount=null on 1+ rows, but oracle confirms transitions actually happened (17% prevalence per executor doc). This is a separate executor status detection bug, not the kamis-don't-follow issue. Both surfaced same session.

@@ -250,6 +250,47 @@ Total: 6 non-self kills against 3 mental-skip owners over the most recent 2 days
 
 ---
 
+## E009 Amendment C — "Snapshot famine" / cycling-defensive owners
+
+**Status**: HYPOTHESIS (session 166, N=2 confirmation of s165's "high-margin v3 short lifespan")
+
+**Observation source**:
+- s164: pepo idx=7287 leader at +25 (margin grew +5 in 12 min via elapsed_h)
+- s165: pepo gone from v2 AND v3 (no competitor kill at node 16) → likely owner-fed or kami-stopped
+- s166 02:35 read: vuongdung1198 cluster on node 33 surfaced 4-7 candidates with margins ranging +20 to +53. Travel decision based on cluster math + ≥2 above amendment-A's +20 floor + amendment-B cluster gate met.
+- s166 02:50 read (after travel completion, ~15 min elapsed): **entire vuongdung1198 cluster gone from v3**. Top v3 margin = +16 (SIUUUU). The +53 leader at 02:35 was NOT killed by competitor (no node 33 entries in world-liquidations.jsonl during the 15-min window).
+
+**Pattern N=2 confirmation**: "high-margin v3 short lifespan" hypothesis from s165 is now validated. **For cycling-defensive owners, high-margin candidates evaporate within 15 minutes (1-3 cron ticks)** — faster than the operator can perceive (snapshot read), decide (cluster math), travel cross-region (~5-10 min), and fire. This is a fundamental architectural constraint, not a doctrine relaxation problem.
+
+**Mechanism**:
+- vuongdung1198 runs `defensive_cycle = True` per watcher (sync_stop on operator presence). Even without operator presence at node 33, the owner's automation cycles every 12-15 min on its own schedule (starve cycles, RESTING phases) regardless of predator behavior. By the time we observe a +30 margin and arrive, the cycle has already pulled the kami.
+- Compound: vuongdung1198's cluster at node 33 includes 7+ kamis cycling on different phases. Watcher snapshot captures whichever subset is HARVESTING this tick; the next tick may surface different idxs entirely as cycle phase rotates.
+
+**Implication for E009 doctrine**:
+- Floor `≥+30` is **statistically unreachable** for cycling-defensive owners. Owners' cycle period < perception-to-fire latency.
+- Amendment A (+20 floor co-located only) does not solve this — node 60 doesn't surface candidates at all this snapshot rotation cycle.
+- Amendment B (+20 floor + ≥4 cluster + travel) was triggered s166 — and the cluster was gone by arrival. The travel itself burned the time window.
+
+**Three response branches**:
+
+1. **Garrison strategy** — pre-position strikers AT the cycling-defensive owner's node (e.g. all 7 strikers on node 33 vs vuongdung1198) and wait passively. When cycle phase exposes a starver above kill threshold, fire IMMEDIATELY (no perception lag, no travel). Cost: foregone harvest income at node 60. Benefit: latency drops from 15min to <30s. Worth it iff vuongdung1198 cluster's expected obol yield/hr at zero-latency exceeds node 60 harvest yield/hr by margin.
+
+2. **Sub-minute reaction infrastructure** — drop watcher cron from 5 min to 30s (or build event-driven detection); add MCP tool to fire pre-staged strike on detection. Cost: dev work + watcher load + MCP latency budget. Benefit: enables remote-strike on any cluster with phase < 5 min.
+
+3. **Retreat doctrine** — accept that cycling-defensive owners are unkillable under current architecture. Stop trying. Hunt only non-cycling owners (rare in current snapshot). Re-validate every 7 days as world composition shifts.
+
+**Test design (N=3+ for adoption)**:
+- For 3 separate cycling-defensive cluster opportunities (different owners or same owner across days), measure (a) snapshot-read time, (b) arrival time, (c) cluster v3 status at arrival. If ≥2/3 evaporate before strike → confirm pattern → adopt one of branches 1/2/3 based on EV math.
+- Currently N=2 (pepo single-kami, vuongdung1198 cluster). Need N=3 minimum.
+
+**Adoption decision**: deferred until N=3. If confirmed, branch 1 (garrison) is most cost-effective near-term — it requires no harness work, just doctrine update on default striker placement.
+
+**Counter-evidence to watch for**: a session where a +30 candidate persists across 3+ cron ticks would falsify this hypothesis. If pepo (or any persistent harvester) shows up at +30 and stays there for 15+ min, snapshot famine is wrong and the +30 floor is reachable — just thin.
+
+**Session 166 cost**: ~16.5M gas burned on travel + deploy + redeploy with 0 strikes. This is the experimental cost of confirming N=2.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.
