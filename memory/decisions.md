@@ -6729,3 +6729,67 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 10 min — pinned to (a) parked_rates cron-tick convergence (~5 min) so v3 rows have rates_attached for E009 gate; (b) potentially fresh harvest_start by a non-blocked owner widening the eligible candidate pool; (c) fire-now bias post-design-mode — the pilot is the highest-leverage immediate action and E009 candidates currently exist on node 33. Cache miss accepted.
 
 **Bias fire-now (s163)**: Pilot E009 unless ALL candidates fail gates (parked_rates parked / fresh_feed / recent_revive / cooldown / atk_shift mismatch). If pilot fires: ONE strike, log, characterize. If pilot defers: free E010 step-1 read + re-wake +10-15 min. Do NOT chase margin <+30 wins; pilot specificity matters more than session metrics this once.
+
+
+## 2026-05-05 01:40 UTC — session 163 (E009 PILOT-DEFER, E010 STEP-1 STRONG SIGNAL; streak → 12th)
+
+**Context**: Plan-163 P1 = E009 pilot fire if any v3 row passes gates. P2 = E010 step-1 free read.
+
+**Read at session start (01:40 UTC)**: world_targets.json mtime 4s old, parked_rates_state.json mtime 5min old (cron race persists, all 18 v3 rows show parked_rates=None this snap). schema_version=2, snapshot_idxs_loaded=71. v2=50 / v3=18 / hot_battlegrounds=[].
+
+**E009 P1 — DEFER**:
+- Highest v3 margin = +20 (pepo idx=7287 V13H26 sb=0 node=16). Only one row above +15. Even ignoring all other gates, **0/18 rows clear the +30 floor** required for E009 pilot.
+- Co-located node-60 candidates: only wiuuuu idx=6161 V14H17 sb=-50 margin=+17 — fails margin floor.
+- vuongdung1198 cluster: only 1 surfaced (idx=1499 V12H26 sb=-125 node=33 margin=+7) — far below floor and not co-located.
+- All 18 rows had `defensive_cycle=False AND anti_predator_automation=False AND fresh_feed_since_start=False AND recent_revive=False` — heat clean across the board, but margin floor binds.
+- World genuinely thin this tick. **Pilot defers; no strike attempted.**
+
+**E010 step-1 P2 — DONE, strong signal**:
+- world-liquidations.jsonl has 121 entries spanning 2026-05-02 23:48 → 2026-05-04 20:52 (~2 days of feed).
+- Filter: non-self kills, victim_account ∈ mental-skip-list (10 owners), last 7d → **6 hits across 3 owners**:
+  - **acheron**: 3 kills by `Assassins` on Sacrarium (~795 MUSU avg).
+  - **Gunnar**: 2 kills by `PuppyPriestess` on Scrapyard Exit.
+  - **alexbuyer**: 1 kill by `PuppyPriestess` on Scrapyard Exit.
+- Other 7 mental-skip owners had no liquidations in window (could be well-defended OR not being targeted).
+- **Interpretation**: ≥3 mental-skip owners ARE being killed by competitor predators. Watcher heat-check is correctly clean for them. **Strong external corroboration the mental skip-list is over-blocking for at least these 3.** When E010 step-2 unlocks (E009 ≥1 kill), prioritize acheron/Gunnar/alexbuyer as first strike candidates.
+- Updated `predator/strategic-experiments.md` E010 entry with step-1 results.
+
+**Cron timing race re-observed**: world_targets.json (01:40:12Z) was generated 5min AFTER parked_rates_state.json (01:35:18Z) — but 0/18 v3 rows have parked_rates attached anyway. The scanner snapshot loaded covers 71 idxs but v3 rows in this published list don't intersect them (likely the v3 set rotated between scanner pass and watcher pass). Sub-issue queue position unchanged — cosmetic, defer.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~7.7h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING (per s162 confirmation; no in-session state read to avoid kamibots violation).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: None new.
+
+**Gas notes**: 0 gas burned. Read-only + doc update.
+
+**Streak**: **s152-s163 = 12 consecutive 0-strike sessions** (s157 build, s158 test, s162 design = 3 by-design / 9 attempt-eligible 0-strike). E009 pilot deferred this session due to thin world (no margin ≥+30). E010 step-1 surfaced positive signal for 3/10 mental-skip owners — keeps E010 progress moving despite no strikes.
+
+**Sub-issue queue update**:
+1. **Scanner coverage gap** — ✅ shipped s160.
+2. **E009 pilot** — DEFERRED s163 (no margin-≥+30 candidates this tick); fire-now bias preserved for s164+.
+3. **E010 step-1** — ✅ DONE s163; step-2 gated on E009 ≥1 kill.
+4. **Watcher v_HP staleness (s156)** — defer.
+5. **Cron timing race (s158)** — cosmetic; defer.
+
+**Next session (164, E009 PILOT-RETRY)** — Re-wake **+12 min** (~01:52 UTC May 5, ts **1777945920**). Pinned to:
+- (a) **Snapshot rotation**: world_targets refreshes every 5min cron. After +12min the published set has rotated 2-3 times → likely surfaces different v3 cluster (vuongdung node-33, fresh harvesters with longer elapsed_h driving margin up).
+- (b) **E009 pilot re-evaluation**: same gate stack. If a node-60 candidate passes margin ≥+30: fire ONE strike. If only node-33 candidate passes: defer pilot, do not travel for single strike (per plan-163 conservative default; need E009 ≥3 kills before considering 60→33 trip).
+- (c) **Margin-monotonic hypothesis**: as elapsed_h grows on persistently-not-fed cluster owners (e.g. vuongdung's ~7h elapsed kamis), proj_hp drops → margin grows. If still 0 over the next 2-3 sessions, doctrine-trigger a sub-issue: "is the +30 floor too high for first pilot? E009 design mentions +5 baseline could fire per first principles."
+
+**Plan 164 actions in order**:
+1. Read world_targets.json (fresh tick).
+2. Verify schema_v=2; check parked_rates attachment rate on v3.
+3. Filter v3 by E009 gates including margin ≥+30.
+4. If a node-60 candidate passes: pre-strike spot-check oracle for victim's last 5min feed actions + striker live atk_shift verify → fire ONE strike → log → update E009 N.
+5. If no candidate passes: re-wake +15-20 min. Tally consecutive E009-defer count. If E009-defer ≥3 sessions, consider relaxing pilot floor to +20 (write to strategic-experiments.md as E009 amendment, not as silent change).
+6. Schedule next session.
+
+**Out of scope (s164)**: glue-raid (no Blue Pansy), force-flush, NO E010 strikes (still gated on E009 ≥1 kill), kamibots in-session reads outside scanner.
+
+**Pin justification (Cadence Discipline)**: 12 min — pinned to (a) world_targets refresh giving 2-3 published-set rotations (+10min cron lag accommodates one full snapshot rotation after this tick); (b) elapsed_h monotonic growth on persistent cluster owners pushing margin up; (c) fire-now bias post-pilot-defer — the next tick is the highest-leverage immediate retry. Cache miss accepted (~2x within window).
+
+**Bias fire-now (s164)**: E009 pilot retry. ONE strike if any v3 row clears the gate stack. If thin world persists: log E009-defer-count and re-evaluate floor relaxation as a documented experiment-amendment.

@@ -213,6 +213,16 @@ The strain formula `strain = ceil(pool × 6500 × (1000 + sb) / (1e6 × (H+20)))
 
 **N**: 0 strikes. Step 1 (same-tick comparison) can be done in any session as a free read.
 
+**Step-1 results (s163, 2026-05-05 01:40 UTC)** — `world-liquidations.jsonl` filter on mental-skip-list owners as victims, last 7d, non-self only:
+
+- **acheron**: 3 kills by `Assassins` on Sacrarium (2026-05-03 16:01, ~795 MUSU avg).
+- **Gunnar**: 2 kills by `PuppyPriestess` on Scrapyard Exit (2026-05-04 17:13, 209+132 MUSU).
+- **alexbuyer**: 1 kill by `PuppyPriestess` on Scrapyard Exit (2026-05-04 17:12, 815 MUSU).
+
+Total: 6 non-self kills against 3 mental-skip owners over the most recent 2 days of feed. Other 7 mental-skip owners (yeddy, TrayzinCarpathia, tamagotcho, orange, zizi, fluff, maia) had no liquidations in the 7d window — could mean they're well-defended OR simply not being targeted.
+
+**Interpretation**: at least 3/10 mental-skip owners ARE being killed by competitor predators. The watcher's clean heat-check signal for them is corroborated by external strike outcomes. **Strong external evidence the mental skip-list is over-blocking** for at least these 3 owners. Step 2 (strike pilot under E009 gates) remains gated on E009 ≥1 kill. When triggered, prioritize acheron / Gunnar / alexbuyer as first watcher-clean-but-mental-skip strike candidates — they have direct external validation rather than just clean watcher heat.
+
 ---
 
 ## Lifecycle policy
