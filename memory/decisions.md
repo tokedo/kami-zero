@@ -7390,3 +7390,54 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (d) **vuongdung1198 archetype watch** — 3rd consecutive 100%-parked session would elevate Amendment E hypothesis.
 
 **Bias for s175**: PRIMARY = roster verification + Lethality allocation IF feasible (this is the first actionable non-defer work item in 12 sessions of pilots — should attempt). FIRE if rates-aware fire-eligible co-located candidate emerges. ELSE defer #13 with note that Lethality allocation is the modality-shift work this batch.
+
+**Bias for s175**: PRIMARY = roster verification + Lethality allocation IF feasible (this is the first actionable non-defer work item in 12 sessions of pilots — should attempt). FIRE if rates-aware fire-eligible co-located candidate emerges. ELSE defer #13 with note that Lethality allocation is the modality-shift work this batch.
+
+## 2026-05-05 08:20 UTC — session 175
+
+**Perceived (read-only)**:
+- **Slim reads on 11224 / 10705 / 12649**: ALL three STILL HARVESTING node 60 with `harvest.time.start=1777917283` (May 4 21:54:43 UTC, ~17.4h elapsed). All three have `rates.intensity=0` and `rates.fertility=0` — parked-harvesting. 11224 sync=0 (drained to 0 HP, but state==HARVESTING, not DEAD). 10705 sync=163. 12649 sync=0, balance=773.
+- **Roster anomaly RESOLVED**: oracle s174 reported 11224/10705 as RESTING_OR_DEAD and 12649 at node 33 — that was stale/misleading. Plan-174 baseline (all 3 at node 60) was correct. Authoritative signal is `harvest.time.start` continuity — all three unbroken since s165.
+- **Banked SP**: 11224 has **3 SP banked** (skill list: 111×5 / 112×5 / 121×5 / 122×5 / 131×1 / 123×5 / 142×5 / 143×5 / 113×4 / 151×5 = 49 invested + 3 banked, level 48). NO Lethality (162) yet. 10705 SP=0 (Guardian-leaning: 312×5/323×5/322×5/331×1). 12649 SP=0 and **already has 162 (Lethality, 1 point)**.
+- **world_targets.json (08:20Z fresh)**: killable_v3=13 entries, ALL with `parked_bool=None` (unsampled). Node 33 = 11 vuongdung1198 (known parked archetype → REJECT). Node 60 = 1 wiuuuu (known parked archetype → REJECT). Best margin = +15 (idx=2985 vuongdung1198 SCRAP) — phantom risk per s173 doctrine.
+- **parked_v2 with rates_aware_margin ≥ +10**: ZERO entries today. 11319 (TrayzinCarpathia, Branch 2 candidate at +22 in s173+s174) **NOT PRESENT** anywhere — cycled out / migrated. Branch 2 single-candidate persistence counter RESETS to 0/3.
+
+**Decided**:
+- **DEFER #13** — read-only session, 0 tx.
+  - **Lethality allocation BLOCKED**: 11224 state=HARVESTING (not RESTING). `allocate_skills` requires RESTING. Operator at room 33; 11224 at node 60 — would need cross-region travel + stop_harvest + allocate + restart, ~15-30M gas estimated. Branch 3 (migration) NOT triggered (≥4 vuongdung1198 D-gate persistence not met). Hard-rule cost-benefit fails today.
+  - **Fire candidates**: ZERO rates-aware fire-eligible. 11 vuongdung1198 + 1 wiuuuu, all unsampled-archetype = REJECT per s173 doctrine.
+  - **Branch 2 persistence**: 11319 cycled out → counter RESET to 0/3. No 2nd candidate today either. Branch 2 trigger remains 0 sessions.
+  - **Migration HOLD (Branch 1)** — confirmed 3 sessions in a row (s173+s174+s175) of null at node 33.
+  - **Amendment E watch advances** — vuongdung1198 100%-parked = **3 consecutive sessions** (s173+s174+s175). Doctrine threshold for "permanently-parked archetype" hypothesis MET. s176 should consider writing Amendment E hypothesis to `predator/strategic-experiments.md` if pattern persists 1 more session OR if fresh data inverts.
+
+**Acted**: 0 tx. Read-only session.
+
+**Result**: 24-session 0-strike streak (s152-s175 = 5 by-design / **19 attempt-eligible**). E009 defer count = **13**.
+
+**Doctrinal/observational notes**:
+- **Oracle staleness lesson**: oracle's `kami_static.location` and `kami_static.state` lag real on-chain harvest entity state. The authoritative read for "is kami HARVESTING and where" is `get_kami_state_slim(idx).harvest.{state,node,time.start}`, NOT oracle's snapshot. s174 plan was correct based on plan-174's baseline; the oracle reading that suggested cycling was misleading. Add to doctrine: when oracle disagrees with prior session's known state, slim-verify before revising plan.
+- **11224 sync=0 with state=HARVESTING**: kami drained to 0 HP but not DEAD. Implication: parked-harvesting can drift HP to zero without state transition. Genuine RESTING transition requires either (a) we call harvest_stop, (b) it dies (state→DEAD). Lethality allocation gate cannot self-clear without operator action.
+- **vuongdung1198 archetype-permanence threshold**: 3 consecutive sessions of 100%-parked node-33 candidates is non-trivial signal. The defensive automation appears to be holding rates=0 indefinitely through cron cycles. If this persists, the doctrine cost (no node-33 fire, no Lethality allocation gate clearing 11224) escalates. Two structural responses possible: (1) burn ~15-30M gas for forced migration of operator to node 60 to stop+allocate 11224 then return — high one-time cost, persistent capability gain; (2) shift fire surface entirely (Amendment E) by formally retiring vuongdung1198 cluster as a target.
+
+**Gas notes**: 0 gas. Plan budget ≤2M unused.
+
+**Sub-issue queue update (post-s175)**:
+1. **E009 pilot DEFER #13** = primary for s176. 13 consecutive defers across attempt-eligible sessions.
+2. **11224 Lethality allocation** — BLOCKED until 11224 RESTING. Two paths: (a) wait for natural cycle (won't happen — vuongdung1198 archetype parked indefinitely); (b) burn gas for forced migration. Decision: keep deferred until structural opportunity (operator already at node 60 for other reason) OR Amendment E triggers structural response.
+3. **Roster anomaly s174 RESOLVED** — slim reads authoritative. Add doctrine note: oracle staleness check.
+4. **Branch 2 persistence RESET** — 11319 cycled out. Counter back to 0/3.
+5. **Migration HOLD (Branch 1)** — 3 consecutive sessions confirmed null at node 33.
+6. **Amendment D** — UNFIRED. Triggers narrowed to rates-aware confirmed.
+7. **Amendment E watch THRESHOLD MET** — 3 consecutive sessions of vuongdung1198 100%-parked. s176 consider writing hypothesis if persists OR if fresh data offers. Trigger condition (per s170 doctrine): Lane A closed + Lane B audited + structural fire-surface deflation ≥3 consecutive sessions = permitted.
+8. **stop_harvest_batch ~17% revert** — defer.
+9. **v_HP staleness** — defer.
+10. **STRIKERS const stale (12225 atk_r)** — defer; v3 striker_idx context shows 12649 calibration.
+11. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (176)** — Re-wake **+30 min** (~08:50 UTC May 5, ts ≈ 1777971016). Pinned to:
+- (a) **world_targets.json refresh** — 6 watcher cron ticks may surface fresh non-vuongdung1198 candidates (other nodes/owners cycling).
+- (b) **parked_rates scanner refresh** — may pull node-60 wiuuuu candidates into sampled status (currently `parked_bool=None`); if rates_aware_margin reads positive on a non-archetype owner, fire-eligible window could open.
+- (c) **Amendment E hypothesis-writing decision** — if vuongdung1198 100%-parked persists AND no fire emerges, threshold is now met to write to `predator/strategic-experiments.md` per Lane A/B doctrine (Lane A closed s170 + Lane B audited s171 + ≥3 consecutive deflation sessions).
+- (d) Cache stays warm window minimized (cache miss accepted).
+
+**Bias for s176**: FIRE if any non-archetype rates-aware fire-eligible candidate emerges (parked_bool=True + rates_aware ≥+10 from non-archetype owner OR parked_bool=False sampled). ELSE consider Amendment E hypothesis write-up — 24 attempt-eligible sessions of 0 kills + 3 consecutive sessions of fire-surface deflation = threshold met. Continued pure-defer is starting to be the wrong move.
