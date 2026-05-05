@@ -69,31 +69,35 @@ If `killable_v3` is empty or missing: log defer with `no_world_targets`, exit.
 ### Step 4 — Filter
 Keep candidates passing ALL of:
 
-- `margin / v_HP >= 0.02` (≥ 2% of victim total HP) — `margin` is `kill_zone - proj_hp` from the watcher (canonical formula, calibrated). %-normalized because kill threshold is %-based; 2% is a mild starting threshold. Tally as `below_margin_floor`.
-- Owner handle resolvable from `c.v_acct` OR `by_idx[c.v_idx].v_acct`. Tally as `owner_unresolvable`.
-
-(No archetype list, no heat gates, no elapsed floor, no co-location gate. Watcher's `margin` encodes the buffer; we normalize. Pre-strike viability (Step 6) and `liquidate_simulate` (Step 7.3) catch chain-side issues. Optimizer adds gates only on evidence.)
+- **Effective margin**: `effective_margin = c.parked_rates.rates_aware_margin if (c.parked_rates and c.parked_rates.parked_bool) else c.margin`. Gate: `effective_margin / c.v_HP >= 0.02`. (Tally `below_margin_floor` non-parked, `parked_rates_aware_negative` parked. For parked kamis the watcher's plain `margin` lies because strain rate is 0 — `rates_aware_margin` is truth-corrected.)
+- Owner handle resolvable from `c.v_acct` or `by_idx[c.v_idx].v_acct`. Tally `owner_unresolvable`.
 
 ### Step 5 — Decide
 - 0 survivors → log defer with `reject_counts`, exit. (Normal.)
-- ≥1 survivors → pick top by `margin`, proceed to Step 6.
+- ≥1 survivors → pick top by effective_margin → call this `primary`.
+  Then collect ALL survivors at `primary.node_id` and sort by
+  effective_margin desc → call this list `node_targets`. We hunt at
+  `primary.node_id` and try each `node_targets` candidate via simulate
+  until one passes (or all fail). Travel cost is paid once.
 
-### Step 6 — Pre-strike viability
-Read top survivor's slim state:
-- If `state != "HARVESTING"` (target was killed/revived/stopped) → log abort with `verify_state_changed`, exit.
-- If target HP ≥ candidate's `kill_zone` (target was fed) → log abort with `verify_hp_above_kill_zone`, exit.
-
-This is a free read. Always do it.
+### Step 6 — Pre-strike viability (primary only, optional)
+Free read of `primary`'s slim — if `state != "HARVESTING"`, drop it from `node_targets`. If empty after drop, defer. Otherwise proceed; simulate in Step 7.4 is the authoritative gate now (multi-target iteration handles HP-changed cases.)
 
 ### Step 7 — Hunt
-Sequence (any tx revert: log abort with the failed step, then go
-to Step 8 cleanup):
+The striker for the hunt is `primary.striker_idx`. Sequence (any tx
+revert: log abort with the failed step, then go to Step 8 cleanup):
 
-1. `travel_to_room(c.node_id)` — RESTING kamis follow. If `reached_target=False`: abort with `travel_failed`.
-2. `harvest_start([c.striker_idx], c.node_id)` — deploy striker. If `status != "success"`: abort with `harvest_start_reverted`. **Note `harvest_start` triggers the kami's cooldown counter** — you must wait it out before any strike.
-3. **WAIT for cooldown to clear.** All kamis have a 180s base cooldown reduced by skills (typical predator striker: ~80s). Use the `Bash` tool to `sleep 90` (90 seconds is safe for typical -100s skill-reduced strikers; covers up to ~90s effective cooldown plus chain-confirmation buffer). Do NOT proceed to step 4 until this sleep completes.
-4. **Simulate strike** — `liquidate_simulate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Free pre-flight check. If `blocked=true`: abort with `liquidate_blocked` + the guild reason. If `would_succeed=false`: abort with `simulate_reverted` + the chain `revert_reason`. (If reason is still `kami on cooldown` after the 90s wait, this striker has a longer cooldown than skill profile suggests — emit `cooldown_longer_than_expected` anomaly with the striker_idx and abort.)
-5. **Strike** — only if simulate said `would_succeed=true`. Call `liquidate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Capture: `tx_hash`, `status`, `gas_used`, `revert_reason`, `blocked`. (In normal operation this should always succeed — if it reverts despite simulate green-lighting it, that's a notable race condition; emit `simulate_passed_but_tx_reverted` anomaly.)
+1. `travel_to_room(primary.node_id)` — RESTING kamis follow. If `reached_target=False`: abort with `travel_failed`.
+2. `harvest_start([primary.striker_idx], primary.node_id)` — deploy striker. If `status != "success"`: abort with `harvest_start_reverted`. **Note `harvest_start` triggers the kami's cooldown counter** — you must wait it out before any strike.
+3. **WAIT for cooldown to clear.** Use the `Bash` tool to `sleep 90` (covers typical -100s skill-reduced striker plus chain-confirmation buffer). Do NOT proceed until sleep completes.
+4. **Iterate simulate over `node_targets`.** For each candidate `c` in `node_targets` (in margin-desc order):
+   - `liquidate_simulate(target_kami_id=c.v_idx, attacker_kami_id=primary.striker_idx, target_handle=resolved_handle)`
+   - If `blocked=true`: log `c.v_idx blocked: <reason>`, continue to next candidate (guild block on this one only).
+   - If `would_succeed=false` and `revert_reason == "kami on cooldown"`: STOP iteration, abort with `striker_on_cooldown` (all candidates would fail same reason).
+   - If `would_succeed=false` for any other reason: log `c.v_idx simulate_reverted: <reason>`, continue.
+   - If `would_succeed=true`: this is our target! Set `chosen = c` and proceed to step 5.
+   - If we exhaust `node_targets` with no success: abort with `all_simulates_reverted`. Each per-candidate result captured in steps log.
+5. **Strike** — `liquidate(target_kami_id=chosen.v_idx, attacker_kami_id=primary.striker_idx, target_handle=resolved_handle)`. Capture full result. (If it reverts despite simulate green-lighting it, emit `simulate_passed_but_tx_reverted` anomaly.)
 
 ### Step 8 — Stand down (always — success or any failure)
 Attempt `harvest_stop([c.striker_idx])` ONCE. If it reverts (likely
@@ -125,7 +129,7 @@ For a defer (no tx, no work attempted beyond reads/consolidation):
 
 For a hunt attempt (success or any abort):
 ```json
-{"ts": <unix>, "outcome": "hunt", "operator_node": <int>, "consolidation": {...}, "candidates_seen": <n>, "survivors": <n>, "reject_counts": {...}, "target": <v_idx>, "striker": <striker_idx>, "owner_handle": "<h>", "node_id": <node>, "margin": <num>, "kill_zone": <num>, "observed_hp_pre_strike": <int>, "steps": [{"action": "<verb>", "status": "ok|reverted|skipped", "gas": <int>}, ...], "total_gas": <int>, "success": <bool>, "tx_hash": "<0x...>", "abort_reason": "<reason if not success>"}
+{"ts": <unix>, "outcome": "hunt", "operator_node": <int>, "consolidation": {...}, "candidates_seen": <n>, "survivors": <n>, "reject_counts": {...}, "primary": <v_idx>, "striker": <striker_idx>, "node_id": <node>, "node_targets_tried": [{"v_idx": ..., "owner_handle": "...", "effective_margin": ..., "simulate_result": "would_succeed|cooldown|<other_revert>"}, ...], "chosen": <v_idx_or_null>, "steps": [{"action": "<verb>", "status": "ok|reverted|skipped", "gas": <int>}, ...], "total_gas": <int>, "success": <bool>, "tx_hash": "<0x...>", "abort_reason": "<reason if not success>"}
 ```
 
 Append anomalies to `history/anomalies.jsonl` only when warranted
