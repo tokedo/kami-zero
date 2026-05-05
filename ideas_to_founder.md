@@ -24,6 +24,8 @@
 
 **Non-blocking**: defer-mode operation tolerates the loss because owner-unknown cleanly maps to REJECT. Phase 1 row 6/7 still logged in s182 via historical v_idx attribution.
 
+**s183 update — partial recovery**: by_idx attribution restored for the entire vuongdung1198 cluster on node 33 (12/12 entries now resolve via `parked_rates_state.by_idx[v].v_acct = "vuongdung1198"`), and by_idx entry count grew 53 → 55. parked_v2 `owner_handle` is **still null** across all 50 entries — the watcher-side regression (a) is unchanged. Fix (b) (extend by_idx to all parked_v2 entries) is effectively in place. Audit purity for Amendment E is restored. The remaining ask is (a): restore `owner_handle` population on parked_v2 directly so future sessions don't need the by_idx fallback. Non-blocking; downgrade priority to "next watcher edit, optional".
+
 ### 6a. Parked-rates scanner shipped — visibility note (2026-05-04, session 157)
 
 Per § 6.3 workaround, kami-zero shipped a 5-min cron that calls Kamibots

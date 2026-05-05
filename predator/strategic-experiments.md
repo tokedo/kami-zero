@@ -438,7 +438,7 @@ s172 also live-projected 12649 vs TrayzinCarpathia idx=126 at node 60 (12649's H
 
 ## E009 Amendment E — "vuongdung1198 cluster fully migrated to anti-predator automation (100%-parked archetype)"
 
-**Status**: HYPOTHESIS (written s176, threshold MET per Lane-A/B doctrine — Lane A closed s170 + Lane B audited s171 + ≥3 consecutive sessions of 100%-parked deflation: s173+s174+s175 (s176 = 4th consecutive confirms))
+**Status**: **P1-CONFIRMED s183** (Phase 1 7/7 formal threshold crossed — vuongdung1198 cluster on node 33 100% parked_True with rates_aware in [-27, -75] across 11 consecutive watcher-sessions s173–s183; cluster size 6→12; zero falsifying observations in the 7-session window). **Phase 2 §PARTIAL trigger MET s183** (4 consecutive 0-non-archetype-fire-surface sessions s180–s183 → world-wide deflation, not vuongdung1198-specific). See "§PARTIAL trigger criteria" block below.
 
 **Modality-shift context**: Streak s152–s176 = 25 consecutive 0-strike sessions (5 by-design / 20 attempt-eligible / 13 deferred E009 pilots). Original "5 consecutive 0-kill = design mode" trigger surpassed by 20 sessions. Doctrinal accountability for non-defer modality moves is the obligation that produces this hypothesis write-up. Pure-defer at 25-session 0-strike with 4-session structural deflation is doctrinally insufficient.
 
@@ -493,6 +493,45 @@ s172 also live-projected 12649 vs TrayzinCarpathia idx=126 at node 60 (12649's H
 **N**: 0 (HYPOTHESIS only — Phase 1 begins s177).
 
 **Read-back**: when reading this entry in s177, before any non-defer action, ask: "Has Phase 1 produced un-parked vuongdung1198 candidates? Is Phase 2 needed? Does world_targets.json show non-archetype-dominated nodes with fire-eligible candidates?" Answer in plan.md s177 if reaching for migration counter-response.
+
+---
+
+### §PARTIAL trigger criteria (s183 write-up)
+
+The Phase-1 outcome (vuongdung1198 cluster 100%-parked) AND the Phase-2 outcome (world-wide non-archetype fire surface = 0 across ≥4 consecutive sessions) jointly map to the **PARTIAL** branch of "Decision criteria for adoption / counter-response": the parked-rates phenomenon is a **meta shift**, not a single-cluster automation event. Counter-response 1 (forced migration) is therefore a poor fit — migrating the operator to node 60 (or any single alternative) would not surface fire-eligible non-archetype candidates if the entire scan radius is structurally drained.
+
+**Trigger conditions for §PARTIAL doctrine activation** (all required):
+
+1. **Phase 1 P1-CONFIRMED**: vuongdung1198 cluster (or analogous on garrison node) shows 100% `parked_bool=True` with `rates_aware_margin ≤ -20` across ≥7 consecutive watcher-sessions, AND
+2. **Phase 2 deflation persistent**: world-wide non-archetype `rates_aware ≥ +10 + parked_True` count = 0 across ≥4 consecutive sessions, AND
+3. **Hot-battlegrounds wedge**: ≥1 hot_battlegrounds entry shows competitor predator(s) extracting non-trivial MUSU (≥300 per kill) from at least one node where our scan surface = 0.
+
+(s183 status: condition 1 MET, condition 2 MET, condition 3 MET — node 9 yellowtail/tamagotcho extracted 5×~700 MUSU in ~12 min while our scan shows 0 fire-eligible candidates anywhere co-located.)
+
+**§PARTIAL doctrine response options** (non-exclusive — adoption requires explicit decision in plan.md, gas-budgeted, with reversion criteria):
+
+(A) **Relax `rates_aware ≥ +10` floor to `≥ +0` with stricter `parked_bool=False` co-requirement.** Justification: when sampled-True rates are deeply negative everywhere, `rates_aware ≥ +10` becomes an unreachable bar; a floor at +0 with `parked_bool=False` (real strain confirmed, even if marginal) admits the on-the-fence candidates the watcher currently rejects. Risk: revert rate may climb if `parked_bool=False` doesn't fully sub for `+10` margin; first 3 fires are pilot-marked single-shot.
+
+(B) **Owner-archetype REJECT relaxation for non-co-located archetype clusters where competitor activity proves them killable.** Specifically: if hot_battlegrounds shows non-trivial extraction (≥300 MUSU/kill, ≥3 kills/3h) from an archetype owner at node X AND our oracle drill shows ≥3 active harvests by that owner at node X, then archetype-REJECT for that owner-at-that-node is downgraded to UNSAFE-unsampled-archetype-NODE-X (admit if other guards clean AND rates_aware ≥+10 confirmed). Reasoning: archetype-REJECT was empirically derived from operator-arrival-triggered defensive cycling on node 33 (vuongdung1198) and node 73 (TrayzinCarpathia); it is not first-principles necessary that the same owner running anti-predator automation on one node has it on every node. Risk: the rule loses its blanket-safety property; per-owner-per-node decisions require maintained cross-reference. First 3 fires single-shot pilot-marked.
+
+(C) **Long-horizon strategy shift: roster leveling wave / build-up.** Justification: if the world-wide harvestable surface has structurally collapsed across our scan radius, the binding constraint is no longer "find better targets in this scan" but "expand the surface" (better strikers via leveling, broader scan via second-operator multi-node garrison, or wait out the meta). Roster has banked SP=3 on 11224 (BLOCKED) and SP banking on others; a leveling wave is currently NON-actionable due to operator-room-constraint blocking 11224's allocation, but the §PARTIAL trigger increases priority on resolving the unblock pathway.
+
+(D) **Migration to non-archetype node validated by hot_battlegrounds.** If hot_battlegrounds + oracle drill identifies a node where competitor predators ARE extracting from non-archetype owners with `rates_aware ≥ +10` in our scan radius (currently NOT observed — node 9 victims are tamagotcho archetype), then forced migration to that node is the §PARTIAL-compliant counter-response 1 variant. Pre-migration write-up REQUIRED in decisions.md.
+
+**Reversion conditions** (return to baseline doctrine):
+
+- ≥2 consecutive sessions with non-archetype `rates_aware ≥ +10 + parked_True` count ≥ 1 anywhere world-wide. The deflation has lifted; baseline rates-aware floor is the right gate again.
+- OR: a single successful non-archetype clean strike at `rates_aware ≥ +10` reverts (P1/P2 hypothesis was a measurement artifact; revert at margin invalidates the rates_aware doctrine itself, escalate to first-principles re-derivation per E009 §"rates-aware doctrine origin").
+- OR: founder directive in `ideas_to_founder.md` response.
+
+**§PARTIAL adoption decision** (s183, default): **DEFER explicit doctrine change** pending one more session confirmation (s184 = condition 2 5th consecutive). Adoption of (A) or (B) requires explicit pilot fire under controlled conditions — current session has no fire-eligible candidate (even under relaxed criteria, the killable_v3 candidates either fail elapsed gate, fail margin gate, or are archetype with no hot_battlegrounds wedge for their node). The trigger is MET in principle; the FIRST fire-eligible test target (per (A) or (B) criteria) becomes the §PARTIAL pilot.
+
+**§PARTIAL pilot fire criteria** (when test target appears, single-shot pilot, full revert characterization required):
+
+- (A)-pilot: any candidate with `rates_aware ≥ +0`, `parked_bool=False`, elapsed ≥6h, non-archetype, co-located (or 1-hop). Single shot. If revert: revert kind documented; (A) adoption deferred. If kill: 2 more (A)-pilots before adoption.
+- (B)-pilot: any archetype owner X at node Y where hot_battlegrounds + oracle drill confirm competitor extraction (≥3 kills with ≥300 MUSU each from that owner-node combo in 3h), AND our scan shows ≥1 sampled-True rates_aware ≥+10 candidate from that owner-node combo. Single shot. Revert/kill outcome handled per (A).
+
+**Sub-issue queue impact**: pin the §PARTIAL trigger MET status as a high-priority watch in `predator/learnings.md` and `memory/plan.md` for s184. Roster leveling wave (sub-issue #20) escalates from "long-term" to "explore unblock pathway for 11224 banked SP=3" given option (C) becomes more relevant under §PARTIAL.
 
 ---
 
