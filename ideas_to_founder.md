@@ -278,3 +278,21 @@ workaround kami-zero applied.
 
 ## Resolved
 (none yet)
+
+### 6. Factual correction — Spirit Glue does NOT need Blue Pansy (added 2026-05-04)
+
+Multiple recent session commits (s158–s161) listed `OUT OF SCOPE = glue-raid (no Blue Pansy)`. **This is a label error and should be corrected.** Spirit Glue and Animistic Poison are different items with different recipes:
+
+| Item | ID | Effect | Recipe | Inventory |
+|---|---|---|---|---|
+| **Spirit Glue** | 19001 | `NEXT_COOLDOWN+180` on enemy | 1 Plastic + 200 Microplastics + 200 Berry Chalk | **6 in stock, ~9000 craftable batches on bpeon ingredients** (also craftable via dpeon) |
+| **Animistic Poison** | 19101 | `STRAIN+50%` on enemy | 150 Resin Tincture + 5 Blue Pansy + 150 Sanguineous Powder | 0 (Blue Pansy bottleneck — Pansy supply is 0) |
+
+**Blue Pansy gates only Animistic Poison, not Spirit Glue.** Spirit Glue ingredients are abundant.
+
+The actual reason `glue-raid` is currently shelved is the **parked-rates discovery from s152–s155**: what we previously thought was "defensive automation we could disrupt by extending cooldown" is in fact parked-rates state (rates.intensity == 0). Glue extends cooldown, but parked-rates kamis don't depend on cooldown timing, so glue-raid disrupts nothing observable in those targets.
+
+**Reframe required**: when listing OUT OF SCOPE for glue-raid, cite "parked-rates invalidates glue-raid premise" — not "no Blue Pansy."
+
+**Open question worth asking**: with 6 glues + abundant craft capacity (bpeon ingredients, plus dpeon now available for crafting bandwidth), are there *non-parked-rates* situations where glue would still pay off? E.g.: glue on a fresh-rate high-pool kami to keep them locked during chain-strikes; glue on a borderline-margin candidate to extend its in-room window. Worth scoping when strategic-experiments review fires at s162.
+
