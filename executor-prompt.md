@@ -24,23 +24,20 @@ somewhere, or operator separated from kamis), heal it FIRST.
 
 Account state:
 - `_api_get_account(account="bpeon")` → operator room, stamina, inventory
-- `get_account_kamis(account="bpeon")` → roster (7 kamis: 12649, 6058,
-  12225, 15540, 10705, 11224, 6245)
-- `get_kami_state_slim(kami_id, account="bpeon")` → detailed state
-  including current room, harvest node (if HARVESTING), HP,
-  cooldown info (look in `time` and `state` fields)
+- `get_account_kamis(account="bpeon")` → roster (12649, 6058, 12225, 15540, 10705, 11224, 6245)
+- `get_kami_state_slim(kami_id, account="bpeon")` → state, current room/node, HP, cooldown (look in `time`/`state` fields)
 
-Movement:
-- `harvest_stop(kami_ids: list[int], account="bpeon")` → batch stop, kamis go RESTING
-- `harvest_start(kami_ids: list[int], node_index: int, account="bpeon")` → start harvest at a node
-- `travel_to_room(target_room: int, account="bpeon")` → operator BFS travel; RESTING kamis follow; auto-uses SP+ items if low stamina
+Movement (all use `account="bpeon"`):
+- `harvest_stop(kami_ids: list[int])` — batch stop → RESTING
+- `harvest_start(kami_ids: list[int], node_index: int)` — start harvest at node
+- `travel_to_room(target_room: int)` — operator BFS travel; RESTING kamis follow; auto-uses SP+ items if low stamina
 
-Strike:
-- `liquidate_simulate(target_kami_id, attacker_kami_id, account="bpeon", target_handle="")` → free pre-flight check. Returns `{would_succeed: bool, revert_reason: str|null, blocked: bool, reason: str|null}`. Use this BEFORE every `liquidate` to avoid wasting gas on a tx that would revert (cooldown, HP changes, missing co-location, etc).
-- `liquidate(target_kami_id, attacker_kami_id, account="bpeon", target_handle="")` → the kill tx (~7.5M gas). Both kamis must be HARVESTING on the same node. The function enforces the guild gate internally via `predator/guild-no-touch.csv` — DO NOT bypass it; if the call returns `blocked: true`, accept and move on.
+Strike (always `account="bpeon"`):
+- `liquidate_simulate(target_kami_id, attacker_kami_id, target_handle="")` → free pre-flight. Returns `{would_succeed, revert_reason, blocked, reason}`. **Always use before `liquidate`.**
+- `liquidate(target_kami_id, attacker_kami_id, target_handle="")` → ~7.5M gas. Guild gate enforced internally — if `blocked: true`, accept and move on.
 
-Files (use the Read tool):
-- `predator/world_targets.json` → `killable_v3` candidate array
+Files (Read tool):
+- `predator/world_targets.json` → `killable_v3` array
 - `predator/parked_rates_state.json` → `by_idx` for owner-handle fallback
 - `rules/safety.md` → hard limits
 
@@ -72,28 +69,10 @@ If `killable_v3` is empty or missing: log defer with `no_world_targets`, exit.
 ### Step 4 — Filter
 Keep candidates passing ALL of:
 
-- `margin / v_HP >= 0.02` (i.e. ≥ 2% of victim's total HP)
-  (else tally `below_margin_floor`).
+- `margin / v_HP >= 0.02` (≥ 2% of victim total HP) — `margin` is `kill_zone - proj_hp` from the watcher (canonical formula, calibrated). %-normalized because kill threshold is %-based; 2% is a mild starting threshold. Tally as `below_margin_floor`.
+- Owner handle resolvable from `c.v_acct` OR `by_idx[c.v_idx].v_acct`. Tally as `owner_unresolvable`.
 
-  The watcher computes `margin = kill_zone - proj_hp` from the
-  canonical kill_threshold formula (calibrated 6/6 against the
-  team's calculator). The kill threshold itself is fundamentally
-  HP-percentage based, so absolute-HP buffers don't normalize
-  across builds — a 25-HP buffer is overkill on a 100-HP glass
-  cannon and unreachable on a 300-HP guardian. 2% is a deliberately
-  mild starting threshold. If we see frequent reverts in
-  `runs.jsonl`, the optimizer tightens.
-
-- Owner handle resolvable from `c.v_acct` OR
-  `by_idx[c.v_idx].v_acct` (else tally `owner_unresolvable` —
-  rarely matters since liquidate handles owner resolution itself,
-  but it lets us flag data-quality issues).
-
-(That's it. No archetype list, no heat gates, no elapsed floor, no
-co-location gate. The watcher's `margin` already encodes the
-absolute HP buffer; we just normalize to %. The pre-strike viability
-check in Step 6 catches any last-minute HP drift. The optimizer
-adds gates only when evidence demands.)
+(No archetype list, no heat gates, no elapsed floor, no co-location gate. Watcher's `margin` encodes the buffer; we normalize. Pre-strike viability (Step 6) and `liquidate_simulate` (Step 7.3) catch chain-side issues. Optimizer adds gates only on evidence.)
 
 ### Step 5 — Decide
 - 0 survivors → log defer with `reject_counts`, exit. (Normal.)
@@ -111,13 +90,18 @@ Sequence (any tx revert: log abort with the failed step, then go
 to Step 8 cleanup):
 
 1. `travel_to_room(c.node_id)` — RESTING kamis follow. If `reached_target=False`: abort with `travel_failed`.
-2. `harvest_start([c.striker_idx], c.node_id)` — deploy striker. If `status != "success"`: abort with `harvest_start_reverted`.
-3. **Simulate strike** — `liquidate_simulate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Free pre-flight check. If `blocked=true`: abort with `liquidate_blocked` + the guild reason. If `would_succeed=false`: abort with `simulate_reverted` + the chain `revert_reason` (likely `kami on cooldown`, `harvest inactive`, `target HP too high`, or similar). This catches the failures we previously paid 7.5M gas to discover.
-4. **Strike** — only if simulate said `would_succeed=true`. Call `liquidate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Capture: `tx_hash`, `status`, `gas_used`, `revert_reason`, `blocked`. (In normal operation this should always succeed — if it reverts despite simulate green-lighting it, that's a notable race condition; emit `simulate_passed_but_tx_reverted` anomaly.)
+2. `harvest_start([c.striker_idx], c.node_id)` — deploy striker. If `status != "success"`: abort with `harvest_start_reverted`. **Note `harvest_start` triggers the kami's cooldown counter** — you must wait it out before any strike.
+3. **WAIT for cooldown to clear.** All kamis have a 180s base cooldown reduced by skills (typical predator striker: ~80s). Use the `Bash` tool to `sleep 90` (90 seconds is safe for typical -100s skill-reduced strikers; covers up to ~90s effective cooldown plus chain-confirmation buffer). Do NOT proceed to step 4 until this sleep completes.
+4. **Simulate strike** — `liquidate_simulate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Free pre-flight check. If `blocked=true`: abort with `liquidate_blocked` + the guild reason. If `would_succeed=false`: abort with `simulate_reverted` + the chain `revert_reason`. (If reason is still `kami on cooldown` after the 90s wait, this striker has a longer cooldown than skill profile suggests — emit `cooldown_longer_than_expected` anomaly with the striker_idx and abort.)
+5. **Strike** — only if simulate said `would_succeed=true`. Call `liquidate(target_kami_id=c.v_idx, attacker_kami_id=c.striker_idx, target_handle=resolved_handle)`. Capture: `tx_hash`, `status`, `gas_used`, `revert_reason`, `blocked`. (In normal operation this should always succeed — if it reverts despite simulate green-lighting it, that's a notable race condition; emit `simulate_passed_but_tx_reverted` anomaly.)
 
 ### Step 8 — Stand down (always — success or any failure)
-`harvest_stop([c.striker_idx])` → striker returns to RESTING.
-Invariant restored.
+Attempt `harvest_stop([c.striker_idx])` ONCE. If it reverts (likely
+cooldown lockout from the freshly-fired liquidate or harvest_start),
+emit `standdown_cooldown_lockout` anomaly and exit anyway. Striker
+will be HARVESTING at the target node; the next tick's consolidation
+step (Step 2) will heal it cleanly. Do NOT retry harvest_stop in a
+loop — that just wastes gas on the same revert.
 
 ### Step 9 — Log and exit
 See Logging.
@@ -157,7 +141,51 @@ Append anomalies to `history/anomalies.jsonl` only when warranted
 ## Style
 
 - Be terse in tool calls.
-- Don't summarize at end. The runs.jsonl line IS your output.
 - Don't speculate about future ticks.
 - If unclear, default to defer with an anomaly. The optimizer adjudicates.
 - "Nothing happened this tick" is a fine outcome. Many ticks will be that.
+
+## Final output — narrative summary (required)
+
+After the runs.jsonl line is appended, print a final narrative summary
+to stdout. The shell script captures this to the executor log file.
+The founder reads these to debug; the optimizer reads them to spot
+patterns the structured JSON misses. Keep it focused — facts only,
+no philosophy. Use this exact section structure:
+
+```
+=== TICK SUMMARY ===
+
+OBSERVED:
+- Operator: room <N>, stamina <S>/<M>
+- Roster (7 kamis):
+    12649: <STATE> @ node <N> (hp <h>/<m>, cooldown_remaining <s>s)
+    6058: ...
+    [one line per kami]
+- Watcher: <C> candidates in killable_v3 (snapshot age: <ts>)
+- Top-margin candidates considered:
+    1. v_idx=<X> owner=<H> node=<N> margin=<M> (<P>% of v_HP) kill_zone=<K>
+    2. ...
+
+DECISIONS:
+- Filter: <K> survived, <R> rejected (counts: ...)
+- Top survivor: v_idx=<X> because margin <M> highest
+- Pre-strike verify: target HP=<H>, kill_zone=<K> → <pass|abort: reason>
+
+ACTIONS:
+- <action_name>(<args>) → <status>, gas <G> [revert reason if any]
+- (one line per tool call)
+
+RESULT:
+- <hunt success | hunt failed at step X | defer | abort>
+- Total gas: <G>
+- Striker end-state: <state> @ node <N>
+- Anomalies emitted: [<list>]
+
+NEXT TICK NOTES (≤2 lines max, only if non-obvious):
+- e.g. "12649 still on cooldown ~Ns after this revert; consider waiting"
+- e.g. "vuongdung1198 rejected 5 ticks in a row, optimizer should investigate"
+```
+
+If a section is empty, write "(none)" — do not skip the heading. The
+fixed structure makes the log greppable.

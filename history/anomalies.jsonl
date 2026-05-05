@@ -7,3 +7,9 @@
 {"ts": 1778000400, "kind": "consolidation_scatter", "nodes_visited": [73], "detail": "12649 HARVESTING at node 73; operator already at 73; harvest_stop batch succeeded"}
 {"ts": 1778000400, "kind": "hunt_failed", "aborted_at": "liquidate", "abort_reason": "liquidate_reverted", "target": 1218, "striker": 12649, "node": 10, "total_gas": 19386560}
 {"ts": 1778000400, "kind": "standdown_harvest_stop_reverted", "detail": "harvest_stop for striker 12649 reverted after liquidate revert; 12649 may still be HARVESTING at node 10; next tick should check"}
+{"ts":1777998763,"type":"consolidation_scatter","nodes_visited":[33],"kamis_healed":[12649]}
+{"ts":1777998763,"type":"hunt_failed","aborted_at":"harvest_start","abort_reason":"harvest_start_reverted — 12649 cooldown not yet expired at block 28395828 (~80s cooldown from harvest at 1777998531)","total_gas":2691590}
+{"ts": 1777999672, "type": "simulate_reverted", "target": 3076, "attacker": 12649, "revert_reason": "kami on cooldown"}
+{"ts": 1777999672, "type": "harvest_stop_min_cooldown", "note": "12649 harvest_stop reverted 3x before succeeding; 80s min-harvest window caused gas waste on abort path"}
+{"ts": 1778000709, "kind": "simulate_reverted", "attacker": 12649, "target": 7925, "owner": "BandG", "node": 12, "revert_reason": "kami on cooldown", "note": "12649 time.cooldown was 1777999746 at tick start (~954s before simulate); -100 cooldown bonus; strike cooldown may be longer than expected"}
+{"ts": 1778000709, "kind": "harvest_stop_requires_cooldown_window", "striker": 12649, "node": 12, "attempts": 3, "success_on_attempt": 3, "note": "harvest_stop reverted twice immediately after harvest_start; succeeded at ~80s post-start; game enforces minimum harvest window before stop"}
