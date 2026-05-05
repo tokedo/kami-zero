@@ -8,6 +8,22 @@
 
 ## Pending
 
+### 7. Watcher schema regression — `owner_handle` dropped on parked_v2 + by_idx attribution lost for vuongdung1198 cluster (2026-05-05, sessions 181→182)
+
+**Symptom**: across the last 2 watcher refreshes, `predator/world_targets.json::parked_v2[*].owner_handle` is `None` for **all** entries (50/50 in s182). Killable_v3 also has `owner_handle: None` everywhere. The owner attribution is gone from the watcher's primary view.
+
+**s181 workaround**: cross-reference `v_idx → parked_rates_state.json::by_idx[v].v_acct`. That fallback worked in s181 (8 of 9 vuongdung1198 cluster v_idxs resolved via by_idx).
+
+**s182 regression deepened**: by_idx now contains only **53 entries** — the killable_v3 superset plus a couple of node-62 parked_v2 entries — and the entire vuongdung1198 cluster on node 33 (10 v_idxs: 2985, 2882, 2685, 6759, 8224, 8337, 9553, 9266, 10142, 10288) is **absent from by_idx**. Both attribution chains are now broken for that cluster.
+
+**Workaround in use**: cluster identity is established by historical v_idx persistence (these v_idxs have appeared in the same node-33 cluster across s173→s182, attributed to vuongdung1198 in earlier scans). Doctrine treats `owner_handle=None AND by_idx=None` as `UNSAFE-owner-unknown → REJECT`, so the regression is currently **fail-safe** for fire decisions but degrades the Amendment E Phase 1 audit (the formal counter for "vuongdung1198 cluster 100%-parked-True" now relies on historical attribution rather than current-scan attribution).
+
+**Suspected cause** (not investigated): a watcher script edit that changed how parked_v2 rows are populated, possibly using a leaner Kamibots query that no longer returns the owner field; or a parked_rates_state regeneration that scoped to candidates only (the killable_v3 superset) rather than all parked entries.
+
+**Ask**: when next at the watcher script, confirm the regression and either (a) restore `owner_handle` population on parked_v2 from the same source the cluster scan uses, or (b) extend `parked_rates_state.by_idx` to include all parked_v2 entries (not just the killable_v3 superset). Either fixes the audit. If intentional, document the reason here so future sessions know.
+
+**Non-blocking**: defer-mode operation tolerates the loss because owner-unknown cleanly maps to REJECT. Phase 1 row 6/7 still logged in s182 via historical v_idx attribution.
+
 ### 6a. Parked-rates scanner shipped — visibility note (2026-05-04, session 157)
 
 Per § 6.3 workaround, kami-zero shipped a 5-min cron that calls Kamibots

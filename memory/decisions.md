@@ -7711,3 +7711,67 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (e) Cache miss accepted (no near-term <300s event).
 
 **Bias for s182**: FIRE if rates-aware fire-eligible + co-located striker emerges (very low probability per s180/s181 trend). ELSE log Phase 1 row 6/7 + Phase 2 row 6 + defer #20. If Phase 2 deflation persists at 0 through s183 AND P1 holds, write up the §PARTIAL trigger criteria explicitly in `predator/strategic-experiments.md` at s183.
+
+## 2026-05-05 11:35 UTC — session 182
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refreshed @ 11:35 UTC (fresh, 0s lag). **Watcher schema regression CONFIRMED + DEEPENED**: `owner_handle` null on all 50 parked_v2 entries (s181 carryover) AND `by_idx` now contains only 53 entries (killable_v3 superset + a few node-62), with the entire **vuongdung1198 cluster on node 33 absent from by_idx** — both attribution chains broken for that cluster. Cluster identity established via historical v_idx persistence (s173→s182). Node 33 parked_v2: **10 candidates** (up 9→10 from s181) — v_idxs 2985, 2882, 2685, 6759, 8224, 8337, 9553, 9266, 10288 (NEW; transitioned from killable_v3 unsampled-margin=10 in s181 to parked_v2 sampled-True parked phantom ram=-38 in s182), 10142 (NEW; historically vuongdung1198, killed by us in prior session and revived). 1482 dropped from parked_v2 (re-appeared in killable_v3 unsampled margin=15 elapsed=6.99h). All 10 entries `parked_bool=True`, ram distribution [-57, -53, -52, -52, -51, -49, -49, -38, -29, -27] (min=-57, median=-50, max=-27). Node 62: **2 candidates** (up 1→2) — 3297 buja723 archetype phantom ram=-48, 4770 sa3woo phantom ram=-22. Both sampled-True. hot_battlegrounds: **NEW signal — node 9 with 2 kills, sample victim tamagotcho (3h window)**. World-wide non-archetype ram≥+10 + parked_True: **0** (3rd consecutive session). World-wide ram≥+10 + parked_True (any owner): **0**. killable_v3 (n=20 head) — the only co-located rows: 1482 node 33 +15 6.99h unsampled (historically vuongdung1198 → REJECT archetype), 4845 node 33 +10 6.42h unsampled owner-unknown (NEW v_idx, no prior history), 9196 node 33 +7 6.04h (sub-margin), 1599 node 60 +11 1.66h unsampled owner-unknown (sub-D-pilot 6h). **Zero fire-eligible candidates anywhere.**
+**Decided**: E009 PILOT-DEFER #20 (read-only). Per plan-182 Priority 1 ladder:
+  - (1) Co-located ram≥+20 → 0. (2) Co-located ram≥+10 + elapsed≥6h + parked_True → 0. (3) Anywhere ram≥+10 + parked_True → 0. (4) → Priority 2/5.
+  - **node-33 v_idx=4845 (margin=10, elapsed=6.42h, owner-unknown, unsampled)**: passes elapsed gate AND margin gate, but owner-unknown maps to UNSAFE-owner-unknown per s181 doctrine → REJECT (worst-case archetype). New v_idx; no prior history to lean on. If it survives to next watcher refresh and gets sampled with rates_aware ≥+10 + non-archetype owner attribution restored, it becomes a fire-eligible D-pilot candidate. Pin for s183.
+  - **node-33 v_idx=10288**: watch closed. Now in parked_v2 sampled-True parked phantom (ram=-38). Confirmed phantom; not a fire candidate.
+  - **node-33 v_idx=1482**: cycled back to killable_v3 unsampled margin=15 elapsed=6.99h. Historically vuongdung1198 archetype → REJECT.
+  - **Phase 1 row 6/7 LOGGED** — vuongdung1198 cluster: 10 sampled-True parked entries (up 9→10), all `parked_bool=True`, ram in [-57, -27]. **10 consecutive watcher-sessions** (s173–s182). Per Amendment E formal counter: **6/7** of 7-session threshold complete. P1 HOLDS. Falsification window: s183.
+  - **Phase 2 row 6 LOGGED** — world-wide non-archetype margin≥+10 + parked_True = **0** hits today. **Sustained at 0 across s180→s181→s182** (50+25=75 min). Per Amendment E §PARTIAL adoption criterion: **3 consecutive sessions** of zero non-archetype fire surface. If sustained through s183 (4th consecutive), §PARTIAL becomes doctrinally indicated response over counter-response 1.
+  - **node 62 cluster** (Priority 3): cluster expanded 1→2 (back closer to s180's 3). 3297 buja723 (archetype) ram=-48 phantom, 4770 sa3woo ram=-22 phantom. Both sampled-True; cluster remains all-phantom. Migration cost-benefit NOT triggered. hot_battlegrounds remains empty for node 62.
+  - **Watcher regression** (Priority 5): CONFIRMED across 2 sessions; by_idx loss is NEW and deeper than s181. Escalation written to `ideas_to_founder.md` § 7 with workaround (historical v_idx persistence + UNSAFE-owner-unknown REJECT).
+  - **NEW hot_battlegrounds signal**: node 9 with 2 kills, sample victim tamagotcho. tamagotcho is on the archetype owner list — predator activity targeting tamagotcho confirms the meta-shift hypothesis (other predators are also finding archetype targets fire-eligible somewhere). NO action — node 9 not on co-located striker map; no candidates to harvest from this signal directly. Worth noting for future cross-region migration analysis if pattern persists.
+**Acted**:
+  - Read `predator/world_targets.json` (free).
+  - Read `predator/parked_rates_state.json` (free).
+  - Edit `ideas_to_founder.md` (free, append § 7 watcher schema regression escalation).
+  - Cross-referenced fire ladder + Phase 1 + Phase 2 + node 62 + hot_battlegrounds + 4845/10288/1482 watch (free).
+**Result**: 0 tx. Streak s152–s182 = **31 consecutive 0-strike** (5 by-design / **26 attempt-eligible** / **20 deferred E009**). Phase 1 row 6/7 logged (counter advances to 6/7). Phase 2 row 6 deflation persistence logged (3 consecutive sessions of 0 world-wide non-archetype fire surface). Node 62 cluster expanded slightly (1→2) but remains all-phantom. v_idx=10288 confirmed phantom (watch closed). v_idx=4845 NEW co-located unsampled owner-unknown candidate (REJECT under doctrine, but pinned for s183).
+**Gas notes**: 0 gas burned this session.
+**Roster (unchanged from s175 last slim-verify; no signal to re-verify)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~25h+ extrapolated). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s182)**:
+- **Watcher schema regression DEEPENED**: by_idx in `parked_rates_state.json` now contains only 53 entries (killable_v3 superset + a couple node-62 parked_v2). The entire vuongdung1198 cluster on node 33 (10 v_idxs) is absent from by_idx. Both `owner_handle` AND `by_idx.v_acct` attribution chains are broken for that cluster. Workaround: historical v_idx persistence (s173→s182) confirms cluster identity. Doctrine: `owner_handle=None AND by_idx=None → UNSAFE-owner-unknown → REJECT`, which is fail-safe for fire decisions but degrades Phase 1 audit purity. Escalated to `ideas_to_founder.md § 7`.
+- **Phase 2 deflation persisting at 0 across 3 sessions**: s180 (0) → s181 (0) → s182 (0) over 50 minutes. Trend strongly reinforces meta-shift hypothesis — anti-predator parking is dominant strategy across multiple defensive clusters in our scan radius, not just at vuongdung1198. If s183 also reports 0 (4 consecutive), §PARTIAL adoption criterion is met and the doctrine response shifts away from counter-response 1. Will write up §PARTIAL trigger criteria explicitly in `predator/strategic-experiments.md` at s183 if the streak holds.
+- **Phase 1 cluster grew 9→10**: 10288 (was unsampled killable_v3 in s181 with margin=10 elapsed=4.64h) transitioned to parked_v2 sampled-True parked phantom with ram=-38. 10142 reappeared (historically vuongdung1198, killed by us in a prior session, revived). 1482 left parked_v2 and reappeared in killable_v3 unsampled (margin=15 elapsed=6.99h) — same v_idx that was the unsampled vuongdung1198 entry in s181. Net: cluster expanded by 1, attestation strengthens.
+- **node 62 expanded 1→2**: new buja723 (3297 archetype phantom ram=-48) and sa3woo (4770 phantom ram=-22) sampled-True entries. Both deeply phantom; cluster remains structurally all-phantom. Migration EV remains negative.
+- **NEW hot_battlegrounds signal — node 9 with 2 kills, sample victim tamagotcho**: another predator is finding fire-eligible targets at node 9. tamagotcho IS on our archetype owner list, so the kill itself doesn't violate our doctrine — but it suggests other predators may be ignoring our archetype-REJECT rule, OR have direct on-chain evidence we're missing. Worth oracle-drilling node 9 over a 6h window to see if there's a high-margin non-archetype population we're not surfacing. Pin for s183 oracle drill if the signal persists.
+- **node-33 v_idx=4845 (NEW)**: co-located, margin=10, elapsed=6.42h, unsampled, owner-unknown. No historical attribution. Doctrinally REJECTed under UNSAFE-owner-unknown but it's the FIRST genuinely fire-eligible-on-elapsed-and-margin candidate we've seen co-located in many sessions. If next watcher refresh restores owner attribution AND the owner is non-archetype AND rates_aware sample is True with ram≥+10, this is a D-pilot candidate. Pin for s183.
+- **Plan-182 vs reality**: aligned. Pure-defer expected; ladder produced 0 fire-eligible; Phase 2 deflation persisted; watcher regression confirmed (and worsened) as predicted; 10288 transitioned to parked_v2 phantom as one of two predicted outcomes.
+
+**Sub-issue queue update (post-s182)**:
+1. **E009 pilot DEFER #20** = primary for s183.
+2. **Amendment E Phase 1 row 6/7** = LOGGED. P1 HOLDS at 10 consecutive watcher-sessions. Formal counter 6/7. **1 more passive session (s183) crosses the 7-session threshold.**
+3. **Amendment E Phase 2 row 6** = LOGGED. World-wide deflation persisting at 0 (3 consecutive sessions). §PARTIAL adoption criterion at threshold-1; s183 confirmation triggers explicit §PARTIAL write-up.
+4. **Amendment E Phase 3** (s178) — Counter-response 1 remains economically refuted.
+5. **WATCHER SCHEMA REGRESSION** — confirmed across 2 sessions, worsened in s182 (by_idx loss). Escalated to `ideas_to_founder.md § 7`. Workaround in use. Continue defer-mode.
+6. **node 62 cluster watch** — expanded 1→2, both phantoms. Continue passive.
+7. **node-33 v_idx=4845 (NEW s182)** — co-located unsampled, margin=10, elapsed=6.42h, owner-unknown. First genuinely on-the-fence co-located candidate in many sessions. Watch s183: if owner attribution restored AND non-archetype AND sampled with ram≥+10, this is the FIRST fire-eligible D-pilot in this window. If still owner-unknown, REJECT continues.
+8. **node-33 v_idx=10288** — WATCH CLOSED. Confirmed parked_v2 phantom (ram=-38).
+9. **node-33 v_idx=1482** — re-appeared in killable_v3 unsampled, margin=15, elapsed=6.99h. Historical archetype → continued REJECT.
+10. **NEW: node 9 hot_battlegrounds signal** — 2 competitor kills, sample victim tamagotcho (archetype). Pin for s183: if signal persists, oracle-drill node 9 for non-archetype population we may be missing.
+11. **11224 Lethality allocation** — BLOCKED.
+12. **Branch 2 persistence** — 0/3.
+13. **Migration HOLD (Branch 1)** — 10 consecutive sessions.
+14. **Amendment D** — UNFIRED.
+15. **Oracle staleness doctrine** (s175) — apply as needed.
+16. **stop_harvest_batch ~17% revert** — defer.
+17. **v_HP staleness** — defer.
+18. **STRIKERS const stale** — defer.
+19. **SIUUUU node-65 cluster watch** — no signal.
+20. **Long-term**: roster leveling wave.
+
+**Next session (183)** — Re-wake **+25 min** (~12:00 UTC May 5, ts ≈ 1777982400). Pinned to:
+- (a) **world_targets.json refresh** — 5 watcher cron ticks; **Phase 1 row 7/7 = formal threshold crossing if P1 holds**.
+- (b) **Phase 2 deflation persistence** — 4th consecutive 0-non-archetype-fire-surface session triggers explicit §PARTIAL write-up in `predator/strategic-experiments.md`.
+- (c) **node-33 v_idx=4845 watch** — does owner attribution restore? Does it get sampled? If both yes + non-archetype + ram≥+10, this is the first fire-eligible D-pilot in 31+ sessions.
+- (d) **node 9 hot_battlegrounds drill** — if signal persists, oracle SQL query on node 9 victims/attackers in last 6h to see what non-archetype population is harvestable there.
+- (e) **owner_handle regression** — checked; escalated. Continue monitoring; if attribution restored next session, the regression was transient and § 7 entry can be marked resolved.
+- (f) Cache miss accepted (no near-term <300s event).
+
+**Bias for s183**: FIRE if rates-aware fire-eligible + co-located striker emerges (low probability but **4845 is the first genuine wedge in 31 sessions** — non-zero chance s183 watcher resolves it). ELSE log Phase 1 row 7/7 + Phase 2 row 7 + write up §PARTIAL trigger criteria + defer #21.
