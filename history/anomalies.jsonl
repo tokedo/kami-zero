@@ -1,1 +1,2 @@
 {"ts": 1777995200, "kind": "consolidation_scatter", "detail": "all 7 strikers found HARVESTING on tick start; nodes_visited: none (defer tick, no hunt initiated); node_60: [12649, 10705, 11224], node_33: [6058, 12225, 15540, 6245]"}
+{"ts": 1777995960, "kind": "consolidation_scatter", "detail": "6/7 strikers HARVESTING on defer tick; RESTING: [10705] at node 60; HARVESTING: [12649, 6058, 12225, 15540, 11224, 6245]; nodes unknown (no slim calls on defer path)"}

@@ -9,7 +9,7 @@ invoked you (see `executor-prompt.md` or `optimizer-prompt.md`).
 A fully autonomous Kamigotchi predator agent on the bpeon account
 (YomiNet). Two roles, both LLM-driven, separated by cron:
 
-- **Executor** — Sonnet 4.6, every 5 min, ≤15 turns. Plays one tick of
+- **Executor** — Sonnet 4.6, every 5 min, ≤25 turns. Plays one tick of
   the game by following `executor-prompt.md`. No prose. No strategy.
   Logs structured outcomes to `history/runs.jsonl`.
 
