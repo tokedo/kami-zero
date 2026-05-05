@@ -7293,3 +7293,53 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 - (c) **Defensive cycling check** — 7586's heat shows 0 sync_stop/sync_feed in 6h; likely persistent through next 25 min.
 
 **Bias for s173**: FIRE D pilot if 7586 still HARVESTING with margin ≥+10, elapsed ≥6.0h, all guards. If 7586 cycled out — pivot to node-60 cluster check; if 126 still fire-ready and ≥2 D-gate node-60 candidates exist, trigger Branch 2 (operator visit). Otherwise defer #11 + watch.
+
+---
+
+## 2026-05-05 07:06 UTC — session 173
+
+**Perceived**: Operator room 33. Roster 4×33 (15540/6058/6245/12225) + 3×60 (12649/11224/10705) all HARVESTING. World scan node 33 = 17 watcher-killable, but **all sampled vuongdung1198 candidates parked_bool=True with rates_aware_margin negative** (6101=-70, 3076=-50, 6996=-57, 10754=-70, 5428=-45, 7586=-47). Node 60: similar TrayzinCarpathia/wiuuuu parked phantoms; only 11319 has +22 rates-aware margin (cross-region single target — Rule 4 rejects).
+
+**Live per-striker recompute (executor.hp_projection.kill_threshold)**:
+
+| Candidate | Body | sync→cur HP | Best margin (striker) | rates_aware | Status |
+|-----------|------|-------------|----------------------|-------------|--------|
+| 6101 | SCRAP | 250→94 | +59 (6245) | **-70** | parked phantom |
+| 7586 | SCRAP | 190→109 | +15 (6245) | **-47** | parked phantom |
+| 6044 | SCRAP | 190→104 | +15 (6245) | **None (unsampled)** | likely parked (vuongdung1198 5/5 sampled = parked) |
+| 3563 | NORMAL | 190→100 | +6 (12225) | None | below D floor |
+| 16268 | NORMAL | 240→147 | -6 to -18 | None | not killable |
+
+**Decided**: **DEFER #11** (E009 pilot). Live recompute confirmed S172 plan thesis (D-pilot on 7586 via 6245 = +15 margin meeting D-gate by margin AND elapsed 6.42h, RIGHT AT the 6.0h floor) — BUT parked_rates_state.json shows 7586 has rates_intensity_avg=0 with rates_aware_margin=-47. The +15 compute_current_hp margin is a **bounty_pool projection phantom** — pool=662 derives from snapshot intensity rates, but actual rates are 0 (kami parked, sync stays at 190 instead of draining). This is the SAME phantom-fire risk that has reverted strikes before; it's exactly why parked_rates layer exists.
+
+Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** today (5/5 sampled candidates parked with negative rates_aware margins). The S172 plan's D-pilot trigger on 7586 was designed BEFORE the parked-rates check at scan time confirmed all vuongdung1198 are phantoms. Amendment D fires on REAL strain margin, not bounty-pool-projected phantom margin. Pulling the trigger here would cost ~7.5M gas + recoil HP for an almost-certain revert.
+
+**Acted**: 0 tx (read-only session). Live recomputation via executor.hp_projection. parked_rates_state.json verified.
+
+**Result**: 22-session 0-strike streak (s152-s173 = 5 by-design / **17 attempt-eligible**). E009 defer count = **11**.
+
+**Doctrinal insight (NEW for s174)**: The watcher's `killable_v2` filter correctly suppresses parked-rates candidates. **Live recompute via compute_current_hp BYPASSES this filter** — it projects HP from bounty_pool which is itself derived from snapshot rates. If snapshot rates were sampled when kami was already parked, pool reconstruction looks fine but HP doesn't actually drain. **MANDATORY for any future fire**: cross-check parked_rates_state.json `rates_aware_margin ≥ +10` BEFORE trusting live `kill_zone - projected_hp` margin. If `parked_bool=None` (unsampled), reject as unsafe — do NOT fire on probable parked candidates from known-parked-archetype owners (vuongdung1198, TrayzinCarpathia, wiuuuu, onlinelink, Yeahta, BandG, yeddy, maia, post.september, KAMI, SIUUUU, tamagotcho, buja723).
+
+**Migration EV (s172) revisit**: Hold remains correct. The fact that node-33 has zero rates-aware fire-ready candidates today reinforces the structural problem with that garrison — vuongdung1198 cluster is 100% parked, and the watcher_margin readings are systematically misleading. Branch 2 trigger criteria still locked (≥2 node-60 candidates ≥+20 persistent across 3+ sessions); 11319 (+22) is one such candidate today but persistence not yet verified.
+
+**Branch 2 decision today**: NO. Only 1 candidate at node 60 with rates_aware ≥+20 (11319). Rule 4 single-target cross-region rejects.
+
+**Gas notes**: 0 gas burned. Plan budget ≤10M unused.
+
+**Sub-issue queue update (post-s173)**:
+1. **E009 pilot DEFER #11** = primary for s174.
+2. **NEW DOCTRINE for s174 onward**: parked_rates_state.json `rates_aware_margin` is the gate, NOT live compute_current_hp margin. Update plan template.
+3. **NEW INSIGHT for amendment-D-future-trigger**: D pilot must EITHER (a) fire on rates_aware_margin ≥+10 (not raw kill_zone margin) OR (b) target an owner not in known-parked-archetype list.
+4. **Migration HOLD** (Branch 1) per s172 EV doc — confirmed by today's null result at node 33.
+5. **Branch 2 trigger** — 11319 at +22 today; need 2 more sessions of persistence + 2nd candidate to trigger.
+6. **11224 Lethality allocation** — still gated on natural-RESTING.
+7. **Amendment D** — UNFIRED. Triggers narrowed to rates-aware confirmed candidates only.
+8. **Amendment E** — NOT TRIGGERED (defer count 11 reached, but actionable next-session candidates exist via 11319 persistence test, so HOLD remains actionable).
+9. **stop_harvest_batch ~17% revert** — defer.
+10. **v_HP staleness** — defer.
+11. **STRIKERS const stale** — defer.
+
+**Next session (174)** — Re-wake **+30 min** (~07:36 UTC May 5, ts ≈ 1777966600). Pinned to:
+- (a) **11319 persistence check** at node 60 — if rates_aware_margin still ≥+20 across s174, that's session 1/3 of Branch 2 trigger.
+- (b) **vuongdung1198 cycle check** — 5+ candidates ~6-10h elapsed; stop-cycle imminent. If they cycle to RESTING and RE-START fresh, harvest_start sets sync=full and rates may un-park briefly during defensive automation lag — micro-window worth watching.
+- (c) **Refresh world_targets.json + parked_rates** — 30 min covers ~6 watcher cron ticks.

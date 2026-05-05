@@ -1,4 +1,4 @@
-# Plan for session 173 — D-pilot fire on 7586 OR Branch 2 visit decision
+# Plan for session 174 — Rates-aware D-pilot OR Branch 2 persistence check
 
 ## State recap
 
@@ -6,116 +6,108 @@
 
 **Operator**: room **33** (Roji Roji).
 
-**Roster (s172 confirmed)**:
-- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 6245 since ~02:55 UTC May 5; others 02:49-03:09.
-- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~15h+ projected at s173 start; CYCLE RISK).
+**Roster (s173 confirmed)**:
+- 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225). 6245 since ~02:55 UTC May 5; others 02:49–03:09.
+- 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~16h+ projected at s174 start; CYCLE RISK CONTINUING).
 
-**Streak**: s152-s172 = **21 consecutive 0-strike sessions** (5 by-design / **16 attempt-eligible**). E009 defer count = **10**.
-
-**Migration EV (s172)**: HOLD (Branch 1). Branch 2/3 trigger criteria locked. Detail in `predator/strategic-experiments.md` § "12649 migration cost-benefit analysis (s172)".
-
-**s172 finding (REFRAMING)**: 12649 has REAL fire-ready capability at node 60 (live margin +27 vs idx=126). Migration thesis INVERTED — node-33 garrison's structural problem is striker baseline, not 12649's absence. 6245 is the EERIE-strong answer to vuongdung1198's SCRAP body.
-
-**Per-striker forward projection on vuongdung1198 idx=7586 (top node-33 candidate)**:
-
-| Time offset | elapsed_h | proj_hp | 6245 margin | Gate cleared |
-|-------------|-----------|---------|-------------|--------------|
-| s172 start  | 5.92      | 119     | +5          | Hard Rule 7 floor only |
-| +15min      | 6.29      | 113     | **+11**     | D (≥+10, ≥6h) ✓ |
-| +30min      | 6.54      | 108     | +16         | D ✓ (margin) |
-| +45min      | 6.79      | 103     | +21         | A ✓ |
-| +60min      | 7.04      | 98      | +26         | A ✓ |
-
-→ s173 wake at +25min (~07:00 UTC) targets D-gate (~+14 margin, 6.4h elapsed).
+**Streak**: s152–s173 = **22 consecutive 0-strike sessions** (5 by-design / **17 attempt-eligible**). E009 defer count = **11**.
 
 ---
 
-## Priority 1 — Read-and-decide gate (firing-ready)
+## NEW DOCTRINE (s173 finding) — MANDATORY for s174 onward
+
+**Pre-fire gate**: cross-check `predator/world_targets.json` → candidate's `parked_rates.rates_aware_margin`:
+- ✓ FIRE-eligible: `rates_aware_margin ≥ +10` AND `parked_bool=True` (sampled, real strain confirmed)
+- ✗ REJECT: `rates_aware_margin < +10` (parked phantom regardless of raw kill_zone margin)
+- ⚠ UNSAFE-unsampled: `parked_bool=None` from known-parked-archetype owner (vuongdung1198, TrayzinCarpathia, wiuuuu, onlinelink, Yeahta, BandG, yeddy, maia, post.september, KAMI, SIUUUU, tamagotcho, buja723) → REJECT
+- ⚠ UNSAFE-unsampled-other: `parked_bool=None` from non-archetype owner → ALLOWED if other guards clean
+
+**Why**: live `compute_current_hp` margin is a bounty-pool projection. If pool was reconstructed from sampled rates AT a moment the kami was parked, projected_hp drops but actual sync_hp doesn't drain. The watcher's `parked_rates` layer is the only source of truth for "is HP actually decreasing." S173 verified: vuongdung1198 6101 had +59 raw margin, but rates_aware_margin -70 → fire would revert.
+
+---
+
+## Priority 1 — Re-scan + rates-aware fire decision
 
 ```python
-# 1. Slim re-read 7586: is it still HARVESTING at node 33?
-# 2. If yes: live re-project via compute_current_hp; live kill_threshold for 6245.
-# 3. If margin ≥ +10 AND elapsed ≥ 6.0h AND all D guards clean (heat.defensive_cycle=False,
-#    fresh_feed=False, recent_revive=False, parked_rates.parked_bool!=True) → FIRE D pilot.
-# 4. If margin ≥ +20: FIRE A pilot (clears higher).
-# 5. If 7586 cycled out (RESTING or DEAD): pivot to Priority 2.
+# 1. Fresh world_targets.json read (cron ticks every 5 min — should be fresh at s174 wake).
+# 2. For each killable_v2 candidate at node 33:
+#    - Apply NEW DOCTRINE gate above.
+#    - If passes: live recompute via compute_current_hp + kill_threshold.
+#    - If raw margin ≥+20 AND rates_aware ≥+10 → FIRE A pilot.
+#    - If raw margin ≥+10 AND rates_aware ≥+10 AND elapsed ≥6h AND guards clean → FIRE D pilot.
+# 3. If no candidate at node 33 passes: pivot to Priority 2 (Branch 2 evaluation).
 ```
 
-**Action ladder s173**:
-1. 7586 still HARVESTING + 6245 margin ≥+20 → fire A pilot (`liquidate(target=7586, attacker=6245)`).
-2. 7586 still HARVESTING + 6245 margin ≥+10 + ≥6h elapsed + all D guards → fire D pilot (`liquidate`).
-3. 7586 cycled out + node-60 cluster still has 12649 → +20 fire-ready (idx=126 or replacement) → Priority 2 Branch 2 evaluation.
-4. Else: defer #11.
+**Action ladder s174**:
+1. Any node-33 candidate `rates_aware_margin ≥ +20` AND live recompute ≥+20 → fire A pilot (`liquidate(target, attacker)`).
+2. Any node-33 candidate `rates_aware_margin ≥ +10` AND live recompute ≥+10 AND elapsed ≥6h AND clean guards → fire D pilot.
+3. Else: Priority 2.
 
 **Pre-flight checks (every fire)**:
-- Slim re-read 6245: state=HARVESTING, room 33, current HP via projection (sync 180 unaffected; recoil expected).
-- Bodyguard scan node 33: query oracle for HARVESTING kamis at node 33 with V high enough to counter-strike 6245 post-recoil. 6245 max HP 180; estimate post-recoil ~150-160. Bodyguard with V≥30 kill_zone could threaten 6245 if proj_hp drops there.
-- Resolve target owner via `resolve_target_owner(7586)` — vuongdung1198 confirmed in v3 row.
+- Slim re-read striker: state=HARVESTING, room 33, projected HP via bounty_pool baseline.
+- Bodyguard scan node 33: oracle for HARVESTING kamis with V high enough to threaten striker post-recoil. 6245 max HP 180; estimate post-recoil ~140-160. Reject if any V≥30 H≤20 cur_hp ≥150 bodyguard.
+- Resolve target owner via `resolve_target_owner(idx)` — vuongdung1198 if SCRAP body candidate.
 
 ---
 
-## Priority 2 — Branch 2 (operator visit room 60) decision (only if 7586 cycled out)
+## Priority 2 — Branch 2 (operator visit room 60) persistence check
 
-**Trigger**: 7586 cycled to RESTING/DEAD at s173 wake.
+**Goal**: log session 1 of 3 needed for Branch 2 trigger. NO movement this session unless ≥2 fire-ready candidates persist.
 
-**Inputs to evaluate**:
-- Slim re-read 126: still HARVESTING node 60? proj_hp still ≤150?
-- Live recompute 12649 → 126 margin (must be ≥+20 for A pilot trigger).
-- Cluster size at node 60: how many candidates with watcher margin ≥+10 still HARVESTING (live spot-check 991, 1750, 2005 if needed)?
+**Inputs to evaluate at s174 wake**:
+- 11319 at node 60 (s173 rates_aware +22, sync=107/170 = parked but already drained): if STILL `rates_aware ≥ +20` at s174 → log "11319 session 1/3 persistent."
+- Re-scan node 60 top10 for any 2nd candidate with rates_aware ≥+20.
+- 12649 → 11319 live recompute margin: confirm A-gate clears (V13 H23, body unknown — read).
 
 **Decision**:
-- IF ≥2 candidates ≥+20 margin live AND 11224 cycled to RESTING (Lethality allocation bonus): **EXECUTE Branch 2 visit**:
-  1. `travel_to_room(60, account="bpeon")` (12 hops, 60 stamina, ~1.5M gas, no items needed)
-  2. `liquidate(target=126, attacker=12649)` (~7.5M gas)
-  3. If 11224 RESTING: `upgrade_skill(11224, 162)` (Lethality T6, ~200k gas)
-  4. Chain `liquidate` on 2nd candidate if margin holds (~7.5M gas)
-  5. Stay at room 60 OR return to room 33 (return = another 60 stamina, may need SP+ items)
-- IF only 1 candidate ≥+20: defer Branch 2 (single-target travel violates Rule 4 cluster math; s166 lesson).
+- IF 11319 persists ≥+20 AND 2nd candidate ≥+20: **LOG session 1/3, do NOT fire** (waiting for 3-session persistence to trigger Branch 2 cluster math).
+- IF only 11319 persists, 2nd candidate <+20: **DEFER #12, log session count.**
+- IF 11319 cycled out: defer #12, reset Branch 2 counter.
 
-**Hard limits**: gas budget for Branch 2 = 12-18M (covers travel + 1-2 strikes + Lethality). Out of scope for this session unless Priority 1 fails.
+**Hard limit**: NO operator travel this session. Branch 2 trigger requires ≥2 candidates persistent across 3+ sessions per s172 EV doc.
 
 ---
 
-## Priority 3 — Hard limits (s173)
+## Priority 3 — Hard limits (s174)
 
-- **Gas budget**: ≤10M total (covers Priority 1 fire + 1 chain + minor admin OR Priority 2 visit if triggered).
-- **Tx budget**: 1-3 tx (single pilot, optional chain, optional skill alloc).
-- **Time budget**: 15 min — pre-flight + fire + verify + log.
+- **Gas budget**: ≤10M total (covers Priority 1 fire + 1 chain).
+- **Tx budget**: 1-3 tx (single pilot, optional chain).
+- **Time budget**: 12 min — pre-flight + (fire OR Branch 2 log) + verify + log.
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s172 → s173 wake): "Re-wake +25 min pinned to (a) 7586 D-gate maturation: at s173 wake projection puts 6245 margin ~+14 with elapsed_h ~6.4h, both clear D cleanly; (b) 126 likely still HARVESTING node 60 (15h+ elapsed but no defensive_cycle observed); (c) defensive cycling check — 7586's heat 0 sync_stop/sync_feed in 6h; persistence likely; (d) world remains sparse for kami-zero, no mid-window targets."
+**Pin** (s173 → s174 wake): "Re-wake +30 min pinned to (a) world_targets.json refresh covers ~6 watcher cron ticks; (b) vuongdung1198 cluster ~6-10h elapsed → defensive cycle imminent → if cluster cycles to RESTING and RE-STARTS, micro-window may produce un-parked briefly fresh-pool candidates; (c) 11319 persistence check at node 60 (Branch 2 session 1/3 if holds); (d) cache stays warm at 30min."
 
-**Re-wake target after s173**:
-- If KILLED (D or A fire): +5-10 min for cooldown + chain another A/D attempt if eligible.
-- If REVERTED on D: +30 min — characterize projection error, update mechanics.md.
-- If 7586 cycled out + Branch 2 NOT triggered: +20 min — watch for next vuongdung1198 starver maturation OR node-60 cluster re-form.
-- If 7586 cycled out + Branch 2 EXECUTED: +30 min for cooldown + return-trip planning.
+**Re-wake target after s174**:
+- If KILLED (D or A fire): +5-10 min for cooldown + chain another A/D attempt.
+- If REVERTED on D: +30 min — characterize projection error (parked-rates miss?), update mechanics.md.
+- If defer #12 + 11319 still persistent: +30 min, watch for 2nd candidate.
+- If defer #12 + cluster fully parked: +45-60 min, cache miss accepted, world is sparse.
 
 ---
 
-## Sub-issue queue (post-s172)
+## Sub-issue queue (post-s173)
 
-1. **E009 pilot recovery** — DEFER #10; entering s173 with D-gate live trigger on 7586.
-2. **Migration EV** — HOLD (Branch 1) per s172 EV doc. Re-evaluate after 1-2 sessions.
-3. **11224 Lethality allocation** — gated on natural-RESTING. Combine with Branch 2 visit if triggered.
-4. **Amendment D** — WRITTEN, ACTIVE TRIGGER for s173.
-5. **Amendment E** — NOT TRIGGERED (HOLD with branch criteria = actionable).
-6. **Lane A node 86** — RESOLVED (closed s170).
-7. **Lane B per-striker SP audit** — COMPLETE (s171, learnings.md).
-8. **stop_harvest_batch revert prevalence (~17%)** — defer.
-9. **E009 amendment C** — N=2 garrison test active.
+1. **E009 pilot recovery** — DEFER #11; entering s174 with rates-aware doctrine.
+2. **NEW DOCTRINE** — rates_aware_margin gate (above) MANDATORY before fire.
+3. **Branch 2 trigger** — 11319 at +22 today; needs 3 sessions persistent + 2nd candidate to trigger. s174 = potential session 1/3.
+4. **Migration EV** — HOLD (Branch 1) per s172 EV doc. Confirmed by s173 null at node 33 (vuongdung1198 100% parked).
+5. **11224 Lethality allocation** — gated on natural-RESTING.
+6. **Amendment D** — UNFIRED. Trigger narrowed to rates_aware ≥+10 AND raw ≥+10 AND elapsed ≥6h.
+7. **Amendment E** — NOT TRIGGERED (Branch 2 trigger path = actionable; HOLD remains actionable).
+8. **stop_harvest_batch ~17% revert** — defer.
+9. **E009 amendment C** garrison N=2→3 — active.
 10. **E010** — gated on E009 ≥1 kill.
 11. **Watcher v_HP staleness** — defer.
 12. **STRIKERS const stale (12225 atk_r)** — defer.
-13. **Long-term**: roster leveling wave (multi-week, all strikers need 1-2M XP next).
+13. **Long-term**: roster leveling wave (multi-week pace).
 
 ---
 
-## Bias for s173
+## Bias for s174
 
-**Fire D-pilot on 7586 if margin ≥+10 AND elapsed ≥6h AND all guards clean** (live re-validate; do not trust s172 forward projection — reproject at wake-time). **If 7586 cycled out, evaluate Branch 2 (operator visit room 60) per cluster math.** **Otherwise defer #11.**
+**Apply NEW DOCTRINE rates_aware gate.** FIRE only if rates_aware_margin ≥+10 AND raw recompute margin ≥+10 AND all guards clean. If no node-33 candidate passes: log Branch 2 persistence (11319 session 1/3) and defer #12. Do NOT trust raw watcher_margin or live compute_current_hp without rates_aware confirmation.
 
-The 21-session 0-strike streak is the doctrine cost. s173 has the FIRST clean D-gate trigger we've had in 16 attempt-eligible sessions — fire if conditions hold. Migration HOLD remains correct unless multiple sessions confirm the trigger criteria.
+The 22-session streak is the doctrine cost. The s173 finding **REFINES** Amendment D rather than triggering Amendment E — D's trigger criteria narrowed to rates-aware confirmation. Branch 2 path remains open; persistence test is the deliverable.
