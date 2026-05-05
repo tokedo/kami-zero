@@ -7564,3 +7564,50 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (d) Cache miss accepted (no near-term <300s event).
 
 **Bias for s179**: FIRE if rates-aware fire-eligible + co-located striker emerges. ELSE log Phase 1 row 3/7 + node-62 cluster status + defer #17. If node 62 cluster offers ≥3 sampled-True candidates with margins ≥+10, run a migration cost-benefit (gas vs expected obol-yield) WITHOUT executing — write to `decisions.md` and re-evaluate next cycle.
+
+## 2026-05-05 10:20 UTC — session 179
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json + parked_rates_state.json refresh @ 10:20 UTC (fresh, 0s lag). Node 33: 11/11 vuongdung1198 in parked_v2, ALL `parked_bool=True`, `rates_aware_margin` distribution [-56, -56, -53, -53, -52, -50, -49, -47, -43, -29, -27] (min=-56, median=-50, max=-27). Plus killable_v3 v_idx=8224 vuongdung1198 elapsed 6.12h margin +5 (sub-D, archetype-REJECT). killable_v3 (n=5 world-wide): {3932 BandG node 12 +12 7.43h, 1881 yeddy node 53 +11 3.06h, 5844 sa3woo node 62 +10 1.49h, 2712 sa3woo node 62 +7 1.08h, 8224 vuongdung1198 node 33 +5 6.12h}, all `parked_bool=None` unsampled. node 62 sampling caught up partially: 1785 buja723 ram=-24 sampled-True (archetype phantom, REJECT), 5465 sa3woo ram=-17 sampled-True (non-archetype phantom, sub-D rates_aware). Two sa3woo killable_v3 at node 62 still unsampled with elapsed <2h (fails D-pilot 6h gate). World-wide non-archetype margin≥+10 + elapsed≥6h scan: 7 hits — 6 × 4444444444444444 cluster at node 77 (margins 41-63, all sampled-True ram -58 to -85 = phantoms) + 1 × IBCKING node 10 (+22, 7.2h elapsed, sampled-True ram=-54 = phantom). **Zero fire-eligible candidates anywhere.**
+**Decided**: E009 PILOT-DEFER #17 (read-only). Per plan-179 Priority 1 ladder:
+  - (1) ≥+20 rates_aware → 0 hits. (2) ≥+10 rates_aware + elapsed ≥6h → 0 hits. (3) Co-located ≥+10 rates_aware + parked_bool=True → 0 hits. (4) → Priority 2.
+  - **node 62 cluster watch** (Priority 2 from plan-179): sampling DID catch up partially. Result: 1 archetype phantom + 1 non-archetype phantom (sa3woo 5465 ram=-17). The 2 unsampled sa3woo (5844, 2712) at margin +10/+7 fail D-pilot elapsed gate (1.49h, 1.08h vs ≥6h). Migration cost-benefit NOT triggered — no candidate has both `rates_aware_margin ≥+10` AND `parked_bool=True`. node 62 cluster watch CONTINUES (next checkpoint: do unsampled sa3woo land sampled-True at any non-phantom margin as elapsed grows past 4-5h).
+  - **Phase 1 row 3/7 LOGGED** — vuongdung1198 100%-parked-True with deeply negative rates_aware = 7 consecutive watcher-sessions (s173-s179). Per Amendment E formal counter (Phase 1 begins s177): 3/7 of 7-session threshold complete. P1 HOLDS. P1 falsification window: s180/s181/s182/s183.
+  - **Phase 2 row 3 status**: world-wide non-archetype fire surface remains empty across margin/elapsed gates. 4444444444444444 node 77 cluster + IBCKING node 10 are ALL sampled-True parked-phantoms — confirms Phase 2 hypothesis that deflation is regional/global, not just a vuongdung1198 phenomenon. Counter-response 1 (forced migration to a different cluster) remains EV-negative.
+**Acted**:
+  - Read `predator/world_targets.json` (free).
+  - Read `predator/parked_rates_state.json` (free).
+  - Cross-referenced fire-eligibility ladder + Phase 1 + Phase 2 + node 62 watch (free).
+**Result**: 0 tx. Streak s152–s179 = **28 consecutive 0-strike** (5 by-design / 23 attempt-eligible / 17 deferred E009). Phase 1 row 3/7 logged. Node 62 sampling catch-up did not produce a fire-eligible candidate (2 sampled phantoms + 2 unsampled-elapsed-too-short).
+**Gas notes**: 0 gas burned this session.
+**Roster (unchanged from s175)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~22h+ elapsed). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s179)**:
+- **node 62 sampling catch-up tested negative**: as predicted in plan-179 Priority 2, sampling caught up but found phantoms, not real-strain. The competitor predator's 1 kill on sa3woo node 62 in last 3h (still in hot_battlegrounds) implies SOME real-strain windows exist there at sub-watcher-sample-frequency, but our scan didn't catch one. Two possibilities: (a) real-strain windows are narrow (<10 min) and watcher cron (5-min cadence) misses them; (b) competitor caught a stale sa3woo at margin/HP we didn't see because their kami was already there. Either way, a single competitor kill in 3h is not yet a cluster-strength signal — pre-migration confidence needs 2+ kills in 3h or sustained sampled-True with ram ≥+10 across 2 consecutive scans.
+- **Phase 2 row 3 strengthens P1**: every margin-≥+10 + elapsed-≥6h non-archetype candidate world-wide is currently a sampled-True phantom. This is striking — the rates-aware doctrine effectively converts "watcher-margin fire surface" to "actual fire surface" with a near-zero true-positive rate today. Interpretation: bounty pool zeroing (P3 mechanism) is in effect across multiple defensive clusters (vuongdung1198 + 4444444444444444 + IBCKING + buja723), suggesting the meta has shifted to anti-predator parking as a dominant strategy in our scan radius. This is a meta-shift worth flagging — if P1 confirms at s183 with these conditions persisting, the doctrine response may need to be wider than counter-response 1 (Amendment E §"PARTIAL" decision criterion: "world-wide parked-rates phenomenon is a meta shift, not a vuongdung1198-specific issue").
+- **Plan-179 vs reality**: aligned. Pure-defer expected; ladder produced 0 hits as predicted.
+
+**Sub-issue queue update (post-s179)**:
+1. **E009 pilot DEFER #17** = primary for s180.
+2. **Amendment E Phase 1 row 3/7** = LOGGED. P1 HOLDS at 7 consecutive watcher-sessions. 4 more passive sessions (s180–s183) to cross formal 7-session counter (Phase 1 begins s177).
+3. **Amendment E Phase 2 row 3** = LOGGED. World-wide deflation strengthens. PARTIAL adoption criterion (meta-shift) may apply over §ADOPT (vuongdung1198-specific) if pattern persists.
+4. **Amendment E Phase 3** (s178 finding) — vuongdung1198 zero-collect cluster confirmed at oracle level. Counter-response 1 economically refuted for this cluster.
+5. **node 62 cluster watch** — sampling catch-up tested NEGATIVE today (phantoms). Continue passive observation; needs 2+ competitor kills in 3h OR sampled-True ram ≥+10 to escalate.
+6. **11224 Lethality allocation** — BLOCKED. Counter-response 1 economically refuted.
+7. **Branch 2 persistence** — 0/3.
+8. **Migration HOLD (Branch 1)** — 7 consecutive sessions.
+9. **Amendment D** — UNFIRED.
+10. **Oracle staleness doctrine** (s175) — apply as needed.
+11. **stop_harvest_batch ~17% revert** — defer.
+12. **v_HP staleness** — defer.
+13. **STRIKERS const stale** — defer.
+14. **SIUUUU node-65 cluster watch** — no relevant signal in s179 scan.
+15. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (180)** — Re-wake **+25 min** (~10:45 UTC May 5, ts ≈ 1777977900). Pinned to:
+- (a) **world_targets.json refresh** — 5 watcher cron ticks; Phase 1 row 4/7 logging.
+- (b) **node 62 sa3woo sampling** — 5844 (1.49h) + 2712 (1.08h) elapsed grows by ~25 min; one may shift to sampled-True with rates_aware ≥+10 if real strain present (low-probability per s179 result).
+- (c) **Phase 2 re-survey opportunity** — if any non-archetype fire surface emerges, re-evaluate counter-response options.
+- (d) Cache miss accepted (no near-term <300s event).
+
+**Bias for s180**: FIRE if rates-aware fire-eligible + co-located striker emerges (low probability per s179 evidence). ELSE log Phase 1 row 4/7 + node-62 cluster status + defer #18. P1 falsification window remains open (s180/s181/s182/s183). If P1 holds through s183 AND Phase 2 continues to show world-wide deflation, Amendment E §PARTIAL adoption criterion (meta-shift, NOT counter-response 1) becomes the response.
