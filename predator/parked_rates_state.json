@@ -1,102 +1,11 @@
 {
-  "generated_at": "2026-05-05T17:40:15Z",
-  "scan_duration_sec": 14.5,
-  "candidates_scanned": 58,
+  "generated_at": "2026-05-05T18:00:14Z",
+  "scan_duration_sec": 13.48,
+  "candidates_scanned": 51,
   "candidates_skipped_resting": 2,
   "candidates_failed": 0,
   "schema_version": 1,
   "by_idx": {
-    "8495": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 260,
-      "total": 260,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002801,
-      "v_acct": "KAMI",
-      "node_id": 10
-    },
-    "8992": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 200,
-      "total": 200,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002802,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
-    },
-    "17182": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 130,
-      "total": 130,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002802,
-      "v_acct": "machinemiller",
-      "node_id": 12
-    },
-    "3667": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 190,
-      "total": 190,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002802,
-      "v_acct": "maia",
-      "node_id": 80
-    },
-    "1817": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002802,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
-    },
-    "7013": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 150,
-      "total": 150,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002803,
-      "v_acct": "buja723",
-      "node_id": 62
-    },
-    "11230": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 170,
-      "total": 170,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002803,
-      "v_acct": "IBCKING",
-      "node_id": 10
-    },
     "7078": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
@@ -106,35 +15,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002803,
+      "last_checked_ts": 1778004001,
       "v_acct": "kaviar",
       "node_id": 16
-    },
-    "9901": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 130,
-      "total": 130,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002803,
-      "v_acct": "kingisonchain",
-      "node_id": 30
-    },
-    "1451": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002803,
-      "v_acct": "wiuuuu",
-      "node_id": 60
     },
     "1671": {
       "rates_intensity_avg": 0,
@@ -145,22 +28,35 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002804,
+      "last_checked_ts": 1778004001,
       "v_acct": "buja723",
       "node_id": 62
     },
-    "3563": {
+    "1451": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
       "balance": 0,
-      "sync": 190,
-      "total": 190,
+      "sync": 180,
+      "total": 180,
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002804,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
+      "last_checked_ts": 1778004002,
+      "v_acct": "wiuuuu",
+      "node_id": 60
+    },
+    "9901": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 130,
+      "total": 130,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004002,
+      "v_acct": "kingisonchain",
+      "node_id": 30
     },
     "11182": {
       "rates_intensity_avg": 0,
@@ -171,9 +67,61 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002804,
+      "last_checked_ts": 1778004002,
       "v_acct": "PuppyPriestess",
       "node_id": 70
+    },
+    "4970": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 140,
+      "total": 140,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004002,
+      "v_acct": "sa3woo",
+      "node_id": 62
+    },
+    "16537": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 230,
+      "total": 230,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004003,
+      "v_acct": "3333333333333333",
+      "node_id": 82
+    },
+    "3243": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 180,
+      "total": 180,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004003,
+      "v_acct": "wiuuuu",
+      "node_id": 60
+    },
+    "3585": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 190,
+      "total": 190,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004003,
+      "v_acct": "BandG",
+      "node_id": 12
     },
     "2648": {
       "rates_intensity_avg": 0,
@@ -184,22 +132,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002804,
+      "last_checked_ts": 1778004004,
       "v_acct": "post.september",
       "node_id": 26
-    },
-    "4931": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002805,
-      "v_acct": "yeddy",
-      "node_id": 53
     },
     "3117": {
       "rates_intensity_avg": 0,
@@ -210,22 +145,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002805,
+      "last_checked_ts": 1778004004,
       "v_acct": "maia",
       "node_id": 80
-    },
-    "8422": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 140,
-      "total": 140,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002805,
-      "v_acct": "acheron",
-      "node_id": 19
     },
     "9116": {
       "rates_intensity_avg": 0,
@@ -236,22 +158,22 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002805,
+      "last_checked_ts": 1778004004,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
-    "8038": {
+    "8422": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
       "balance": 0,
-      "sync": 51,
-      "total": 210,
+      "sync": 140,
+      "total": 140,
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002806,
-      "v_acct": "yeddy",
-      "node_id": 53
+      "last_checked_ts": 1778004005,
+      "v_acct": "acheron",
+      "node_id": 19
     },
     "8141": {
       "rates_intensity_avg": 0,
@@ -262,7 +184,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002806,
+      "last_checked_ts": 1778004005,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -275,20 +197,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002806,
-      "v_acct": "3333333333333333",
-      "node_id": 82
-    },
-    "8322": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 200,
-      "total": 200,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002806,
+      "last_checked_ts": 1778004005,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -301,7 +210,20 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002807,
+      "last_checked_ts": 1778004005,
+      "v_acct": "3333333333333333",
+      "node_id": 82
+    },
+    "8322": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 200,
+      "total": 200,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004006,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -314,7 +236,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002807,
+      "last_checked_ts": 1778004006,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -327,7 +249,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002807,
+      "last_checked_ts": 1778004006,
       "v_acct": "yeddy",
       "node_id": 53
     },
@@ -340,7 +262,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002807,
+      "last_checked_ts": 1778004006,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -353,7 +275,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002808,
+      "last_checked_ts": 1778004007,
       "v_acct": "Yeahta",
       "node_id": 73
     },
@@ -366,7 +288,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002808,
+      "last_checked_ts": 1778004007,
       "v_acct": "Yeahta",
       "node_id": 73
     },
@@ -379,7 +301,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002808,
+      "last_checked_ts": 1778004007,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -392,20 +314,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002808,
-      "v_acct": "popo",
-      "node_id": 65
-    },
-    "7780": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002809,
+      "last_checked_ts": 1778004007,
       "v_acct": "popo",
       "node_id": 65
     },
@@ -418,7 +327,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002809,
+      "last_checked_ts": 1778004008,
       "v_acct": "maia",
       "node_id": 80
     },
@@ -431,7 +340,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002809,
+      "last_checked_ts": 1778004008,
       "v_acct": "popo",
       "node_id": 65
     },
@@ -444,7 +353,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002809,
+      "last_checked_ts": 1778004008,
       "v_acct": "popo",
       "node_id": 65
     },
@@ -457,7 +366,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002810,
+      "last_checked_ts": 1778004008,
       "v_acct": "popo",
       "node_id": 65
     },
@@ -470,22 +379,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002810,
+      "last_checked_ts": 1778004009,
       "v_acct": "3333333333333333",
       "node_id": 82
-    },
-    "5428": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 210,
-      "total": 210,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002810,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
     },
     "2836": {
       "rates_intensity_avg": 0,
@@ -496,22 +392,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002810,
+      "last_checked_ts": 1778004009,
       "v_acct": "Yeahta",
       "node_id": 73
-    },
-    "14233": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002811,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
     },
     "7263": {
       "rates_intensity_avg": 0,
@@ -522,7 +405,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002811,
+      "last_checked_ts": 1778004009,
       "v_acct": "yeddy",
       "node_id": 53
     },
@@ -535,7 +418,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002811,
+      "last_checked_ts": 1778004009,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -548,22 +431,22 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002811,
+      "last_checked_ts": 1778004010,
       "v_acct": "machinemiller",
       "node_id": 12
     },
-    "3076": {
+    "8495": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
       "balance": 0,
-      "sync": 230,
-      "total": 230,
+      "sync": 260,
+      "total": 260,
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002812,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
+      "last_checked_ts": 1778004010,
+      "v_acct": "KAMI",
+      "node_id": 10
     },
     "16728": {
       "rates_intensity_avg": 0,
@@ -574,34 +457,8 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002812,
+      "last_checked_ts": 1778004010,
       "v_acct": "machinemiller",
-      "node_id": 12
-    },
-    "3906": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 180,
-      "total": 180,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002812,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
-    },
-    "7925": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 190,
-      "total": 190,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002812,
-      "v_acct": "BandG",
       "node_id": 12
     },
     "6104": {
@@ -613,7 +470,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002813,
+      "last_checked_ts": 1778004010,
       "v_acct": "Yeahta",
       "node_id": 73
     },
@@ -626,22 +483,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002813,
+      "last_checked_ts": 1778004011,
       "v_acct": "3333333333333333",
       "node_id": 82
-    },
-    "9380": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 200,
-      "total": 200,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002813,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
     },
     "3203": {
       "rates_intensity_avg": 0,
@@ -652,35 +496,22 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002813,
+      "last_checked_ts": 1778004011,
       "v_acct": "maia",
       "node_id": 80
     },
-    "11413": {
+    "8804": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
       "balance": 0,
-      "sync": 180,
-      "total": 180,
+      "sync": 210,
+      "total": 210,
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002814,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
-    },
-    "7969": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 200,
-      "total": 200,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002814,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
+      "last_checked_ts": 1778004011,
+      "v_acct": "yeddy",
+      "node_id": 53
     },
     "13258": {
       "rates_intensity_avg": 0,
@@ -691,7 +522,7 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002814,
+      "last_checked_ts": 1778004011,
       "v_acct": "3333333333333333",
       "node_id": 82
     },
@@ -704,35 +535,9 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002814,
+      "last_checked_ts": 1778004012,
       "v_acct": "3333333333333333",
       "node_id": 82
-    },
-    "8804": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 210,
-      "total": 210,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002815,
-      "v_acct": "yeddy",
-      "node_id": 53
-    },
-    "7626": {
-      "rates_intensity_avg": 0,
-      "rates_fertility": 0,
-      "balance": 0,
-      "sync": 200,
-      "total": 200,
-      "harvest_state": "ACTIVE",
-      "kami_state": "HARVESTING",
-      "parked_bool": true,
-      "last_checked_ts": 1778002815,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
     },
     "14081": {
       "rates_intensity_avg": 0,
@@ -743,11 +548,37 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002815,
+      "last_checked_ts": 1778004012,
       "v_acct": "Yeahta",
       "node_id": 73
     },
-    "7586": {
+    "3266": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 220,
+      "total": 220,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004012,
+      "v_acct": "kaviar",
+      "node_id": 16
+    },
+    "17182": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 130,
+      "total": 130,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004012,
+      "v_acct": "machinemiller",
+      "node_id": 12
+    },
+    "3667": {
       "rates_intensity_avg": 0,
       "rates_fertility": 0,
       "balance": 0,
@@ -756,9 +587,87 @@
       "harvest_state": "ACTIVE",
       "kami_state": "HARVESTING",
       "parked_bool": true,
-      "last_checked_ts": 1778002815,
-      "v_acct": "vuongdung1198",
-      "node_id": 33
+      "last_checked_ts": 1778004013,
+      "v_acct": "maia",
+      "node_id": 80
+    },
+    "6485": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 190,
+      "total": 190,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004013,
+      "v_acct": "Yeahta",
+      "node_id": 73
+    },
+    "4697": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 250,
+      "total": 250,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004013,
+      "v_acct": "BandG",
+      "node_id": 12
+    },
+    "4273": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 150,
+      "total": 150,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004013,
+      "v_acct": "wiuuuu",
+      "node_id": 60
+    },
+    "4557": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 160,
+      "total": 160,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004014,
+      "v_acct": "buja723",
+      "node_id": 62
+    },
+    "1750": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 190,
+      "total": 190,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004014,
+      "v_acct": "wiuuuu",
+      "node_id": 60
+    },
+    "6247": {
+      "rates_intensity_avg": 0,
+      "rates_fertility": 0,
+      "balance": 0,
+      "sync": 230,
+      "total": 230,
+      "harvest_state": "ACTIVE",
+      "kami_state": "HARVESTING",
+      "parked_bool": true,
+      "last_checked_ts": 1778004014,
+      "v_acct": "3333333333333333",
+      "node_id": 82
     }
   }
 }
