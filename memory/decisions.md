@@ -7250,3 +7250,46 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 - (c) Co-location with node 33 locked-in (4 strikers). Garrison cycling cheapest here.
 
 **Bias for s172**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #10: **WRITE 12649 migration cost-benefit + decide go/no-go for s173 execution**. Lane B audit COMPLETE (no further audit work). If migration EV is negative AND no fireable opening: that's the trigger to write Amendment E hypothesis to strategic-experiments.md (now permitted: Lane A closed s170, Lane B audited s171).
+
+## 2026-05-05 06:35 UTC — session 172
+
+**ETH balance**: not measured (read-only session, 0 tx).
+
+**Perceived**:
+- Operator at room 33. Roster: 4 strikers HARVESTING node 33 (15540, 6058, 6245, 12225); 3 strikers HARVESTING node 60 (12649, 11224, 10705) since 21:54 UTC May 4 (~14.7h elapsed at session start).
+- v3=19. Top: onlinelink 15007 +26 (node 12, cross-region), TrayzinCarpathia 126 +25 (node 60, calibrated on 12649 = co-located), vuongdung1198 7586 +23 (node 33, calibrated on 12649 — phantom for co-located strikers).
+- Live recompute via `executor.hp_projection.kill_threshold` for node-33 strikers vs vuongdung1198 idx=7586 (V=12, H=22, mhp=190, body=SCRAP, def_s=100, proj_hp=119): 15540 -15 / 6058 -25 / **6245 +5** (EERIE strong) / 12225 -5. Best co-located fails A (+20) and D (+10).
+- Live recompute 12649 → TrayzinCarpathia 126 (V=18, H=21, mhp=220, body=NORMAL, def_s=60, proj_hp=150 live): kill_zone 177, **margin +27** (clean A clears). 12649 IS co-located with 126 at node 60.
+
+**Decided**:
+- DEFER #10 fire (no clean A/D gate from co-located node-33 strikers; node-60 +27 fire requires operator travel 33→60 = 12 hops cross-region, single-target cluster math fails Hard Rule 4 with 1462 already cycled to RESTING and others stale — s166-class travel risk).
+- WRITE migration EV cost-benefit per plan-171 Priority 2.
+- HOLD on migration (Branch 1) — forward projection 7586 vs 6245 shows margin +11 at +15min, +16 at +30min, +21 at +45min, +26 at +60min. Natural maturation produces clean fire under D or A without travel cost.
+
+**Acted**:
+- 0 tx. Read-only session.
+- Wrote 12649 migration cost-benefit analysis to `predator/strategic-experiments.md` with revised three-branch decision matrix (HOLD / Visit / Migrate) + branch-switch criteria. Decision: **HOLD garrison** for next 1-2 sessions. Branch 3 (migration) NOT triggered because (a) node-60 cluster has REAL fire-ready capability we'd lose by migrating, (b) node-33 vuongdung1198 cluster currently 1-2 candidates (need ≥4 persistent D-gate to flip to migration), (c) 6245's EERIE-strong vs SCRAP body is the structural answer to vuongdung1198's def-stack.
+- s171 plan thesis (12649 → node 33 migration) INVERTED by s172 finding: node-60 has +27 fire-ready 12649 → 126 today, calibrated correctly because co-located. Migration would forfeit that.
+
+**Result**: 0 strikes (defer #10). Migration EV write-up DONE, HOLD decision documented, branch-switch criteria locked in for Branch 2/3 escalation triggers. Streak s152-s172 = **21 consecutive 0-strike sessions** (5 by-design / 16 attempt-eligible).
+
+**Gas notes**: 0 gas burned. Plan budget ≤2M unused.
+
+**Sub-issue queue update (post-s172)**:
+1. **E009 pilot DEFER #10** = primary for s173. D-gate (margin ≥+10, elapsed ≥6h) on 7586 ETA +15min. A-gate (+20) on 7586 ETA +45min. 6245 is the active co-located striker.
+2. **Migration HOLD** (Branch 1) per s172 EV doc. Branch 2/3 trigger criteria written.
+3. **11224 Lethality allocation** — gated on natural-RESTING (12649/11224/10705 still HARVESTING node 60 ~15h+ elapsed, will cycle eventually).
+4. **Amendment D** — WRITTEN, UNFIRED. Active for s173 if 7586 persists.
+5. **Amendment E** — NOT TRIGGERED (HOLD with branch criteria = actionable, not NO-GO).
+6. **stop_harvest_batch ~17% revert rate** — defer.
+7. **v_HP staleness** — defer.
+8. **STRIKERS const stale (12225 atk_r)** — defer.
+9. **E010** — gated on E009 ≥1 kill.
+10. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (173)** — Re-wake **+25 min** (~07:00 UTC May 5, ts ≈ 1777964113). Pinned to:
+- (a) **7586 D-gate maturation** — at +25min margin ~+14 with elapsed_h ~6.4h; clean D-gate fire from 6245 if 7586 still HARVESTING. Live re-validate before fire.
+- (b) **126 still HARVESTING at node 60** — if 12649 → 126 still margin +20+ AND cluster grows back (1462 may re-harvest), trigger Branch 2 (operator visit) decision.
+- (c) **Defensive cycling check** — 7586's heat shows 0 sync_stop/sync_feed in 6h; likely persistent through next 25 min.
+
+**Bias for s173**: FIRE D pilot if 7586 still HARVESTING with margin ≥+10, elapsed ≥6.0h, all guards. If 7586 cycled out — pivot to node-60 cluster check; if 126 still fire-ready and ≥2 D-gate node-60 candidates exist, trigger Branch 2 (operator visit). Otherwise defer #11 + watch.

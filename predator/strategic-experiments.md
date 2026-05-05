@@ -382,6 +382,60 @@ If hypothesis 2 dominates, the +30 floor is structurally unreachable on persiste
 
 ---
 
+## 12649 migration cost-benefit analysis (s172)
+
+**Status**: HYPOTHESIS DECISION (session 172 defer #10, plan-171 trigger). HOLD with revised thesis.
+
+**Trigger**: 20 consecutive 0-strike sessions (s152-s171, 15 attempt-eligible). s171 watcher surfaced vuongdung1198 cluster at node 33 calibrated on 12649 with margins +5/+7/+9/+10/+15. Plan-171 mandated EV write-up for migrating 12649 (node 60 → node 33) to convert "watcher-only signal" into "fireable from co-located striker".
+
+**s172 finding that reframes the thesis**:
+
+Per-striker margin recompute via `executor/hp_projection.kill_threshold` for the s172 top node-33 candidate (vuongdung1198 idx=7586, watcher margin +23 via 12649 calibration):
+
+| Striker | Hand | V | atk_s | atk_r | kill_zone | margin (vs proj_hp 119) |
+|---------|------|----|------|-------|-----------|-------------------------|
+| 15540   | NORMAL | 31 | 280 | 250 | 104 | -15 |
+| 6058    | SCRAP  | 31 | 280 | 250 | 94  | -25 |
+| **6245**| EERIE  | 30 | 260 | 500 | **124** | **+5** (ONLY positive co-located) |
+| 12225   | NORMAL | 30 | 280 | 500 | 114 | -5 |
+| 12649   | NORMAL | 34 | 400 | 500 | 143 | +24 (NOT co-located) |
+
+**Co-located max at node 33 vs persistent vuongdung1198 starver**: +5 (6245's EERIE-strong affinity vs SCRAP body is the only thing keeping it positive). Watcher's +23 was a 12649-calibration phantom — not actionable from current node-33 garrison.
+
+s172 also live-projected 12649 vs TrayzinCarpathia idx=126 at node 60 (12649's HOME node): margin **+27** clean, all guards met. 12649 has REAL fire-ready candidates at node 60 today.
+
+**This inverts the migration thesis**: migrating 12649 to node 33 would LOSE access to node-60 fire opportunities (where 12649's V=34 + atk_s=400 + co-location actually fires). The node-33 garrison's structural problem isn't 12649's absence — it's the strikers' weak baseline (V≤31, atk_s≤280, atk_r≤500) vs vuongdung1198's defensive specs (def_s=100 typical).
+
+**Three branches of action** (replacing the s171 binary GO/NO-GO):
+
+1. **HOLD garrison** (default). Wait for vuongdung1198 starvers' projected HP to drop further with elapsed_h growth. Forward projection on idx=7586 vs 6245: at +30min margin +16 (clears D), at +45min margin +21 (clears A), at +60min margin +26. 6245's EERIE strong affinity is the structural answer to vuongdung1198's SCRAP body. Cost: 0 gas. Benefit: free fires when starvers mature past D-gate naturally.
+
+2. **Operator visit to room 60** (NOT migration). Travel 33→60 (12 hops, ~1.5M gas), fire 12649 on whatever node-60 candidates remain (126 +27 today, plus whatever cycling reveals), return 33→60 later. Keeps roster split current. Captures node-60 +20 floor opportunities. Cost: ~3-5M gas per visit. Per-trip benefit: 1-3 obols + spoils + possible 11224 Lethality allocation if 11224 cycles to RESTING during visit.
+
+3. **Migrate 12649 → node 33** (the s171 plan). Stop_harvest 12649/11224/10705 at node 60 (~8-9M gas force-flush at 14h elapsed), travel 33→60→33 (~3M gas), harvest_start 12649 at node 33 (~250k-1M gas). Total ~15-30M. Lost: node-60 +27 fire opportunities (which we'd miss by leaving). Gained: 12649 calibration on node-33 candidates is no longer phantom — fire margins jump from +5 (6245) to +24 (12649). But the persistent cluster at node 33 is currently 1-2 candidates total (s172 watcher), so per-cycle benefit is small.
+
+**Decision matrix (revised)**:
+
+| Branch | Gas cost | Expected fires/week | EV (obol/gas) |
+|--------|----------|---------------------|---------------|
+| 1 HOLD | 0        | 1-3 from D-gate maturation | high (free) |
+| 2 Visit| 3-5M/visit | 2-4 per visit if cluster persists | mid (gas-positive if N≥2 fires) |
+| 3 Migrate | 15-30M one-time | 2-5 first week, then asymptote | low (only justified if vuongdung1198 cluster grows ≥4 D-gate candidates persistent — currently 1-2) |
+
+**Adoption (s172 decision)**: **HOLD** (Branch 1) for next 1-2 sessions. Re-evaluate after observing whether (a) vuongdung1198 starver maturation produces a clean fire under D-gate, (b) node-60 cluster persists or evaporates between sessions. If (a) lands ≥1 kill: doctrine affirmed, no migration. If (b) cluster persists across 3+ sessions WITH no node-33 fires: Branch 2 (operator visit) becomes higher EV than Branch 3 (migration).
+
+**Branch 3 trigger conditions** (would override HOLD): (a) vuongdung1198 surfaces ≥4 D-gate candidates persistent across 3+ sessions AND (b) node 60 has ≤1 fire-ready candidate per session AND (c) 11224 banked SP allocation is the binding constraint on node-33 firepower.
+
+**Cost of HOLD if wrong**: another defer #11 if 7586 cycles out before maturing past +10. Acceptable — cluster persistence has been observed, next cycle re-surfaces a similar candidate.
+
+**Counter-evidence to watch for**: a session where node-60 cluster fully evaporates (0 candidates ≥+10 watcher margin from 12649 perspective) for 2+ consecutive snapshots. Would shift Branch 2 EV down and make Branch 3 (migration) more attractive.
+
+**Relation to Amendment E**: NOT triggered. Migration EV produced actionable HOLD decision with concrete branch-switch criteria. Amendment E (modality shift) was the s171 trigger condition for "migration NO-GO confirmed" — current decision is HOLD-with-criteria, not NO-GO.
+
+**N**: 0 fires under any branch. s173 first decision point — execute HOLD if 7586 still HARVESTING with ≥+10 margin and ≥6h elapsed, fire D pilot.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.
