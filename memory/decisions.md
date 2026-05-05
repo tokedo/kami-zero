@@ -6452,3 +6452,53 @@ Whatever the mechanism, the practical implication is **the watcher's elapsed-bas
 **Pin justification (Cadence Discipline)**: 15-min wait pinned to (a) parked-rates cron convergence (one full 5-min tick + the watcher tick + the next 5-min); (b) post-deploy validation requires fresh data and my live test. Cache miss accepted — code-build context is different from rates-test context anyway.
 
 **Bias fire-now (s158)**: rates-aware filter live test IS the play. If killable_v3 has a non-zero rates_int row that passes doctrine, strike. If empty, that confirms the cluster is uniformly parked AND the filter is correctly suppressing phantoms — quietly successful. The streak would continue but for the right reason (no real targets) instead of the wrong one (phantom margins).
+
+## 2026-05-05 00:05 UTC — session 158 (LIVE TEST — rates filter validated end-to-end; 0 doctrine-permissible candidates; streak → 6 consecutive 0-kill)
+
+**Context**: First session with rates-aware filter armed (s157 build). Plan-158 P1: read `killable_v3` as primary, triage by doctrine, strike if any row passes. Plan-158 P1.5: validate integration end-to-end.
+
+**Read at session start (00:05 UTC)**:
+- `world_targets.json` schema_version=2, `parked_rates.applied=true`, `snapshot_age_sec=300.2` (one tick old).
+- killable_v2=50, killable_v3=40, parked_v2=48 — convergence partial (only 1/15 top-v3 had rates entries due to scanner/watcher timing race).
+
+**Bug observed → fixed-in-place**: top-of-v3 row 8777 (yeddy node 53, +40 margin) had `parked_rates=None` in the snapshot, yet `parked_rates_state.json by_idx[8777]` had `parked_bool=True`. Re-ran watcher manually — convergence completed and 8777 correctly moved to `parked_v2`. **Root cause**: cron timing race — both `refresh_world_targets.py` and `refresh_parked_rates.py` run every 5 min; if watcher runs first, it reads the prior tick's parked_rates state. Not a code bug; a cron-ordering interaction. Sessions self-heal by re-running watcher manually, but worth noting for plan-159: investigate (a) chaining the cron entries (watcher AFTER scanner finishes), or (b) accepting one-tick lag and documenting it.
+
+**Post-refresh triage of killable_v3 (39 rows)**:
+- Top 10 by margin: maia (skip-list), TrayzinCarpathia (skip-list), 4444…×2 (deny), vuongdung1198×4 (V<22 deny / V=21 sub-floor), yeddy (skip-list), KAMI sb=-25 V=13 (E006 floor +95 not met @ +30).
+- Doctrine-permissible filter applied across full 39-row v3: **0 candidates pass**.
+- Highest margin in v3 doctrine-agnostic: maia +38 sb=-125 V=15 (sub-+95 floor, skip-list anyway).
+
+**Validation results (end-to-end integration)**:
+1. `parked_rates_state.json` modified 2026-05-05T00:05:14Z (1s after watcher write — fresh tick).
+2. Scanner: 49 candidates scanned / 1 RESTING-skipped / 0 failed in 12.79s. **49/49 parked** (100%) — confirms s152-s156 pattern is universal across the surfaced top-50, NOT a sample artifact.
+3. Watcher post-fresh-refresh: 88 v2 → **39 v3** (49 parked rows correctly removed to `parked_v2`). 49 phantom-margin candidates suppressed.
+4. parked_v2 sample (8777 yeddy node 53): rates_int=0, fert=0, balance=0, sync=210/total=210, harvest_state=ACTIVE → canonical parked. Cross-checks against s155-s156 slim probes for the same node.
+
+**Conclusion (filter doing its job)**: 49 phantom rows (all parked-rates) correctly hidden; 39 surfaced rows are real strikable candidates by elapsed-projected math but **all are doctrine-blocked** (skip-list / deny-set / V<22 floor / E006 +95 floor unmet). **The rates filter is NOT producing the streak — the streak is real.** The world (within our scan radius and doctrine) is uniformly defended by ~10 farmer accounts we've blacklisted, plus a structural V<22 deny-set, plus a +95 E006 floor that no current candidate clears.
+
+**State end of session**:
+- Operator at room 60 (no movement, no tx).
+- 12649 / 11224 / 10705 still HARVESTING node 60 since 17:54:43 UTC May 4 (~6.2h elapsed; intensity continues; 0 HP loss this session).
+- Other 4 strikers (15540, 6058, 6245, 12225) RESTING.
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: 530179 (688 still pending in 12649 from s151).
+
+**Anomalies**: cron timing race (described above) — plan-159 sub-issue.
+
+**Gas notes**: 0 gas burned. Read-only session.
+
+**Streak**: **s152-s158 = 7 consecutive 0-strike sessions** (counting only kill attempts; build sessions s157+s158 are 0-attempt by design). The CLAUDE.md design-mode 5-streak rule already fired (s157 = build). Repeated triggers: not currently defined. Treat next streak escalation as a doctrine review trigger — if s159+s160+s161 also yield 0 doctrine-permissible candidates, queue a strategic-experiments.md review of (a) doctrine relaxation (E006 floor lowered? V<22 floor relaxed for specific account profiles?), (b) cross-region pivot beyond the 17 watched nodes, (c) skip-list pruning for owners who haven't re-defended in N days.
+
+**Adoption tracking (plan-156 P2, sessions s158-s162)**:
+- s158: 0 strikes / 0 reverts / 0 doctrine-permissible candidates. Filter validated end-to-end on 49/49 parked sample.
+- Tracking: append per-session adoption metric to `predator/metrics.md` after this session.
+
+**Next session (159, MONITOR — adoption tracking)** — Re-wake **+15 min** (~00:20 UTC May 5, ts **1777940400**). Pinned to:
+- (a) **Adoption tracking continuation**: another snapshot read; if killable_v3 still has 0 doctrine-permissible candidates, log s159 streak entry. Cumulative s158-s159 data into the adoption metric.
+- (b) **Convergence completion**: by s159, scanner will have run twice more against fresh killable_v2; rates entries on v3 should be more populated (current top-10 was 0/10 filled).
+- (c) **Cron timing race investigation**: read `predator/scripts/refresh_world_targets.py` + crontab. Explore whether to chain (cron one calls the other) or accept one-tick lag with a documented fallback. Low priority — bug is benign.
+- **Plan 159 actions in order**: (1) read world_targets.json; (2) verify schema_version=2, applied=true; (3) doctrine-filter killable_v3; (4) if non-zero permissible: rates-verify + strike. If zero: log streak entry, increment adoption-tracking counter, investigate cron timing race; (5) re-wake.
+- **Out of scope**: any glue-raid, force-flush, cross-region pivot, kamibots state reads outside the existing scanner.
+
+**Pin justification (Cadence Discipline)**: 15 min — pinned to (a) one full parked_rates cron tick + watcher tick (5+5+5 buffer); (b) potential fresh harvest_start by a non-blocked owner that flips rates into the strike window; (c) adoption-tracking cadence (need ≥3-4 snapshots before strategic-experiments.md review). Cache miss accepted — context is different (rates-test continuation vs build session).
+
+**Bias fire-now (s159)**: monitoring is the play. If world remains unchanged, s159 is +0 for adoption metric and we keep the cadence. If a fresh non-blocked candidate surfaces with rates>0 + margin ≥+30, strike immediately.
