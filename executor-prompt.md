@@ -71,20 +71,28 @@ If `killable_v3` is empty or missing: log defer with `no_world_targets`, exit.
 ### Step 4 — Filter
 Keep candidates passing ALL of:
 
-- `margin >= 25` (else tally `below_margin_floor`). The watcher's
-  `margin = kill_zone - proj_hp` is computed from the canonical
-  HP-projection formula (calibrated 6/6 against the team's
-  calculator). A margin of 25 is the safety buffer above zero.
-- Owner handle resolvable from `c.v_acct` OR `by_idx[c.v_idx].v_acct`
-  (else tally `owner_unresolvable` — rarely matters since liquidate
-  handles owner resolution itself, but it lets us flag data-quality
-  issues).
+- `margin / v_HP >= 0.02` (i.e. ≥ 2% of victim's total HP)
+  (else tally `below_margin_floor`).
+
+  The watcher computes `margin = kill_zone - proj_hp` from the
+  canonical kill_threshold formula (calibrated 6/6 against the
+  team's calculator). The kill threshold itself is fundamentally
+  HP-percentage based, so absolute-HP buffers don't normalize
+  across builds — a 25-HP buffer is overkill on a 100-HP glass
+  cannon and unreachable on a 300-HP guardian. 2% is a deliberately
+  mild starting threshold. If we see frequent reverts in
+  `runs.jsonl`, the optimizer tightens.
+
+- Owner handle resolvable from `c.v_acct` OR
+  `by_idx[c.v_idx].v_acct` (else tally `owner_unresolvable` —
+  rarely matters since liquidate handles owner resolution itself,
+  but it lets us flag data-quality issues).
 
 (That's it. No archetype list, no heat gates, no elapsed floor, no
-co-location gate. The watcher's `margin` already encodes everything
-about HP projection. The pre-strike viability check in Step 6 catches
-any last-minute drift. The optimizer adds gates only when evidence
-demands.)
+co-location gate. The watcher's `margin` already encodes the
+absolute HP buffer; we just normalize to %. The pre-strike viability
+check in Step 6 catches any last-minute HP drift. The optimizer
+adds gates only when evidence demands.)
 
 ### Step 5 — Decide
 - 0 survivors → log defer with `reject_counts`, exit. (Normal.)

@@ -1,3 +1,4 @@
 {"ts": 1777995200, "outcome": "defer", "candidates_seen": 22, "survivors": 0, "reject_counts": {"below_margin_floor": 22, "below_min_elapsed": 13, "archetype": 1}, "operator_node": null}
 {"ts": 1777995960, "outcome": "defer", "candidates_seen": 25, "survivors": 0, "reject_counts": {"below_margin_floor": 25, "archetype_rejected": 3, "below_min_elapsed": 13}, "operator_node": 60}
 {"ts": 1777996021, "outcome": "defer", "candidates_seen": 20, "survivors": 0, "reject_counts": {"below_margin_floor": 18, "below_min_elapsed": 8, "archetype_rejected": 2}, "operator_node": 60}
+{"ts": 1777996865, "outcome": "defer", "operator_node": 60, "candidates_seen": 17, "survivors": 0, "reject_counts": {"below_margin_floor": 17}, "consolidation": {"healed": false, "nodes_visited": []}}
