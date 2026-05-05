@@ -436,6 +436,66 @@ s172 also live-projected 12649 vs TrayzinCarpathia idx=126 at node 60 (12649's H
 
 ---
 
+## E009 Amendment E — "vuongdung1198 cluster fully migrated to anti-predator automation (100%-parked archetype)"
+
+**Status**: HYPOTHESIS (written s176, threshold MET per Lane-A/B doctrine — Lane A closed s170 + Lane B audited s171 + ≥3 consecutive sessions of 100%-parked deflation: s173+s174+s175 (s176 = 4th consecutive confirms))
+
+**Modality-shift context**: Streak s152–s176 = 25 consecutive 0-strike sessions (5 by-design / 20 attempt-eligible / 13 deferred E009 pilots). Original "5 consecutive 0-kill = design mode" trigger surpassed by 20 sessions. Doctrinal accountability for non-defer modality moves is the obligation that produces this hypothesis write-up. Pure-defer at 25-session 0-strike with 4-session structural deflation is doctrinally insufficient.
+
+**Observation summary** (4 consecutive sessions, s173–s176):
+
+| Session | node 33 vuongdung1198 sampled | parked_bool=True with negative rates_aware | non-archetype fire-eligible at node 60 |
+|---------|-------------------------------|--------------------------------------------|---------------------------------------|
+| s173    | 6/6 (rest unsampled)          | 6/6 (rates_aware -45 to -70)              | 0 |
+| s174    | 9 sampled / 6 unsampled-archetype | 9/9 (rates_aware -47 to -70)          | 0 (11319 +22 single-target, cross-region rejected) |
+| s175    | all sampled = parked          | all parked, rates_aware deeply negative   | 0 |
+| s176    | 13/14 sampled = parked        | 13/13 (rates_aware -27 to -75)            | 1 (3243 wiuuuu margin +16, parked_bool=None archetype REJECT) |
+
+**Stable surface specs**: vuongdung1198 candidates show consistent rates_aware_margin in [-27, -75], median ~-55. Raw kill_zone margins remain HIGH (+15 to +62 today), but rates-aware projection inverts every one — confirming the parked-rates phantom phenomenon (kill_zone projection trusts snapshot rates that were sampled while kami was already drained-and-parked, sync_hp does not actually drain from the on-chain state).
+
+**Hypothesis**: vuongdung1198 cluster has fully migrated to anti-predator automation that PRE-DRAINS sync_hp to floor (~0–20% of total) BEFORE leaving kamis at the node — kamis appear "harvesting" with high accumulated balance, but rates=0 means projected HP is NOT going to fall further with elapsed time, AND sync_hp is already at floor (operator stop_harvest mints whatever balance accumulated, then re-starts at full HP). Result: kamis remain in the killable scan with high raw margins indefinitely, but **no actual strike will land** because projected HP at strike-time ≠ actual sync_hp at strike-time. **Continuing to scan node 33 as primary fire surface is structurally negative-EV** under the current rates-aware doctrine.
+
+**Predictions** (test conditions for adoption / rejection):
+
+1. **P1 (continued deflation)**: vuongdung1198 candidates remain 100% `parked_bool=True` with `rates_aware_margin ≤ -20` for ≥7 consecutive sessions starting s176. **REJECT** if any session in that window shows ≥1 vuongdung1198 candidate with `parked_bool=False` (sampled = real strain present, fire-eligible).
+2. **P2 (operator-arrival sync_stop_burst)**: when bpeon operator next visits node 33 (any reason — visiting node 60 during s174 plan tested differently), within 5 min of room-arrival, watch for ≥3 vuongdung1198 stop_harvest events. Confirms automation is operator-arrival-triggered (CLAUDE.md "defensive cycling owners" pattern).
+3. **P3 (MUSU bounty pool stagnation)**: vuongdung1198 candidates' `harvest.bounty.balance` should NOT grow significantly over a 7d window for parked-state kamis (rates=0 means no minting). Query oracle: `SELECT kami_index, MIN(balance), MAX(balance), MAX-MIN AS delta FROM v_harvest_state WHERE owner='vuongdung1198' AND ts > now() - INTERVAL '7d'`. Expect delta < 100 MUSU per kami if hypothesis correct.
+
+**Test execution plan** (3-session continued observation + sample 5 non-archetype nodes):
+
+- **Phase 1 (s176–s179)**: continue passive observation. Log node-33 vuongdung1198 sampled %, rates_aware distribution per session. Confirm or reject P1.
+- **Phase 2 (s180+)**: scan 5 non-archetype-dominated nodes (candidates: node 25, node 73, node 9, node 16, node 88 from `hot_nodes`) for fire-surface comparison. If non-archetype nodes show ≥1 fire-eligible candidate (`rates_aware ≥+10`, sampled or non-archetype owner) per scan in ≥3 of 5 sessions, then **node 33 garrison location is confirmed structurally negative-EV** (the surface elsewhere exists, we just aren't there).
+- **Phase 3 (oracle query)**: P3 at any time — oracle is read-only and free.
+
+**Counter-response options if confirmed**:
+
+1. **Operator forced migration to node 60** (~15-30M gas one-time per E009 §"12649 migration cost-benefit"): re-activates 11224 Lethality allocation (banked SP=3, +24 kill_zone post-allocation per s171 audit) AND co-locates 12649 with REAL node-60 fire surface (TrayzinCarpathia/foden cluster). Note: trade-off is foden defensive-cycle cluster at node 60 (mostly parked-bool=None archetype reject).
+2. **Visiting raid pattern** (operator transit 33→60 mid-session for opportunistic node-60 fires, return to 33 garrison): captures node-60 +20 floor when it appears (cf. s172 12649 vs TrayzinCarpathia idx=126 +27 example), no migration commitment. Cost: ~3-5M gas per visit.
+3. **Multi-node garrison** (split roster): 2 strikers at node 33 (passive watch), 3 strikers at node 60 (active fire). Requires 11224 Lethality for node-33 contingent. Long-horizon if cluster diversification across nodes is the structural answer.
+4. **Glue-raid play** (E004 dependency): 6 Spirit Glue currently in inventory (lifetime metric), insufficient for 6-target lock per E008 plan. Craft batch first. If vuongdung1198 cluster remains parked-archetype-stable, glue-then-strike could pierce the automation lock IF projected HP truly is below kill_zone during the lock window. Test on lower-stakes target first.
+5. **Wait** (passive): defensive automation owners eventually shift patterns (~weeks-months observed in stefan97/foden histories). If cluster economics improves elsewhere, deflation here is irrelevant.
+6. **Hybrid** (counter-response 1 + 4): forced migration + glue-pre-strike test on node 60 cluster.
+
+**Decision criteria for adoption / counter-response**:
+
+- **ADOPT (Phase 1 confirms P1, Phase 2 confirms surface elsewhere)**: implement counter-response 1 (forced migration). Gas EV: 15-30M one-time vs. ~25 sessions × ~0 obol = -∞ obol/gas at status quo. Migration EV becomes positive even at 1 obol/week post-migration. The argument that "node 33 isn't EV-negative because gas spent is also 0" is INVALID at this defer count — we're paying a real opportunity cost in non-fired sessions where another node would have produced fires.
+- **REJECT (P1 falsified within 7 sessions)**: cluster wasn't fully captured by automation. Continue HOLD, no Amendment E action. Document recovery in metrics.
+- **PARTIAL (P1 holds but Phase 2 also shows structural deflation everywhere)**: world-wide parked-rates phenomenon is a meta shift, not a vuongdung1198-specific issue. Re-derive rates-aware doctrine, possibly relax `rates_aware_margin ≥+10` floor to +0 with stricter parked_bool=False co-requirement.
+
+**Relation to other modality work**:
+- **Amendment D**: N=0 fires. D-pilot trigger has been blocked by rates-aware gate (which Amendment E hypothesizes is the correct gate, so Amendment D is doctrinally consistent — just hasn't fired because the surface is empty).
+- **E009 Amendment C garrison N=2→3**: still active but irrelevant if surface itself is structurally drained.
+- **Branch 1/2/3 migration framework**: Amendment E is essentially "Branch 3 trigger conditions need re-thinking" — Branch 3 was conditioned on vuongdung1198 cluster GROWING (≥4 D-gate candidates persistent), which was the wrong frame; the cluster is large but RATES-DEAD, which is the new condition for migration justification.
+
+**Counter-argument worth steelmanning before Phase 1 completes**:
+- vuongdung1198 cycle may be ~24h+ (defensive automation cycles slowly relative to natural harvest cycles ~6-10h). 4-session window may be too short to characterize. P1 at ≥7 sessions accounts for this. If pattern persists 7+ sessions, the long-cycle hypothesis is also rejected (24h would have produced un-parked windows by now).
+
+**N**: 0 (HYPOTHESIS only — Phase 1 begins s177).
+
+**Read-back**: when reading this entry in s177, before any non-defer action, ask: "Has Phase 1 produced un-parked vuongdung1198 candidates? Is Phase 2 needed? Does world_targets.json show non-archetype-dominated nodes with fire-eligible candidates?" Answer in plan.md s177 if reaching for migration counter-response.
+
+---
+
 ## Lifecycle policy
 
 - New observation → write HYPOTHESIS entry within the same session you observed it.

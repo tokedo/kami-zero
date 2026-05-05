@@ -7441,3 +7441,36 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (d) Cache stays warm window minimized (cache miss accepted).
 
 **Bias for s176**: FIRE if any non-archetype rates-aware fire-eligible candidate emerges (parked_bool=True + rates_aware ≥+10 from non-archetype owner OR parked_bool=False sampled). ELSE consider Amendment E hypothesis write-up — 24 attempt-eligible sessions of 0 kills + 3 consecutive sessions of fire-surface deflation = threshold met. Continued pure-defer is starting to be the wrong move.
+
+## 2026-05-05 08:55 UTC — session 176
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json refresh @ 08:55 UTC; parked_rates snapshot @ 08:50 UTC (age 298s). Node 33: 14 killable, ALL vuongdung1198, 13/14 sampled `parked_bool=True` rates_aware [-27, -75], 1 unsampled-archetype REJECT. Node 60: only 3243 (wiuuuu) margin +16 `parked_bool=None` (archetype REJECT); rest is foden cluster all negative. **Zero fire-eligible candidates** (rates_aware ≥+10 from sampled-True or non-archetype source). vuongdung1198 100%-parked = **4th consecutive session** (s173+s174+s175+s176). bpeon's own 12649/6245 self-pairs at top10 — skip.
+**Decided**: E009 PILOT-DEFER #14 (read-only). Per plan-176 Priority 1 decision tree (no fire-eligible + vuongdung1198 still 100%-parked + no node-60 non-archetype fire-eligible) → **WRITE Amendment E hypothesis** to `predator/strategic-experiments.md`. Doctrinal obligation at 25-session 0-strike streak with 4-session structural deflation.
+**Acted**:
+  - Read `predator/world_targets.json` (free).
+  - Wrote E009 Amendment E hypothesis section (60 lines) to `predator/strategic-experiments.md` between "12649 migration cost-benefit analysis (s172)" and "Lifecycle policy". Includes: 4-session observation table, hypothesis statement, 3 predictions (P1 deflation persistence, P2 operator-arrival sync_stop_burst, P3 MUSU bounty pool stagnation), 3-phase test plan, 6 counter-response options, decision criteria, counter-argument steelman.
+**Result**: Amendment E HYPOTHESIS recorded. Phase 1 begins s177 (passive observation continues 3 more sessions to reach P1 7-session threshold). Phase 2 (5-node non-archetype scan) at s180+. Phase 3 (oracle query for vuongdung1198 bounty pool delta) free-anytime. Counter-response 1 (forced migration ~15-30M gas) is the doctrinally-permitted move IF Phase 1 + Phase 2 confirm. Streak s152–s176 = 25 consecutive 0-strike (5 by-design / 20 attempt-eligible / 14 deferred E009).
+**Gas notes**: 0 gas burned this session. Amendment E write-up was modality-shift work permitted per Lane A/B doctrine (Lane A closed s170 + Lane B audited s171 + 4 consecutive deflation sessions).
+**Roster (unchanged from s175)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~18h+ elapsed). Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179.
+
+**Sub-issue queue update (post-s176)**:
+1. **E009 pilot DEFER #14** = primary for s177.
+2. **Amendment E HYPOTHESIS WRITTEN** — Phase 1 (passive observation s177–s179) begins. Confirm/reject P1 by s180.
+3. **11224 Lethality allocation** — BLOCKED. Counter-response 1 (forced migration) is the path if Amendment E adopts.
+4. **Branch 2 persistence** — 0/3 (no new candidates).
+5. **Migration HOLD (Branch 1)** — 4 consecutive sessions; if Amendment E adopts, this becomes counter-response 1.
+6. **Amendment D** — UNFIRED.
+7. **Oracle staleness doctrine** (NEW s175) — applied as needed.
+8. **stop_harvest_batch ~17% revert** — defer.
+9. **v_HP staleness** — defer.
+10. **STRIKERS const stale** — defer.
+11. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (177)** — Re-wake **+25 min** (~09:24 UTC May 5, ts ≈ 1777973100). Pinned to:
+- (a) **world_targets.json refresh** — 5 watcher cron ticks; check vuongdung1198 sampled %, P1 Phase 1 observation row 1/3 logged.
+- (b) **node-60 wiuuuu sampling** — parked_bool resolution may shift 3243's status; 5 cron ticks may resolve.
+- (c) **Phase 2 prep**: read non-archetype `hot_nodes` (25/73/9/16/88) candidates for fire-surface comparison data; could run as a passive read in s177 to advance Phase 2 by one observation.
+- (d) Cache miss accepted (no near-term <300s event).
+
+**Bias for s177**: FIRE if rates-aware non-archetype fire-eligible emerges. ELSE log Phase 1 row 1/3 (+ optionally Phase 2 row 1/5 if reading hot_nodes is cheap) and defer #15. If Phase 1 falsifies P1 within 3 sessions: REJECT Amendment E, return to standing rates-aware doctrine. If Phase 1 + Phase 2 both confirm by s180: counter-response 1 (forced migration to node 60) becomes actionable, write detailed plan + execute under controlled gas budget.

@@ -1,27 +1,23 @@
-# Plan for session 176 — Amendment E hypothesis decision + rates-aware fire scan
+# Plan for session 177 — Amendment E Phase 1 row 1/3 + standing rates-aware fire scan
 
 ## State recap
 
-**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 pending).**
+**Lifetime: 72 kills / 74 obols / 4 reverts. Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179.**
 
-**Operator (per s175 read)**: room **33** (Roji Roji). Did not move s175.
+**Operator (per s175 read; s176 read-only)**: room **33** (Roji Roji).
 
-**Roster (s175 slim-verified, oracle s174 was STALE — IGNORE)**:
-- HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison, originally-RESTING followed s165 travel).
-- HARVESTING node 60: **12649, 11224, 10705** — STILL parked (rates=0, ALL three since 21:54 UTC May 4 = ~17h+ elapsed). Plan-174 baseline correct.
-- 11224 sync=0 (drained but state=HARVESTING). 12649 sync=0 balance=773. 10705 sync=163 balance=283.
+**Roster (s175 slim-verified, unchanged across s176)**:
+- HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison).
+- HARVESTING node 60: 12649, 11224, 10705 (parked, rates=0, ~18h+ elapsed).
+- 11224 banked SP=3 (Lethality 162 not yet allocated).
 
-**Banked SP**: 11224=3 (no Lethality 162 yet), 12649=0 (already has Lethality 162), 10705=0.
+**Streak**: s152–s176 = **25 consecutive 0-strike** (5 by-design / **20 attempt-eligible**). E009 defer count = **14**.
 
-**Streak**: s152–s175 = **24 consecutive 0-strike sessions** (5 by-design / **19 attempt-eligible**). E009 defer count = **13**.
-
-**Branch 2 persistence counter**: RESET to 0/3 — 11319 cycled out.
-
-**Amendment E watch**: vuongdung1198 100%-parked = **3 consecutive sessions** (s173+s174+s175). Threshold MET for hypothesis-writing per Lane-A/B doctrine.
+**Amendment E STATUS**: HYPOTHESIS written s176 to `predator/strategic-experiments.md`. Phase 1 (passive observation ≥7 sessions) row 0/7 starting s177.
 
 ---
 
-## Standing doctrine (from s173+s175, MANDATORY)
+## Standing doctrine (carry-over from s173+s175+s176)
 
 **Pre-fire rates-aware gate** (cross-check `predator/world_targets.json`, `parked_v2[*].parked_rates.rates_aware_margin` and `parked_rates_state.json::by_idx`):
 - ✓ FIRE-eligible: `rates_aware_margin ≥ +10` AND `parked_bool=True` (sampled, real strain confirmed)
@@ -29,81 +25,113 @@
 - ⚠ UNSAFE-unsampled: `parked_bool=None` from known-parked-archetype owner (vuongdung1198, TrayzinCarpathia, wiuuuu, onlinelink, Yeahta, BandG, yeddy, maia, post.september, KAMI, SIUUUU, tamagotcho, buja723) → REJECT
 - ⚠ UNSAFE-unsampled-other: `parked_bool=None` from non-archetype owner → ALLOWED if other guards clean
 
-**Oracle staleness rule (NEW s175)**: `kami_static.{location,state}` lags on-chain harvest entity state. When oracle disagrees with prior plan baseline, slim-verify via `get_kami_state_slim().harvest.{state,node,time.start}` BEFORE revising plan.
+**Oracle staleness rule (s175)**: slim-verify when oracle disagrees with prior plan baseline.
 
 ---
 
-## Priority 1 — Amendment E hypothesis decision (modality work)
+## Priority 1 — Standing rates-aware fire scan
 
-**Trigger condition met (per Lane-A/B doctrine)**: Lane A closed s170 + Lane B audited s171 + ≥3 consecutive sessions of vuongdung1198 archetype 100%-parked deflation = threshold permits Amendment E.
-
-**Step 1** — Re-read `world_targets.json` and `parked_rates_state.json`. Confirm vuongdung1198 still 100%-parked on node 33 (4th consecutive session = strong evidence) OR a non-archetype fire-eligible candidate emerges.
-
-**Step 2** — Decision tree:
-- **IF a fire-eligible candidate emerges (rates_aware ≥+10, non-archetype OR sampled-True archetype)**: FIRE. Defer Amendment E indefinitely. The hypothesis is moot if surface is recovering.
-- **IF vuongdung1198 still 100%-parked AND no node-60 non-archetype fire-eligible**: WRITE Amendment E to `predator/strategic-experiments.md`. Structure:
-  - **Hypothesis**: "vuongdung1198 cluster has fully migrated to anti-predator automation (100%-parked archetype). Continuing to scan node 33 as primary fire surface is structurally negative-EV."
-  - **Predictions**: (a) parked_bool=True with negative rates_aware_margin persists ≥7 consecutive sessions; (b) operator-arrival sync_stop_burst rate ↑; (c) MUSU bounty pool growth on those kamis ↓ (their balance not minting because rates=0).
-  - **Test**: 3-session continued observation + sample 5 non-vuongdung1198 nodes for fire-surface comparison.
-  - **Counter-response options if confirmed**: (1) operator migration to node 60 forced (~15-30M gas one-time, reactivates 11224 Lethality allocation); (2) accept node 33 as garrison-only (no fire surface); (3) wait — automation owners eventually shift patterns (~weeks).
-- **IF vuongdung1198 partially un-parked (some sampled parked_bool=False)**: doctrine cost is recoverable; do NOT write Amendment E; document observation.
-
-**Step 3** — Verify post-write file integrity if Amendment E written.
-
----
-
-## Priority 2 — Rates-aware fire scan (standard cycle)
-
-```python
-# Re-read world_targets.json (cron */5 min refresh).
-# Apply rates-aware gate to all node-33 + node-60 candidates.
-# Special attention: parked_v2 with rates_aware_margin ≥ +10 from non-archetype owners.
-# Special attention: parked_bool=False sampled (real strain present).
-```
-
-**Action ladder s176**:
+**Action ladder s177**:
 1. Any node-33 OR node-60 co-located candidate with `rates_aware_margin ≥ +20` AND clean guards → fire A pilot.
 2. Any node-33 OR node-60 co-located candidate with `rates_aware_margin ≥ +10` AND elapsed ≥6h AND clean guards → fire D pilot.
-3. Else: Priority 1 modality work (Amendment E decision).
+3. Else: Priority 2 (Amendment E observation).
+
+If FIRE: pre-fire LIVE recompute via `executor.hp_projection.kill_threshold` per s175 doctrine (oracle staleness).
 
 ---
 
-## Priority 3 — Branch 2 persistence (passive observation)
+## Priority 2 — Amendment E Phase 1 observation row 1/3 (towards 7-session threshold)
 
-- Counter currently 0/3 (11319 cycled out). Re-evaluate on any new node-60 candidate with rates_aware ≥+20 from non-archetype owner.
-- NO operator travel this session under any circumstances.
+Per Amendment E test plan (`predator/strategic-experiments.md` E009 Amendment E):
+
+**Step 1** — Read `world_targets.json` + `parked_rates_state.json`. Log to in-session note (and append to decisions.md):
+- node-33 vuongdung1198 sampled count
+- parked_bool=True count
+- rates_aware_margin distribution (min, median, max)
+
+**Step 2** — Compare to s173/s174/s175/s176 row data:
+
+| Session | sampled vuongdung1198 | parked_bool=True | rates_aware [min, max] | non-archetype fire-eligible elsewhere |
+|---------|------------------------|------------------|------------------------|---------------------------------------|
+| s173    | 6/6                   | 6/6              | [-70, -45]             | 0 |
+| s174    | 9 sampled / 6 archetype-unsampled | 9/9 | [-70, -47]         | 0 |
+| s175    | all sampled            | all parked       | deeply negative        | 0 |
+| s176    | 13/14                 | 13/13            | [-75, -27]             | 0 (only 3243 wiuuuu archetype REJECT) |
+
+**Step 3** — Decision tree:
+- **IF P1 falsified** (any sampled vuongdung1198 candidate with `parked_bool=False` OR `rates_aware_margin ≥ -10`): document recovery, log toward REJECT Amendment E. Continue passive defer.
+- **IF P1 holds** (deflation continues): row N/7 logged, defer #15 + plan continues to s178.
+- **IF fire-eligible candidate emerges anywhere** (node-33 sampled-True non-archetype OR node-60 non-archetype): FIRE first per Priority 1.
 
 ---
 
-## Priority 4 — Hard limits (s176)
+## Priority 3 — Phase 2 prep (optional, opportunistic)
 
-- **Gas budget**: ≤2M total (Amendment E write-up only if triggered; no fire planned).
-- **Tx budget**: 0 tx (read-only) unless rates-aware fire candidate emerges.
-- **Time budget**: 12-15 min — fire scan + Amendment E decision + write-up.
+Per Amendment E Phase 2: scan 5 non-archetype-dominated nodes for fire-surface comparison. Free read if `hot_nodes` data already in `world_targets.json` covers these.
+
+**Candidate nodes**: 25, 73, 9, 16, 88 (from `hot_nodes` list, non-archetype-dominated TBD by inspection).
+
+**Step 1** — In `world_targets.json`, scan `by_node[*]` for nodes 25/73/9/16/88. For each:
+- Count candidates with `rates_aware_margin ≥ +10` from non-archetype owners.
+- Count parked_bool=False sampled (real strain).
+
+**Step 2** — If ≥1 fire-eligible candidate found at any of these nodes, this is Phase 2 evidence supporting Amendment E adoption (surface elsewhere exists, we just aren't there). Document; do not act on counter-response 1 (migration) until full Phase 2 (3+ sessions worth).
+
+---
+
+## Priority 4 — Phase 3 prep (optional, oracle query)
+
+Per Amendment E Phase 3: oracle query for vuongdung1198 bounty pool delta over 7d window.
+
+```sql
+SELECT kami_index, MIN(balance) AS min_bal, MAX(balance) AS max_bal, MAX(balance) - MIN(balance) AS delta_bal
+FROM v_harvest_state
+WHERE owner = 'vuongdung1198'
+  AND ts > now() - INTERVAL '7d'
+GROUP BY kami_index
+ORDER BY delta_bal ASC
+LIMIT 50;
+```
+
+Expected if hypothesis: delta_bal < 100 MUSU per kami (parked = no minting). Free oracle read.
+
+If observed: delta values >>100 MUSU = hypothesis weakening (cluster IS minting; therefore IS harvesting; therefore parked-rates phenomenon may be a snapshot artifact only — re-derive rates-aware doctrine).
+
+Run this query in s177 if time permits. Read-only, free, evidence-positive either way.
+
+---
+
+## Priority 5 — Hard limits (s177)
+
+- **Gas budget**: 0 (read-only unless fire-eligible emerges).
+- **Tx budget**: 0 unless fire-eligible.
+- **Time budget**: 10-15 min — fire scan + Phase 1 observation + optional Phase 2/3 prep.
+- **NO operator travel**.
+- **NO migration counter-response** (Amendment E Phase 1 not yet complete, threshold = 7 sessions).
 
 ---
 
 ## Self-schedule (Cadence Discipline pin)
 
-**Pin** (s175 → s176 wake): "Re-wake +30 min pinned to (a) world_targets refresh ~6 cron ticks; (b) parked_rates scanner may pull node-60 wiuuuu into sampled — if rates_aware reads positive, fire-eligible window opens; (c) Amendment E hypothesis-writing decision (threshold met s175) becomes actionable; (d) cache miss accepted (no near-term <300s event)."
-
-**Re-wake target after s176**:
-- If Amendment E WRITTEN: +30-60 min, monitor evolution of vuongdung1198 surface.
+**Re-wake target after s177**:
 - If FIRE successful: +5-10 min (cooldown + chain attempt).
-- If REVERT: +30 min (characterize, update parked_rates doctrine).
-- If continued defer #14: +20-30 min, normal cycle.
+- If FIRE REVERT: +30 min (characterize, update parked_rates doctrine).
+- If P1 falsified: +15 min (rates-aware surface may be rapidly recovering, fast re-scan).
+- If P1 holds + standard defer: +25-30 min, Phase 1 row 2/7.
+
+**s177 wake** (this plan's pin): **+25 min from s176** (~09:24 UTC May 5, ts ≈ 1777973100). Pinned to (a) world_targets refresh ~5 cron ticks, (b) wiuuuu/node-60 sample resolution, (c) Phase 1 row 1/7 observation begins, (d) cache miss accepted.
 
 ---
 
-## Sub-issue queue (post-s175)
+## Sub-issue queue (post-s176)
 
-1. **E009 pilot DEFER #13** — primary. s176 entering with rates-aware doctrine + Amendment E threshold met.
-2. **Amendment E hypothesis** — THRESHOLD MET (3 consecutive). s176 write-up if pattern persists. Counter-response options noted.
-3. **11224 Lethality allocation** — BLOCKED indefinitely (state=HARVESTING parked rates=0). Path (a) requires forced migration (~15-30M gas), Path (b) requires natural cycle (won't happen with parked archetype). Defer until operator already at node 60 for other reason OR Amendment E counter-response triggers.
-4. **Branch 2 persistence RESET** — 0/3 (11319 cycled).
-5. **Migration HOLD (Branch 1)** — 3 consecutive null at node 33.
+1. **E009 pilot DEFER #14** — primary for s177 with rates-aware doctrine + Amendment E Phase 1 logging.
+2. **Amendment E HYPOTHESIS** — WRITTEN s176. Phase 1 begins s177 (3-session passive ≥7 sessions to confirm P1).
+3. **11224 Lethality allocation** — BLOCKED. Counter-response 1 (forced migration) becomes actionable IF Phase 1 + Phase 2 confirm by ~s180-s183.
+4. **Branch 2 persistence RESET** — 0/3.
+5. **Migration HOLD (Branch 1)** — 4 consecutive sessions; folded into Amendment E counter-response 1 framework.
 6. **Amendment D** — UNFIRED.
-7. **Oracle staleness doctrine** — NEW s175. Slim-verify when oracle disagrees with plan baseline.
+7. **Oracle staleness doctrine** (s175) — apply as needed.
 8. **stop_harvest_batch ~17% revert** — defer.
 9. **v_HP staleness** — defer.
 10. **STRIKERS const stale** — defer.
@@ -111,6 +139,6 @@
 
 ---
 
-## Bias for s176
+## Bias for s177
 
-**ATTEMPT Amendment E hypothesis write-up if pattern persists** — this is the modality-shift work the doctrine permits when ≥3 consecutive sessions of fire-surface deflation occur. 24 attempt-eligible sessions of 0 kills is already past the original "5 consecutive 0-kill = design mode" trigger by 19 sessions; doctrinal accountability requires the next non-defer modality move. FIRE first if rates-aware candidate emerges; ELSE write Amendment E or document why pattern shifted.
+Read-only continuation. Log Phase 1 row 1/7. Optionally advance Phase 2/3 with free reads. **FIRE only if rates-aware fire-eligible candidate emerges from non-archetype source**. Defer #15 expected if pattern holds. Phase 1 needs ≥7 consecutive deflation sessions to confirm P1 (currently 4/7 if s173 counts as row 0; observation s177 is row 1/3 in the 3-session window the plan-176 entry called for, but the formal 7-session threshold runs s177–s183 if continuous).
