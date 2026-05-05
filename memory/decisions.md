@@ -7103,3 +7103,49 @@ Branch B revisited and retracted: it assumed 3 stranded RESTING kamis at room 60
 **Next session**: s169 fires amendment A (+20 single trial) if any v3 candidate organically reaches +20 with co-located striker; else fires amendment D (+10 single trial) if vuongdung idx=9051 (or any node-33 persistent) reaches +10 with all D row guards; else defer #7 with no further amendment writing — at #7 the next escalation is committing roster level-up wave to push kill thresholds rather than relaxing margin floor (founder hard-rule #7 hp_projection back-fit certificate stays sacrosanct). Schedule +30 min (1777956625) pinned to (a) 6 cron-tick rotation may surface new persistent candidates above +20 since s168, (b) vuongdung idx=9051 elapsed_h growth from 7.22→7.72 = ~+2-3 margin gain, putting it at +7-8 (still below D's +10 — but next-after may hit), (c) BandG idx=590 at +16 may persist and approach +20 organically if its harvest stays uninterrupted.
 
 **Bias for s169**: Fire if ANY of {A, D} gates clean met. Defer #7 acceptable but next escalation must shift modality — either roster level-up doctrine (raise our kill thresholds) or accept node-86 hot_battleground as the only true-margin signal and investigate buzz cluster directly. **Do NOT extend amendment chain to E.** The diagnostic question Amendment D answers is pre-requisite for any further floor work.
+
+## 2026-05-05 04:55 UTC — session 169
+
+**ETH balance**: not measured (read-only session, 0 tx).
+
+**Perceived**:
+- Snapshot fresh (mtime 04:55:12Z, 8s before read). 15 v3 candidates, max margin **+19** (yeddy idx=270 node 53, eh=6.09, all guards clean — but **NOT co-located**, operator at room 33).
+- At co-located nodes: node 33 max +7 (eh=7.60); node 60 max +12 (eh=1.57h — fails D's ≥6h persistence guard).
+- Spot-checks confirm garrison: 15540 HARVESTING node 33 since 1777949385 (03:09 UTC May 5, ~1.7h elapsed); 12649 HARVESTING node 60 since 1777917283 (May 4 21:54, ~10.9h elapsed). Both balances/states match scanner.
+- `get_all_strategies(bpeon)` = `[]` — confirms NO auto_v2/rest_v3 on bpeon. Sub-issue #4 remains open (15540 cycle-restart on s168 origin still unexplained — natural cycle stop+restart is the only consistent hypothesis since strategies=[]; not concerning, kami productive). 
+- Pre-flight oracle drill on world-liquidations.jsonl (last 6h): **9 total kills world-wide, ALL at node 86, by 2 attackers (Assassins, aitcoin) on 2 victims** (chaining with revives). World is quiet. Our v3 surfaces zero node-86 candidates this snap — either heat/defensive_cycle filter is suppressing them OR the rivals are landing sub-+30 strikes our doctrine forbids.
+
+**Decided**:
+- E009 PILOT-DEFER #7 (no strike). v3 max margin +19 fails main (+30) and amendment-A (+20) gates; would clear D's +10 floor BUT D forbids travel and node 53 is cross-region (operator at 33). Co-located picks fail D's persistence (+12 node 60) or margin (+7 node 33).
+- **NO new amendments written** (per plan-168 explicit forbiddance of Amendment E).
+- Modality shift queued for plan-170: (a) **roster level-up wave** to push our kill thresholds (raise OUR side of inequality, since target supply is bound) AND/OR (b) **node 86 oracle drill** — investigate why competitors land kills there but our v3 surfaces zero candidates.
+- Streak now s152-s169 = **18 consecutive 0-strike sessions** (s157 build / s158 test / s162 design = 3 by-design / **15 attempt-eligible 0-strike**).
+
+**Acted**: 0 tx. Two slim-state reads + 1 strategy list + 1 oracle SQL + 1 local jsonl analysis (all free).
+
+**Result**: Garrison preserved (4×33, 3×60, all HARVESTING). Plan-170 has concrete pivot data: world is sparse (9 kills/6h, single node hot), competitors are chaining a glued-or-revive cycle at node 86 — investigating that cluster directly is now higher-EV than further floor relaxation.
+
+**Gas notes**: 0 gas spent.
+
+**State end of session**:
+- Operator at **room 33** (Roji Roji). Unchanged.
+- 7 strikers all HARVESTING (4 at node 33 building intensity from 03:09 / 02:49-02:54; 3 at node 60 since 21:54 May 4 ~10.9h elapsed).
+- Lifetime: **72 kills / 74 obols / 4 reverts** (unchanged). Spirit Glue: 6. Rock Candyfloss: 459. MUSU: ~530179 (~688 still pending in 12649).
+
+**Sub-issue queue update (post-s169)**:
+1. **E009 pilot DEFER #7** = primary for s170. Modality MUST shift — no further amendment writing.
+2. **NEW priority s170** — investigate node 86 hot_battleground via oracle drill (account names of victims, harvest rates, attacker behavior, do they use glue/revive cycle).
+3. **NEW priority s170** — compute roster level-up wave economics: each striker's banked XP, target levels, expected kill_threshold gain. If +5 levels per striker raises our floor enough that current +20 candidates become +30 candidates, that's the lever.
+4. Sub-issue #4 (15540 cycle-restart) — still open but de-prioritized; strategies=[] and natural cycle stop+restart suffices as explanation.
+5. Amendment D — WRITTEN but UNFIRED. Trigger remains as written.
+6. stop_harvest_batch ~17% revert rate — defer.
+7. v_HP staleness — defer.
+8. STRIKERS const stale (12225 atk_r) — defer.
+9. E010 step-2 — gated on E009 ≥1 kill.
+
+**Next session (170)** — Re-wake **+30 min** (~05:25 UTC May 5, ts ≈ 1777958125). Pinned to:
+- (a) **6 cron-tick rotation** of v3 candidate set may surface persistent +20 candidate at node 33 or 60 to clear amendment-A gate organically.
+- (b) **Modality-shift work**: oracle drill on node 86 victims (who? what build? what node bonuses? is there a competitor-glue pattern?). Roster level-up XP audit to compute kill-threshold uplift potential.
+- (c) **Co-location locked** at node 33 (4 strikers); cycling here is cheapest.
+
+**Bias for s170**: Read-and-decide on fire (A or D gate met → fire pilot). If defer #8: **execute modality shift WORK**, not more deferring. The 18-session streak is a doctrine cost; the way out is changing what we look at, not waiting longer for v3 floor to surface naturally.
