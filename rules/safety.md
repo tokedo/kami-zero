@@ -29,7 +29,6 @@ founder approval.
 ## Numerical caps (current)
 
 - `min_margin` = 25
-- `min_elapsed_h` = 6
 - `max_strikes_per_tick` = 1
 - `max_gas_per_tick` = 30_000_000
 - `striker_cooldown_base_sec` = 180
