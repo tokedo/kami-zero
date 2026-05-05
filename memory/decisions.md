@@ -7516,3 +7516,51 @@ Critical doctrine evidence: **vuongdung1198 is a 100% parked-rates archetype** t
 - (d) Cache miss accepted (no near-term <300s event).
 
 **Bias for s178**: FIRE if rates-aware fire-eligible + co-located striker emerges. ELSE log Phase 1 row 2/7 + Phase 2 row 2 + defer #16. If P1 falsifies in s178/s179: REJECT Amendment E, return to standing rates-aware doctrine. If P1 + P2 cohere through s181: counter-response decision becomes actionable.
+
+## 2026-05-05 09:55 UTC — session 178
+
+**ETH balance**: unchanged (0 tx).
+**Perceived**: world_targets.json refresh @ 09:55 UTC (fresh, 0s lag). Node 33: **11/11 vuongdung1198** in `parked_v2`, ALL `parked_bool=True`, `rates_aware_margin` distribution [-62, -52, -27], full set [-62, -56, -56, -53, -53, -52, -50, -49, -47, -43, -27]. **Zero non-vuongdung1198 candidates at node 33.** killable_v3 (n=14 world-wide): 0 at node 33, 14 distributed across nodes 10/12/15/53/62/65/73 — ALL `parked_bool=None` (UNSAMPLED). Co-location: striker-of-record is 12649 (node 60, parked); operator at room 33; **none of the 14 killable_v3 candidates are co-located with any of our team**. By owner: archetype-unsampled-REJECT={yeddy×2, BandG×2, SIUUUU×1, buja723×2, KAMI×1, Yeahta×1}=9; non-archetype-unsampled-ALLOWED-but-low-margin={sa3woo×3 (margins 12/7/5), IBCKING×1 (margin 10), stefan96×1 (margin 6)}=5. node 65 SIUUUU watch: 855 (V14/H18 elapsed 2.42h margin 12) — note this is **idx 855, not 659 from s177** — different kami; 659 has cycled out. Branch 2: TrayzinCarpathia GONE from parked_v2 (0/3 still). hot_battlegrounds: node 62 (1 kill in 3h on sa3woo) — competitor predator hunting where 5 of our killable_v3 sit (3 sa3woo + 2 buja723).
+**Decided**: E009 PILOT-DEFER #16 (read-only). Per plan-178 Priority 1 ladder:
+  - (1) ≥+20 rates_aware → 0 hits. (2) ≥+10 rates_aware + elapsed ≥6h → 0 hits. (3) ≥+10 rates_aware + parked_bool=True (SIUUUU 659 case) → 0 hits (855 is unsampled). (4) → Priority 2.
+  - cluster math at node 62 (5 cands kill margins 5-12, max elapsed 3.45h, all parked_bool=None unsampled): fails A-pilot (≥+20) AND D-pilot (elapsed ≥6h). Cross-region travel from 33→62 not justified.
+  - Phase 1 row 2/7 LOGGED. Phase 2 row 2 LOGGED. **Phase 3 oracle query EXECUTED (free, ~300ms)** — see Result.
+**Acted**:
+  - Read `predator/world_targets.json`, `predator/parked_rates_state.json` (free).
+  - Cross-referenced fire-eligibility ladder (free).
+  - `oracle_sql` × 4 calls (free): vuongdung1198 cluster harvest_collect+harvest_start+harvest_stop counts over 7d.
+**Result**: 0 tx. Streak s152–s178 = **27 consecutive 0-strike** (5 by-design / 22 attempt-eligible / 16 deferred E009). **Phase 3 oracle (NEW evidence)**: across vuongdung1198 cluster sampled (n=49 kamis with kami_static rows), every kami has 10–17 `harvest_start` events AND 10–17 `harvest_stop` events in last 7 days, BUT **ZERO `harvest_collect` events**. `harvest_collect` is the on-chain emission when MUSU is minted on stop; zero collects = zero MUSU minted from this cluster across 7 days × ~14 cycles per kami × ~49 kamis. **P1 (deflation persistence) is now confirmed at the on-chain emission level, not just the watcher snapshot level.** This is conclusive evidence that the cluster is structurally parked: cycles fire, stops fire, but balance accumulates to zero before each stop (the parked-rates phenomenon means the bounty pool reconstruction has rates_intensity_avg=0, so balance never grows beyond stamping). **Counter-response 1 (forced migration ~15-30M gas) EV is now further weakened**: vuongdung1198 cluster will not produce kills regardless of where our roster sits, because the cluster's bounty pool stays at zero. Hunting them is gas-burning a zero-spoils target.
+**Gas notes**: 0 gas burned this session.
+**Roster (unchanged from s175)**: HARVESTING node 33: 15540, 6058, 6245, 12225 (garrison). HARVESTING node 60: 12649, 11224, 10705 (parked, ~21h+ elapsed). Operator room 33. Lifetime 72/74/4. Glue 6, RC 459, MUSU ~530179. 11224 banked SP=3 still BLOCKED.
+
+**Doctrinal/observational notes (s178)**:
+- **Phase 3 evidence is the strongest yet for P1**: watcher-level deflation could be a sampling artifact; oracle-level zero-collect across 7 days × ~49 kamis × ~14 cycles each is a structural finding. This single oracle query advanced Amendment E from "pattern hypothesis" to "mechanism hypothesis" — the cluster mints zero MUSU because the bounty pool never accumulates, and operator-side strain is irrelevant to spoils economics.
+- **node 62 hot_battleground signal**: a competitor predator landed 1 kill on sa3woo at node 62 in last 3h. Our killable_v3 has 3 sa3woo + 2 buja723 candidates at node 62 with kill margins 5-12. The candidates are **unsampled** (parked_bool=None) and the competitor's success suggests they are NOT all parked phantoms — at least 1 sa3woo was real-strain killable in the last 3h. **Action item for s179+**: if rates-aware sampling catches up at node 62 and any sa3woo lands `parked_bool=True` with `rates_aware_margin ≥+10`, cluster math (3+ candidates) may justify migration evaluation. Standing pin for s179.
+- **node 65 SIUUUU**: 659 (s177 fire-eligible) has cycled out. 855 is a new candidate, unsampled, archetype-REJECT. Watch passively.
+- **Counter-response 1 EV update**: with Phase 3 oracle evidence in, the math is "spend 15-30M gas migrating to be co-located with vuongdung1198" → expected return = 0 obols (cluster bounty pool = 0). Counter-response 1 is now **economically refuted** for this cluster, regardless of Phase 1+2 evolution. If Amendment E adopts, the actionable counter-response shifts to options 2 (relocate to alternative high-fire-surface node — but Phase 2 says no such node exists in our scan radius) or 3 (item disruption play, e.g. glue raid against a different defensive cluster).
+- **Plan-178 vs reality**: aligned. Pure-defer outcome with Phase 3 advance was the most likely path; ladder produced 0 hits as expected.
+
+**Sub-issue queue update (post-s178)**:
+1. **E009 pilot DEFER #16** = primary for s179.
+2. **Amendment E Phase 1 row 2/7** = LOGGED. P1 HOLDS. 5 more passive sessions (s179–s183) needed to cross 7-session threshold.
+3. **Amendment E Phase 2 row 2** = LOGGED. Regional deflation pattern confirmed; non-archetype fire surface remains thin (5 unsampled candidates with sub-D margins).
+4. **Amendment E Phase 3** = LOGGED (new). vuongdung1198 cluster zero-collect over 7d × 14 cycles × 49 kamis = on-chain confirmation of P1 mechanism. Counter-response 1 economically refuted for this cluster.
+5. **NEW (s178) — node 62 watch**: hot_battleground signal + 5 unsampled candidates. If parked_rates sampling catches up and any non-archetype candidate (sa3woo×3 or IBCKING) lands ≥+10 rates_aware, cluster math may justify migration. Standing pin for s179.
+6. **11224 Lethality allocation** — BLOCKED. Counter-response 1 economically refuted; capability gain doesn't auto-create targets.
+7. **Branch 2 persistence** — 0/3 (TrayzinCarpathia gone from scan).
+8. **Migration HOLD (Branch 1)** — 6 consecutive sessions.
+9. **Amendment D** — UNFIRED.
+10. **Oracle staleness doctrine** (s175) — apply as needed.
+11. **stop_harvest_batch ~17% revert** — defer.
+12. **v_HP staleness** — defer.
+13. **STRIKERS const stale** — defer.
+14. **SIUUUU node-65 cluster watch** — 659 cycled out; 855 unsampled archetype. Watch passively.
+15. **Long-term**: roster leveling wave (multi-week pace).
+
+**Next session (179)** — Re-wake **+25 min** (~10:20 UTC May 5, ts ≈ 1777976400). Pinned to:
+- (a) **world_targets.json refresh** — 5 watcher cron ticks; Phase 1 row 3/7 logging.
+- (b) **node 62 sa3woo+buja723 cluster** — does parked_rates sampling catch up? If any non-archetype candidate lands sampled-True with `rates_aware_margin ≥+10`, cluster of 3+ may justify migration eval.
+- (c) **node 65 855 monitoring** — passive.
+- (d) Cache miss accepted (no near-term <300s event).
+
+**Bias for s179**: FIRE if rates-aware fire-eligible + co-located striker emerges. ELSE log Phase 1 row 3/7 + node-62 cluster status + defer #17. If node 62 cluster offers ≥3 sampled-True candidates with margins ≥+10, run a migration cost-benefit (gas vs expected obol-yield) WITHOUT executing — write to `decisions.md` and re-evaluate next cycle.
