@@ -23,7 +23,27 @@ sys.path.insert(0, str(REPO_ROOT))
 from executor.hp_projection import compute_current_hp, kill_threshold
 
 ORACLE_URL = "https://136-112-224-147.sslip.io"
-ORACLE_TOKEN = "pV6WYI4HUSLWK95cSg_YJbDlD6rTdCDaYCCMqhQvTl8"
+ENV_PATH = Path.home() / ".blocklife-keys" / ".env"
+
+
+def load_oracle_token() -> str:
+    """Read KAMI_ORACLE_TOKEN from env or ~/.blocklife-keys/.env (no python-dotenv)."""
+    tok = os.environ.get("KAMI_ORACLE_TOKEN", "").strip()
+    if tok:
+        return tok
+    if ENV_PATH.exists():
+        with open(ENV_PATH) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                if k.strip() == "KAMI_ORACLE_TOKEN":
+                    return v.strip()
+    raise RuntimeError(f"KAMI_ORACLE_TOKEN missing from env and {ENV_PATH}")
+
+
+ORACLE_TOKEN = load_oracle_token()
 
 OUTPUT_PATH = REPO_ROOT / "predator" / "world_targets.json"
 GUILD_PATH = REPO_ROOT / "predator" / "guild-no-touch.csv"
